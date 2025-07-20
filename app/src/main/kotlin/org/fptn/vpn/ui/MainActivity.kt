@@ -19,6 +19,7 @@ import kotlinx.coroutines.launch
 import org.fptn.vpn.core.designsystem.theme.PvnTheme
 import org.fptn.vpn.viewmodel.AuthActivityUiState
 import org.fptn.vpn.viewmodel.MainViewModel
+import org.fptn.vpn.views.HomeActivity
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class MainActivity : ComponentActivity() {
@@ -73,7 +74,7 @@ class MainActivity : ComponentActivity() {
                     }
                     is AuthActivityUiState.Main -> {
                         val context = LocalContext.current
-                        context.startActivity(Intent(context, MainActivity::class.java))
+                        context.startActivity(Intent(context, HomeActivity::class.java))
                     }
                 }
             }

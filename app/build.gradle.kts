@@ -38,7 +38,7 @@ android {
                 } else {
                     println(
                         "Warning: keystore.properties file not found. " +
-                                "Release signing configuration will not be applied.",
+                            "Release signing configuration will not be applied.",
                     )
                 }
             }
