@@ -140,6 +140,7 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
             if (!NetworkUtils.isOnline(connectivityManager)) {
                 Log.e(TAG, "onStartCommand: no active internet connections!");
                 disconnect(new PVNClientException(ErrorCode.NO_ACTIVE_INTERNET_CONNECTIONS));
+                return;
             }
 
             try {

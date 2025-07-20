@@ -15,7 +15,7 @@ import lombok.Getter;
 
 public class NativeSpeedTestTask implements Callable<NativeSpeedTestResult> {
     private static final String GET_FILE_PATH = "/api/v1/test/file.bin";
-    private static final int TIMEOUT = 5;
+    private static final int TIMEOUT = 10;
 
     @Getter
     private final FptnServerDto fptnServerDto;
@@ -31,7 +31,7 @@ public class NativeSpeedTestTask implements Callable<NativeSpeedTestResult> {
     }
 
     @Override
-    public NativeSpeedTestResult call() {
+    public NativeSpeedTestResult call() throws PVNClientException {
         Instant start = Instant.now();
         Log.d(getTag(), "call() start test: " + fptnServerDto.name);
         NativeResponse response = nativeHttpsClient.Get(GET_FILE_PATH, TIMEOUT);
@@ -39,10 +39,10 @@ public class NativeSpeedTestTask implements Callable<NativeSpeedTestResult> {
             Instant end = Instant.now();
             long durationsMillis = Duration.between(start, end).toMillis();
             Log.d(getTag(), "call() end test: " + fptnServerDto.name + " duration: " + durationsMillis + " ms");
-            return new NativeSpeedTestResult(fptnServerDto, durationsMillis, null);
+            return new NativeSpeedTestResult(fptnServerDto, durationsMillis);
         } else {
             Log.d(getTag(), "call() end test: " + fptnServerDto.name + " error: " + response.errorMessage);
-            return new NativeSpeedTestResult(fptnServerDto, Long.MAX_VALUE, new PVNClientException(response.errorMessage));
+            throw new PVNClientException(response.errorMessage);
         }
     }
 
