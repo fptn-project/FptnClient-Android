@@ -236,7 +236,7 @@ public class CustomVpnConnection extends Thread {
         }
     }
 
-    private void onConnectionFailure() {
+    public void onConnectionFailure() {
         Log.d(getTag(), "onConnectionFailure() Thread.id: " + Thread.currentThread().getId());
         cancelReconnectTask();
         try {
@@ -260,7 +260,7 @@ public class CustomVpnConnection extends Thread {
                 } else {
                     onFailureInterrupt();
                 }
-            }, 1L, DELAY_BETWEEN_RECONNECT_ON_FAILURE, TimeUnit.SECONDS);
+            }, 0L, DELAY_BETWEEN_RECONNECT_ON_FAILURE, TimeUnit.SECONDS);
         } catch (RejectedExecutionException exception) {
             Log.w(getTag(), "OnFailure task rejected!", exception);
         }

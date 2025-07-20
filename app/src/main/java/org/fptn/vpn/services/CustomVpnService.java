@@ -208,17 +208,13 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
                 super.onCapabilitiesChanged(network, networkCapabilities);
                 Log.i(TAG, "ConnectivityManager.NetworkCallback.onCapabilitiesChanged() Thread.Id: " + Thread.currentThread().getId());
 
-                CustomVpnConnection customVpnConnection = activeConnection.get();
-                if (customVpnConnection != null
-                        && serviceStateMutableLiveData.getValue().getConnectionState().isActiveState()
-                        && NetworkUtils.isOnline(connectivityManager)) {
-                    String currentIPAddress;
+                CustomVpnConnection currentConnection = activeConnection.get();
+                if (currentConnection != null && NetworkUtils.isOnline(connectivityManager)) {
                     try {
-                        currentIPAddress = NetworkUtils.getCurrentIPAddress();
-                        if (!Objects.equals(currentIPAddress, customVpnConnection.getCurrentActiveNetworkIP())) {
-                            FptnServerDto fptnServerDto = customVpnConnection.getFptnServerDto();
-                            setActiveConnection(null);
-                            connect(fptnServerDto, SharedPrefUtils.getSniHostname(getApplicationContext()));
+                        String currentIPAddress = NetworkUtils.getCurrentIPAddress();
+                        if (!Objects.equals(currentIPAddress,
+                                currentConnection.getCurrentActiveNetworkIP())) {
+                            currentConnection.onConnectionFailure();
                         }
                     } catch (SocketException e) {
                         Log.e(TAG, "onCapabilitiesChanged() exception", e);
