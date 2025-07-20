@@ -26,10 +26,12 @@ kotlin = "2.2.0"
 ksp = "2.2.0-2.0.2"
 lombock = "1.18.38"
 material = "1.12.0"
+mockk = "1.14.5"
 monitor = "1.7.2"
 navigation = "2.9.1"
 protobuf = "4.26.1"
 roomRuntime = "2.7.2"
+serialization = "1.9.0"
 splashScreen = "1.0.1"
 timber = "5.0.1"
 tracing = "1.3.0"
@@ -81,10 +83,13 @@ koin-core-viewmodel-jvm = { group = "io.insert-koin", name = "koin-core-viewmode
 koin-test = { group = "io.insert-koin", name = "koin-test", version.ref = "koin" }
 kotlin-gradle-plugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
 kotlin-metadata-jvm = { group = "org.jetbrains.kotlin", name = "kotlin-metadata-jvm", version.ref = "kotlin" }
+kotlin-test = { group = "org.jetbrains.kotlin", name = "kotlin-test", version.ref = "kotlin" }
 kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutinesCore" }
+kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "serialization" }
 ksp-gradle-plugin = { group = "com.google.devtools.ksp", name = "com.google.devtools.ksp.gradle.plugin", version.ref = "ksp" }
 lombock = { group = "org.projectlombok", name = "lombok", version.ref = "lombock" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
 navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigation" }
 timber = { group = "com.jakewharton.timber", name = "timber", version.ref = "timber" }
 zxing = { module = "com.google.zxing:core", version.ref = "zxing" }
@@ -94,3 +99,4 @@ compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "
 crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "crashlytics" }
 deps-sorting = { id = "com.squareup.sort-dependencies", version.ref = "autonomousappsSorting" }
 deps-unused = { id = "com.autonomousapps.dependency-analysis", version.ref = "autonomousappsUnused" }
+serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "serialization" }

@@ -79,6 +79,7 @@ plugins {
     alias(libs.plugins.crashlytics) apply false
     alias(libs.plugins.deps.sorting) apply false
     alias(libs.plugins.deps.unused) apply true
+    alias(libs.plugins.serialization) apply false
 }
 
 applyPrecheckOptions()
