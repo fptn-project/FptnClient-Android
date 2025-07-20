@@ -125,4 +125,8 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="access_token_format">Invalid token format! Check the correctness of the input.</string>
 
 
+    <string name="home_title">Home</string>
+    <string name="settings_title">Settings</string>
+    <string name="not_connected">⚠️ You aren’t connected to the internet</string>
+
 </resources>

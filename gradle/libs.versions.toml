@@ -1,10 +1,14 @@
 [versions]
 activity = "1.10.1"
+androidxComposeBom="2025.06.01"
 appcompat = "1.7.1"
 autonomousappsSorting = "0.14"
 autonomousappsUnused = "2.19.0"
+composeConstraintLayout = "1.1.1"
 constraintlayout = "2.2.1"
+coroutinesCore = "1.10.2"
 crashlytics = "3.0.5"
+datastore = "1.1.7"
 detektPlugin = "1.23.8"
 firebaseBom = "33.16.0"
 firebaseCrashlyticsPlugin = "3.0.5"
@@ -14,27 +18,49 @@ guava = "33.4.8-jre"
 ipaddress = "5.5.1"
 jacksonDatabind = "2.19.2"
 java = "17"
+javaPoet = "1.13.0"
 junit = "4.13.2"
 junitTest = "1.2.1"
+koin = "4.1.0"
 kotlin = "2.2.0"
 ksp = "2.2.0-2.0.2"
 lombock = "1.18.38"
 material = "1.12.0"
 monitor = "1.7.2"
+navigation = "2.9.1"
 protobuf = "4.26.1"
 roomRuntime = "2.7.2"
+splashScreen = "1.0.1"
+timber = "5.0.1"
+tracing = "1.3.0"
 zxing = "3.5.3"
 
 [libraries]
 android-gradle-plugin = { group = "com.android.tools.build", name = "gradle", version.ref = "gradlePlugin" }
 androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
+androidx-activity-compose = { group = "androidx.activity", name = "activity-compose" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "androidxComposeBom" }
+androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation" }
+androidx-compose-material-icons-core = { group = "androidx.compose.material", name = "material-icons-core" }
+androidx-compose-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
+androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3" }
+androidx-compose-material3-window-size = { group = "androidx.compose.material3", name = "material3-window-size-class" }
+androidx-compose-ui = { group = "androidx.compose.ui", name = "ui" }
+androidx-compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
+androidx-compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
+androidx-compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
 androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
+androidx-constraintlayout-compose = { group = "androidx.constraintlayout", name = "constraintlayout-compose", version.ref = "composeConstraintLayout" }
+androidx-core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "splashScreen" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitTest" }
 androidx-monitor = { group = "androidx.test", name = "monitor", version.ref = "monitor" }
+androidx-navigation-runtime-android = { group = "androidx.navigation", name = "navigation-runtime-android", version.ref = "navigation" }
 androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "roomRuntime" }
 androidx-room-guava = { module = "androidx.room:room-guava", version.ref = "roomRuntime" }
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "roomRuntime" }
+androidx-tracing = { group = "androidx.tracing", name = "tracing", version.ref = "tracing" }
+datastore = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
 detekt = { group = "io.gitlab.arturbosch.detekt", name = "detekt-gradle-plugin", version.ref = "detektPlugin" }
 firebase-analytics = { group = "com.google.firebase", name = "firebase-analytics" }
 firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }
@@ -44,16 +70,27 @@ google-services = { group = "com.google.gms", name = "google-services", version.
 guava = { module = "com.google.guava:guava", version.ref = "guava" }
 ipaddress = { module = "com.github.seancfoley:ipaddress", version.ref = "ipaddress" }
 jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jacksonDatabind" }
+java-poet = { group = "com.squareup", name = "javapoet", version.ref = "javaPoet" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
+koin-android = { group = "io.insert-koin", name = "koin-android", version.ref = "koin" }
+koin-androidx-compose = { group = "io.insert-koin", name = "koin-androidx-compose" }
+koin-androidx-runtime-android = { group = "io.insert-koin", name = "koin-androidx-runtime-android" }
+koin-bom = { group = "io.insert-koin", name = "koin-bom", version.ref = "koin" }
+koin-core = { group = "io.insert-koin", name = "koin-core" }
+koin-core-viewmodel-jvm = { group = "io.insert-koin", name = "koin-core-viewmodel-jvm" }
+koin-test = { group = "io.insert-koin", name = "koin-test", version.ref = "koin" }
 kotlin-gradle-plugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
 kotlin-metadata-jvm = { group = "org.jetbrains.kotlin", name = "kotlin-metadata-jvm", version.ref = "kotlin" }
+kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutinesCore" }
 ksp-gradle-plugin = { group = "com.google.devtools.ksp", name = "com.google.devtools.ksp.gradle.plugin", version.ref = "ksp" }
 lombock = { group = "org.projectlombok", name = "lombok", version.ref = "lombock" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigation" }
+timber = { group = "com.jakewharton.timber", name = "timber", version.ref = "timber" }
 zxing = { module = "com.google.zxing:core", version.ref = "zxing" }
 
 [plugins]
+compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "crashlytics" }
 deps-sorting = { id = "com.squareup.sort-dependencies", version.ref = "autonomousappsSorting" }
 deps-unused = { id = "com.autonomousapps.dependency-analysis", version.ref = "autonomousappsUnused" }
-
