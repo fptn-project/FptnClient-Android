@@ -15,12 +15,13 @@ class FptnLib(ConanFile):
     requires = (
         "zlib/1.3.1",
         "fmt/11.1.3",
+        # need to update boost
         "boost/1.83.0",
         "abseil/20250127.0",
-        "argparse/3.1",
+        "argparse/3.2",
         "spdlog/1.15.1",
         "protobuf/5.27.0",
-        "nlohmann_json/3.11.3",
+        "nlohmann_json/3.12.0",
     )
     settings = (
         "os",
