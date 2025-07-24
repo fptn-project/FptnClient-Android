@@ -3,6 +3,7 @@ package org.fptn.vpn.di
 import com.filantrop.pvnclient.auth.ui.authModule
 import org.fptn.vpn.core.common.commonModule
 import org.fptn.vpn.core.network.networkModule
+import org.fptn.vpn.core.persistent.di.databaseModule
 import org.fptn.vpn.core.persistent.di.persistentModule
 import org.fptn.vpn.viewmodel.MainViewModel
 import org.koin.core.module.Module
@@ -20,6 +21,7 @@ val appModule: Module =
             authModule,
             commonModule,
             persistentModule,
+            databaseModule,
             networkModule,
             viewModelModule,
         )

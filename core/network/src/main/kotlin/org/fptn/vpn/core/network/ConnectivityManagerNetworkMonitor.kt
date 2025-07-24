@@ -19,6 +19,7 @@ internal class ConnectivityManagerNetworkMonitor(
     private val context: Context,
     ioDispatcher: CoroutineDispatcher,
 ) : NetworkMonitor {
+    @Suppress("LabeledExpression")
     override val isOnline: Flow<Boolean> =
         callbackFlow {
             trace("NetworkMonitor.callbackFlow") {

@@ -2,6 +2,8 @@ package org.fptn.vpn.core.common
 
 object Constants {
     const val APPLICATION_SHARED_PREFERENCES = "fptnvpn-shared-preferences"
+    const val DATABASE_NAME = "FptnDatabase"
+    const val DEFAULT_DATA_ID = 0
     const val MAIN_NOTIFICATION_CHANNEL_ID = "fptnvpn-notification-main"
     const val MAIN_NOTIFICATION_CHANNEL_VERSION = "fptnvpn-notification-main-channel-version"
     const val MAIN_NOTIFICATION_CHANNEL_VERSION_NUM = 2

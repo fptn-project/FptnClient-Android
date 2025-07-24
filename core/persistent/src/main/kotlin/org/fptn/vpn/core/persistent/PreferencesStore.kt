@@ -17,7 +17,7 @@ private val PREFERENCE_CLIENT_TOKEN_KEY = stringPreferencesKey(PREFERENCE_CLIENT
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(DATA_STORE_NAME)
 
 interface PreferenceStore {
-    val token: Flow<String?>
+    val token: Flow<String>
 
     suspend fun updateToken(token: String)
 
@@ -29,7 +29,7 @@ class PreferencesStoreImpl(
 ) : PreferenceStore {
     private val dataStore: DataStore<Preferences> = context.dataStore
 
-    override val token: Flow<String?> = dataStore.data.map { data -> data[PREFERENCE_CLIENT_TOKEN_KEY] }
+    override val token: Flow<String> = dataStore.data.map { data -> data[PREFERENCE_CLIENT_TOKEN_KEY].orEmpty() }
 
     override suspend fun updateToken(token: String) {
         dataStore.edit { preferences -> preferences[PREFERENCE_CLIENT_TOKEN_KEY] = token }
