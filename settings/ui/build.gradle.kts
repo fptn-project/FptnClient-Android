@@ -1,6 +1,5 @@
 plugins {
     id("org.fptn.vpn.library.android")
-    id("org.fptn.vpn.library.koin")
 }
 
 android {

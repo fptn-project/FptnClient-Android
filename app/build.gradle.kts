@@ -131,7 +131,6 @@ dependencies {
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.compose.foundation)
-    implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.core.splashscreen)
@@ -153,7 +152,6 @@ dependencies {
     annotationProcessor(libs.lombock)
 
     testImplementation(libs.junit)
-    testImplementation(libs.koin.test)
 
     androidTestImplementation(libs.androidx.junit)
 }

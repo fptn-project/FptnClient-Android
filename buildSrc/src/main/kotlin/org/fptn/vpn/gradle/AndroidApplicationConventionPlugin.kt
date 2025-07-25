@@ -1,10 +1,8 @@
 package org.fptn.vpn.gradle
 
 import com.android.build.api.dsl.ApplicationExtension
-import org.fptn.vpn.gradle.extensions.buildLibs
 import org.fptn.vpn.gradle.extensions.configureAndroidFirebase
 import org.fptn.vpn.gradle.extensions.configureKotlinAndroid
-import org.fptn.vpn.gradle.extensions.implementation
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.configure
@@ -28,7 +26,6 @@ class AndroidApplicationConventionPlugin : Plugin<Project> {
             val extension = extensions.getByType<ApplicationExtension>()
             configureAndroidFirebase(extension)
             dependencies {
-                implementation(buildLibs.timber)
             }
         }
     }

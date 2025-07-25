@@ -9,13 +9,13 @@ import kotlinx.coroutines.flow.stateIn
 import org.fptn.vpn.auth.domain.AuthInteractor
 import org.fptn.vpn.core.common.Result
 import org.fptn.vpn.core.common.asResult
-import org.fptn.vpn.core.model.UserData
+import org.fptn.vpn.core.model.FptnUserDomain
 
 class MainViewModel(
     authInteractor: AuthInteractor,
 ) : ViewModel() {
     val uiState: StateFlow<AuthActivityUiState> =
-        authInteractor.userData
+        authInteractor.user
             .asResult()
             .map { result ->
                 when (result) {
@@ -40,7 +40,7 @@ sealed interface AuthActivityUiState {
     data object Login : AuthActivityUiState
 
     data class Main(
-        val userData: UserData,
+        val userData: FptnUserDomain,
     ) : AuthActivityUiState
 
     /**
