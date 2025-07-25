@@ -55,6 +55,8 @@ jobs:
       run: |
         echo "Release Version: $RELEASE_VERSION"
 
+    - name: Stop gradle daemons
+      run: ./gradlew --stop
     - name: Build project
       run: ./gradlew assembleDebug
     - name: Checks

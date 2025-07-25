@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="use_telegram_bot">Используйте</string>
+    <string name="telegram_bot">Telegram-bot</string>
+    <string name="get_token_telegram_bot"> для получения токена</string>
+    <string name="login">Войти</string>
+    <string name="enter_token_hint">Вставьте ваш токен</string>
+</resources>

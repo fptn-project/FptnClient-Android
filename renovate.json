@@ -1,14 +1,23 @@
 {
-  "extends": ["config:recommended", ":dependencyDashboard"],
+  "extends": [
+    "config:recommended",
+    ":dependencyDashboard"
+  ],
   "packageRules": [
     {
-      "matchManagers": ["gradle"],
-      "schedule": ["* 0-4 * * *"]
+      "matchManagers": [
+        "gradle"
+      ],
+      "schedule": [
+        "* 0-4 * * *"
+      ]
     }
   ],
   "labels": [
     "android",
     "dependencies"
   ],
-  "baseBranches": ["develop"]
+  "baseBranchPatterns": [
+    "develop"
+  ]
 }

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="telegram_bot_link" translatable="false">https://t.me/fptn_bot</string>
+    <string name="use_telegram_bot">Use</string>
+    <string name="telegram_bot">the Telegram-bot</string>
+    <string name="get_token_telegram_bot">to get a token</string>
+    <string name="login">Login</string>
+    <string name="enter_token_hint">Paste your token here</string>
+</resources>

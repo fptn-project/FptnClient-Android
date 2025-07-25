@@ -1,7 +1,6 @@
 app/.classpath
 app/.project
 app/release
-auth/
 #core/
 .idea/
 .project
