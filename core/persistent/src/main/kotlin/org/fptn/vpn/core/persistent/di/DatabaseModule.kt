@@ -4,6 +4,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import org.fptn.vpn.core.common.Constants.DATABASE_NAME
 import org.fptn.vpn.core.persistent.AppDatabase
+import org.fptn.vpn.core.persistent.model.FptnServerDao
 import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 
@@ -15,4 +16,5 @@ val databaseModule =
                 .setJournalMode(RoomDatabase.JournalMode.TRUNCATE)
                 .build()
         }
+        single<FptnServerDao> { get<AppDatabase>().serverDao() }
     }
