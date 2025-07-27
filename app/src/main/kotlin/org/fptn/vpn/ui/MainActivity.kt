@@ -31,11 +31,7 @@ class MainActivity : ComponentActivity() {
 
         lifecycleScope.launch {
             lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.uiState
-                    .collect {
-                        System.out.println("moggot state: $it")
-                        openScreen(it)
-                    }
+                viewModel.uiState.collect { openScreen(it) }
             }
         }
         splashScreen.setKeepOnScreenCondition { viewModel.uiState.value.shouldKeepSplashScreen() }
@@ -67,7 +63,6 @@ class MainActivity : ComponentActivity() {
             PvnTheme(darkTheme = darkTheme) {
                 when (state) {
                     is AuthActivityUiState.Loading -> {
-                        System.out.println("moggot Loading")
                     }
                     is AuthActivityUiState.Login -> {
                         AuthScreen()

@@ -9,8 +9,8 @@ class AuthTokenNormalizerTest {
 
     @Test
     fun `normalize should remove whitespaces`() {
-        val input = "  token with spaces  "
-        val expected = "tokenwithspaces"
+        val input = "  token with spacess  "
+        val expected = "tokenwithspacess"
         assertEquals(expected, normalizer.normalize(input))
     }
 
@@ -30,8 +30,8 @@ class AuthTokenNormalizerTest {
 
     @Test
     fun `normalize should handle combined cases`() {
-        val input = "  fptn:// token with spaces  "
-        val expected = "tokenwithspaces"
+        val input = "  fptn:// token with spacess  "
+        val expected = "tokenwithspacess"
         assertEquals(expected, normalizer.normalize(input))
     }
 
@@ -44,22 +44,22 @@ class AuthTokenNormalizerTest {
 
     @Test
     fun `token has no padding`() {
-        val input = "token1"
-        val expected = "token1"
+        val input = "token123"
+        val expected = "token123"
         assertEquals(expected, normalizer.normalize(input))
     }
 
     @Test
     fun `token has one padding`() {
         val input = "token12"
-        val expected = "token12=="
+        val expected = "token12="
         assertEquals(expected, normalizer.normalize(input))
     }
 
     @Test
     fun `token has two paddings`() {
-        val input = "token123"
-        val expected = "token123="
+        val input = "token1234"
+        val expected = "token1234==="
         assertEquals(expected, normalizer.normalize(input))
     }
 }

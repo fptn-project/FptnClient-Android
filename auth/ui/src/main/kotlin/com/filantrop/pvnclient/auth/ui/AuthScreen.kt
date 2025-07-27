@@ -22,9 +22,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
@@ -51,16 +48,18 @@ fun AuthScreen(viewModel: AuthViewModel = koinViewModel()) {
     val uiState: AuthState by viewModel.uiState.collectAsStateWithLifecycle()
     AuthScreen(
         uiState,
-    ) { viewModel.login(it) }
+        onTokenChanged = viewModel::changeToken,
+        onLoginClick = viewModel::login,
+    )
 }
 
 @Composable
 @Suppress("UnusedParameter")
 fun AuthScreen(
     state: AuthState,
-    onLoginClick: (token: String) -> Unit,
+    onTokenChanged: (token: String) -> Unit,
+    onLoginClick: () -> Unit,
 ) {
-    var token by remember { mutableStateOf("") }
     Scaffold(
         modifier = Modifier.navigationBarsPadding(),
     ) { padding: PaddingValues ->
@@ -96,16 +95,16 @@ fun AuthScreen(
                         .padding(horizontal = 32.dp, vertical = 16.dp),
             ) {
                 OutlinedTextField(
-                    value = token,
+                    value = state.token,
                     modifier = Modifier.fillMaxWidth(),
-                    maxLines = 1,
-                    onValueChange = {},
+                    singleLine = true,
+                    onValueChange = onTokenChanged,
                     label = { Text(stringResource(R.string.enter_token_hint)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
                 )
             }
             Button(
-                onClick = { onLoginClick(token) },
+                onClick = onLoginClick,
                 modifier = Modifier.padding(horizontal = 32.dp),
             ) { Text(stringResource(R.string.login)) }
 
@@ -161,5 +160,7 @@ fun ClickableLink() {
 fun DefaultAuthScreen() {
     AuthScreen(
         AuthState(token = "123"),
-    ) {}
+        {},
+        {},
+    )
 }

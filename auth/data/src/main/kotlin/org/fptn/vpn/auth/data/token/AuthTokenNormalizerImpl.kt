@@ -9,11 +9,10 @@ class AuthTokenNormalizerImpl : AuthTokenNormalizer {
                 .replace("\\s+".toRegex(), "")
                 .replace("fptn://", "")
                 .replace("fptn:", "")
-        return when (normalizedToken.length % (OFFSET - 1)) {
-            1 -> "$normalizedToken=="
-            2 -> "$normalizedToken="
-            else -> normalizedToken
-        }
+        val padding = (OFFSET - normalizedToken.length % OFFSET) % OFFSET
+        val result = StringBuilder(normalizedToken)
+        repeat(padding) { result.append("=") }
+        return result.toString()
     }
 
     private companion object {
