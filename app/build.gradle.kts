@@ -113,8 +113,6 @@ android {
 
 dependencies {
     implementation(platform(libs.firebase.bom))
-    implementation(project(":core:common"))
-    implementation(project(":vpnclient"))
     implementation(libs.androidx.activity)
     implementation(libs.androidx.appcompat)
     // To use CallbackToFutureAdapter
