@@ -368,7 +368,7 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
         }
 
         NotificationUtils.configureNotificationChannel(this);
-        Notification notification = createNotification(title, "");
+        Notification notification = createMainNotification(title, "");
         startForeground(Constants.MAIN_CONNECTED_NOTIFICATION_ID, notification);
     }
 
@@ -378,27 +378,29 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
         }
         NotificationManager notificationManager = (NotificationManager) getSystemService(
                 NOTIFICATION_SERVICE);
-        Notification notification = createNotification(title, message);
+        Notification notification = createMainNotification(title, message);
         notificationManager.notify(Constants.MAIN_CONNECTED_NOTIFICATION_ID, notification);
     }
 
-    private Notification createNotification(String title, String message) {
+    private Notification createMainNotification(String title, String message) {
         // In Api level 24 an above, there is no icon in design!!!
         Notification.Action actionDisconnect = new Notification.Action.Builder(null, getString(R.string.disconnect_action), disconnectPendingIntent)
                 .build();
+
         Notification.Builder builder = new Notification.Builder(this, Constants.MAIN_NOTIFICATION_CHANNEL_ID)
                 .setSmallIcon(R.drawable.vpn_icon)
-                .setVisibility(Notification.VISIBILITY_PUBLIC);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            builder.setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_IMMEDIATE);
-            //.setOngoing(true) // user can't close notification (works only when screen locked)
-        }
-        builder.setContentTitle(title)
+                .setVisibility(Notification.VISIBILITY_PUBLIC)
+                .setContentTitle(title)
                 .setContentText(message)
                 .setOnlyAlertOnce(true) // so when data is updated don't make sound and alert in android 8.0+
-                //.setAutoCancel(false) // for not remove notification after press it
+                .setOngoing(true) // for Android > 8 for foreground service notification must be ongoing = true
+                .setAutoCancel(false) // for not remove notification after press it
                 .addAction(actionDisconnect)
                 .setContentIntent(launchMainActivityPendingIntent);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            builder.setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_IMMEDIATE);
+        }
         return builder.build();
     }
 
@@ -411,8 +413,6 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
                 .setSmallIcon(R.drawable.vpn_icon)
                 .setVisibility(Notification.VISIBILITY_PUBLIC)
                 .setContentTitle(getApplication().getString(R.string.reconnecting_failed))
-                //.setContentText(message)
-                //.setAutoCancel(false) // for not remove notification after press it
                 .setContentIntent(launchMainActivityPendingIntent)
                 .build();
 
