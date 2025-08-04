@@ -192,12 +192,14 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
         return START_STICKY;
     }
 
-
     @Override
     public void onDestroy() {
         Log.i(TAG, "onDestroy: ");
+        super.onDestroy();
 
         disconnect();
+
+        //unregister network callback
         unregisterNetworkCallback();
     }
 
@@ -392,7 +394,6 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
                 .setVisibility(Notification.VISIBILITY_PUBLIC)
                 .setContentTitle(title)
                 .setContentText(message)
-                .setOnlyAlertOnce(true) // so when data is updated don't make sound and alert in android 8.0+
                 .setOngoing(true) // for Android > 8 for foreground service notification must be ongoing = true
                 .setAutoCancel(false) // for not remove notification after press it
                 .addAction(actionDisconnect)
