@@ -114,4 +114,12 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="your_current_sni">Текущий SNI:</string>
     <string name="sni_text_view_hint">Новый SNI</string>
     <string name="reset_default_button">Сбросить по умолчанию</string>
+
+    <string name="warning">Внимание</string>
+    <string name="battery_optimization_title">Оптимизация батареи</string>
+    <string name="battery_optimization_text">Для стабильного подключения предоставьте разрешение на отключение оптимизации энергопотребления для этого приложения</string>
+
+<!--    <string name="battery_optimization_settings">Для стабильного подключения сначала отключите оптимизацию батареи в настройках</string>-->
+<!--    <string name="battery_optimization_open_settings">Открыть настройки</string>-->
+<!--    <string name="battery_optimization_continue_anyway">Продолжить всё равно</string>-->
 </resources>

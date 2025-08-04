@@ -123,6 +123,12 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="sni_text_view_hint">New SNI</string>
     <string name="reset_default_button">Reset to default</string>
     <string name="access_token_format">Invalid token format! Check the correctness of the input.</string>
+    <string name="warning">Warning</string>
 
+    <string name="battery_optimization_title">Battery Optimization</string>
+    <string name="battery_optimization_text">For a stable connection, please grant permission to disable battery optimization for this app</string>
 
+    <!--    <string name="battery_optimization_settings">For stable connection, please disable battery optimization in settings first</string>-->
+<!--    <string name="battery_optimization_open_settings">Open Settings</string>-->
+<!--    <string name="battery_optimization_continue_anyway">Continue Anyway</string>-->
 </resources>

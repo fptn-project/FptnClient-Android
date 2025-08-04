@@ -17,6 +17,8 @@ import android.net.VpnService;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.os.PowerManager;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
@@ -236,6 +238,7 @@ public class HomeActivity extends AppCompatActivity {
         // hide
         disconnectedStateUiItems();
 
+        checkBatteryOptimizations();
         checkAndRequestNotificationPermission();
     }
 
@@ -280,6 +283,19 @@ public class HomeActivity extends AppCompatActivity {
                 //todo: explicit assignment cause service may start slowly
                 fptnViewModel.getServiceStateMutableLiveData().postValue(CustomVpnServiceState.FAKE_CONNECTING);
 
+                // FIXME
+//                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+//                    PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
+//                    if (pm != null && !pm.isIgnoringBatteryOptimizations(getPackageName())) {
+//                        new AlertDialog.Builder(this)
+//                                .setTitle(getString(R.string.warning))
+//                                .setMessage(getString(R.string.battery_optimization_settings))
+//                                .setPositiveButton(getString(R.string.battery_optimization_open_settings), (d, w) -> checkBatteryOptimizations())
+//                                .setNegativeButton(getString(R.string.battery_optimization_continue_anyway), (d, w) -> startVpnService())
+//                                .show();
+//                        return;
+//                    }
+//                }
                 startService(enrichIntent(getServiceIntent()).setAction(CustomVpnService.ACTION_CONNECT));
             }
         } else {
@@ -332,6 +348,24 @@ public class HomeActivity extends AppCompatActivity {
         } else {
             // On Android < 13.0 notifications enabled by default
             Log.i(TAG, "No need to request notification!");
+        }
+    }
+
+    private void checkBatteryOptimizations() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
+            if (pm != null && !pm.isIgnoringBatteryOptimizations(getPackageName())) {
+                new AlertDialog.Builder(this)
+                        .setTitle(getString(R.string.battery_optimization_title))
+                        .setMessage(getString(R.string.battery_optimization_text))
+                        .setPositiveButton(getString(R.string.grant), (d, w) -> {
+                            Intent intent = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+                            intent.setData(Uri.parse("package:" + getPackageName()));
+                            startActivity(intent);
+                        })
+                        .setNegativeButton(getString(R.string.deny), null)
+                        .show();
+            }
         }
     }
 
