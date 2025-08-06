@@ -18,10 +18,12 @@ import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SwitchCompat;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModelProvider;
 
 import org.fptn.vpn.R;
+import org.fptn.vpn.utils.SharedPrefUtils;
 import org.fptn.vpn.viewmodel.FptnServerViewModel;
 import org.fptn.vpn.views.adapter.FptnServerAdapter;
 
@@ -43,6 +45,7 @@ public class SettingsActivity extends AppCompatActivity {
     private FptnServerViewModel fptnViewModel;
 
     private BottomNavigationView bottomNavigationView;
+
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -98,7 +101,15 @@ public class SettingsActivity extends AppCompatActivity {
         // SNI field
         TextView sniTextField = findViewById(R.id.SNI_text_field);
         SNIMutableLiveData.observe(this, sniTextField::setText);
-        SNIMutableLiveData.postValue(fptnViewModel.getSavedSNI());
+        SNIMutableLiveData.postValue(SharedPrefUtils.getSniHostname(this));
+
+        // Switch reconnect on change ip
+        boolean isEnabledReconnectOnChangeIp = SharedPrefUtils.getReconnectEnable(this);
+        SwitchCompat switchCompat = findViewById(R.id.toggle_reconnect_on_change_ip);
+        switchCompat.setChecked(isEnabledReconnectOnChangeIp);
+        switchCompat.setOnCheckedChangeListener((buttonView, isChecked) ->
+                SharedPrefUtils.saveReconnectEnable(this, isChecked));
+
     }
 
     public void onLogout(View v) {
@@ -156,17 +167,15 @@ public class SettingsActivity extends AppCompatActivity {
                     .ifPresent(newSni -> {
                         //todo: add validation?
                         Log.d(TAG, "new SNI: " + newSni);
-                        fptnViewModel.updateSNI(newSni);
+                        SharedPrefUtils.saveSniHostname(this, newSni);
                         SNIMutableLiveData.postValue(newSni);
                     });
         });
         alertDialogBuilder.setNeutralButton(getString(R.string.reset_default_button), (dialog, which) -> {
             Log.d(TAG, "onEditSNIServer: reset_default_button");
-            fptnViewModel.updateSNI(getString(R.string.default_sni));
+            SharedPrefUtils.saveSniHostname(this, getString(R.string.default_sni));
         });
-        alertDialogBuilder.setNegativeButton(getString(R.string.cancel_button), (dialog, which) -> {
-            Log.d(TAG, "onEditSNIServer: cancel_button");
-        });
+        alertDialogBuilder.setNegativeButton(getString(R.string.cancel_button), (dialog, which) -> Log.d(TAG, "onEditSNIServer: cancel_button"));
         alertDialogBuilder.show();
     }
 }

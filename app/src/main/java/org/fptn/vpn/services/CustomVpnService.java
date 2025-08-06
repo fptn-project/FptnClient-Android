@@ -73,26 +73,24 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
 
     private FptnServerRepository fptnServerRepository;
 
-    // Binder given to clients.
-    private final IBinder binder = new LocalBinder();
-
     private boolean isNotificationAllowed = false;
 
     private ConnectivityManager.NetworkCallback networkCallback;
-    private ConnectivityManager connectivityManager;
 
     @Getter
     private final MutableLiveData<CustomVpnServiceState> serviceStateMutableLiveData = new MutableLiveData<>(CustomVpnServiceState.INITIAL);
     @Getter
     private final MutableLiveData<Triple<String, String, Long>> speedAndDurationMutableLiveData = new MutableLiveData<>();
 
-
-    private final ExecutorService executorService = Executors.newSingleThreadExecutor();
+    private ExecutorService executorService;
 
     /**
      * Class used for the client Binder.  Because we know this service always
      * runs in the same process as its clients, we don't need to deal with IPC.
      */
+    // Binder given to clients.
+    private final IBinder binder = new LocalBinder();
+
     public class LocalBinder extends Binder {
         public CustomVpnService getService() {
             return CustomVpnService.this;
@@ -103,6 +101,7 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
     public IBinder onBind(Intent intent) {
         return binder;
     }
+
 
     @Override
     public void onCreate() {
@@ -120,14 +119,15 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
                 new Intent(this, CustomVpnService.class)
                         .setAction(CustomVpnService.ACTION_DISCONNECT),
                 PendingIntent.FLAG_IMMUTABLE);
+        // for getting saved servers
         fptnServerRepository = new FptnServerRepository(getApplicationContext());
+
+        // for connecting in not UI thread to escape ANR (app not response) error
+        executorService = Executors.newSingleThreadExecutor();
 
         /* check if notification allowed */
         NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         isNotificationAllowed = notificationManager.areNotificationsEnabled();
-
-        connectivityManager = (ConnectivityManager) getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
-        registerNetworkCallback();
     }
 
     @SneakyThrows
@@ -137,7 +137,7 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
 
         executorService.submit(() -> {
             /* check is internet connection available */
-            if (!NetworkUtils.isOnline(connectivityManager)) {
+            if (!NetworkUtils.isOnline(getApplicationContext())) {
                 Log.e(TAG, "onStartCommand: no active internet connections!");
                 disconnect(new PVNClientException(ErrorCode.NO_ACTIVE_INTERNET_CONNECTIONS));
                 return;
@@ -198,10 +198,15 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
         Log.i(TAG, "onDestroy: ");
 
         disconnect();
-        unregisterNetworkCallback();
+
+        if (executorService != null && !executorService.isShutdown()) {
+            executorService.shutdown();
+            executorService = null;
+        }
     }
 
     private void registerNetworkCallback() {
+        ConnectivityManager connectivityManager = (ConnectivityManager) getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
         networkCallback = new ConnectivityManager.NetworkCallback() {
             @Override
             public void onCapabilitiesChanged(@NonNull Network network, @NonNull NetworkCapabilities networkCapabilities) {
@@ -228,6 +233,7 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
 
     private void unregisterNetworkCallback() {
         if (networkCallback != null) {
+            ConnectivityManager connectivityManager = (ConnectivityManager) getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
             connectivityManager.unregisterNetworkCallback(networkCallback);
             networkCallback = null;
         }
@@ -312,12 +318,17 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
         // Moving VPNService to foreground to give it higher priority in system
         startForegroundWithNotification(getString(R.string.connecting_to) + fptnServerDto.getServerInfo());
 
+        /* for reconnect on change ip experimental feature */
         String currentIPAddress = NetworkUtils.UNKNOWN_IP;
-        try {
-            currentIPAddress = NetworkUtils.getCurrentIPAddress();
-        } catch (SocketException e) {
-            Log.e(TAG, "cNetworkUtils.getCurrentIPAddress(): " + e.getMessage(), e);
+        if (SharedPrefUtils.getReconnectEnable(getApplicationContext())) {
+            registerNetworkCallback();
+            try {
+                currentIPAddress = NetworkUtils.getCurrentIPAddress();
+            } catch (SocketException e) {
+                Log.e(TAG, "NetworkUtils.getCurrentIPAddress(): " + e.getMessage(), e);
+            }
         }
+
         try {
             CustomVpnConnection connection = new CustomVpnConnection(
                     this, nextConnectionId.getAndIncrement(), fptnServerDto, sniHostname, currentIPAddress);
@@ -351,6 +362,8 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
         removeForegroundNotification();
         //send to UI activity that state is disconnected.
         setConnectionState(ConnectionState.DISCONNECTED, exception);
+        // unregister network callback (for reconnect on change ip)
+        unregisterNetworkCallback();
     }
 
     private void removeForegroundNotification() {

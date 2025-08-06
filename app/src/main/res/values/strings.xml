@@ -18,6 +18,8 @@
 
     <string name="your_servers">Your VPN servers</string>
 
+    <string name="reconnect_on_change_ip_settings_title">Reconnect on change IP?</string>
+
     <string name="settings_token_info_html">
         <![CDATA[
         The list of available servers is encrypted in the token.
@@ -127,5 +129,6 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
 
     <string name="battery_optimization_title">Battery Optimization</string>
     <string name="battery_optimization_text">For a stable connection, please grant permission to disable battery optimization for this app</string>
+    <string name="experimental_features">Experimental features</string>
 
 </resources>

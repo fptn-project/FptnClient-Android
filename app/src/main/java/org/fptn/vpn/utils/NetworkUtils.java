@@ -1,8 +1,8 @@
 package org.fptn.vpn.utils;
 
+import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkCapabilities;
-import android.content.Context;
 import android.net.NetworkRequest;
 
 import java.net.Inet4Address;
@@ -13,10 +13,10 @@ import java.util.Enumeration;
 import java.util.Optional;
 
 public class NetworkUtils {
-
     public static final String UNKNOWN_IP = "UNKNOWN";
 
     public static String getCurrentIPAddress() throws SocketException {
+        // todo: Not best way to check current IP address
         Enumeration<NetworkInterface> networkInterfaceEnumeration = NetworkInterface.getNetworkInterfaces();
         while (networkInterfaceEnumeration.hasMoreElements()) {
             NetworkInterface networkInterface = networkInterfaceEnumeration.nextElement();
@@ -36,17 +36,25 @@ public class NetworkUtils {
                 .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
                 .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
                 .addTransportType(NetworkCapabilities.TRANSPORT_CELLULAR)
-                .addTransportType(NetworkCapabilities.TRANSPORT_ETHERNET)
+                //.addTransportType(NetworkCapabilities.TRANSPORT_ETHERNET)
                 //.addTransportType(NetworkCapabilities.TRANSPORT_USB)
                 //.addTransportType(NetworkCapabilities.TRANSPORT_SATELLITE)
-                .addTransportType(NetworkCapabilities.TRANSPORT_BLUETOOTH)
-                .addTransportType(NetworkCapabilities.TRANSPORT_LOWPAN)
-                .addTransportType(NetworkCapabilities.TRANSPORT_WIFI_AWARE)
+                //.addTransportType(NetworkCapabilities.TRANSPORT_BLUETOOTH)
+                //.addTransportType(NetworkCapabilities.TRANSPORT_LOWPAN)
+                //.addTransportType(NetworkCapabilities.TRANSPORT_WIFI_AWARE)
                 .build();
     }
 
 
     public static boolean isOnline(ConnectivityManager connectivityManager) {
+        return Optional.ofNullable(connectivityManager.getActiveNetwork())
+                .map(connectivityManager::getNetworkCapabilities)
+                .map(networkCapabilities -> networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET))
+                .orElse(false);
+    }
+
+    public static boolean isOnline(Context context) {
+        ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         return Optional.ofNullable(connectivityManager.getActiveNetwork())
                 .map(connectivityManager::getNetworkCapabilities)
                 .map(networkCapabilities -> networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET))

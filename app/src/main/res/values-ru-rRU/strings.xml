@@ -18,6 +18,7 @@
 
     <string name="your_servers">Ваши VPN сервера</string>
 
+    <string name="reconnect_on_change_ip_settings_title">Переподключаться при смене IP адреса?</string>
     <string name="settings_token_info_html">
         <![CDATA[
         Список доступных серверов зашифрован в токене.
@@ -118,5 +119,6 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="warning">Внимание</string>
     <string name="battery_optimization_title">Оптимизация батареи</string>
     <string name="battery_optimization_text">Для стабильного подключения предоставьте разрешение на отключение оптимизации энергопотребления для этого приложения</string>
+    <string name="experimental_features">Экспериментальные настройки</string>
 
 </resources>
