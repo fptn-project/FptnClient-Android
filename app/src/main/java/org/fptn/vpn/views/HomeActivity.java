@@ -283,19 +283,6 @@ public class HomeActivity extends AppCompatActivity {
                 //todo: explicit assignment cause service may start slowly
                 fptnViewModel.getServiceStateMutableLiveData().postValue(CustomVpnServiceState.FAKE_CONNECTING);
 
-                // FIXME
-//                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-//                    PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
-//                    if (pm != null && !pm.isIgnoringBatteryOptimizations(getPackageName())) {
-//                        new AlertDialog.Builder(this)
-//                                .setTitle(getString(R.string.warning))
-//                                .setMessage(getString(R.string.battery_optimization_settings))
-//                                .setPositiveButton(getString(R.string.battery_optimization_open_settings), (d, w) -> checkBatteryOptimizations())
-//                                .setNegativeButton(getString(R.string.battery_optimization_continue_anyway), (d, w) -> startVpnService())
-//                                .show();
-//                        return;
-//                    }
-//                }
                 startService(enrichIntent(getServiceIntent()).setAction(CustomVpnService.ACTION_CONNECT));
             }
         } else {
