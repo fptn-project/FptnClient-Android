@@ -8,6 +8,7 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ServiceInfo;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkCapabilities;
@@ -128,6 +129,9 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
         /* check if notification allowed */
         NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         isNotificationAllowed = notificationManager.areNotificationsEnabled();
+
+        /* configure notification channel cheap idempotent operation */
+        NotificationUtils.configureNotificationChannel(this);
     }
 
     @SneakyThrows
@@ -283,6 +287,13 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
         int connectionId = message.arg1;
         if (Optional.ofNullable(activeConnection.get()).map(CustomVpnConnection::getConnectionId).orElse(-1) == connectionId) {
             HandlerMessageTypes type = Arrays.stream(HandlerMessageTypes.values()).filter(t -> t.getValue() == message.what).findFirst().orElse(HandlerMessageTypes.UNKNOWN);
+
+            /* for debug - maybe need notification if type - none? */
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                int foregroundServiceType = getForegroundServiceType();
+                Log.d(TAG, "foregroundType: " + foregroundServiceTypeToLabel(foregroundServiceType));
+            }
+
             switch (type) {
                 case SPEED_INFO:
                     if (serviceStateMutableLiveData.getValue().getConnectionState() == ConnectionState.CONNECTED) {
@@ -357,13 +368,15 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
         // stop and null existed connection
         setActiveConnection(null);
         // remove service from foreground - and remove notification
-        stopForeground(true);
+        stopForeground(STOP_FOREGROUND_REMOVE);
         // sometimes need to remove notification explicitly
         removeForegroundNotification();
         //send to UI activity that state is disconnected.
         setConnectionState(ConnectionState.DISCONNECTED, exception);
         // unregister network callback (for reconnect on change ip)
         unregisterNetworkCallback();
+        // stop service
+        stopSelf();
     }
 
     private void removeForegroundNotification() {
@@ -380,9 +393,14 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
             return;
         }
 
-        NotificationUtils.configureNotificationChannel(this);
         Notification notification = createNotification(title, "");
-        startForeground(Constants.MAIN_CONNECTED_NOTIFICATION_ID, notification);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                startForeground(Constants.MAIN_CONNECTED_NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SYSTEM_EXEMPTED);
+            }
+        } else {
+            startForeground(Constants.MAIN_CONNECTED_NOTIFICATION_ID, notification);
+        }
     }
 
     private void updateNotificationWithMessage(String title, String message) {
@@ -432,5 +450,51 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
         NotificationManager notificationManager = (NotificationManager) getSystemService(
                 NOTIFICATION_SERVICE);
         notificationManager.notify(Constants.INFO_NOTIFICATION_NOTIFICATION_ID, notification);
+    }
+
+    /* for debug - From API 34 (Android 14) and above - need to set FOREGROUND_SERVICE_TYPE in manifest.*/
+    public static String foregroundServiceTypeToLabel(int type) {
+        switch (type) {
+            case ServiceInfo.FOREGROUND_SERVICE_TYPE_MANIFEST:
+                return "manifest";
+            case ServiceInfo.FOREGROUND_SERVICE_TYPE_NONE:
+                /*
+                If service has this type in Android 14 (API 34) and above
+                It's not become foreground service
+                */
+                return "none";
+            case ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC:
+                return "dataSync";
+            case ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK:
+                return "mediaPlayback";
+            case ServiceInfo.FOREGROUND_SERVICE_TYPE_PHONE_CALL:
+                return "phoneCall";
+            case ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION:
+                return "location";
+            case ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE:
+                return "connectedDevice";
+            case ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROJECTION:
+                return "mediaProjection";
+            case ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA:
+                return "camera";
+            case ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE:
+                return "microphone";
+            case ServiceInfo.FOREGROUND_SERVICE_TYPE_HEALTH:
+                return "health";
+            case ServiceInfo.FOREGROUND_SERVICE_TYPE_REMOTE_MESSAGING:
+                return "remoteMessaging";
+            case ServiceInfo.FOREGROUND_SERVICE_TYPE_SYSTEM_EXEMPTED:
+                return "systemExempted";
+            case ServiceInfo.FOREGROUND_SERVICE_TYPE_SHORT_SERVICE:
+                return "shortService";
+/*            case ServiceInfo.FOREGROUND_SERVICE_TYPE_FILE_MANAGEMENT:
+                return "fileManagement";*/
+            case ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROCESSING:
+                return "mediaProcessing";
+            case ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE:
+                return "specialUse";
+            default:
+                return "unknown";
+        }
     }
 }
