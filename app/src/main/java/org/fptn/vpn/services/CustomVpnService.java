@@ -53,7 +53,7 @@ import lombok.Getter;
 import lombok.SneakyThrows;
 
 public class CustomVpnService extends VpnService implements Handler.Callback {
-    private static final String TAG = CustomVpnService.class.getName();
+    private final String TAG = this.getClass().getSimpleName();
 
     public static final String ACTION_CONNECT = "com.example.android.fptn.START";
     public static final String ACTION_DISCONNECT = "com.example.android.fptn.STOP";

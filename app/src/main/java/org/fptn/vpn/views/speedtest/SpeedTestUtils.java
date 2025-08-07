@@ -16,7 +16,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 public class SpeedTestUtils {
-    private static final String TAG = SpeedTestUtils.class.getName();
+    private static final String TAG = SpeedTestUtils.class.getSimpleName();
     private static final long SEARCH_BEST_SERVER_MAX_TIMEOUT = 10L;
 
     public static FptnServerDto findFastestServer(List<FptnServerDto> fptnServerDtoList, String sniHostName) throws PVNClientException {

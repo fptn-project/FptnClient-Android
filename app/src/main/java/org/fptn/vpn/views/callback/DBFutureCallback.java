@@ -12,7 +12,7 @@ public interface DBFutureCallback<V extends @Nullable Object> extends FutureCall
 
     @Override
     default void onFailure(@NonNull Throwable t) {
-        Log.e(DBFutureCallback.class.getName(), "Failed to load from DB", t);
+        Log.e(this.getClass().getSimpleName(), "Failed to load from DB", t);
     }
 
 }

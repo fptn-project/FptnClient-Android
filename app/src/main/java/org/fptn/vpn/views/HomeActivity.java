@@ -283,7 +283,7 @@ public class HomeActivity extends AppCompatActivity {
                 //todo: explicit assignment cause service may start slowly
                 fptnViewModel.getServiceStateMutableLiveData().postValue(CustomVpnServiceState.FAKE_CONNECTING);
 
-                startService(enrichIntent(getServiceIntent()).setAction(CustomVpnService.ACTION_CONNECT));
+                startForegroundService(enrichIntent(getServiceIntent()).setAction(CustomVpnService.ACTION_CONNECT));
             }
         } else {
             if (currentConnectionState.isActiveState()) {

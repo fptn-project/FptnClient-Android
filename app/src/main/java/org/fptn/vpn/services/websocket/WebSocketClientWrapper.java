@@ -134,7 +134,7 @@ public class WebSocketClientWrapper {
     }
 
     private String getTag() {
-        return this.getClass().getCanonicalName();
+        return this.getClass().getSimpleName();
     }
 
 

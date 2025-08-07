@@ -11,7 +11,7 @@ import org.fptn.vpn.vpnclient.exception.PVNClientException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class NativeWebSocketClientImpl {
-    private static final String TAG = NativeWebSocketClientImpl.class.getName();
+    private final String TAG = this.getClass().getSimpleName();
 
     static {
         System.loadLibrary("fptn_native_lib");

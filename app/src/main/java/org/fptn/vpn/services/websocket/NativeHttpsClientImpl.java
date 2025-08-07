@@ -3,7 +3,7 @@ package org.fptn.vpn.services.websocket;
 import android.util.Log;
 
 public class NativeHttpsClientImpl {
-    private static final String TAG = NativeHttpsClientImpl.class.getName();
+    private final String TAG = this.getClass().getSimpleName();
 
     private long nativeHandle = 0L;
 

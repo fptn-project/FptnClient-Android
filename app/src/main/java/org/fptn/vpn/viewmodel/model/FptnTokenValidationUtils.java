@@ -6,7 +6,7 @@ import org.fptn.vpn.vpnclient.exception.ErrorCode;
 import org.fptn.vpn.vpnclient.exception.PVNClientException;
 
 public class FptnTokenValidationUtils {
-    private static final String TAG = "FptnTokenValidationUtils";
+    private static final String TAG = FptnTokenValidationUtils.class.getSimpleName();
 
     public static void validate(FptnToken token) throws PVNClientException {
         if (token == null) {

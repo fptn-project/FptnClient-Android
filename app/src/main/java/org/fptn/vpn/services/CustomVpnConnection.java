@@ -302,7 +302,7 @@ public class CustomVpnConnection extends Thread {
     }
 
     private String getTag() {
-        return this.getClass().getCanonicalName() + "[" + connectionId + "]";
+        return this.getClass().getSimpleName() + "[" + connectionId + "]";
     }
 
 }
