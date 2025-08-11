@@ -61,7 +61,6 @@ jobs:
       run: ./gradlew tomlCheck ktlintCheck detektCheck checkSortDependencies projectHealth
     - name: Run tests
       run: ./gradlew test
-
     - name: Build APK and AAB
       if: github.event_name == 'release'
       run: |
