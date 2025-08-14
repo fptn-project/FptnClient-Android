@@ -2,7 +2,6 @@ package org.fptn.vpn.utils;
 
 import android.net.ConnectivityManager;
 import android.net.NetworkCapabilities;
-import android.content.Context;
 import android.net.NetworkRequest;
 
 import java.net.Inet4Address;
@@ -36,12 +35,12 @@ public class NetworkUtils {
                 .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
                 .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
                 .addTransportType(NetworkCapabilities.TRANSPORT_CELLULAR)
-                .addTransportType(NetworkCapabilities.TRANSPORT_ETHERNET)
-                //.addTransportType(NetworkCapabilities.TRANSPORT_USB)
-                //.addTransportType(NetworkCapabilities.TRANSPORT_SATELLITE)
-                .addTransportType(NetworkCapabilities.TRANSPORT_BLUETOOTH)
-                .addTransportType(NetworkCapabilities.TRANSPORT_LOWPAN)
-                .addTransportType(NetworkCapabilities.TRANSPORT_WIFI_AWARE)
+//                .addTransportType(NetworkCapabilities.TRANSPORT_ETHERNET)
+//                .addTransportType(NetworkCapabilities.TRANSPORT_USB)
+//                .addTransportType(NetworkCapabilities.TRANSPORT_SATELLITE)
+//                .addTransportType(NetworkCapabilities.TRANSPORT_BLUETOOTH)
+//                .addTransportType(NetworkCapabilities.TRANSPORT_LOWPAN)
+//                .addTransportType(NetworkCapabilities.TRANSPORT_WIFI_AWARE)
                 .build();
     }
 

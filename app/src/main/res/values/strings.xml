@@ -18,6 +18,8 @@
 
     <string name="your_servers">Your VPN servers</string>
 
+    <string name="reconnect_on_change_ip_settings_title">Reconnect on change IP?</string>
+
     <string name="settings_token_info_html">
         <![CDATA[
         The list of available servers is encrypted in the token.
@@ -125,7 +127,19 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="access_token_format">Invalid token format! Check the correctness of the input.</string>
     <string name="warning">Warning</string>
 
-    <string name="battery_optimization_title">Battery Optimization</string>
-    <string name="battery_optimization_text">For a stable connection, please grant permission to disable battery optimization for this app</string>
+    <string name="battery_optimization_request_dialog_title">Battery Optimization</string>
+    <string name="battery_optimization_request_dialog_text">For a stable connection, please grant permission to disable battery optimization for this app</string>
+
+    <string name="experimental_features">Experimental features</string>
+    <string name="required_permissions">Required permissions:</string>
+    <string name="granted_text">GRANTED</string>
+    <string name="denied_text">DENIED</string>
+
+    <string name="show_notification_label">Show notifications</string>
+
+
+    <string name="background_data_request_dialog_title">Background data transfer</string>
+    <string name="background_data_request_dialog_text">For a stable connection, please grant permission to disable data transfer restrictions in background for this app</string>
+    <string name="permission_warning_text">For a stable connection, please grant required permissions on Settings screen</string>
 
 </resources>

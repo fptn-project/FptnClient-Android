@@ -1,24 +1,13 @@
 package org.fptn.vpn.views;
 
-import static org.fptn.vpn.core.common.Constants.SELECTED_SERVER;
-import static org.fptn.vpn.core.common.Constants.SELECTED_SERVER_ID_AUTO;
-
-import android.Manifest;
 import android.annotation.SuppressLint;
-import android.app.AlertDialog;
 import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.net.VpnService;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.os.PowerManager;
-import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
@@ -29,15 +18,14 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProvider;
 
 import org.fptn.vpn.R;
-import org.fptn.vpn.core.common.Constants;
 import org.fptn.vpn.database.model.FptnServerDto;
 import org.fptn.vpn.enums.ConnectionState;
 import org.fptn.vpn.services.CustomVpnServiceState;
 import org.fptn.vpn.utils.CustomSpinner;
+import org.fptn.vpn.utils.PermissionsUtils;
 import org.fptn.vpn.views.adapter.FptnServerAdapter;
 import org.fptn.vpn.services.CustomVpnService;
 import org.fptn.vpn.viewmodel.FptnServerViewModel;
@@ -84,25 +72,12 @@ public class HomeActivity extends AppCompatActivity {
     private final ActivityResultLauncher<Intent> intentActivityResultLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(), activityResult -> {
                 if (activityResult != null && activityResult.getResultCode() == RESULT_OK) {
-                    startService(enrichIntent(getServiceIntent()).setAction(CustomVpnService.ACTION_CONNECT));
+                    CustomVpnService.startToConnect(this, (FptnServerDto) spinnerServers.getSelectedItem());
                 } else {
                     Toast.makeText(this, R.string.vpn_permission_warning, Toast.LENGTH_SHORT).show();
                     fptnViewModel.getErrorTextLiveData().postValue(getString(R.string.vpn_permission_warning));
                 }
             });
-
-    // On Android >= 13.0 we need to require permissions on notifications
-    private final ActivityResultLauncher<String> requestPermissionLauncher = registerForActivityResult(
-            new ActivityResultContracts.RequestPermission(),
-            isGranted -> {
-                if (isGranted) {
-                    Log.i(TAG, "Notifications enabled!");
-                } else {
-                    Log.i(TAG, "Notifications disabled!");
-                }
-            }
-    );
-
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -129,7 +104,7 @@ public class HomeActivity extends AppCompatActivity {
                 fptnViewModel.unsubscribe();
             }
         };
-        bindService(getServiceIntent().setAction("ON_BIND"), connection, BIND_AUTO_CREATE);
+        CustomVpnService.bindService(this, connection);
     }
 
     @Override
@@ -235,11 +210,16 @@ public class HomeActivity extends AppCompatActivity {
         bottomNavigationView.setSelectedItemId(R.id.menuHome);
         bottomNavigationView.setOnItemSelectedListener(new CustomBottomNavigationListener(this, bottomNavigationView, R.id.menuHome));
 
+        View permissionWarningFrame = findViewById(R.id.home_permission_warning_frame);
+        // check is need to show permissions warning
+        if (PermissionsUtils.isAllPermissionsGranted(this)) {
+            hideView(permissionWarningFrame);
+        } else {
+            showView(permissionWarningFrame);
+        }
+
         // hide
         disconnectedStateUiItems();
-
-        checkBatteryOptimizations();
-        checkAndRequestNotificationPermission();
     }
 
     private void disconnectedStateUiItems() {
@@ -283,75 +263,11 @@ public class HomeActivity extends AppCompatActivity {
                 //todo: explicit assignment cause service may start slowly
                 fptnViewModel.getServiceStateMutableLiveData().postValue(CustomVpnServiceState.FAKE_CONNECTING);
 
-                startService(enrichIntent(getServiceIntent()).setAction(CustomVpnService.ACTION_CONNECT));
+                CustomVpnService.startToConnect(this, (FptnServerDto) spinnerServers.getSelectedItem());
             }
         } else {
             if (currentConnectionState.isActiveState()) {
-                startService(getServiceIntent().setAction(CustomVpnService.ACTION_DISCONNECT));
-            }
-        }
-    }
-
-    private Intent getServiceIntent() {
-        return new Intent(this, CustomVpnService.class);
-    }
-
-    private Intent enrichIntent(Intent intent) {
-        FptnServerDto selectedItem = (FptnServerDto) spinnerServers.getSelectedItem();
-
-        return intent.putExtra(SELECTED_SERVER,
-                Optional.ofNullable(selectedItem).map(s -> s.id).orElse(SELECTED_SERVER_ID_AUTO));
-    }
-
-    private void checkAndRequestNotificationPermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            // On Android >= 13.0 we need to require permissions on notifications
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
-                    != PackageManager.PERMISSION_GRANTED) {
-
-                SharedPreferences sharedPreferences = getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
-                boolean hasRequestedBefore = sharedPreferences.getBoolean(Constants.NOTIFICATION_PERMISSION_REQUESTED_SHARED_PREF_KEY, false);
-                if (hasRequestedBefore) {
-                    return;
-                }
-                // Permission is not granted, show a dialog to explain reason
-                new AlertDialog.Builder(this)
-                        .setTitle(R.string.notifications_request_title)
-                        .setMessage(R.string.notifications_request_reason)
-                        .setPositiveButton(R.string.grant, (dialog, which) -> {
-                            // Request the permission
-                            requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS);
-                            sharedPreferences.edit().putBoolean(Constants.NOTIFICATION_PERMISSION_REQUESTED_SHARED_PREF_KEY, true).apply();
-                        })
-                        .setNegativeButton(R.string.deny, (dialog, which) -> {
-                            Log.i(TAG, "Notifications denied!");
-                            sharedPreferences.edit().putBoolean(Constants.NOTIFICATION_PERMISSION_REQUESTED_SHARED_PREF_KEY, true).apply();
-                        })
-                        .create()
-                        .show();
-            } else {
-                Log.i(TAG, "Notifications already allowed!");
-            }
-        } else {
-            // On Android < 13.0 notifications enabled by default
-            Log.i(TAG, "No need to request notification!");
-        }
-    }
-
-    private void checkBatteryOptimizations() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
-            if (pm != null && !pm.isIgnoringBatteryOptimizations(getPackageName())) {
-                new AlertDialog.Builder(this)
-                        .setTitle(getString(R.string.battery_optimization_title))
-                        .setMessage(getString(R.string.battery_optimization_text))
-                        .setPositiveButton(getString(R.string.grant), (d, w) -> {
-                            Intent intent = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
-                            intent.setData(Uri.parse("package:" + getPackageName()));
-                            startActivity(intent);
-                        })
-                        .setNegativeButton(getString(R.string.deny), null)
-                        .show();
+                CustomVpnService.startToDisconnect(this);
             }
         }
     }

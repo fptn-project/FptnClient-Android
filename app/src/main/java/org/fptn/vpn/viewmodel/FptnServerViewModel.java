@@ -3,8 +3,6 @@ package org.fptn.vpn.viewmodel;
 import static org.fptn.vpn.utils.ResourcesUtils.getStringResourceByName;
 
 import android.app.Application;
-import android.content.Context;
-import android.content.SharedPreferences;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -14,7 +12,6 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 
 import org.fptn.vpn.R;
-import org.fptn.vpn.core.common.Constants;
 import org.fptn.vpn.database.model.FptnServerDto;
 import org.fptn.vpn.enums.ConnectionState;
 import org.fptn.vpn.repository.FptnServerRepository;
@@ -118,16 +115,6 @@ public class FptnServerViewModel extends AndroidViewModel {
 
     public void resetErrorMessage() {
         errorTextLiveData.postValue("");
-    }
-
-    public String getSavedSNI() {
-        SharedPreferences sharedPreferences = getApplication().getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
-        return sharedPreferences.getString(Constants.CURRENT_SNI_SHARED_PREF_KEY, getApplication().getString(R.string.default_sni));
-    }
-
-    public void updateSNI(String newSni) {
-        SharedPreferences sharedPreferences = getApplication().getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
-        sharedPreferences.edit().putString(Constants.CURRENT_SNI_SHARED_PREF_KEY, newSni).apply();
     }
 
     public ListenableFuture<List<FptnServerDto>> getAllServers() {

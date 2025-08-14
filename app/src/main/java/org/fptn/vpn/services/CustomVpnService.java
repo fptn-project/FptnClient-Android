@@ -3,11 +3,15 @@ package org.fptn.vpn.services;
 import static org.fptn.vpn.core.common.Constants.SELECTED_SERVER;
 import static org.fptn.vpn.core.common.Constants.SELECTED_SERVER_ID_AUTO;
 
+import android.annotation.SuppressLint;
+import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
+import android.content.pm.ServiceInfo;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkCapabilities;
@@ -17,6 +21,8 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
+import android.os.PowerManager;
+import android.os.SystemClock;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -30,6 +36,7 @@ import org.fptn.vpn.enums.HandlerMessageTypes;
 import org.fptn.vpn.repository.FptnServerRepository;
 import org.fptn.vpn.utils.NetworkUtils;
 import org.fptn.vpn.utils.NotificationUtils;
+import org.fptn.vpn.utils.ServiceUtils;
 import org.fptn.vpn.utils.SharedPrefUtils;
 import org.fptn.vpn.views.HomeActivity;
 import org.fptn.vpn.views.speedtest.SpeedTestUtils;
@@ -49,13 +56,19 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import kotlin.Triple;
 import lombok.Getter;
-import lombok.SneakyThrows;
 
 public class CustomVpnService extends VpnService implements Handler.Callback {
-    private static final String TAG = CustomVpnService.class.getName();
+    private static final String TAG = CustomVpnService.class.getSimpleName();
 
-    public static final String ACTION_CONNECT = "com.example.android.fptn.START";
-    public static final String ACTION_DISCONNECT = "com.example.android.fptn.STOP";
+    public static final String ACTION_CONNECT = "CustomVpnService:CONNECT";
+    public static final String ACTION_DISCONNECT = "CustomVpnService:DISCONNECT";
+    public static final String ACTION_BIND = "CustomVpnService:BIND";
+
+    public static final String FPTN_SERVICE_POWER_LOCK = "CustomVpnService::POWER_LOCK";
+
+    // for set alarming
+    public static final String ACTION_RESET_ALARM = "CustomVpnService:ACTION_RESET_ALARM";
+    public static final int ONE_MINUTE = 60_000;
 
     //Handler - queue of events from another threads, that need to process in this thread
     @Getter
@@ -73,9 +86,6 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
 
     private FptnServerRepository fptnServerRepository;
 
-    // Binder given to clients.
-    private final IBinder binder = new LocalBinder();
-
     private boolean isNotificationAllowed = false;
 
     private ConnectivityManager.NetworkCallback networkCallback;
@@ -86,13 +96,38 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
     @Getter
     private final MutableLiveData<Triple<String, String, Long>> speedAndDurationMutableLiveData = new MutableLiveData<>();
 
-
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
     /**
-     * Class used for the client Binder.  Because we know this service always
-     * runs in the same process as its clients, we don't need to deal with IPC.
+     * LocalBinder - just the way to give HomeActivity link on CustomVpnService object
      */
+    private final IBinder binder = new LocalBinder();
+    private PowerManager.WakeLock wakeLock;
+
+    public static void startToConnect(Context context, FptnServerDto fptnServerDto) {
+        Intent intent = new Intent(context, CustomVpnService.class);
+        intent.setAction(ACTION_CONNECT);
+        if (fptnServerDto != null) {
+            intent.putExtra(SELECTED_SERVER, fptnServerDto.id);
+        }
+
+        // If started service not become foreground - will be exception ANR - after 30 seconds approx.
+        //context.startForegroundService(intent);
+        context.startService(intent);
+    }
+
+    public static void bindService(Context context, ServiceConnection connection) {
+        Intent intent = new Intent(context, CustomVpnService.class);
+        intent.setAction(ACTION_BIND);
+        context.bindService(intent, connection, BIND_AUTO_CREATE);
+    }
+
+    public static void startToDisconnect(Context context) {
+        Intent intent = new Intent(context, CustomVpnService.class);
+        intent.setAction(ACTION_DISCONNECT);
+        context.startService(intent);
+    }
+
     public class LocalBinder extends Binder {
         public CustomVpnService getService() {
             return CustomVpnService.this;
@@ -103,6 +138,7 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
     public IBinder onBind(Intent intent) {
         return binder;
     }
+
 
     @Override
     public void onCreate() {
@@ -130,10 +166,14 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
         registerNetworkCallback();
     }
 
-    @SneakyThrows
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.i(TAG, "CustomVpnService.onStartCommand() Intent: " + intent + ", Thread.Id: " + Thread.currentThread().getId());
+
+        if (intent != null && ACTION_RESET_ALARM.equals(intent.getAction())) {
+            resetServiceKeepAliveAlarm();
+            return START_NOT_STICKY;
+        }
 
         executorService.submit(() -> {
             /* check is internet connection available */
@@ -184,12 +224,17 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
                         FptnServerDto server = fptnServerRepository.getSelected().get();
                         connect(server, sniHostname);
                     }
+
+                    // for infinite run
+                    resetServiceKeepAliveAlarm();
                 }
             } catch (ExecutionException | InterruptedException e) {
                 disconnect(new PVNClientException(e.getMessage()));
             }
         });
-        return START_STICKY;
+        // START_STICKY works not great, OS can restart service after 3 seconds or 3 minutes
+        // START_NOT_STICKY - no need to restart
+        return START_NOT_STICKY;
     }
 
 
@@ -199,6 +244,35 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
 
         disconnect();
         unregisterNetworkCallback();
+    }
+
+    // this methods call when user remove activity from stack
+    @Override
+    public void onTaskRemoved(Intent rootIntent) {
+        Log.i(TAG, "onTaskRemoved()");
+    }
+
+    // alarming must keep service alive (maybe not)
+    private void resetServiceKeepAliveAlarm() {
+        Log.i(TAG, "resetAlarm()");
+
+        ConnectionState connectionState = Optional.ofNullable(serviceStateMutableLiveData.getValue()).map(CustomVpnServiceState::getConnectionState).orElse(null);
+        if (connectionState == ConnectionState.CONNECTED ||
+                connectionState == ConnectionState.CONNECTING ||
+                connectionState == ConnectionState.RECONNECTING) {
+            Log.i(TAG, "Add restart event with one minute delay");
+            AlarmManager systemService = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+            if (systemService != null) {
+                Intent restartIntent = new Intent(getApplicationContext(), CustomVpnService.class);
+                restartIntent.setPackage(getPackageName());
+                restartIntent.setAction(CustomVpnService.ACTION_RESET_ALARM);
+
+                PendingIntent pendingRestartIntent = PendingIntent.getService(getApplicationContext(), 1, restartIntent, PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_IMMUTABLE);
+                systemService.set(AlarmManager.ELAPSED_REALTIME, SystemClock.elapsedRealtime() + ONE_MINUTE, pendingRestartIntent);
+            }
+        } else {
+            Log.i(TAG, "No need keep alive");
+        }
     }
 
     private void registerNetworkCallback() {
@@ -283,7 +357,17 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
                         Triple<String, String, Long> speedAndDuration = (Triple<String, String, Long>) message.obj;
                         String downloadSpeed = speedAndDuration.getFirst();
                         String uploadSpeed = speedAndDuration.getSecond();
-                        updateNotificationWithMessage(getString(R.string.connected_to) + getActionConnectServerInfo(), String.format(getString(R.string.download_upload_speed_pattern), downloadSpeed, uploadSpeed));
+
+                        // add sign to title if service in foreground
+                        boolean isServiceForeground = false;
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                            isServiceForeground = ServiceUtils.isServiceForeground(getForegroundServiceType());
+                        }
+
+                        updateNotificationWithMessage(
+                                String.format("%s %s (%s)", getString(R.string.connected_to), getActionConnectServerInfo(), isServiceForeground ? "Y" : "N"),
+                                String.format(getString(R.string.download_upload_speed_pattern), downloadSpeed, uploadSpeed)
+                        );
 
                         speedAndDurationMutableLiveData.postValue(speedAndDuration);
                     }
@@ -312,11 +396,18 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
         // Moving VPNService to foreground to give it higher priority in system
         startForegroundWithNotification(getString(R.string.connecting_to) + fptnServerDto.getServerInfo());
 
+        acquirePowerLock();
+
+        /*TODO: change only on change network wifi => cellular or cellular => wifi*/
+        /* TODO: add disable option in settigns */
+        /* TODO: one: for change on ip - default false */
+        /* TODO: second: change on network type - default true */
+
         String currentIPAddress = NetworkUtils.UNKNOWN_IP;
         try {
             currentIPAddress = NetworkUtils.getCurrentIPAddress();
         } catch (SocketException e) {
-            Log.e(TAG, "cNetworkUtils.getCurrentIPAddress(): " + e.getMessage(), e);
+            Log.e(TAG, "NetworkUtils.getCurrentIPAddress(): " + e.getMessage(), e);
         }
         try {
             CustomVpnConnection connection = new CustomVpnConnection(
@@ -327,6 +418,30 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
             setActiveConnection(connection);
         } catch (PVNClientException ex) {
             disconnect(ex);
+        }
+    }
+
+    @SuppressLint("WakelockTimeout")
+    private void acquirePowerLock() {
+        // release previous power lock
+        releasePowerLock();
+        // we need this lock so our service gets not affected by Doze Mode
+        PowerManager powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
+        try {
+            wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, FPTN_SERVICE_POWER_LOCK);
+            wakeLock.acquire();
+        } catch (Exception e) {
+            Log.e(TAG, "Can't acquire power lock!", e);
+        }
+    }
+
+    private void releasePowerLock() {
+        if (wakeLock != null && wakeLock.isHeld()) {
+            try {
+                wakeLock.release();
+            } catch (Exception e) {
+                Log.e(TAG, "Can't release power lock!", e);
+            }
         }
     }
 
@@ -346,11 +461,20 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
         // stop and null existed connection
         setActiveConnection(null);
         // remove service from foreground - and remove notification
-        stopForeground(true);
+        stopForeground(STOP_FOREGROUND_REMOVE);
         // sometimes need to remove notification explicitly
         removeForegroundNotification();
         //send to UI activity that state is disconnected.
         setConnectionState(ConnectionState.DISCONNECTED, exception);
+
+        // Release wakelock
+        if (wakeLock != null && wakeLock.isHeld()) {
+            wakeLock.release();
+            wakeLock = null;
+        }
+
+        // stop service
+        stopSelf();
     }
 
     private void removeForegroundNotification() {
@@ -369,7 +493,11 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
 
         NotificationUtils.configureNotificationChannel(this);
         Notification notification = createNotification(title, "");
-        startForeground(Constants.MAIN_CONNECTED_NOTIFICATION_ID, notification);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            startForeground(Constants.MAIN_CONNECTED_NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SYSTEM_EXEMPTED);
+        } else {
+            startForeground(Constants.MAIN_CONNECTED_NOTIFICATION_ID, notification);
+        }
     }
 
     private void updateNotificationWithMessage(String title, String message) {
@@ -386,19 +514,20 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
         // In Api level 24 an above, there is no icon in design!!!
         Notification.Action actionDisconnect = new Notification.Action.Builder(null, getString(R.string.disconnect_action), disconnectPendingIntent)
                 .build();
+        // todo: add log if service in foreground?
         Notification.Builder builder = new Notification.Builder(this, Constants.MAIN_NOTIFICATION_CHANNEL_ID)
                 .setSmallIcon(R.drawable.vpn_icon)
-                .setVisibility(Notification.VISIBILITY_PUBLIC);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            builder.setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_IMMEDIATE);
-            //.setOngoing(true) // user can't close notification (works only when screen locked)
-        }
-        builder.setContentTitle(title)
+                .setContentTitle(title)
                 .setContentText(message)
+                .setVisibility(Notification.VISIBILITY_PUBLIC) // Show this notification in its entirety on all lockscreens and while screen sharing.
                 .setOnlyAlertOnce(true) // so when data is updated don't make sound and alert in android 8.0+
-                //.setAutoCancel(false) // for not remove notification after press it
+                .setAutoCancel(false) // for not remove notification after press it
+                .setOngoing(true) // user can't close notification (works only when screen locked)
                 .addAction(actionDisconnect)
                 .setContentIntent(launchMainActivityPendingIntent);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            builder.setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_IMMEDIATE); // foreground service notification behavior
+        }
         return builder.build();
     }
 
@@ -411,8 +540,6 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
                 .setSmallIcon(R.drawable.vpn_icon)
                 .setVisibility(Notification.VISIBILITY_PUBLIC)
                 .setContentTitle(getApplication().getString(R.string.reconnecting_failed))
-                //.setContentText(message)
-                //.setAutoCancel(false) // for not remove notification after press it
                 .setContentIntent(launchMainActivityPendingIntent)
                 .build();
 

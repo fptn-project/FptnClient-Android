@@ -1,27 +1,37 @@
 package org.fptn.vpn.views;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModelProvider;
 
 import org.fptn.vpn.R;
+import org.fptn.vpn.utils.PermissionsUtils;
+import org.fptn.vpn.utils.SharedPrefUtils;
 import org.fptn.vpn.viewmodel.FptnServerViewModel;
 import org.fptn.vpn.views.adapter.FptnServerAdapter;
 
@@ -33,7 +43,7 @@ import java.util.Optional;
 import lombok.Getter;
 
 public class SettingsActivity extends AppCompatActivity {
-    private final String TAG = this.getClass().getName();
+    private final String TAG = this.getClass().getSimpleName();
 
     private ListView serverListView;
 
@@ -42,7 +52,20 @@ public class SettingsActivity extends AppCompatActivity {
     @Getter
     private FptnServerViewModel fptnViewModel;
 
-    private BottomNavigationView bottomNavigationView;
+    // On Android >= 13.0 we need to require permissions on notifications
+    private final ActivityResultLauncher<String> requestPermissionLauncher = registerForActivityResult(
+            new ActivityResultContracts.RequestPermission(),
+            isGranted -> {
+                if (isGranted) {
+                    Log.i(TAG, "Notifications enabled!");
+                } else {
+                    Log.i(TAG, "Notifications disabled!");
+                }
+            }
+    );
+    private Button permissionShowNotificationButton;
+    private Button permissionBatteryOptimizationButton;
+    private Button permissionBackgroundDataTransferButton;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -56,8 +79,7 @@ public class SettingsActivity extends AppCompatActivity {
 
     @SuppressLint("InlinedApi")
     private void initializeVariable() {
-        // FIXME
-        bottomNavigationView = findViewById(R.id.bottomNavBar);
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavBar);
         bottomNavigationView.setSelectedItemId(R.id.menuSettings);
         bottomNavigationView.setOnItemSelectedListener(new CustomBottomNavigationListener(this, bottomNavigationView, R.id.menuSettings));
 
@@ -98,8 +120,83 @@ public class SettingsActivity extends AppCompatActivity {
         // SNI field
         TextView sniTextField = findViewById(R.id.SNI_text_field);
         SNIMutableLiveData.observe(this, sniTextField::setText);
-        SNIMutableLiveData.postValue(fptnViewModel.getSavedSNI());
+        SNIMutableLiveData.postValue(SharedPrefUtils.getSniHostname(this));
+
+        // Permission settings
+        permissionShowNotificationButton = findViewById(R.id.permission_show_notification_button);
+        permissionShowNotificationButton.setOnClickListener(view -> requestNotificationPermission());
+
+        permissionBatteryOptimizationButton = findViewById(R.id.permission_battery_optimization_button);
+        permissionBatteryOptimizationButton.setOnClickListener(view -> requestBatteryOptimisationPermission());
+
+        permissionBackgroundDataTransferButton = findViewById(R.id.permission_background_data_transfer_button);
+        permissionBackgroundDataTransferButton.setOnClickListener(view -> requestBackgroundDataTransferPermission());
+
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        setPermissionButtonState(PermissionsUtils.checkNotificationPermission(this), permissionShowNotificationButton);
+        setPermissionButtonState(PermissionsUtils.checkBatteryOptimizations(this), permissionBatteryOptimizationButton);
+        setPermissionButtonState(PermissionsUtils.checkBackgroundDataTransferRestrictions(this), permissionBackgroundDataTransferButton);
+    }
+
+    private void setPermissionButtonState(boolean isGranted, Button button) {
+        if (isGranted) {
+            button.setText(R.string.granted_text);
+            button.setTextColor(getColor(R.color.granted_text));
+            button.setBackgroundColor(getColor(R.color.granted_text_background));
+            button.setClickable(false);
+        } else {
+            button.setText(R.string.denied_text);
+            button.setTextColor(getColor(R.color.denied_text));
+            button.setBackgroundColor(getColor(R.color.denied_text_background));
+            button.setClickable(true);
+        }
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
+    private void requestNotificationPermission() {
+        // Permission is not granted, show a dialog to explain reason
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.notifications_request_title)
+                .setMessage(R.string.notifications_request_reason)
+                .setPositiveButton(R.string.grant, (dialog, which) -> requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS))
+                .setNegativeButton(R.string.deny, (dialog, which) -> Log.i(TAG, "Notifications denied!"))
+                .create()
+                .show();
+    }
+
+    private void requestBatteryOptimisationPermission() {
+        new AlertDialog.Builder(this)
+                // todo: add in settings show all needed restrictions granted?
+                .setTitle(getString(R.string.battery_optimization_request_dialog_title))
+                .setMessage(getString(R.string.battery_optimization_request_dialog_text))
+                .setPositiveButton(getString(R.string.grant), (d, w) -> {
+                    @SuppressLint("BatteryLife") Intent intent = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+                    intent.setData(Uri.parse("package:" + getPackageName()));
+                    startActivity(intent);
+                })
+                .setNegativeButton(getString(R.string.deny), (dialog, which) -> Log.i(TAG, "Battery optimisation permission denied!"))
+                .show();
+    }
+
+    private void requestBackgroundDataTransferPermission() {
+        /* If somebody worry about low speed in background - disable restriction on network transfer data*/
+        new AlertDialog.Builder(this)
+                .setTitle(getString(R.string.background_data_request_dialog_title))
+                .setMessage(getString(R.string.background_data_request_dialog_text))
+                .setPositiveButton(getString(R.string.grant), (d, w) -> {
+                    Intent intent = new Intent(Settings.ACTION_IGNORE_BACKGROUND_DATA_RESTRICTIONS_SETTINGS);
+                    intent.setData(Uri.parse("package:" + getPackageName()));
+                    startActivity(intent);
+                })
+                .setNegativeButton(getString(R.string.deny), (dialog, which) -> Log.i(TAG, "Background data transfer permission denied!"))
+                .show();
+    }
+
 
     public void onLogout(View v) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this)
@@ -156,13 +253,13 @@ public class SettingsActivity extends AppCompatActivity {
                     .ifPresent(newSni -> {
                         //todo: add validation?
                         Log.d(TAG, "new SNI: " + newSni);
-                        fptnViewModel.updateSNI(newSni);
+                        SharedPrefUtils.saveSniHostname(this, newSni);
                         SNIMutableLiveData.postValue(newSni);
                     });
         });
         alertDialogBuilder.setNeutralButton(getString(R.string.reset_default_button), (dialog, which) -> {
             Log.d(TAG, "onEditSNIServer: reset_default_button");
-            fptnViewModel.updateSNI(getString(R.string.default_sni));
+            SharedPrefUtils.resetToDefaultSniHostname(this);
         });
         alertDialogBuilder.setNegativeButton(getString(R.string.cancel_button), (dialog, which) -> {
             Log.d(TAG, "onEditSNIServer: cancel_button");

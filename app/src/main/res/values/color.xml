@@ -17,4 +17,14 @@
 
     <color name="primary">#1B023B</color>
     <color name="secondary">#FF03DAC5</color>
+
+
+    <color name="denied_text">#FFCC0000</color>
+    <color name="denied_text_background">#37000000</color>
+
+    <color name="granted_text">#64DD17</color>
+    <color name="granted_text_background">#304FFE</color>
+
+    <color name="better_text_color">#FFD700</color>
+    <color name="better_background">#333333</color>
 </resources>

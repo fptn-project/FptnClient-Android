@@ -18,6 +18,7 @@
 
     <string name="your_servers">Ваши VPN сервера</string>
 
+    <string name="reconnect_on_change_ip_settings_title">Переподключаться при смене IP адреса?</string>
     <string name="settings_token_info_html">
         <![CDATA[
         Список доступных серверов зашифрован в токене.
@@ -116,7 +117,18 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="reset_default_button">Сбросить по умолчанию</string>
 
     <string name="warning">Внимание</string>
-    <string name="battery_optimization_title">Оптимизация батареи</string>
-    <string name="battery_optimization_text">Для стабильного подключения предоставьте разрешение на отключение оптимизации энергопотребления для этого приложения</string>
+    <string name="battery_optimization_request_dialog_title">Оптимизация батареи</string>
+    <string name="battery_optimization_request_dialog_text">Для стабильного подключения предоставьте разрешение на отключение оптимизации энергопотребления для этого приложения</string>
+
+    <string name="required_permissions">Требуемые разрешения:</string>
+    <string name="denied_text">ОТКЛОНЕНО</string>
+    <string name="background_data_request_dialog_title">Передача данных в фоне</string>
+    <string name="background_data_request_dialog_text">Для стабильного подключения предоставьте разрешение на передачу данных в фоне</string>
+
+    <string name="experimental_features">Экспериментальные настройки</string>
+    <string name="granted_text">РАЗРЕШЕНО</string>
+
+    <string name="show_notification_label">Показывать уведомления</string>
+    <string name="permission_warning_text">Для стабильного соединения предоставьте необходимые разрешения на экране настроек</string>
 
 </resources>

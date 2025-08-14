@@ -143,6 +143,179 @@
                 </RelativeLayout>
             </LinearLayout>
 
+            <!-- Required permissions -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="20dp"
+                android:layout_marginEnd="20dp"
+                android:background="@drawable/round_settings_back_white10_20"
+                android:orientation="vertical"
+                android:padding="10dp">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <ImageView
+                        android:id="@+id/required_permissions_icon"
+                        android:layout_width="wrap_content"
+                        android:layout_height="32dp"
+                        android:layout_gravity="center"
+                        android:importantForAccessibility="no"
+                        android:paddingLeft="12dp"
+                        android:paddingRight="12dp"
+                        android:src="@drawable/user_permissions_24" />
+
+                    <TextView
+                        android:id="@+id/required_permissions_label"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:layout_toEndOf="@id/required_permissions_icon"
+                        android:text="@string/required_permissions"
+                        android:textColor="@color/white"
+                        android:textStyle="normal" />
+                </RelativeLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingStart="12dp">
+
+                    <!-- Notification permission -->
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingVertical="8dp">
+
+                        <ImageView
+                            android:id="@+id/permission_icon_show_notification"
+                            android:layout_width="wrap_content"
+                            android:layout_height="32dp"
+                            android:layout_gravity="center"
+                            android:importantForAccessibility="no"
+                            android:paddingLeft="12dp"
+                            android:paddingRight="12dp"
+                            android:src="@drawable/bell_ring_24" />
+
+                        <TextView
+                            android:id="@+id/permission_label_show_notification"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_centerVertical="true"
+                            android:layout_toEndOf="@id/permission_icon_show_notification"
+                            android:text="@string/show_notification_label"
+                            android:textColor="@color/white"
+                            android:textStyle="normal" />
+
+                        <Button
+                            android:id="@+id/permission_show_notification_button"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentTop="true"
+                            android:layout_alignParentEnd="true"
+                            android:layout_centerVertical="true"
+                            android:background="@color/denied_text_background"
+                            android:enabled="true"
+                            android:paddingLeft="12dp"
+                            android:paddingRight="12dp"
+                            android:text="@string/denied_text"
+                            android:textColor="@color/denied_text"
+                            android:textStyle="bold" />
+
+
+                    </RelativeLayout>
+
+                    <!-- Battery optimisation disable permission -->
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingVertical="8dp">
+
+                        <ImageView
+                            android:id="@+id/permission_icon_battery_optimization"
+                            android:layout_width="wrap_content"
+                            android:layout_height="32dp"
+                            android:layout_gravity="center"
+                            android:importantForAccessibility="no"
+                            android:paddingLeft="12dp"
+                            android:paddingRight="12dp"
+                            android:src="@drawable/eco_battery_24" />
+
+                        <TextView
+                            android:id="@+id/permission_label_battery_optimization"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_centerVertical="true"
+                            android:layout_toEndOf="@id/permission_icon_battery_optimization"
+                            android:text="@string/battery_optimization_request_dialog_title"
+                            android:textColor="@color/white"
+                            android:textStyle="normal" />
+
+                        <Button
+                            android:id="@+id/permission_battery_optimization_button"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentTop="true"
+                            android:layout_alignParentEnd="true"
+                            android:layout_centerVertical="true"
+                            android:background="@color/granted_text_background"
+                            android:paddingLeft="12dp"
+                            android:paddingRight="12dp"
+                            android:text="@string/granted_text"
+                            android:textColor="@color/granted_text"
+                            android:textStyle="bold" />
+
+
+                    </RelativeLayout>
+
+                    <!-- Background data transfer without restrictions permission -->
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingVertical="8dp">
+
+                        <ImageView
+                            android:id="@+id/permission_icon_background_data_transfer"
+                            android:layout_width="wrap_content"
+                            android:layout_height="32dp"
+                            android:layout_gravity="center"
+                            android:importantForAccessibility="no"
+                            android:paddingLeft="12dp"
+                            android:paddingRight="12dp"
+                            android:src="@drawable/cloud_back_up_24" />
+
+                        <TextView
+                            android:id="@+id/permission_label_background_data_transfer"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_centerVertical="true"
+                            android:layout_toEndOf="@id/permission_icon_background_data_transfer"
+                            android:text="@string/background_data_request_dialog_title"
+                            android:textColor="@color/white"
+                            android:textStyle="normal" />
+
+                        <Button
+                            android:id="@+id/permission_background_data_transfer_button"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentTop="true"
+                            android:layout_alignParentEnd="true"
+                            android:layout_centerVertical="true"
+                            android:background="@color/denied_text_background"
+                            android:paddingLeft="12dp"
+                            android:paddingRight="12dp"
+                            android:text="@string/denied_text"
+                            android:textColor="@android:color/holo_red_dark"
+                            android:textStyle="bold" />
+                    </RelativeLayout>
+
+                </LinearLayout>
+            </LinearLayout>
+
             <!-- UPDATE TOKEN -->
             <RelativeLayout
                 android:layout_width="match_parent"
