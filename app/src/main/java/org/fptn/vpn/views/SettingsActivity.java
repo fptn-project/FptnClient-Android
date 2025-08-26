@@ -210,6 +210,7 @@ public class SettingsActivity extends AppCompatActivity {
         builder.show();
     }
 
+    // called from settings_layout.xml
     public void onUpdateToken(View v) {
         // Goto update token
         Intent intent = new Intent(SettingsActivity.this, SettingsActivityUpdateToken.class);

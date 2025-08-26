@@ -1,13 +1,17 @@
 package org.fptn.vpn.views;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.net.Uri;
 import android.net.VpnService;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
@@ -26,6 +30,7 @@ import org.fptn.vpn.enums.ConnectionState;
 import org.fptn.vpn.services.CustomVpnServiceState;
 import org.fptn.vpn.utils.CustomSpinner;
 import org.fptn.vpn.utils.PermissionsUtils;
+import org.fptn.vpn.utils.SharedPrefUtils;
 import org.fptn.vpn.views.adapter.FptnServerAdapter;
 import org.fptn.vpn.services.CustomVpnService;
 import org.fptn.vpn.viewmodel.FptnServerViewModel;
@@ -216,6 +221,15 @@ public class HomeActivity extends AppCompatActivity {
 
         // hide
         disconnectedStateUiItems();
+
+        // Request required permission
+        boolean hasPermissionsRequestedBefore = SharedPrefUtils.isPermissionsRequested(this);
+        if (!hasPermissionsRequestedBefore) {
+            requestRequiredPermissions();
+
+            // remember to not ask everytime
+            SharedPrefUtils.savePermissionsRequested(this, true);
+        }
     }
 
     private void disconnectedStateUiItems() {
@@ -272,6 +286,65 @@ public class HomeActivity extends AppCompatActivity {
                 CustomVpnService.startToDisconnect(this);
             }
         }
+    }
+
+    /* PERMISSIONS PART */
+
+    // On Android >= 13.0 we need to require permissions on notifications
+    private final ActivityResultLauncher<String> requestPermissionLauncher = registerForActivityResult(
+            new ActivityResultContracts.RequestPermission(),
+            isGranted -> {
+                if (isGranted) {
+                    Log.i(TAG, "Notifications enabled!");
+                } else {
+                    Log.i(TAG, "Notifications disabled!");
+                }
+            }
+    );
+
+    private void requestRequiredPermissions() {
+        // Show notifications permission
+        if (!PermissionsUtils.checkNotificationPermission(this)) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                new AlertDialog.Builder(this)
+                        .setTitle(R.string.notifications_request_title)
+                        .setMessage(R.string.notifications_request_reason)
+                        .setPositiveButton(R.string.grant, (dialog, which) -> requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS))
+                        .setNegativeButton(R.string.deny, (dialog, which) -> Log.i(TAG, "Notifications denied!"))
+                        .create()
+                        .show();
+            }
+        }
+
+        // Battery optimization permission
+        if (!PermissionsUtils.checkBatteryOptimizations(this)) {
+            new AlertDialog.Builder(this)
+                    // todo: add in settings show all needed restrictions granted?
+                    .setTitle(getString(R.string.battery_optimization_request_dialog_title))
+                    .setMessage(getString(R.string.battery_optimization_request_dialog_text))
+                    .setPositiveButton(getString(R.string.grant), (d, w) -> {
+                        @SuppressLint("BatteryLife") Intent intent = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+                        intent.setData(Uri.parse("package:" + getPackageName()));
+                        startActivity(intent);
+                    })
+                    .setNegativeButton(getString(R.string.deny), (dialog, which) -> Log.i(TAG, "Battery optimisation permission denied!"))
+                    .show();
+        }
+
+        // Background data transfer restriction permission
+        if (!PermissionsUtils.checkBackgroundDataTransferRestrictions(this)) {
+            new AlertDialog.Builder(this)
+                    .setTitle(getString(R.string.background_data_request_dialog_title))
+                    .setMessage(getString(R.string.background_data_request_dialog_text))
+                    .setPositiveButton(getString(R.string.grant), (d, w) -> {
+                        Intent intent = new Intent(Settings.ACTION_IGNORE_BACKGROUND_DATA_RESTRICTIONS_SETTINGS);
+                        intent.setData(Uri.parse("package:" + getPackageName()));
+                        startActivity(intent);
+                    })
+                    .setNegativeButton(getString(R.string.deny), (dialog, which) -> Log.i(TAG, "Background data transfer permission denied!"))
+                    .show();
+        }
+
     }
 
 }

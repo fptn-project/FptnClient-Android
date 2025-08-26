@@ -16,5 +16,5 @@ object Constants {
     const val CURRENT_SNI_SHARED_PREF_KEY: String = "CURRENT_SNI"
     const val APPLICATION_SHARED_PREFERENCES = "fptnvpn-shared-preferences"
     const val RECONNECT_ON_CHANGE_IP_ENABLE_SHARED_PREF_KEY: String = "RECONNECT_ON_CHANGE_IP_ENABLE"
-    const val NOTIFICATION_PERMISSION_REQUESTED_SHARED_PREF_KEY: String = "notification_permission_requested"
+    const val PERMISSIONS_REQUESTED_SHARED_PREF_KEY: String = "permissions_requested_previously"
 }

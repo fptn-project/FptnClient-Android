@@ -45,6 +45,16 @@ public class SharedPrefUtils {
 
     public static void saveNotificationChannelVersion(Context context, int version) {
         SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
-        sharedPreferences.edit().putInt(Constants.MAIN_NOTIFICATION_CHANNEL_VERSION, Constants.MAIN_NOTIFICATION_CHANNEL_VERSION_NUM).apply();
+        sharedPreferences.edit().putInt(Constants.MAIN_NOTIFICATION_CHANNEL_VERSION, version).apply();
+    }
+
+    public static boolean isPermissionsRequested(Context context) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        return sharedPreferences.getBoolean(Constants.PERMISSIONS_REQUESTED_SHARED_PREF_KEY, false);
+    }
+
+    public static void savePermissionsRequested(Context context, boolean requested) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        sharedPreferences.edit().putBoolean(Constants.PERMISSIONS_REQUESTED_SHARED_PREF_KEY, requested).apply();
     }
 }
