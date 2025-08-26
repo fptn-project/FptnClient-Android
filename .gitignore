@@ -23,3 +23,4 @@ auth/
 .cxx
 local.properties
 keystore.properties
+/.kotlin/
