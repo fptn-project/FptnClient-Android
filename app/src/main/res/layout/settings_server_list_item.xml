@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:paddingLeft="20dp"
+    android:paddingLeft="00dp"
     android:paddingTop="5dp"
     android:paddingRight="20dp">
 
@@ -38,13 +38,13 @@
 
     <ImageView
         android:id="@+id/censoredIcon"
-        android:layout_width="32dp"
-        android:layout_height="38dp"
+        android:layout_width="18dp"
+        android:layout_height="22dp"
         android:layout_centerVertical="true"
         android:layout_marginStart="16dp"
         android:layout_toEndOf="@+id/fptn_server_host"
         android:importantForAccessibility="no"
         android:visibility="gone"
-        app:srcCompat="@drawable/vpn_icon_list_item" />
+        app:srcCompat="@drawable/vpn_icon" />
 
 </RelativeLayout>

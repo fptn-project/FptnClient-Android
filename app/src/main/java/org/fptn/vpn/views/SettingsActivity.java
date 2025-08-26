@@ -19,6 +19,8 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ListAdapter;
 import android.widget.ListView;
+import android.widget.RadioButton;
+import android.widget.Switch;
 import android.widget.TextView;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -63,9 +65,9 @@ public class SettingsActivity extends AppCompatActivity {
                 }
             }
     );
-    private Button permissionShowNotificationButton;
-    private Button permissionBatteryOptimizationButton;
-    private Button permissionBackgroundDataTransferButton;
+    private Switch permissionShowNotificationButton;
+    private Switch permissionBatteryOptimizationButton;
+    private Switch permissionBackgroundDataTransferButton;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -143,17 +145,14 @@ public class SettingsActivity extends AppCompatActivity {
         setPermissionButtonState(PermissionsUtils.checkBackgroundDataTransferRestrictions(this), permissionBackgroundDataTransferButton);
     }
 
-    private void setPermissionButtonState(boolean isGranted, Button button) {
+    private void setPermissionButtonState(boolean isGranted, Switch button) {
+        button.setEnabled(true);
         if (isGranted) {
-            button.setText(R.string.granted_text);
-            button.setTextColor(getColor(R.color.granted_text));
-            button.setBackgroundColor(getColor(R.color.granted_text_background));
             button.setClickable(false);
+            button.setChecked(true);
         } else {
-            button.setText(R.string.denied_text);
-            button.setTextColor(getColor(R.color.denied_text));
-            button.setBackgroundColor(getColor(R.color.denied_text_background));
             button.setClickable(true);
+            button.setChecked(false);
         }
     }
 
