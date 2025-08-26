@@ -78,6 +78,8 @@ public class HomeActivity extends AppCompatActivity {
                     fptnViewModel.getErrorTextLiveData().postValue(getString(R.string.vpn_permission_warning));
                 }
             });
+    private View permissionWarningFrame;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -210,13 +212,7 @@ public class HomeActivity extends AppCompatActivity {
         bottomNavigationView.setSelectedItemId(R.id.menuHome);
         bottomNavigationView.setOnItemSelectedListener(new CustomBottomNavigationListener(this, bottomNavigationView, R.id.menuHome));
 
-        View permissionWarningFrame = findViewById(R.id.home_permission_warning_frame);
-        // check is need to show permissions warning
-        if (PermissionsUtils.isAllPermissionsGranted(this)) {
-            hideView(permissionWarningFrame);
-        } else {
-            showView(permissionWarningFrame);
-        }
+        permissionWarningFrame = findViewById(R.id.home_permission_warning_frame);
 
         // hide
         disconnectedStateUiItems();
@@ -226,6 +222,7 @@ public class HomeActivity extends AppCompatActivity {
         hideView(connectionTimeFrame);
         hideView(serverInfoFrame);
         hideView(homeSpeedFrame);
+        hideView(permissionWarningFrame);
 
         showView(spinnerServers);
     }
@@ -234,6 +231,11 @@ public class HomeActivity extends AppCompatActivity {
         showView(connectionTimeFrame);
         showView(serverInfoFrame);
         showView(homeSpeedFrame);
+
+        // check is need to show permissions warning
+        if (!PermissionsUtils.isAllPermissionsGranted(this)) {
+            showView(permissionWarningFrame);
+        }
 
         hideView(spinnerServers);
     }
