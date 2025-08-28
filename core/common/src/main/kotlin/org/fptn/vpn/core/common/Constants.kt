@@ -7,7 +7,7 @@ object Constants {
     /* NOTIFICATIONS CONSTANTS */
     const val MAIN_NOTIFICATION_CHANNEL_ID = "fptnvpn-notification-main"
     const val MAIN_NOTIFICATION_CHANNEL_VERSION = "fptnvpn-notification-main-channel-version"
-    const val MAIN_NOTIFICATION_CHANNEL_VERSION_NUM = 3
+    const val MAIN_NOTIFICATION_CHANNEL_VERSION_NUM = 4
     const val MAIN_NOTIFICATION_CHANNEL_GROUP_ID = "fptnvpn-notification-main-group"
     const val MAIN_CONNECTED_NOTIFICATION_ID = 8975
     const val INFO_NOTIFICATION_NOTIFICATION_ID = 8979

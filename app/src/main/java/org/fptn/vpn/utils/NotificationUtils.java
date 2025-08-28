@@ -27,7 +27,7 @@ public class NotificationUtils {
             NotificationChannel newNotificationChannel = new NotificationChannel(
                     Constants.MAIN_NOTIFICATION_CHANNEL_ID,
                     context.getString(R.string.notification_channel_name),
-                    NotificationManager.IMPORTANCE_HIGH);
+                    NotificationManager.IMPORTANCE_LOW);
             newNotificationChannel.setGroup(Constants.MAIN_NOTIFICATION_CHANNEL_GROUP_ID);
             newNotificationChannel.setSound(null, null); //disable sound
 
