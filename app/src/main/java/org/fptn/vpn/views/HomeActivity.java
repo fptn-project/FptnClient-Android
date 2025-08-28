@@ -222,14 +222,6 @@ public class HomeActivity extends AppCompatActivity {
         // hide
         disconnectedStateUiItems();
 
-        // Request required permission
-        boolean hasPermissionsRequestedBefore = SharedPrefUtils.isPermissionsRequested(this);
-        if (!hasPermissionsRequestedBefore) {
-            requestRequiredPermissions();
-
-            // remember to not ask everytime
-            SharedPrefUtils.savePermissionsRequested(this, true);
-        }
     }
 
     private void disconnectedStateUiItems() {
@@ -271,6 +263,15 @@ public class HomeActivity extends AppCompatActivity {
                 .map(CustomVpnServiceState::getConnectionState)
                 .orElse(ConnectionState.DISCONNECTED);
         if (currentConnectionState == ConnectionState.DISCONNECTED) {
+            // Request required permission
+            boolean hasPermissionsRequestedBefore = SharedPrefUtils.isPermissionsRequested(this);
+            if (!hasPermissionsRequestedBefore) {
+                requestRequiredPermissions();
+
+                // remember to not ask everytime
+                SharedPrefUtils.savePermissionsRequested(this, true);
+            }
+
             Intent intent = VpnService.prepare(HomeActivity.this);
             if (intent != null) {
                 // Request to user on launch vpn
