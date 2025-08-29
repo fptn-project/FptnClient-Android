@@ -142,4 +142,7 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="background_data_request_dialog_text">For a stable connection, please grant permission to disable data transfer restrictions in background for this app</string>
     <string name="permission_warning_text">For a stable connection, please grant required permissions on Settings screen</string>
 
+    <string name="permission_request_title">Permissions request</string>
+    <string name="permission_request_text">For a stable connection, please grant required permissions</string>
+
 </resources>

@@ -131,4 +131,7 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="show_notification_label">Показывать уведомления</string>
     <string name="permission_warning_text">Для стабильного соединения предоставьте необходимые разрешения на экране настроек</string>
 
+    <string name="permission_request_title">Запрос разрешений</string>
+    <string name="permission_request_text">Для стабильного соединения предоставьте необходимые разрешения</string>
+
 </resources>

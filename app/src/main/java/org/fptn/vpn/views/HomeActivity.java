@@ -43,6 +43,7 @@ import com.google.android.material.snackbar.Snackbar;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import lombok.Getter;
 
@@ -65,7 +66,7 @@ public class HomeActivity extends AppCompatActivity {
     private View connectionTimeFrame;
     private View serverInfoFrame;
     private View homeSpeedFrame;
-    private View settingsMenuItem;
+    private View permissionWarningFrame;
 
     private CustomSpinner spinnerServers;
 
@@ -73,17 +74,6 @@ public class HomeActivity extends AppCompatActivity {
 
     //for service binding
     private ServiceConnection connection;
-
-    private final ActivityResultLauncher<Intent> intentActivityResultLauncher = registerForActivityResult(
-            new ActivityResultContracts.StartActivityForResult(), activityResult -> {
-                if (activityResult != null && activityResult.getResultCode() == RESULT_OK) {
-                    CustomVpnService.startToConnect(this, (FptnServerDto) spinnerServers.getSelectedItem());
-                } else {
-                    Toast.makeText(this, R.string.vpn_permission_warning, Toast.LENGTH_SHORT).show();
-                    fptnViewModel.getErrorTextLiveData().postValue(getString(R.string.vpn_permission_warning));
-                }
-            });
-    private View permissionWarningFrame;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -134,7 +124,6 @@ public class HomeActivity extends AppCompatActivity {
         connectedServerTextView = findViewById(R.id.home_connected_server_name);
         statusTextView = findViewById(R.id.home_connection_status);
         errorTextView = findViewById(R.id.home_error_text_view);
-        settingsMenuItem = findViewById(R.id.menuSettings);
 
         /*View containers to hide*/
         homeSpeedFrame = findViewById(R.id.home_speed_frame);
@@ -168,6 +157,7 @@ public class HomeActivity extends AppCompatActivity {
             }
         });
 
+        View settingsMenuItem = findViewById(R.id.menuSettings);
         fptnViewModel.getServiceStateMutableLiveData().observe(this, customVpnServiceState -> {
             // we can't change UI from viewModel
             switch (customVpnServiceState.getConnectionState()) {
@@ -266,18 +256,26 @@ public class HomeActivity extends AppCompatActivity {
             // Request required permission
             boolean hasPermissionsRequestedBefore = SharedPrefUtils.isPermissionsRequested(this);
             if (!hasPermissionsRequestedBefore) {
+                // we don't know result of vpn permission request yet
+                startStopButton.setChecked(false);
+
                 requestRequiredPermissions();
 
                 // remember to not ask everytime
                 SharedPrefUtils.savePermissionsRequested(this, true);
+
+                // we call onClick later - when receive all permissions request results
+                return;
             }
 
-            Intent intent = VpnService.prepare(HomeActivity.this);
+            Intent intent = VpnService.prepare(this);
             if (intent != null) {
                 // Request to user on launch vpn
-                intentActivityResultLauncher.launch(intent);
+                vpnPermissionActivityResultLauncher.launch(intent);
+                // we don't know result of vpn permission request yet
+                startStopButton.setChecked(false);
             } else {
-                //todo: explicit assignment cause service may start slowly
+                // explicit assignment cause service may start slowly
                 fptnViewModel.getServiceStateMutableLiveData().postValue(CustomVpnServiceState.FAKE_CONNECTING);
 
                 CustomVpnService.startToConnect(this, (FptnServerDto) spinnerServers.getSelectedItem());
@@ -289,10 +287,20 @@ public class HomeActivity extends AppCompatActivity {
         }
     }
 
-    /* PERMISSIONS PART */
+    private final ActivityResultLauncher<Intent> vpnPermissionActivityResultLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(), activityResult -> {
+                if (activityResult != null && activityResult.getResultCode() == RESULT_OK) {
+                    CustomVpnService.startToConnect(this, (FptnServerDto) spinnerServers.getSelectedItem());
+                } else {
+                    Toast.makeText(this, R.string.vpn_permission_warning, Toast.LENGTH_SHORT).show();
+                    fptnViewModel.getErrorTextLiveData().postValue(getString(R.string.vpn_permission_warning));
+                }
+            }
+    );
 
-    // On Android >= 13.0 we need to require permissions on notifications
-    private final ActivityResultLauncher<String> requestPermissionLauncher = registerForActivityResult(
+    private final AtomicInteger requestedPermissions = new AtomicInteger(0);
+
+    private final ActivityResultLauncher<String> showNotificationActivityResultLauncher = registerForActivityResult(
             new ActivityResultContracts.RequestPermission(),
             isGranted -> {
                 if (isGranted) {
@@ -300,52 +308,64 @@ public class HomeActivity extends AppCompatActivity {
                 } else {
                     Log.i(TAG, "Notifications disabled!");
                 }
+                if (requestedPermissions.decrementAndGet() == 0) {
+                    startStopButton.callOnClick();
+                }
             }
     );
 
-    private void requestRequiredPermissions() {
-        // Show notifications permission
-        if (!PermissionsUtils.checkNotificationPermission(this)) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                new AlertDialog.Builder(this)
-                        .setTitle(R.string.notifications_request_title)
-                        .setMessage(R.string.notifications_request_reason)
-                        .setPositiveButton(R.string.grant, (dialog, which) -> requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS))
-                        .setNegativeButton(R.string.deny, (dialog, which) -> Log.i(TAG, "Notifications denied!"))
-                        .create()
-                        .show();
+    private final ActivityResultLauncher<Intent> settingsPermissionActivityResultLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            activityResult -> {
+                if (activityResult != null && activityResult.getResultCode() == RESULT_OK) {
+                    Log.i(TAG, "Permission granted!");
+                } else {
+                    Log.i(TAG, "Permission disabled!");
+                }
+                if (requestedPermissions.decrementAndGet() == 0) {
+                    startStopButton.callOnClick();
+                }
             }
-        }
+    );
 
-        // Battery optimization permission
-        if (!PermissionsUtils.checkBatteryOptimizations(this)) {
-            new AlertDialog.Builder(this)
-                    // todo: add in settings show all needed restrictions granted?
-                    .setTitle(getString(R.string.battery_optimization_request_dialog_title))
-                    .setMessage(getString(R.string.battery_optimization_request_dialog_text))
-                    .setPositiveButton(getString(R.string.grant), (d, w) -> {
-                        @SuppressLint("BatteryLife") Intent intent = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
-                        intent.setData(Uri.parse("package:" + getPackageName()));
-                        startActivity(intent);
-                    })
-                    .setNegativeButton(getString(R.string.deny), (dialog, which) -> Log.i(TAG, "Battery optimisation permission denied!"))
-                    .show();
-        }
+    /* PERMISSIONS PART */
+    @SuppressLint("BatteryLife")
+    private void requestRequiredPermissions() {
+        new AlertDialog.Builder(this)
+                .setTitle(getString(R.string.permission_request_title))
+                .setMessage(getString(R.string.permission_request_text))
+                .setPositiveButton(getString(R.string.grant), (d, w) -> {
+                    // Show notifications permission
+                    if (!PermissionsUtils.checkNotificationPermission(this)) {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                            requestedPermissions.incrementAndGet();
+                            showNotificationActivityResultLauncher.launch(Manifest.permission.POST_NOTIFICATIONS);
+                        }
+                    }
+                    // Battery optimization permission
+                    if (!PermissionsUtils.checkBatteryOptimizations(this)) {
+                        //Manifest.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
+                        requestedPermissions.incrementAndGet();
+                        startActivityWithSettings(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+                    }
+                    // Background data transfer restriction permission
+                    if (!PermissionsUtils.checkBackgroundDataTransferRestrictions(this)) {
+                        requestedPermissions.incrementAndGet();
+                        startActivityWithSettings(Settings.ACTION_IGNORE_BACKGROUND_DATA_RESTRICTIONS_SETTINGS);
+                    }
+                })
+                .setNegativeButton(getString(R.string.deny), (dialog, which) -> {
+                    Log.i(TAG, "Permissions request denied!");
+                    // it must work without permissions
+                    startStopButton.callOnClick();
+                })
+                .show();
+    }
 
-        // Background data transfer restriction permission
-        if (!PermissionsUtils.checkBackgroundDataTransferRestrictions(this)) {
-            new AlertDialog.Builder(this)
-                    .setTitle(getString(R.string.background_data_request_dialog_title))
-                    .setMessage(getString(R.string.background_data_request_dialog_text))
-                    .setPositiveButton(getString(R.string.grant), (d, w) -> {
-                        Intent intent = new Intent(Settings.ACTION_IGNORE_BACKGROUND_DATA_RESTRICTIONS_SETTINGS);
-                        intent.setData(Uri.parse("package:" + getPackageName()));
-                        startActivity(intent);
-                    })
-                    .setNegativeButton(getString(R.string.deny), (dialog, which) -> Log.i(TAG, "Background data transfer permission denied!"))
-                    .show();
-        }
-
+    private void startActivityWithSettings(String settingsAction) {
+        Intent intent = new Intent(settingsAction);
+        intent.setData(Uri.parse("package:" + getPackageName()));
+        settingsPermissionActivityResultLauncher.launch(intent);
     }
 
 }

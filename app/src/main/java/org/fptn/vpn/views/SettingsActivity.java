@@ -63,6 +63,7 @@ public class SettingsActivity extends AppCompatActivity {
                 }
             }
     );
+
     private SwitchCompat permissionShowNotificationButton;
     private SwitchCompat permissionBatteryOptimizationButton;
     private SwitchCompat permissionBackgroundDataTransferButton;
@@ -161,7 +162,10 @@ public class SettingsActivity extends AppCompatActivity {
                 .setTitle(R.string.notifications_request_title)
                 .setMessage(R.string.notifications_request_reason)
                 .setPositiveButton(R.string.grant, (dialog, which) -> requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS))
-                .setNegativeButton(R.string.deny, (dialog, which) -> Log.i(TAG, "Notifications denied!"))
+                .setNegativeButton(R.string.deny, (dialog, which) -> {
+                    Log.i(TAG, "Notifications denied!");
+                    permissionShowNotificationButton.setChecked(false);
+                })
                 .create()
                 .show();
     }
@@ -176,7 +180,10 @@ public class SettingsActivity extends AppCompatActivity {
                     intent.setData(Uri.parse("package:" + getPackageName()));
                     startActivity(intent);
                 })
-                .setNegativeButton(getString(R.string.deny), (dialog, which) -> Log.i(TAG, "Battery optimisation permission denied!"))
+                .setNegativeButton(getString(R.string.deny), (dialog, which) -> {
+                    Log.i(TAG, "Battery optimisation permission denied!");
+                    permissionBatteryOptimizationButton.setChecked(false);
+                })
                 .show();
     }
 
@@ -190,7 +197,10 @@ public class SettingsActivity extends AppCompatActivity {
                     intent.setData(Uri.parse("package:" + getPackageName()));
                     startActivity(intent);
                 })
-                .setNegativeButton(getString(R.string.deny), (dialog, which) -> Log.i(TAG, "Background data transfer permission denied!"))
+                .setNegativeButton(getString(R.string.deny), (dialog, which) -> {
+                    Log.i(TAG, "Background data transfer permission denied!");
+                    permissionBackgroundDataTransferButton.setChecked(false);
+                })
                 .show();
     }
 
