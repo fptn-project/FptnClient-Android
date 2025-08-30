@@ -134,4 +134,6 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="permission_request_title">Запрос разрешений</string>
     <string name="permission_request_text">Для стабильного соединения предоставьте необходимые разрешения</string>
 
+
+    <string name="sponsors_text">Спасибо нашим спонсорам</string>
 </resources>

@@ -3,7 +3,6 @@
     <string name="app_version">Version 1.0.0 </string>
     <string name="app_name" translatable="false">FPTN VPN</string>
 
-
     <string name="select_server">Select server</string>
     <string name="connection_time">Connection Time</string>
     <string name="state_disconnect">Disconnected</string>
@@ -145,4 +144,16 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="permission_request_title">Permissions request</string>
     <string name="permission_request_text">For a stable connection, please grant required permissions</string>
 
+
+    <string name="sponsors_text">Thanks to our sponsors</string>
+
+
+    <string name="sponsors_usernames" translatable="false">
+         <![CDATA[
+        •&nbsp;&nbsp;Brebor<br/>
+        •&nbsp;&nbsp;Secret_Agent_001
+        •&nbsp;&nbsp;miklefox<br/>
+        •&nbsp;&nbsp;usrbb<br/>
+        ]]>
+    </string>
 </resources>

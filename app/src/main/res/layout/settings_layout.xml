@@ -80,57 +80,6 @@
 
                 <RelativeLayout
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
-
-                    <ImageView
-                        android:id="@+id/sni_image_view"
-                        android:layout_width="wrap_content"
-                        android:layout_height="32dp"
-                        android:layout_gravity="center"
-                        android:importantForAccessibility="no"
-                        android:paddingLeft="12dp"
-                        android:paddingRight="12dp"
-                        android:src="@drawable/ic_baseline_your_servers_24" />
-
-                    <TextView
-                        android:id="@+id/SNI_label"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_centerVertical="true"
-                        android:layout_toEndOf="@id/sni_image_view"
-                        android:text="@string/your_current_sni"
-                        android:textColor="@color/white"
-                        android:textStyle="normal" />
-
-                    <TextView
-                        android:id="@+id/SNI_text_field"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_centerVertical="true"
-                        android:layout_marginEnd="12dp"
-                        android:layout_toStartOf="@+id/imageView"
-                        android:layout_toEndOf="@id/SNI_label"
-                        android:paddingLeft="12dp"
-                        android:paddingRight="12dp"
-                        android:text="@string/default_sni"
-                        android:textColor="@color/white"
-                        android:textStyle="normal" />
-
-                    <ImageView
-                        android:id="@+id/imageView"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_alignParentTop="true"
-                        android:layout_alignParentEnd="true"
-                        android:layout_centerVertical="true"
-                        android:importantForAccessibility="no"
-                        android:src="@drawable/ic_outline_arrow_forward_ios_16"
-                        android:textColor="@color/white"
-                        android:textStyle="bold" />
-                </RelativeLayout>
-
-                <RelativeLayout
-                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="0dp">
 
@@ -145,6 +94,57 @@
                         android:text="@string/sni_text_description"
                         android:textColor="@color/gray"
                         android:textSize="12sp" />
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <ImageView
+                            android:id="@+id/sni_image_view"
+                            android:layout_width="wrap_content"
+                            android:layout_height="32dp"
+                            android:layout_gravity="center"
+                            android:importantForAccessibility="no"
+                            android:paddingLeft="12dp"
+                            android:paddingRight="12dp"
+                            android:src="@drawable/ic_baseline_your_servers_24" />
+
+                        <TextView
+                            android:id="@+id/SNI_label"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_centerVertical="true"
+                            android:layout_toEndOf="@id/sni_image_view"
+                            android:text="@string/your_current_sni"
+                            android:textColor="@color/white"
+                            android:textStyle="normal" />
+
+                        <TextView
+                            android:id="@+id/SNI_text_field"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_centerVertical="true"
+                            android:layout_marginEnd="12dp"
+                            android:layout_toStartOf="@+id/imageView"
+                            android:layout_toEndOf="@id/SNI_label"
+                            android:paddingLeft="12dp"
+                            android:paddingRight="12dp"
+                            android:text="@string/default_sni"
+                            android:textColor="@color/white"
+                            android:textStyle="normal" />
+
+                        <ImageView
+                            android:id="@+id/imageView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentTop="true"
+                            android:layout_alignParentEnd="true"
+                            android:layout_centerVertical="true"
+                            android:importantForAccessibility="no"
+                            android:src="@drawable/ic_outline_arrow_forward_ios_16"
+                            android:textColor="@color/white"
+                            android:textStyle="bold" />
+                    </RelativeLayout>
                 </RelativeLayout>
             </LinearLayout>
 
@@ -446,7 +446,6 @@
                 android:layout_marginStart="20dp"
                 android:layout_marginTop="20dp"
                 android:layout_marginEnd="20dp"
-                android:layout_marginBottom="30dp"
                 android:background="@drawable/round_settings_back_white10_20"
                 android:onClick="onLogout"
                 android:orientation="vertical"
@@ -484,8 +483,63 @@
                     android:textColor="@color/white"
                     android:textStyle="bold" />
             </RelativeLayout>
-        </LinearLayout>
 
+
+            <!-- Sponsors -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="20dp"
+                android:layout_marginEnd="20dp"
+                android:background="@drawable/round_settings_back_white10_20"
+                android:orientation="vertical"
+                android:padding="10dp">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <ImageView
+                        android:id="@+id/sponsors_icon"
+                        android:layout_width="wrap_content"
+                        android:layout_height="32dp"
+                        android:layout_gravity="center"
+                        android:importantForAccessibility="no"
+                        android:paddingLeft="12dp"
+                        android:paddingRight="12dp"
+                        android:src="@drawable/ic_sponsors_update_24" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:layout_toEndOf="@id/sponsors_icon"
+                        android:text="@string/sponsors_text"
+                        android:textColor="@color/white"
+                        android:textStyle="normal" />
+                </RelativeLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="4dp"
+                    android:orientation="vertical"
+                    android:paddingLeft="12dp">
+
+                    <TextView
+                        android:id="@+id/sponsors_list"
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/sponsors_usernames"
+                        android:textColor="@color/white"
+                        android:textStyle="normal"
+                        android:maxLines="10"
+                        android:scrollbars="vertical"
+                        android:lineSpacingExtra="8dp" />
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
     </ScrollView>
 
     <com.google.android.material.bottomnavigation.BottomNavigationView

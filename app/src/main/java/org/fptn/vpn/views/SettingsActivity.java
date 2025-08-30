@@ -133,6 +133,9 @@ public class SettingsActivity extends AppCompatActivity {
         permissionBackgroundDataTransferButton = findViewById(R.id.permission_background_data_transfer_button);
         permissionBackgroundDataTransferButton.setOnClickListener(view -> requestBackgroundDataTransferPermission());
 
+        // Our sponsors
+        TextView textView = findViewById(R.id.sponsors_list);
+        textView.setText(Html.fromHtml(getString(R.string.sponsors_usernames)));
     }
 
     @Override
