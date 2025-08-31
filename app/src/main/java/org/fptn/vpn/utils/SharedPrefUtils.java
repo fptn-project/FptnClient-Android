@@ -49,6 +49,17 @@ public class SharedPrefUtils {
         sharedPreferences.edit().putBoolean(Constants.PERMISSIONS_REQUESTED_SHARED_PREF_KEY, requested).apply();
     }
 
+    /* QUICK SETTINGS TILE */
+    public static boolean isQuickSettingsTileRequested(Context context) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        return sharedPreferences.getBoolean(Constants.QUICK_SETTINGS_TILE_REQUESTED_SHARED_PREF_KEY, false);
+    }
+
+    public static void saveQuickSettingsTileRequested(Context context, boolean added) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        sharedPreferences.edit().putBoolean(Constants.QUICK_SETTINGS_TILE_REQUESTED_SHARED_PREF_KEY, added).apply();
+    }
+
     /* EXPERIMENTAL FEATURES */
     public static boolean getReconnectOnChangeNetworkTypeEnabled(Context context) {
         SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);

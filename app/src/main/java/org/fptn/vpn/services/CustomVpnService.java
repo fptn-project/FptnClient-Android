@@ -8,6 +8,7 @@ import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
@@ -23,10 +24,12 @@ import android.os.IBinder;
 import android.os.Message;
 import android.os.PowerManager;
 import android.os.SystemClock;
+import android.service.quicksettings.TileService;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.Observer;
 
 import org.fptn.vpn.R;
 import org.fptn.vpn.core.common.Constants;
@@ -34,6 +37,7 @@ import org.fptn.vpn.database.model.FptnServerDto;
 import org.fptn.vpn.enums.ConnectionState;
 import org.fptn.vpn.enums.HandlerMessageTypes;
 import org.fptn.vpn.repository.FptnServerRepository;
+import org.fptn.vpn.services.tile.FptnTileService;
 import org.fptn.vpn.utils.NetworkType;
 import org.fptn.vpn.utils.NetworkUtils;
 import org.fptn.vpn.utils.NotificationUtils;
@@ -99,6 +103,8 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
     private PowerManager.WakeLock wakeLock;
 
+    private Observer<CustomVpnServiceState> serviceStateObserver;
+
     /**
      * LocalBinder - just the way to give HomeActivity link on CustomVpnService object
      */
@@ -163,6 +169,15 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
         isNotificationAllowed = notificationManager.areNotificationsEnabled();
 
         connectivityManager = (ConnectivityManager) getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        serviceStateObserver = (customVpnServiceState) -> {
+            FptnTileService.getServiceStateMutableLiveData().postValue(customVpnServiceState.getConnectionState());
+            // to initialize call onStartListening() in FptnTileService
+            TileService.requestListeningState(this, new ComponentName(this, FptnTileService.class));
+        };
+        serviceStateMutableLiveData.observeForever(serviceStateObserver);
+        //send initial value
+        FptnTileService.getServiceStateMutableLiveData().postValue(serviceStateMutableLiveData.getValue().getConnectionState());
     }
 
     @Override
@@ -242,6 +257,11 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
         Log.i(TAG, "onDestroy: ");
 
         disconnect();
+
+        if (serviceStateObserver != null) {
+            serviceStateMutableLiveData.removeObserver(serviceStateObserver);
+            serviceStateObserver = null;
+        }
     }
 
     // this methods call when user remove activity from stack

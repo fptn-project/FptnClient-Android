@@ -3,9 +3,12 @@ package org.fptn.vpn.views;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
+import android.app.StatusBarManager;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.graphics.drawable.Icon;
 import android.net.Uri;
 import android.net.VpnService;
 import android.os.Build;
@@ -28,6 +31,7 @@ import org.fptn.vpn.R;
 import org.fptn.vpn.database.model.FptnServerDto;
 import org.fptn.vpn.enums.ConnectionState;
 import org.fptn.vpn.services.CustomVpnServiceState;
+import org.fptn.vpn.services.tile.FptnTileService;
 import org.fptn.vpn.utils.CustomSpinner;
 import org.fptn.vpn.utils.PermissionsUtils;
 import org.fptn.vpn.utils.SharedPrefUtils;
@@ -43,6 +47,7 @@ import com.google.android.material.snackbar.Snackbar;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import lombok.Getter;
@@ -74,6 +79,7 @@ public class HomeActivity extends AppCompatActivity {
 
     //for service binding
     private ServiceConnection connection;
+    private BottomNavigationView bottomNavigationView;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -203,7 +209,7 @@ public class HomeActivity extends AppCompatActivity {
         fptnViewModel.getErrorTextLiveData().observe(this, errorCodeText -> errorTextView.setText(errorCodeText));
         fptnViewModel.getStatusTextLiveData().observe(this, statusText -> statusTextView.setText(statusText));
 
-        BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavBar);
+        bottomNavigationView = findViewById(R.id.bottomNavBar);
         bottomNavigationView.setSelectedItemId(R.id.menuHome);
         bottomNavigationView.setOnItemSelectedListener(new CustomBottomNavigationListener(this, bottomNavigationView, R.id.menuHome));
 
@@ -212,6 +218,14 @@ public class HomeActivity extends AppCompatActivity {
         // hide
         disconnectedStateUiItems();
 
+        requestAddTileService();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        bottomNavigationView.setSelectedItemId(R.id.menuHome);
     }
 
     private void disconnectedStateUiItems() {
@@ -283,6 +297,36 @@ public class HomeActivity extends AppCompatActivity {
         } else {
             if (currentConnectionState.isActiveState()) {
                 CustomVpnService.startToDisconnect(this);
+            }
+        }
+    }
+
+    @SuppressLint("WrongConstant")
+    private void requestAddTileService() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (SharedPrefUtils.isQuickSettingsTileRequested(this)) {
+                StatusBarManager statusBarManager = (StatusBarManager) getSystemService(Context.STATUS_BAR_SERVICE);
+                try {
+                    // Request to add a custom tile service
+                    statusBarManager.requestAddTileService(
+                            new ComponentName(this, FptnTileService.class),
+                            "FPTN",
+                            Icon.createWithResource(this, R.drawable.ic_tile_shield_on_24),
+                            Executors.newSingleThreadExecutor(),
+                            (resultCode) -> {
+                                if (resultCode == StatusBarManager.TILE_ADD_REQUEST_RESULT_TILE_ALREADY_ADDED ||
+                                        resultCode == StatusBarManager.TILE_ADD_REQUEST_RESULT_TILE_ADDED) {
+                                    Log.d(TAG, "Tile request sent successfully");
+                                } else {
+                                    Log.e(TAG, "Failed to request tile addition");
+                                }
+                            }
+                    );
+                } catch (Exception e) {
+                    Log.e(TAG, "Failed to request tile addition", e);
+                }
+
+                SharedPrefUtils.saveQuickSettingsTileRequested(this, true);
             }
         }
     }

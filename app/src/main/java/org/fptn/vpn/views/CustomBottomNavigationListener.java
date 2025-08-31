@@ -25,12 +25,10 @@ import org.fptn.vpn.R;
 import lombok.SneakyThrows;
 
 public class CustomBottomNavigationListener implements NavigationBarView.OnItemSelectedListener {
-    private final BottomNavigationView bottomNavigationView;
     private final Context context;
     private final int currentViewId;
 
     public CustomBottomNavigationListener(Context context, BottomNavigationView bottomNavigationView, int currentViewId) {
-        this.bottomNavigationView = bottomNavigationView;
         this.context = context;
         this.currentViewId = currentViewId;
     }
@@ -52,10 +50,9 @@ public class CustomBottomNavigationListener implements NavigationBarView.OnItemS
 
             return true;
         } else if (itemId == R.id.menuShare) {
-            bottomNavigationView.setSelectedItemId(currentViewId); // for don't change bottomNavigationView selected item
             createShareDialog();
 
-            return true;
+            return false;
         }
         return false;
     }
