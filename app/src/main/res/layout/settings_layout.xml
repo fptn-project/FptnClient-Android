@@ -80,72 +80,66 @@
 
                 <RelativeLayout
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="0dp">
+                    android:layout_height="wrap_content">
+
+                    <ImageView
+                        android:id="@+id/sni_image_view"
+                        android:layout_width="wrap_content"
+                        android:layout_height="32dp"
+                        android:layout_gravity="center"
+                        android:importantForAccessibility="no"
+                        android:paddingLeft="12dp"
+                        android:paddingRight="12dp"
+                        android:src="@drawable/ic_baseline_your_servers_24" />
 
                     <TextView
-                        android:id="@+id/sni_text_description"
+                        android:id="@+id/SNI_label"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:paddingLeft="10dp"
-                        android:paddingTop="10dp"
-                        android:paddingRight="10dp"
-                        android:paddingBottom="10dp"
-                        android:text="@string/sni_text_description"
-                        android:textColor="@color/gray"
-                        android:textSize="12sp" />
+                        android:layout_centerVertical="true"
+                        android:layout_toEndOf="@id/sni_image_view"
+                        android:text="@string/your_current_sni"
+                        android:textColor="@color/white"
+                        android:textStyle="normal" />
 
-                    <RelativeLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content">
+                    <TextView
+                        android:id="@+id/SNI_text_field"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:layout_marginEnd="12dp"
+                        android:layout_toStartOf="@+id/imageView"
+                        android:layout_toEndOf="@id/SNI_label"
+                        android:paddingLeft="12dp"
+                        android:paddingRight="12dp"
+                        android:text="@string/default_sni"
+                        android:textColor="@color/white"
+                        android:textStyle="normal" />
 
-                        <ImageView
-                            android:id="@+id/sni_image_view"
-                            android:layout_width="wrap_content"
-                            android:layout_height="32dp"
-                            android:layout_gravity="center"
-                            android:importantForAccessibility="no"
-                            android:paddingLeft="12dp"
-                            android:paddingRight="12dp"
-                            android:src="@drawable/ic_baseline_your_servers_24" />
-
-                        <TextView
-                            android:id="@+id/SNI_label"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_centerVertical="true"
-                            android:layout_toEndOf="@id/sni_image_view"
-                            android:text="@string/your_current_sni"
-                            android:textColor="@color/white"
-                            android:textStyle="normal" />
-
-                        <TextView
-                            android:id="@+id/SNI_text_field"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_centerVertical="true"
-                            android:layout_marginEnd="12dp"
-                            android:layout_toStartOf="@+id/imageView"
-                            android:layout_toEndOf="@id/SNI_label"
-                            android:paddingLeft="12dp"
-                            android:paddingRight="12dp"
-                            android:text="@string/default_sni"
-                            android:textColor="@color/white"
-                            android:textStyle="normal" />
-
-                        <ImageView
-                            android:id="@+id/imageView"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_alignParentTop="true"
-                            android:layout_alignParentEnd="true"
-                            android:layout_centerVertical="true"
-                            android:importantForAccessibility="no"
-                            android:src="@drawable/ic_outline_arrow_forward_ios_16"
-                            android:textColor="@color/white"
-                            android:textStyle="bold" />
-                    </RelativeLayout>
+                    <ImageView
+                        android:id="@+id/imageView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentTop="true"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:importantForAccessibility="no"
+                        android:src="@drawable/ic_outline_arrow_forward_ios_16"
+                        android:textColor="@color/white"
+                        android:textStyle="bold" />
                 </RelativeLayout>
+
+                <TextView
+                    android:id="@+id/sni_text_description"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingLeft="10dp"
+                    android:paddingTop="10dp"
+                    android:paddingRight="10dp"
+                    android:paddingBottom="10dp"
+                    android:text="@string/sni_text_description"
+                    android:textColor="@color/gray"
+                    android:textSize="12sp" />
             </LinearLayout>
 
             <!-- Required permissions -->
@@ -531,12 +525,12 @@
                         android:id="@+id/sponsors_list"
                         android:layout_width="fill_parent"
                         android:layout_height="wrap_content"
-                        android:text="@string/sponsors_usernames"
-                        android:textColor="@color/white"
-                        android:textStyle="normal"
+                        android:lineSpacingExtra="8dp"
                         android:maxLines="10"
                         android:scrollbars="vertical"
-                        android:lineSpacingExtra="8dp" />
+                        android:text="@string/sponsors_usernames"
+                        android:textColor="@color/white"
+                        android:textStyle="normal" />
                 </LinearLayout>
             </LinearLayout>
         </LinearLayout>
