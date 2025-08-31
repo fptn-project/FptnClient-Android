@@ -90,9 +90,11 @@ void WrapperWebsocketClient::Run() {
       {
         const std::unique_lock<std::mutex> lock(mutex_);  // mutex
 
-        client_ = std::make_shared<WebsocketClient>(server_ip_, server_port_,
-            pcpp::IPv4Address(tun_ipv4_),
-            pcpp::IPv6Address(FPTN_CLIENT_DEFAULT_ADDRESS_IP6),
+        client_ = std::make_shared<WebsocketClient>(
+            fptn::common::network::IPv4Address::Create(server_ip_),
+            server_port_,
+            fptn::common::network::IPv4Address::Create(tun_ipv4_),
+            fptn::common::network::IPv6Address::Create(FPTN_CLIENT_DEFAULT_ADDRESS_IP6),
             std::bind(&WrapperWebsocketClient::onIPPacket, this,
                 std::placeholders::_1),
             sni_, access_token_, expected_md5_fingerprint_,

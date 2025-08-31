@@ -23,7 +23,6 @@ fun parseVersionTag(versionTag: String?): VersionInfo {
         else -> VersionInfo(0, 0, 0, 1)
     }
 }
-
 val versionTag: String? = System.getenv("RELEASE_VERSION") ?: System.getenv("VERSION_TAG")
 val versionInfo = parseVersionTag(versionTag)
 
