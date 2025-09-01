@@ -150,9 +150,11 @@ public class SettingsActivity extends AppCompatActivity {
     private void setPermissionButtonState(boolean isGranted, SwitchCompat switchView) {
         switchView.setEnabled(true);
         if (isGranted) {
+            //switchView.setEnabled(false);
             switchView.setClickable(false);
             switchView.setChecked(true);
         } else {
+            //switchView.setEnabled(true);
             switchView.setClickable(true);
             switchView.setChecked(false);
         }

@@ -134,7 +134,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:paddingLeft="10dp"
-                    android:paddingTop="10dp"
+                    android:paddingTop="8dp"
                     android:paddingRight="10dp"
                     android:paddingBottom="10dp"
                     android:text="@string/sni_text_description"
@@ -319,7 +319,7 @@
                 android:layout_marginTop="20dp"
                 android:layout_marginEnd="20dp"
                 android:background="@drawable/round_settings_back_white10_20"
-                android:onClick="onEditSNIServer"
+                android:onClick="onUpdateToken"
                 android:orientation="vertical"
                 android:padding="10dp"
                 android:paddingBottom="0dp">
