@@ -13,7 +13,7 @@
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
     <uses-permission
-        android:name="android.permission.ACCESS_ADSERVICES_AD_ID"
+        android:name="com.google.android.gms.permission.AD_ID"
         tools:node="remove" />
 
     <application
