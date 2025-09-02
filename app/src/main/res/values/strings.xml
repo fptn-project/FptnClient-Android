@@ -129,7 +129,6 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="battery_optimization_request_dialog_title">Battery Optimization</string>
     <string name="battery_optimization_request_dialog_text">For a stable connection, please grant permission to disable battery optimization for this app</string>
 
-    <string name="experimental_features">Experimental features</string>
     <string name="required_permissions">Required permissions:</string>
     <string name="granted_text">GRANTED</string>
     <string name="denied_text">DENIED</string>
@@ -156,4 +155,9 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
         •&nbsp;&nbsp;usrbb<br/>
         ]]>
     </string>
+    <string name="experimental_features_label">Experimental features</string>
+    <string name="experimental_features_info">Enable or disable experimental features to prevent disruption of core functionality.</string>
+    <string name="reconnect_on_change">Reconnect on changing:</string>
+    <string name="reconnect_on_change_network_type">of network type</string>
+    <string name="reconnect_on_change_ip_address">of IP address</string>
 </resources>

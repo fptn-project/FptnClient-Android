@@ -2,7 +2,6 @@ package org.fptn.vpn.views;
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -19,8 +18,6 @@ import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
@@ -85,14 +82,14 @@ public class SettingsActivity extends AppCompatActivity {
         });
         serverListView = findViewById(R.id.settings_servers_list);
 
-        TextView versionTextView = findViewById(R.id.settings_fptn_version);
         try {
-            Context context = getApplicationContext();
-            PackageInfo pInfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
+            PackageInfo pInfo = this.getPackageManager().getPackageInfo(this.getPackageName(), 0);
             final String version = pInfo.versionName;
+
+            TextView versionTextView = findViewById(R.id.settings_fptn_version);
             versionTextView.setText(version);
         } catch (PackageManager.NameNotFoundException e) {
-            e.printStackTrace();
+            Log.e(TAG, "Can't show app version! ", e);
         }
 
         // about
@@ -123,6 +120,19 @@ public class SettingsActivity extends AppCompatActivity {
         // Our sponsors
         TextView textView = findViewById(R.id.sponsors_list);
         textView.setText(Html.fromHtml(getString(R.string.sponsors_usernames)));
+
+        // Set on click listeners
+        View sniLayout = findViewById(R.id.sni_layout);
+        sniLayout.setOnClickListener(this::onEditSNIServer);
+
+        View updateTokenLayout = findViewById(R.id.update_token_layout);
+        updateTokenLayout.setOnClickListener(this::onUpdateToken);
+
+        View experimentalFeaturesLayout = findViewById(R.id.experimental_features_layout);
+        experimentalFeaturesLayout.setOnClickListener(this::showExperimentalSettingsDialog);
+
+        View logoutLayout = findViewById(R.id.logout_layout);
+        logoutLayout.setOnClickListener(this::onLogout);
     }
 
     @Override
@@ -213,7 +223,6 @@ public class SettingsActivity extends AppCompatActivity {
         builder.show();
     }
 
-    // called from settings_layout.xml
     public void onUpdateToken(View v) {
         // Goto update token
         Intent intent = new Intent(SettingsActivity.this, SettingsActivityUpdateToken.class);
@@ -266,5 +275,35 @@ public class SettingsActivity extends AppCompatActivity {
             Log.d(TAG, "onEditSNIServer: cancel_button");
         });
         alertDialogBuilder.show();
+    }
+
+
+    public void showExperimentalSettingsDialog(View view) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(R.string.experimental_features_label);
+        builder.setIcon(R.drawable.ic_experimental_features_24);
+
+        View dialogView = getLayoutInflater().inflate(R.layout.experimental_settings_dialog, null);
+        builder.setView(dialogView);
+
+        /* Reconnect on change network type */
+        SwitchCompat switchNetworkType = dialogView.findViewById(R.id.reconnect_on_change_network_type_switch);
+        switchNetworkType.setChecked(SharedPrefUtils.getReconnectOnChangeNetworkTypeEnabled(this));
+
+        /* Reconnect on change IP address */
+        SwitchCompat switchIPAddress = dialogView.findViewById(R.id.reconnect_on_change_ip_address_switch);
+        switchIPAddress.setChecked(SharedPrefUtils.getReconnectOnChangeIPEnabled(this));
+
+        builder.setPositiveButton(getString(R.string.save_button), (dialog, which) -> {
+            Log.d(TAG, "experimentalFeaturesDialog: save");
+            SharedPrefUtils.saveReconnectOnChangeNetworkTypeEnabled(this, switchNetworkType.isChecked());
+            SharedPrefUtils.saveReconnectOnChangeIPEnabled(this, switchIPAddress.isChecked());
+        });
+        builder.setNegativeButton(getString(R.string.cancel_button), (dialog, which) -> {
+            Log.d(TAG, "experimentalFeaturesDialog: cancel");
+            dialog.dismiss();
+        });
+
+        builder.create().show();
     }
 }

@@ -125,7 +125,6 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="background_data_request_dialog_title">Передача данных в фоне</string>
     <string name="background_data_request_dialog_text">Для стабильного подключения предоставьте разрешение на передачу данных в фоне</string>
 
-    <string name="experimental_features">Экспериментальные настройки</string>
     <string name="granted_text">РАЗРЕШЕНО</string>
 
     <string name="show_notification_label">Показывать уведомления</string>
@@ -136,4 +135,9 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
 
 
     <string name="sponsors_text">Спасибо нашим спонсорам</string>
+    <string name="experimental_features_label">Экспериментальные настройки</string>
+    <string name="experimental_features_info">Включите или отключите экспериментальные функции для предотвращения нарушения основной функциональности.</string>
+    <string name="reconnect_on_change">Переподключение при изменении:</string>
+    <string name="reconnect_on_change_network_type">типа сети</string>
+    <string name="reconnect_on_change_ip_address">IP адреса</string>
 </resources>

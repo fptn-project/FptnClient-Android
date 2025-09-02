@@ -26,17 +26,6 @@ public class SharedPrefUtils {
         sharedPreferences.edit().putString(Constants.CURRENT_SNI_SHARED_PREF_KEY, context.getString(R.string.default_sni)).apply();
     }
 
-    /* RECONNECTION */
-    public static boolean getReconnectEnable(Context context) {
-        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
-        return sharedPreferences.getBoolean(Constants.RECONNECT_ON_CHANGE_IP_ENABLE_SHARED_PREF_KEY, false);
-    }
-
-    public static void saveReconnectEnable(Context context, boolean enabled) {
-        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
-        sharedPreferences.edit().putBoolean(Constants.RECONNECT_ON_CHANGE_IP_ENABLE_SHARED_PREF_KEY, enabled).apply();
-    }
-
     /* NOTIFICATIONS */
     public static int getNotificationChannelVersion(Context context) {
         SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
@@ -56,5 +45,26 @@ public class SharedPrefUtils {
     public static void savePermissionsRequested(Context context, boolean requested) {
         SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
         sharedPreferences.edit().putBoolean(Constants.PERMISSIONS_REQUESTED_SHARED_PREF_KEY, requested).apply();
+    }
+
+    /* EXPERIMENTAL FEATURES */
+    public static boolean getReconnectOnChangeNetworkTypeEnabled(Context context) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        return sharedPreferences.getBoolean(Constants.RECONNECT_ON_CHANGE_NETWORK_TYPE_ENABLED_SHARED_PREF_KEY, true);
+    }
+
+    public static void saveReconnectOnChangeNetworkTypeEnabled(Context context, boolean enabled) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        sharedPreferences.edit().putBoolean(Constants.RECONNECT_ON_CHANGE_NETWORK_TYPE_ENABLED_SHARED_PREF_KEY, enabled).apply();
+    }
+
+    public static boolean getReconnectOnChangeIPEnabled(Context context) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        return sharedPreferences.getBoolean(Constants.RECONNECT_ON_CHANGE_IP_ENABLED_SHARED_PREF_KEY, false);
+    }
+
+    public static void saveReconnectOnChangeIPEnabled(Context context, boolean enabled) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        sharedPreferences.edit().putBoolean(Constants.RECONNECT_ON_CHANGE_IP_ENABLED_SHARED_PREF_KEY, enabled).apply();
     }
 }

@@ -34,6 +34,7 @@ import org.fptn.vpn.database.model.FptnServerDto;
 import org.fptn.vpn.enums.ConnectionState;
 import org.fptn.vpn.enums.HandlerMessageTypes;
 import org.fptn.vpn.repository.FptnServerRepository;
+import org.fptn.vpn.utils.NetworkType;
 import org.fptn.vpn.utils.NetworkUtils;
 import org.fptn.vpn.utils.NotificationUtils;
 import org.fptn.vpn.utils.ServiceUtils;
@@ -43,7 +44,6 @@ import org.fptn.vpn.views.speedtest.SpeedTestUtils;
 import org.fptn.vpn.vpnclient.exception.ErrorCode;
 import org.fptn.vpn.vpnclient.exception.PVNClientException;
 
-import java.net.SocketException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -97,35 +97,17 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
     private final MutableLiveData<Triple<String, String, Long>> speedAndDurationMutableLiveData = new MutableLiveData<>();
 
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
+    private PowerManager.WakeLock wakeLock;
 
     /**
      * LocalBinder - just the way to give HomeActivity link on CustomVpnService object
      */
     private final IBinder binder = new LocalBinder();
-    private PowerManager.WakeLock wakeLock;
-
-    public static void startToConnect(Context context, FptnServerDto fptnServerDto) {
-        Intent intent = new Intent(context, CustomVpnService.class);
-        intent.setAction(ACTION_CONNECT);
-        if (fptnServerDto != null) {
-            intent.putExtra(SELECTED_SERVER, fptnServerDto.id);
-        }
-
-        // If started service not become foreground - will be exception ANR - after 30 seconds approx.
-        //context.startForegroundService(intent);
-        context.startService(intent);
-    }
 
     public static void bindService(Context context, ServiceConnection connection) {
         Intent intent = new Intent(context, CustomVpnService.class);
         intent.setAction(ACTION_BIND);
         context.bindService(intent, connection, BIND_AUTO_CREATE);
-    }
-
-    public static void startToDisconnect(Context context) {
-        Intent intent = new Intent(context, CustomVpnService.class);
-        intent.setAction(ACTION_DISCONNECT);
-        context.startService(intent);
     }
 
     public class LocalBinder extends Binder {
@@ -139,6 +121,24 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
         return binder;
     }
 
+    /* Static methods to start/stop service */
+    public static void startToConnect(Context context, FptnServerDto fptnServerDto) {
+        Intent intent = new Intent(context, CustomVpnService.class);
+        intent.setAction(ACTION_CONNECT);
+        if (fptnServerDto != null) {
+            intent.putExtra(SELECTED_SERVER, fptnServerDto.id);
+        }
+
+        // If started service not become foreground - will be exception ANR - after 30 seconds approx.
+        //context.startForegroundService(intent);
+        context.startService(intent);
+    }
+
+    public static void startToDisconnect(Context context) {
+        Intent intent = new Intent(context, CustomVpnService.class);
+        intent.setAction(ACTION_DISCONNECT);
+        context.startService(intent);
+    }
 
     @Override
     public void onCreate() {
@@ -163,7 +163,6 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
         isNotificationAllowed = notificationManager.areNotificationsEnabled();
 
         connectivityManager = (ConnectivityManager) getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
-        registerNetworkCallback();
     }
 
     @Override
@@ -243,7 +242,6 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
         Log.i(TAG, "onDestroy: ");
 
         disconnect();
-        unregisterNetworkCallback();
     }
 
     // this methods call when user remove activity from stack
@@ -280,18 +278,42 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
             @Override
             public void onCapabilitiesChanged(@NonNull Network network, @NonNull NetworkCapabilities networkCapabilities) {
                 super.onCapabilitiesChanged(network, networkCapabilities);
-                Log.i(TAG, "ConnectivityManager.NetworkCallback.onCapabilitiesChanged() Thread.Id: " + Thread.currentThread().getId());
 
                 CustomVpnConnection currentConnection = activeConnection.get();
-                if (currentConnection != null && NetworkUtils.isOnline(connectivityManager)) {
-                    try {
-                        String currentIPAddress = NetworkUtils.getCurrentIPAddress();
-                        if (!Objects.equals(currentIPAddress,
-                                currentConnection.getCurrentActiveNetworkIP())) {
+                ConnectionState connectionState = Optional.ofNullable(serviceStateMutableLiveData.getValue())
+                        .map(CustomVpnServiceState::getConnectionState).orElse(null);
+                if (currentConnection != null && connectionState == ConnectionState.CONNECTED) {
+                    Network activeNetwork = connectivityManager.getActiveNetwork();
+                    NetworkCapabilities activeNetworkCapabilities = connectivityManager.getNetworkCapabilities(activeNetwork);
+                    if (activeNetworkCapabilities != null && activeNetworkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)) {
+                        boolean needReconnectByNetworkType = false;
+                        boolean reconnectOnChangeNetworkTypeEnabled = SharedPrefUtils.getReconnectOnChangeNetworkTypeEnabled(CustomVpnService.this);
+                        if (reconnectOnChangeNetworkTypeEnabled) {
+                            NetworkType activeNetworkType = NetworkUtils.getNetworkType(activeNetworkCapabilities);
+                            Log.d(TAG, "ActiveNetworkType: " + activeNetworkType);
+                            Log.d(TAG, "ConnectionNetworkType: " + currentConnection.getCurrentNetworkType());
+                            needReconnectByNetworkType = activeNetworkType != currentConnection.getCurrentNetworkType();
+                            Log.d(TAG, "After check networkType: " + needReconnectByNetworkType);
+                            if (needReconnectByNetworkType) {
+                                currentConnection.setCurrentNetworkType(activeNetworkType);
+                            }
+                        }
+
+                        boolean needReconnectByIp = false;
+                        boolean reconnectOnChangeIPEnabled = SharedPrefUtils.getReconnectOnChangeIPEnabled(CustomVpnService.this);
+                        if (reconnectOnChangeIPEnabled) {
+                            String currentIPAddress = NetworkUtils.getCurrentIPAddress();
+                            needReconnectByIp = !Objects.equals(currentIPAddress, currentConnection.getCurrentIPAddress());
+                            Log.d(TAG, "After check actual IP: " + needReconnectByIp);
+                            if (needReconnectByIp) {
+                                currentConnection.setCurrentIPAddress(currentIPAddress);
+                            }
+                        }
+
+                        if (needReconnectByNetworkType || needReconnectByIp) {
+                            Log.d(TAG, "Reconnect initialized");
                             currentConnection.onConnectionFailure();
                         }
-                    } catch (SocketException e) {
-                        Log.e(TAG, "onCapabilitiesChanged() exception", e);
                     }
                 }
             }
@@ -398,20 +420,33 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
 
         acquirePowerLock();
 
-        /*TODO: change only on change network wifi => cellular or cellular => wifi*/
-        /* TODO: add disable option in settigns */
-        /* TODO: one: for change on ip - default false */
-        /* TODO: second: change on network type - default true */
-
+        NetworkType networkType = NetworkType.UNKNOWN;
         String currentIPAddress = NetworkUtils.UNKNOWN_IP;
-        try {
-            currentIPAddress = NetworkUtils.getCurrentIPAddress();
-        } catch (SocketException e) {
-            Log.e(TAG, "NetworkUtils.getCurrentIPAddress(): " + e.getMessage(), e);
+
+        boolean reconnectOnChangeIPEnabled = SharedPrefUtils.getReconnectOnChangeIPEnabled(this);
+        boolean reconnectOnChangeNetworkTypeEnabled = SharedPrefUtils.getReconnectOnChangeNetworkTypeEnabled(this);
+        if (reconnectOnChangeIPEnabled || reconnectOnChangeNetworkTypeEnabled) {
+            registerNetworkCallback();
+
+            if (reconnectOnChangeNetworkTypeEnabled) {
+                networkType = NetworkUtils.getActiveNetworkType(connectivityManager);
+            }
+
+            if (reconnectOnChangeIPEnabled) {
+                currentIPAddress = NetworkUtils.getCurrentIPAddress();
+            }
+        } else {
+            Log.d(TAG, "Reconnect on change network type and IP disabled in settings");
         }
+
         try {
             CustomVpnConnection connection = new CustomVpnConnection(
-                    this, nextConnectionId.getAndIncrement(), fptnServerDto, sniHostname, currentIPAddress);
+                    this,
+                    nextConnectionId.getAndIncrement(),
+                    fptnServerDto,
+                    sniHostname,
+                    currentIPAddress,
+                    networkType);
             connection.setConfigureVpnIntent(launchMainActivityPendingIntent);
             connection.start();
 
@@ -472,6 +507,9 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
             wakeLock.release();
             wakeLock = null;
         }
+
+        // unregister network callback
+        unregisterNetworkCallback();
 
         // stop service
         stopSelf();

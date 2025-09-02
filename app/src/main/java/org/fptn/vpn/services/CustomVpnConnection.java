@@ -22,6 +22,7 @@ import org.fptn.vpn.services.websocket.WebSocketAlreadyShutdownException;
 import org.fptn.vpn.services.websocket.WebSocketClientWrapper;
 import org.fptn.vpn.utils.DataRateCalculator;
 import org.fptn.vpn.utils.IPUtils;
+import org.fptn.vpn.utils.NetworkType;
 import org.fptn.vpn.vpnclient.exception.ErrorCode;
 import org.fptn.vpn.vpnclient.exception.PVNClientException;
 
@@ -64,8 +65,6 @@ public class CustomVpnConnection extends Thread {
     @Getter
     private final FptnServerDto fptnServerDto;
     private final WebSocketClientWrapper webSocketClient;
-    @Getter
-    private final String currentActiveNetworkIP;
 
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
     private final DataRateCalculator downloadRate = new DataRateCalculator(1000);
@@ -84,15 +83,24 @@ public class CustomVpnConnection extends Thread {
     private Instant connectionTime;
     private ScheduledFuture<?> onFailureScheduledTask;
 
+    @Getter
+    @Setter
+    private String currentIPAddress;
+    @Getter
+    @Setter
+    private NetworkType currentNetworkType;
+
     public CustomVpnConnection(final CustomVpnService service,
                                final int connectionId,
                                final FptnServerDto fptnServerDto,
                                final String sniHostName,
-                               final String currentActiveNetworkIP) throws PVNClientException {
+                               final String currentIPAddress,
+                               final NetworkType currentNetworkType) throws PVNClientException {
         this.service = service;
         this.connectionId = connectionId;
         this.fptnServerDto = fptnServerDto;
-        this.currentActiveNetworkIP = currentActiveNetworkIP;
+        this.currentIPAddress = currentIPAddress;
+        this.currentNetworkType = currentNetworkType;
         this.webSocketClient = new WebSocketClientWrapper(this.fptnServerDto,
                 TUN_ADDRESS.getIpAddress(),
                 sniHostName,
