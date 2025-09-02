@@ -1,6 +1,5 @@
 package org.fptn.vpn.views;
 
-import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -51,18 +50,6 @@ public class SettingsActivity extends AppCompatActivity {
 
     @Getter
     private FptnServerViewModel fptnViewModel;
-
-    // On Android >= 13.0 we need to require permissions on notifications
-    private final ActivityResultLauncher<String> requestPermissionLauncher = registerForActivityResult(
-            new ActivityResultContracts.RequestPermission(),
-            isGranted -> {
-                if (isGranted) {
-                    Log.i(TAG, "Notifications enabled!");
-                } else {
-                    Log.i(TAG, "Notifications disabled!");
-                }
-            }
-    );
 
     private SwitchCompat permissionShowNotificationButton;
     private SwitchCompat permissionBatteryOptimizationButton;
@@ -150,11 +137,9 @@ public class SettingsActivity extends AppCompatActivity {
     private void setPermissionButtonState(boolean isGranted, SwitchCompat switchView) {
         switchView.setEnabled(true);
         if (isGranted) {
-            //switchView.setEnabled(false);
             switchView.setClickable(false);
             switchView.setChecked(true);
         } else {
-            //switchView.setEnabled(true);
             switchView.setClickable(true);
             switchView.setChecked(false);
         }
@@ -166,11 +151,14 @@ public class SettingsActivity extends AppCompatActivity {
         new AlertDialog.Builder(this)
                 .setTitle(R.string.notifications_request_title)
                 .setMessage(R.string.notifications_request_reason)
-                .setPositiveButton(R.string.grant, (dialog, which) -> requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS))
-                .setNegativeButton(R.string.deny, (dialog, which) -> {
-                    Log.i(TAG, "Notifications denied!");
-                    permissionShowNotificationButton.setChecked(false);
+                .setPositiveButton(R.string.grant, (dialog, which) -> {
+                    Intent intent = new Intent();
+                    intent.setAction(Settings.ACTION_APP_NOTIFICATION_SETTINGS);
+                    intent.putExtra(Settings.EXTRA_APP_PACKAGE, getPackageName());
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(intent);
                 })
+                .setOnDismissListener(v -> permissionShowNotificationButton.setChecked(false))
                 .create()
                 .show();
     }
