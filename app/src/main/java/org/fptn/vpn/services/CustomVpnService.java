@@ -438,6 +438,8 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
         } else {
             Log.d(TAG, "Reconnect on change network type and IP disabled in settings");
         }
+        int maxReconnectCount = SharedPrefUtils.getReconnectAttemptsCount(this);
+        int delayBetweenAttempts = SharedPrefUtils.getDelayBetweenReconnect(this);
 
         try {
             CustomVpnConnection connection = new CustomVpnConnection(
@@ -446,7 +448,9 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
                     fptnServerDto,
                     sniHostname,
                     currentIPAddress,
-                    networkType);
+                    networkType,
+                    maxReconnectCount,
+                    delayBetweenAttempts);
             connection.setConfigureVpnIntent(launchMainActivityPendingIntent);
             connection.start();
 

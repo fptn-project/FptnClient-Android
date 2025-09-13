@@ -55,8 +55,6 @@ public class CustomVpnConnection extends Thread {
      * Maximum packet size is constrained by the MTU
      */
     private static final int MAX_PACKET_SIZE = 1500;
-    private static final int MAX_RECONNECT_COUNT = 5;
-    private static final long DELAY_BETWEEN_RECONNECT_ON_FAILURE = 2L;
 
     @Getter
     private final int connectionId;
@@ -90,12 +88,17 @@ public class CustomVpnConnection extends Thread {
     @Setter
     private NetworkType currentNetworkType;
 
+    private final int maxReconnectCount;
+    private final int delayBetweenAttempts;
+
     public CustomVpnConnection(final CustomVpnService service,
                                final int connectionId,
                                final FptnServerDto fptnServerDto,
                                final String sniHostName,
                                final String currentIPAddress,
-                               final NetworkType currentNetworkType) throws PVNClientException {
+                               final NetworkType currentNetworkType,
+                               final int maxReconnectCount,
+                               int delayBetweenAttempts) throws PVNClientException {
         this.service = service;
         this.connectionId = connectionId;
         this.fptnServerDto = fptnServerDto;
@@ -108,6 +111,8 @@ public class CustomVpnConnection extends Thread {
                 this::onMessageReceived,
                 this::onConnectionFailure
         );
+        this.maxReconnectCount = maxReconnectCount;
+        this.delayBetweenAttempts = delayBetweenAttempts;
     }
 
     @Override
@@ -251,13 +256,13 @@ public class CustomVpnConnection extends Thread {
             onFailureScheduledTask = scheduler.scheduleWithFixedDelay(() -> {
                 int currentCount = reconnectCount.incrementAndGet();
                 Log.i(getTag(), "Reconnect WebSocket... currentCount: " + currentCount);
-                if (!currentThread.isInterrupted() && isTunInterfaceValid(vpnInterface) && currentCount <= MAX_RECONNECT_COUNT) {
+                if (!currentThread.isInterrupted() && isTunInterfaceValid(vpnInterface) && currentCount <= maxReconnectCount) {
                     try {
                         sendConnectionStateToService(ConnectionState.RECONNECTING);
                         Log.d(getTag(), "onConnectionFailure() scheduler task Thread.id: " + Thread.currentThread().getId());
                         webSocketClient.startWebSocket();
                     } catch (PVNClientException e) {
-                        if (currentCount == MAX_RECONNECT_COUNT) {
+                        if (currentCount == maxReconnectCount) {
                             sendExceptionToService(e);
                             onFailureInterrupt();
                         }
@@ -268,7 +273,7 @@ public class CustomVpnConnection extends Thread {
                 } else {
                     onFailureInterrupt();
                 }
-            }, 0L, DELAY_BETWEEN_RECONNECT_ON_FAILURE, TimeUnit.SECONDS);
+            }, 0L, delayBetweenAttempts, TimeUnit.SECONDS);
         } catch (RejectedExecutionException exception) {
             Log.w(getTag(), "OnFailure task rejected!", exception);
         }

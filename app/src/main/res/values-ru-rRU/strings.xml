@@ -140,4 +140,9 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="reconnect_on_change">Переподключение при изменении:</string>
     <string name="reconnect_on_change_network_type">типа сети</string>
     <string name="reconnect_on_change_ip_address">IP адреса</string>
+    <string name="reconnection_on_failure_attempts">Попытки переподключения при потере сети:</string>
+    <string name="attempts_count">Число попыток:</string>
+    <string name="delay_between_attempts">Пауза между:</string>
+    <string name="delay_between_attempts_seconds">"%d c"</string>
+    <string name="reconnect_attempts_text">"%d"</string>
 </resources>

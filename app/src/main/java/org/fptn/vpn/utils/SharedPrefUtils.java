@@ -2,11 +2,13 @@ package org.fptn.vpn.utils;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.util.Log;
 
 import org.fptn.vpn.R;
 import org.fptn.vpn.core.common.Constants;
 
 public class SharedPrefUtils {
+    private static final String TAG = SharedPrefUtils.class.getSimpleName();
 
     /* SNI */
     public static String getSniHostname(Context context) {
@@ -66,5 +68,29 @@ public class SharedPrefUtils {
     public static void saveReconnectOnChangeIPEnabled(Context context, boolean enabled) {
         SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
         sharedPreferences.edit().putBoolean(Constants.RECONNECT_ON_CHANGE_IP_ENABLED_SHARED_PREF_KEY, enabled).apply();
+    }
+
+    public static int getReconnectAttemptsCount(Context context) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        return sharedPreferences.getInt(Constants.RECONNECT_ATTEMPTS_COUNT_SHARED_PREF_KEY, 5);
+    }
+
+    public static void saveReconnectAttemptsCount(Context context, int count) {
+        Log.d(TAG, "saveReconnectAttemptsCount: " + count);
+
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        sharedPreferences.edit().putInt(Constants.RECONNECT_ATTEMPTS_COUNT_SHARED_PREF_KEY, count).apply();
+    }
+
+
+    public static int getDelayBetweenReconnect(Context context) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        return sharedPreferences.getInt(Constants.RECONNECT_DELAY_BETWEEN_SHARED_PREF_KEY, 2);
+    }
+
+    public static void saveDelayBetweenReconnect(Context context, int delayInSeconds) {
+        Log.d(TAG, "saveDelayBetweenReconnect: " + delayInSeconds);
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        sharedPreferences.edit().putInt(Constants.RECONNECT_DELAY_BETWEEN_SHARED_PREF_KEY, delayInSeconds).apply();
     }
 }

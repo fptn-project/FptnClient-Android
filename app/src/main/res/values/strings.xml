@@ -160,4 +160,11 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="reconnect_on_change">Reconnect on changing:</string>
     <string name="reconnect_on_change_network_type">of network type</string>
     <string name="reconnect_on_change_ip_address">of IP address</string>
+
+    <string name="reconnection_on_failure_attempts">Reconnection on failure attempts:</string>
+    <string name="attempts_count">Attempts count:</string>
+    <string name="delay_between_attempts">Delay between:</string>
+
+    <string name="delay_between_attempts_seconds">"%d s"</string>
+    <string name="reconnect_attempts_text">"%d"</string>
 </resources>

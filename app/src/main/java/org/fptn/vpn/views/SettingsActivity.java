@@ -16,6 +16,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListAdapter;
 import android.widget.ListView;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
@@ -294,10 +295,78 @@ public class SettingsActivity extends AppCompatActivity {
         SwitchCompat switchIPAddress = dialogView.findViewById(R.id.reconnect_on_change_ip_address_switch);
         switchIPAddress.setChecked(SharedPrefUtils.getReconnectOnChangeIPEnabled(this));
 
+        /* Reconnects attempts count */
+        SeekBar seekBarAttemptsCount = dialogView.findViewById(R.id.seekBarAttemptsCount);
+        TextView textViewAttemptsCount = dialogView.findViewById(R.id.textViewAttemptsCount);
+        seekBarAttemptsCount.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if (progress == 3) {
+                    textViewAttemptsCount.setText("∞");
+                } else {
+                    String format = getString(R.string.reconnect_attempts_text);
+                    textViewAttemptsCount.setText(String.format(format, progress * 5));
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+
+        seekBarAttemptsCount.setProgress(0);
+        int reconnectAttemptsCount = SharedPrefUtils.getReconnectAttemptsCount(this);
+        if (reconnectAttemptsCount == Integer.MAX_VALUE) {
+            seekBarAttemptsCount.setProgress(3);
+        } else {
+            seekBarAttemptsCount.setProgress(reconnectAttemptsCount / 5);
+        }
+
+        /* Reconnects delay between in seconds */
+        SeekBar seekBarDelayBetween = dialogView.findViewById(R.id.seekBarDelayBetween);
+        TextView textViewDelayBetween = dialogView.findViewById(R.id.textViewDelayBetween);
+        seekBarDelayBetween.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                String format = getString(R.string.delay_between_attempts_seconds);
+                textViewDelayBetween.setText(String.format(format, progress + 1));
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+
+        int delayBetweenReconnect = SharedPrefUtils.getDelayBetweenReconnect(this);
+        seekBarDelayBetween.setProgress(0);
+        seekBarDelayBetween.setProgress(delayBetweenReconnect - 1);
+
         builder.setPositiveButton(getString(R.string.save_button), (dialog, which) -> {
             Log.d(TAG, "experimentalFeaturesDialog: save");
             SharedPrefUtils.saveReconnectOnChangeNetworkTypeEnabled(this, switchNetworkType.isChecked());
             SharedPrefUtils.saveReconnectOnChangeIPEnabled(this, switchIPAddress.isChecked());
+
+            int attemptsCountProgress = seekBarAttemptsCount.getProgress();
+            if (attemptsCountProgress == 3) {
+                SharedPrefUtils.saveReconnectAttemptsCount(this, Integer.MAX_VALUE);
+            } else {
+                SharedPrefUtils.saveReconnectAttemptsCount(this, attemptsCountProgress * 5);
+            }
+
+            int delayBetweenProgress = seekBarDelayBetween.getProgress();
+            SharedPrefUtils.saveDelayBetweenReconnect(this, delayBetweenProgress + 1);
         });
         builder.setNegativeButton(getString(R.string.cancel_button), (dialog, which) -> {
             Log.d(TAG, "experimentalFeaturesDialog: cancel");
