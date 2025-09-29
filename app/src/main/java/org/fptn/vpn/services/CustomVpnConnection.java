@@ -26,6 +26,8 @@ import org.fptn.vpn.utils.NetworkType;
 import org.fptn.vpn.vpnclient.exception.ErrorCode;
 import org.fptn.vpn.vpnclient.exception.PVNClientException;
 
+import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -33,7 +35,6 @@ import java.net.InetAddress;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
@@ -52,9 +53,17 @@ import lombok.Setter;
 
 public class CustomVpnConnection extends Thread {
     /**
+     * Minimum interval between sends
+     */
+    public static final long MIN_SEND_INTERVAL_MS = 50;
+    /**
      * Maximum packet size is constrained by the MTU
      */
     private static final int MAX_PACKET_SIZE = 1500;
+    /**
+     * Minimum bytes in buffer to send
+     */
+    public static final int MIN_SIZE_THRESHOLD_TO_SEND = MAX_PACKET_SIZE / 2;
 
     @Getter
     private final int connectionId;
@@ -188,13 +197,31 @@ public class CustomVpnConnection extends Thread {
 
             // Packets to be sent are queued in this input stream.
             try (FileInputStream inputStream = new FileInputStream(vpnInterface.getFileDescriptor())) {
+                // Use a buffer to collect multiple packets before sending
+                ByteArrayOutputStream packetBuffer = new ByteArrayOutputStream(MAX_PACKET_SIZE * 2);
                 byte[] byteBuffer = new byte[MAX_PACKET_SIZE];
-                while (!currentThread.isInterrupted()) {
+
+                long lastSendTime = 0;
+                while (!currentThread.isInterrupted()
+                        && vpnInterface.getFileDescriptor().valid()) {
                     try {
                         int length = inputStream.read(byteBuffer);
                         if (length > 0) {
                             uploadRate.update(length);
-                            webSocketClient.send(Arrays.copyOf(byteBuffer, length));
+                            packetBuffer.write(byteBuffer, 0, length);
+
+                            // Only send if enough time has passed since last send
+                            long currentTime = System.currentTimeMillis();
+                            if (currentTime - lastSendTime >= MIN_SEND_INTERVAL_MS
+                                    || packetBuffer.size() > MIN_SIZE_THRESHOLD_TO_SEND) {
+                                lastSendTime = currentTime;
+                                webSocketClient.send(packetBuffer.toByteArray());
+                                packetBuffer.reset();
+                            }
+                        } else {
+                            // if read buffer empty - sleep
+                            Log.d(getTag(), "Read zero from vpn interface. Sleep...");
+                            Thread.sleep(MIN_SEND_INTERVAL_MS);
                         }
                     } catch (Exception e) {
                         Log.d(getTag(), "Error reading data from VPN interface: " + e.getMessage());
