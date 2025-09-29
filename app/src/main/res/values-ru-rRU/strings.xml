@@ -133,7 +133,6 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="permission_request_title">Запрос разрешений</string>
     <string name="permission_request_text">Для стабильного соединения предоставьте необходимые разрешения</string>
 
-
     <string name="sponsors_text">Спасибо нашим спонсорам</string>
     <string name="experimental_features_label">Экспериментальные настройки</string>
     <string name="experimental_features_info">Включите или отключите экспериментальные функции для предотвращения нарушения основной функциональности.</string>
@@ -145,4 +144,11 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="delay_between_attempts">Пауза между:</string>
     <string name="delay_between_attempts_seconds">"%d c"</string>
     <string name="reconnect_attempts_text">"%d"</string>
+
+    <string name="another_settings">Другие настройки:</string>
+    <string name="quick_settings_tile">Плитка быстрых настроек (шторка)</string>
+    <string name="tile_already_added">Плитка быстрых настроек была добавлена ранее</string>
+    <string name="tile_added_successfully">Плитка быстрых настроек добавлена</string>
+    <string name="tile_addition_failed">Плитка быстрых настроек не добавлена!</string>
+    <string name="tile_android_version_too_low">Версия Андроида слишком низкая</string>
 </resources>

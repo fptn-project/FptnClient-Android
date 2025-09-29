@@ -2,9 +2,13 @@ package org.fptn.vpn.views;
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
+import android.app.StatusBarManager;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.graphics.drawable.Icon;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -14,10 +18,12 @@ import android.text.method.LinkMovementMethod;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
@@ -27,6 +33,7 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModelProvider;
 
 import org.fptn.vpn.R;
+import org.fptn.vpn.services.tile.FptnTileService;
 import org.fptn.vpn.utils.PermissionsUtils;
 import org.fptn.vpn.utils.SharedPrefUtils;
 import org.fptn.vpn.viewmodel.FptnServerViewModel;
@@ -36,6 +43,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.textfield.TextInputEditText;
 
 import java.util.Optional;
+import java.util.concurrent.Executors;
 
 import lombok.Getter;
 
@@ -52,6 +60,7 @@ public class SettingsActivity extends AppCompatActivity {
     private SwitchCompat permissionShowNotificationButton;
     private SwitchCompat permissionBatteryOptimizationButton;
     private SwitchCompat permissionBackgroundDataTransferButton;
+    private BottomNavigationView bottomNavigationView;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -65,7 +74,7 @@ public class SettingsActivity extends AppCompatActivity {
 
     @SuppressLint("InlinedApi")
     private void initializeVariable() {
-        BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavBar);
+        bottomNavigationView = findViewById(R.id.bottomNavBar);
         bottomNavigationView.setSelectedItemId(R.id.menuSettings);
         bottomNavigationView.setOnItemSelectedListener(new CustomBottomNavigationListener(this, bottomNavigationView, R.id.menuSettings));
 
@@ -140,6 +149,8 @@ public class SettingsActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
 
+        bottomNavigationView.setSelectedItemId(R.id.menuSettings);
+
         setPermissionButtonState(PermissionsUtils.checkNotificationPermission(this), permissionShowNotificationButton);
         setPermissionButtonState(PermissionsUtils.checkBatteryOptimizations(this), permissionBatteryOptimizationButton);
         setPermissionButtonState(PermissionsUtils.checkBackgroundDataTransferRestrictions(this), permissionBackgroundDataTransferButton);
@@ -207,7 +218,6 @@ public class SettingsActivity extends AppCompatActivity {
                 })
                 .show();
     }
-
 
     public void onLogout(View v) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this)
@@ -278,7 +288,6 @@ public class SettingsActivity extends AppCompatActivity {
         alertDialogBuilder.show();
     }
 
-
     public void showExperimentalSettingsDialog(View view) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(R.string.experimental_features_label);
@@ -294,6 +303,46 @@ public class SettingsActivity extends AppCompatActivity {
         /* Reconnect on change IP address */
         SwitchCompat switchIPAddress = dialogView.findViewById(R.id.reconnect_on_change_ip_address_switch);
         switchIPAddress.setChecked(SharedPrefUtils.getReconnectOnChangeIPEnabled(this));
+
+        /* Quick tile request */
+        Button buttonRequestTile = dialogView.findViewById(R.id.quick_settings_tile_button);
+        buttonRequestTile.setVisibility(View.INVISIBLE);
+        buttonRequestTile.setOnClickListener(l -> {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                @SuppressLint("WrongConstant") StatusBarManager statusBarManager = (StatusBarManager) getSystemService(Context.STATUS_BAR_SERVICE);
+                try {
+                    // Request to add a custom tile service
+                    statusBarManager.requestAddTileService(
+                            new ComponentName(this, FptnTileService.class),
+                            "FPTN",
+                            Icon.createWithResource(this, R.drawable.ic_tile_shield_on_24),
+                            Executors.newSingleThreadExecutor(),
+                            (resultCode) -> {
+                                if (resultCode == StatusBarManager.TILE_ADD_REQUEST_RESULT_TILE_ALREADY_ADDED) {
+                                    Log.d(TAG, "Tile already added successfully. Nothing to do.");
+                                    Toast.makeText(this, R.string.tile_already_added, Toast.LENGTH_SHORT)
+                                            .show();
+                                } else if (resultCode == StatusBarManager.TILE_ADD_REQUEST_RESULT_TILE_ADDED) {
+                                    Log.d(TAG, "Tile added successfully.");
+                                    Toast.makeText(this, R.string.tile_added_successfully, Toast.LENGTH_SHORT)
+                                            .show();
+                                } else {
+                                    Log.e(TAG, "Failed to request tile addition.");
+                                    Toast.makeText(this, R.string.tile_addition_failed, Toast.LENGTH_SHORT)
+                                            .show();
+                                }
+                            }
+                    );
+                } catch (Exception e) {
+                    Log.e(TAG, "Failed to request tile addition", e);
+                    Toast.makeText(this, R.string.tile_addition_failed, Toast.LENGTH_SHORT)
+                            .show();
+                }
+            } else {
+                Toast.makeText(this, R.string.tile_android_version_too_low, Toast.LENGTH_SHORT)
+                        .show();
+            }
+        });
 
         /* Reconnects attempts count */
         SeekBar seekBarAttemptsCount = dialogView.findViewById(R.id.seekBarAttemptsCount);

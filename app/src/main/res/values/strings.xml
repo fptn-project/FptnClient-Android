@@ -168,4 +168,11 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
 
     <string name="delay_between_attempts_seconds">"%d s"</string>
     <string name="reconnect_attempts_text">"%d"</string>
+
+    <string name="another_settings">Another settings:</string>
+    <string name="quick_settings_tile">Quick settings tile</string>
+    <string name="tile_already_added">Tile already added</string>
+    <string name="tile_added_successfully">Tile added successfully</string>
+    <string name="tile_addition_failed">Tile addition failed!</string>
+    <string name="tile_android_version_too_low">Android version too low</string>
 </resources>

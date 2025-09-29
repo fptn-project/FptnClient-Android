@@ -21,6 +21,7 @@ ksp = "2.2.20-2.0.3"
 lombock = "1.18.40"
 material = "1.13.0"
 monitor = "1.8.0"
+protobuf = "4.26.1"
 roomRuntime = "2.7.2"
 zxing = "3.5.3"
 
