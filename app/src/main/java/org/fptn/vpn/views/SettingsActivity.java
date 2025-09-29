@@ -306,6 +306,7 @@ public class SettingsActivity extends AppCompatActivity {
 
         /* Quick tile request */
         Button buttonRequestTile = dialogView.findViewById(R.id.quick_settings_tile_button);
+        buttonRequestTile.setVisibility(View.INVISIBLE);
         buttonRequestTile.setOnClickListener(l -> {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 @SuppressLint("WrongConstant") StatusBarManager statusBarManager = (StatusBarManager) getSystemService(Context.STATUS_BAR_SERVICE);
