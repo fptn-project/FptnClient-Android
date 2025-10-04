@@ -26,8 +26,6 @@ import org.fptn.vpn.utils.NetworkType;
 import org.fptn.vpn.vpnclient.exception.ErrorCode;
 import org.fptn.vpn.vpnclient.exception.PVNClientException;
 
-import java.io.BufferedInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -132,6 +130,8 @@ public class CustomVpnConnection extends Thread {
             builder.addAddress(TUN_ADDRESS.getIpAddress(), TUN_ADDRESS.getPrefix());
             builder.addRoute(HZ_WHAT_IS_THIS_IP.getIpAddress(), HZ_WHAT_IS_THIS_IP.getPrefix());
             builder.setMtu(MAX_PACKET_SIZE);
+            // enable blocking reading
+            builder.setBlocking(true);
 
             final String dnsServer = webSocketClient.getDnsServerIPv4();
             builder.addDnsServer(dnsServer);
@@ -202,7 +202,8 @@ public class CustomVpnConnection extends Thread {
                             webSocketClient.send(byteBuffer);
                         } else {
                             // if read buffer empty - sleep
-                            //Log.d(getTag(), "Read zero from vpn interface. Sleep...");
+                            // I set blocking mode - it looks like no need anymore
+                            Log.d(getTag(), "Read zero from vpn interface. Sleep...");
                             Thread.sleep(MIN_SEND_INTERVAL_MS);
                         }
                     } catch (Exception e) {
