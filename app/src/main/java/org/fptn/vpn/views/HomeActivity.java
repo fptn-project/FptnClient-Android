@@ -47,7 +47,6 @@ import com.google.android.material.snackbar.Snackbar;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import lombok.Getter;
@@ -301,29 +300,35 @@ public class HomeActivity extends AppCompatActivity {
         }
     }
 
-    @SuppressLint("WrongConstant")
     private void requestAddTileService() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (SharedPrefUtils.isQuickSettingsTileRequested(this)) {
-                StatusBarManager statusBarManager = (StatusBarManager) getSystemService(Context.STATUS_BAR_SERVICE);
+                @SuppressLint("WrongConstant") StatusBarManager statusBarManager = (StatusBarManager) getSystemService(Context.STATUS_BAR_SERVICE);
                 try {
                     // Request to add a custom tile service
                     statusBarManager.requestAddTileService(
                             new ComponentName(this, FptnTileService.class),
                             "FPTN",
                             Icon.createWithResource(this, R.drawable.ic_tile_shield_on_24),
-                            Executors.newSingleThreadExecutor(),
+                            this.getMainExecutor(),
                             (resultCode) -> {
-                                if (resultCode == StatusBarManager.TILE_ADD_REQUEST_RESULT_TILE_ALREADY_ADDED ||
-                                        resultCode == StatusBarManager.TILE_ADD_REQUEST_RESULT_TILE_ADDED) {
-                                    Log.d(TAG, "Tile request sent successfully");
+                                if (resultCode == StatusBarManager.TILE_ADD_REQUEST_RESULT_TILE_ALREADY_ADDED) {
+                                    Log.d(TAG, "Tile already added successfully. Nothing to do.");
+                                    Toast.makeText(this, R.string.tile_already_added, Toast.LENGTH_SHORT)
+                                            .show();
+                                } else if (resultCode == StatusBarManager.TILE_ADD_REQUEST_RESULT_TILE_ADDED) {
+                                    Log.d(TAG, "Tile added successfully.");
+                                    Toast.makeText(this, R.string.tile_added_successfully, Toast.LENGTH_SHORT)
+                                            .show();
                                 } else {
-                                    Log.e(TAG, "Failed to request tile addition");
+                                    Log.d(TAG, "User cancel request.");
                                 }
                             }
                     );
                 } catch (Exception e) {
                     Log.e(TAG, "Failed to request tile addition", e);
+                    Toast.makeText(this, R.string.tile_addition_failed, Toast.LENGTH_SHORT)
+                            .show();
                 }
 
                 SharedPrefUtils.saveQuickSettingsTileRequested(this, true);
