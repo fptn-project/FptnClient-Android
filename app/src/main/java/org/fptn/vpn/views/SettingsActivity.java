@@ -306,9 +306,8 @@ public class SettingsActivity extends AppCompatActivity {
 
         /* Quick tile request */
         Button buttonRequestTile = dialogView.findViewById(R.id.quick_settings_tile_button);
-        buttonRequestTile.setVisibility(View.INVISIBLE);
-        buttonRequestTile.setOnClickListener(l -> {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            buttonRequestTile.setOnClickListener(l -> {
                 @SuppressLint("WrongConstant") StatusBarManager statusBarManager = (StatusBarManager) getSystemService(Context.STATUS_BAR_SERVICE);
                 try {
                     // Request to add a custom tile service
@@ -316,7 +315,7 @@ public class SettingsActivity extends AppCompatActivity {
                             new ComponentName(this, FptnTileService.class),
                             "FPTN",
                             Icon.createWithResource(this, R.drawable.ic_tile_shield_on_24),
-                            Executors.newSingleThreadExecutor(),
+                            this.getMainExecutor(),
                             (resultCode) -> {
                                 if (resultCode == StatusBarManager.TILE_ADD_REQUEST_RESULT_TILE_ALREADY_ADDED) {
                                     Log.d(TAG, "Tile already added successfully. Nothing to do.");
@@ -327,9 +326,7 @@ public class SettingsActivity extends AppCompatActivity {
                                     Toast.makeText(this, R.string.tile_added_successfully, Toast.LENGTH_SHORT)
                                             .show();
                                 } else {
-                                    Log.e(TAG, "Failed to request tile addition.");
-                                    Toast.makeText(this, R.string.tile_addition_failed, Toast.LENGTH_SHORT)
-                                            .show();
+                                    Log.d(TAG, "User cancel request.");
                                 }
                             }
                     );
@@ -338,11 +335,13 @@ public class SettingsActivity extends AppCompatActivity {
                     Toast.makeText(this, R.string.tile_addition_failed, Toast.LENGTH_SHORT)
                             .show();
                 }
-            } else {
-                Toast.makeText(this, R.string.tile_android_version_too_low, Toast.LENGTH_SHORT)
-                        .show();
-            }
-        });
+            });
+            buttonRequestTile.setEnabled(true);
+            buttonRequestTile.setVisibility(View.VISIBLE);
+        } else {
+            buttonRequestTile.setEnabled(false);
+            buttonRequestTile.setVisibility(View.INVISIBLE);
+        }
 
         /* Reconnects attempts count */
         SeekBar seekBarAttemptsCount = dialogView.findViewById(R.id.seekBarAttemptsCount);
