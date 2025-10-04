@@ -79,8 +79,8 @@
         <service
             android:name=".services.tile.FptnTileService"
             android:exported="true"
-            android:icon="@drawable/ic_launcher_foreground"
-            android:label="FPTN-VPN"
+            android:icon="@drawable/ic_tile_shield_on_24"
+            android:label="FPTN"
             android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
             <intent-filter>
                 <action android:name="android.service.quicksettings.action.QS_TILE" />
