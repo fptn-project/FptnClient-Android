@@ -10,6 +10,6 @@
     <ImageView
         android:layout_width="160dp"
         android:layout_height="160dp"
-        android:src="@drawable/icon_splash" />
+        android:src="@drawable/ic_logo" />
 </LinearLayout>
 

@@ -75,7 +75,7 @@ public class FptnTileService extends TileService {
                     tile.setSubtitle("ON");
                 }
                 tile.setContentDescription("Connected to ESTONIA");
-                tile.setIcon(Icon.createWithResource(this, R.drawable.ic_tile_shield_on_24));
+                tile.setIcon(Icon.createWithResource(this, R.drawable.ic_logo));
                 tile.updateTile();
             } else {
                 tile.setState(Tile.STATE_INACTIVE);
@@ -84,7 +84,7 @@ public class FptnTileService extends TileService {
                     tile.setSubtitle("OFF");
                 }
                 tile.setContentDescription("Disconnected");
-                tile.setIcon(Icon.createWithResource(this, R.drawable.ic_tile_shield_off_24));
+                tile.setIcon(Icon.createWithResource(this, R.drawable.ic_logo));
                 tile.updateTile();
             }
         }

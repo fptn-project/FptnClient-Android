@@ -302,14 +302,14 @@ public class HomeActivity extends AppCompatActivity {
 
     private void requestAddTileService() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (SharedPrefUtils.isQuickSettingsTileRequested(this)) {
+            if (!SharedPrefUtils.isQuickSettingsTileRequested(this)) {
                 @SuppressLint("WrongConstant") StatusBarManager statusBarManager = (StatusBarManager) getSystemService(Context.STATUS_BAR_SERVICE);
                 try {
                     // Request to add a custom tile service
                     statusBarManager.requestAddTileService(
                             new ComponentName(this, FptnTileService.class),
                             "FPTN",
-                            Icon.createWithResource(this, R.drawable.ic_tile_shield_on_24),
+                            Icon.createWithResource(this, R.drawable.ic_logo),
                             this.getMainExecutor(),
                             (resultCode) -> {
                                 if (resultCode == StatusBarManager.TILE_ADD_REQUEST_RESULT_TILE_ALREADY_ADDED) {
