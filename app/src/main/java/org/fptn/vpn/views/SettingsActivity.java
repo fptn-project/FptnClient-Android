@@ -314,7 +314,7 @@ public class SettingsActivity extends AppCompatActivity {
                     statusBarManager.requestAddTileService(
                             new ComponentName(this, FptnTileService.class),
                             "FPTN",
-                            Icon.createWithResource(this, R.drawable.ic_tile_shield_on_24),
+                            Icon.createWithResource(this, R.drawable.ic_logo),
                             this.getMainExecutor(),
                             (resultCode) -> {
                                 if (resultCode == StatusBarManager.TILE_ADD_REQUEST_RESULT_TILE_ALREADY_ADDED) {

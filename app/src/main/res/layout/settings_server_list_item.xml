@@ -45,6 +45,6 @@
         android:layout_toEndOf="@+id/fptn_server_host"
         android:importantForAccessibility="no"
         android:visibility="gone"
-        app:srcCompat="@drawable/vpn_icon" />
+        app:srcCompat="@drawable/ic_logo" />
 
 </RelativeLayout>

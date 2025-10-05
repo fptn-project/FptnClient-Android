@@ -571,7 +571,7 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
                 .build();
         // todo: add log if service in foreground?
         Notification.Builder builder = new Notification.Builder(this, Constants.MAIN_NOTIFICATION_CHANNEL_ID)
-                .setSmallIcon(R.drawable.vpn_icon)
+                .setSmallIcon(R.drawable.ic_logo)
                 .setContentTitle(title)
                 .setContentText(message)
                 .setVisibility(Notification.VISIBILITY_PUBLIC) // Show this notification in its entirety on all lockscreens and while screen sharing.
@@ -592,7 +592,7 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
         }
 
         Notification notification = new Notification.Builder(this, Constants.MAIN_NOTIFICATION_CHANNEL_ID)
-                .setSmallIcon(R.drawable.vpn_icon)
+                .setSmallIcon(R.drawable.ic_logo)
                 .setVisibility(Notification.VISIBILITY_PUBLIC)
                 .setContentTitle(getApplication().getString(R.string.reconnecting_failed))
                 .setContentIntent(launchMainActivityPendingIntent)
