@@ -8,6 +8,19 @@ public class ServiceUtils {
 
     public static final String NONE = "none";
 
+    /**
+     * Checks if a service is considered a foreground service based on its type.
+     * <p>
+     * Starting with Android 10 (API level 29), services running in the foreground
+     * must declare a specific {@code foregroundServiceType}. This method determines
+     * if the provided type corresponds to an actual foreground service, excluding
+     * {@link ServiceInfo#FOREGROUND_SERVICE_TYPE_NONE}.
+     *
+     * @param foregroundServiceType The integer constant - result Service.getForegroundServiceType().
+     * @return {@code true} if the service type is a valid foreground service type
+     * (i.e., not {@code FOREGROUND_SERVICE_TYPE_NONE}), {@code false} otherwise.
+     * @see #foregroundServiceTypeToLabel(int)
+     */
     public static boolean isServiceForeground(int foregroundServiceType) {
         return !NONE.equals(foregroundServiceTypeToLabel(foregroundServiceType));
     }

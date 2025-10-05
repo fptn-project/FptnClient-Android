@@ -41,7 +41,6 @@ import org.fptn.vpn.services.tile.FptnTileService;
 import org.fptn.vpn.utils.NetworkType;
 import org.fptn.vpn.utils.NetworkUtils;
 import org.fptn.vpn.utils.NotificationUtils;
-import org.fptn.vpn.utils.ServiceUtils;
 import org.fptn.vpn.utils.SharedPrefUtils;
 import org.fptn.vpn.views.HomeActivity;
 import org.fptn.vpn.views.speedtest.SpeedTestUtils;
@@ -400,14 +399,8 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
                         String downloadSpeed = speedAndDuration.getFirst();
                         String uploadSpeed = speedAndDuration.getSecond();
 
-                        // add sign to title if service in foreground
-                        boolean isServiceForeground = false;
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                            isServiceForeground = ServiceUtils.isServiceForeground(getForegroundServiceType());
-                        }
-
                         updateNotificationWithMessage(
-                                String.format("%s %s (%s)", getString(R.string.connected_to), getActionConnectServerInfo(), isServiceForeground ? "Y" : "N"),
+                                String.format("%s %s", getString(R.string.connected_to), getActionConnectServerInfo()),
                                 String.format(getString(R.string.download_upload_speed_pattern), downloadSpeed, uploadSpeed)
                         );
 
