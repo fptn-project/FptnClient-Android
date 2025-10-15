@@ -212,8 +212,9 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
                 } else if (ACTION_DISCONNECT.equals(intent.getAction())) {
                     Log.i(TAG, "onStartCommand: disconnect!");
                     /* if we need disconnect */
-                    // todo: move to settings option
-                    fptnServerRepository.resetSelected();
+                    if (SharedPrefUtils.getResetSelectedServerEnabled(this)) {
+                        fptnServerRepository.resetSelected();
+                    }
                     // stop running threads
                     disconnect();
                 } else if (ACTION_CONNECT.equals(intent.getAction())) {
