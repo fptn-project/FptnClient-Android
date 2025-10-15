@@ -107,11 +107,11 @@ public class SharedPrefUtils {
 
     public static boolean getResetSelectedServerEnabled(Context context) {
         SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
-        return sharedPreferences.getBoolean(Constants.RESET_SELECTED_SERVER_AFTER_DISCONNECT_PREF_KEY, true);
+        return sharedPreferences.getBoolean(Constants.RESET_SELECTED_SERVER_PREF_KEY, true);
     }
 
     public static void saveResetSelectedServerEnabled(Context context, boolean enabled) {
         SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
-        sharedPreferences.edit().putBoolean(Constants.RESET_SELECTED_SERVER_AFTER_DISCONNECT_PREF_KEY, enabled).apply();
+        sharedPreferences.edit().putBoolean(Constants.RESET_SELECTED_SERVER_PREF_KEY, enabled).apply();
     }
 }
