@@ -2,6 +2,7 @@ package org.fptn.vpn.services.websocket;
 
 import android.util.Log;
 
+import org.fptn.vpn.enums.ObfuscationMethodEnum;
 import org.fptn.vpn.services.websocket.callback.OnFailureCallback;
 import org.fptn.vpn.services.websocket.callback.OnMessageReceivedCallback;
 import org.fptn.vpn.services.websocket.callback.OnOpenCallback;
@@ -24,6 +25,7 @@ public class NativeWebSocketClientImpl {
     private final OnOpenCallback onOpenCallback;
     private final OnMessageReceivedCallback onMessageReceivedCallback;
     private final OnFailureCallback onFailureCallback;
+    private final ObfuscationMethodEnum obfuscationMethod;
 
     private long nativeHandle;
 
@@ -36,11 +38,17 @@ public class NativeWebSocketClientImpl {
             String md5ServerFingerprint,
             OnOpenCallback onOpenCallback,
             OnMessageReceivedCallback onMessageReceivedCallback,
-            OnFailureCallback onFailureCallback) throws PVNClientException {
+            OnFailureCallback onFailureCallback,
+            ObfuscationMethodEnum obfuscationMethod) throws PVNClientException {
         this.onOpenCallback = onOpenCallback;
         this.onMessageReceivedCallback = onMessageReceivedCallback;
         this.onFailureCallback = onFailureCallback;
+        this.obfuscationMethod = obfuscationMethod;
 
+
+        // TODO: WHAT TO DO WITH OBFUSCATION METHOD?
+        // USE THIS
+        String obfuscation = obfuscationMethod.name(); // NONE, TLS_APP_DATA, TLS_APP_DATA_BASE_64
         this.nativeHandle = nativeCreate(
                 host,
                 port,

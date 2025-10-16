@@ -150,4 +150,6 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="tile_already_added">Плитка быстрых настроек была добавлена ранее</string>
     <string name="tile_added_successfully">Плитка быстрых настроек добавлена</string>
     <string name="tile_addition_failed">Плитка быстрых настроек не добавлена!</string>
+    <string name="protocol_settings_label">Настроки протокола:</string>
+    <string name="obfuscation_method_label">Маскировка:</string>
 </resources>

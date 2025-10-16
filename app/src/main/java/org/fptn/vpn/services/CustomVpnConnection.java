@@ -18,11 +18,12 @@ import android.util.Log;
 import org.fptn.vpn.database.model.FptnServerDto;
 import org.fptn.vpn.enums.ConnectionState;
 import org.fptn.vpn.enums.HandlerMessageTypes;
+import org.fptn.vpn.enums.ObfuscationMethodEnum;
 import org.fptn.vpn.services.websocket.WebSocketAlreadyShutdownException;
 import org.fptn.vpn.services.websocket.WebSocketClientWrapper;
 import org.fptn.vpn.utils.DataRateCalculator;
 import org.fptn.vpn.utils.IPUtils;
-import org.fptn.vpn.utils.NetworkType;
+import org.fptn.vpn.enums.NetworkType;
 import org.fptn.vpn.vpnclient.exception.ErrorCode;
 import org.fptn.vpn.vpnclient.exception.PVNClientException;
 
@@ -101,7 +102,8 @@ public class CustomVpnConnection extends Thread {
                                final String currentIPAddress,
                                final NetworkType currentNetworkType,
                                final int maxReconnectCount,
-                               int delayBetweenAttempts) throws PVNClientException {
+                               final int delayBetweenAttempts,
+                               final ObfuscationMethodEnum obfuscationMethod) throws PVNClientException {
         this.service = service;
         this.connectionId = connectionId;
         this.fptnServerDto = fptnServerDto;
@@ -112,7 +114,8 @@ public class CustomVpnConnection extends Thread {
                 sniHostName,
                 this::onConnectionOpen,
                 this::onMessageReceived,
-                this::onConnectionFailure
+                this::onConnectionFailure,
+                obfuscationMethod
         );
         this.maxReconnectCount = maxReconnectCount;
         this.delayBetweenAttempts = delayBetweenAttempts;

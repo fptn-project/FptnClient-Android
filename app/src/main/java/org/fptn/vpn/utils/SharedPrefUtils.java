@@ -2,10 +2,10 @@ package org.fptn.vpn.utils;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.util.Log;
 
 import org.fptn.vpn.R;
 import org.fptn.vpn.core.common.Constants;
+import org.fptn.vpn.enums.ObfuscationMethodEnum;
 
 public class SharedPrefUtils {
     private static final String TAG = SharedPrefUtils.class.getSimpleName();
@@ -87,8 +87,6 @@ public class SharedPrefUtils {
     }
 
     public static void saveReconnectAttemptsCount(Context context, int count) {
-        Log.d(TAG, "saveReconnectAttemptsCount: " + count);
-
         SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
         sharedPreferences.edit().putInt(Constants.RECONNECT_ATTEMPTS_COUNT_SHARED_PREF_KEY, count).apply();
     }
@@ -100,8 +98,18 @@ public class SharedPrefUtils {
     }
 
     public static void saveDelayBetweenReconnect(Context context, int delayInSeconds) {
-        Log.d(TAG, "saveDelayBetweenReconnect: " + delayInSeconds);
         SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
         sharedPreferences.edit().putInt(Constants.RECONNECT_DELAY_BETWEEN_SHARED_PREF_KEY, delayInSeconds).apply();
+    }
+
+
+    public static ObfuscationMethodEnum getObfuscationMethod(Context context) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        return ObfuscationMethodEnum.valueOf(sharedPreferences.getString(Constants.OBFUSCATION_METHOD_SHARED_PREF_KEY, ObfuscationMethodEnum.NONE.name()));
+    }
+
+    public static void saveObfuscationMethod(Context context, ObfuscationMethodEnum obfuscationMethodEnum) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        sharedPreferences.edit().putString(Constants.OBFUSCATION_METHOD_SHARED_PREF_KEY, obfuscationMethodEnum.name()).apply();
     }
 }

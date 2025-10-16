@@ -3,6 +3,7 @@ package org.fptn.vpn.services.websocket;
 import android.util.Log;
 
 import org.fptn.vpn.database.model.FptnServerDto;
+import org.fptn.vpn.enums.ObfuscationMethodEnum;
 import org.fptn.vpn.services.websocket.callback.OnFailureCallback;
 import org.fptn.vpn.services.websocket.callback.OnMessageReceivedCallback;
 import org.fptn.vpn.services.websocket.callback.OnOpenCallback;
@@ -24,6 +25,7 @@ public class WebSocketClientWrapper {
     private final OnMessageReceivedCallback onMessageReceivedCallback;
     private final OnFailureCallback onFailureCallback;
     private final NativeHttpsClientImpl nativeHttpsClient;
+    private final ObfuscationMethodEnum obfuscationMethod;
 
     private NativeWebSocketClientImpl nativeWebSocketClient;
 
@@ -35,7 +37,8 @@ public class WebSocketClientWrapper {
                                   String sniHostName,
                                   OnOpenCallback onOpenCallback,
                                   OnMessageReceivedCallback onMessageReceivedCallback,
-                                  OnFailureCallback onFailureCallback) {
+                                  OnFailureCallback onFailureCallback,
+                                  ObfuscationMethodEnum obfuscationMethod) {
         this.fptnServerDto = fptnServerDto;
         this.tunAddress = tunAddress;
         this.sniHostName = sniHostName;
@@ -43,6 +46,7 @@ public class WebSocketClientWrapper {
         this.onMessageReceivedCallback = onMessageReceivedCallback;
         this.onFailureCallback = onFailureCallback;
         this.nativeHttpsClient = new NativeHttpsClientImpl(fptnServerDto.host, fptnServerDto.port, this.sniHostName, fptnServerDto.md5ServerFingerprint);
+        this.obfuscationMethod = obfuscationMethod;
     }
 
     public synchronized void startWebSocket() throws PVNClientException, WebSocketAlreadyShutdownException {
@@ -61,7 +65,8 @@ public class WebSocketClientWrapper {
                 fptnServerDto.md5ServerFingerprint,
                 onOpenCallback,
                 onMessageReceivedCallback,
-                onFailureCallback
+                onFailureCallback,
+                obfuscationMethod
         );
         Log.d(getTag(), "startWebSocket() nativeWebSocketClient.start() Thread.id: " + Thread.currentThread().getId());
         nativeWebSocketClient.start();

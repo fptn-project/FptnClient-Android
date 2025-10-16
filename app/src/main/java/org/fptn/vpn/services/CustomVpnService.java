@@ -36,9 +36,10 @@ import org.fptn.vpn.core.common.Constants;
 import org.fptn.vpn.database.model.FptnServerDto;
 import org.fptn.vpn.enums.ConnectionState;
 import org.fptn.vpn.enums.HandlerMessageTypes;
+import org.fptn.vpn.enums.NetworkType;
+import org.fptn.vpn.enums.ObfuscationMethodEnum;
 import org.fptn.vpn.repository.FptnServerRepository;
 import org.fptn.vpn.services.tile.FptnTileService;
-import org.fptn.vpn.utils.NetworkType;
 import org.fptn.vpn.utils.NetworkUtils;
 import org.fptn.vpn.utils.NotificationUtils;
 import org.fptn.vpn.utils.SharedPrefUtils;
@@ -455,6 +456,7 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
         int delayBetweenAttempts = SharedPrefUtils.getDelayBetweenReconnect(this);
 
         try {
+            ObfuscationMethodEnum obfuscationMethod = SharedPrefUtils.getObfuscationMethod(this);
             CustomVpnConnection connection = new CustomVpnConnection(
                     this,
                     nextConnectionId.getAndIncrement(),
@@ -463,7 +465,8 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
                     currentIPAddress,
                     networkType,
                     maxReconnectCount,
-                    delayBetweenAttempts);
+                    delayBetweenAttempts,
+                    obfuscationMethod);
             connection.setConfigureVpnIntent(launchMainActivityPendingIntent);
             connection.start();
 

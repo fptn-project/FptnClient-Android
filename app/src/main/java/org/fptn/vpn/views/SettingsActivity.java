@@ -22,6 +22,7 @@ import android.widget.Button;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.SeekBar;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -32,18 +33,19 @@ import androidx.appcompat.widget.SwitchCompat;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.textfield.TextInputEditText;
+
 import org.fptn.vpn.R;
+import org.fptn.vpn.enums.ObfuscationMethodEnum;
 import org.fptn.vpn.services.tile.FptnTileService;
 import org.fptn.vpn.utils.PermissionsUtils;
 import org.fptn.vpn.utils.SharedPrefUtils;
 import org.fptn.vpn.viewmodel.FptnServerViewModel;
 import org.fptn.vpn.views.adapter.FptnServerAdapter;
-
-import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.android.material.textfield.TextInputEditText;
+import org.fptn.vpn.views.adapter.ObfuscationMethodAdapter;
 
 import java.util.Optional;
-import java.util.concurrent.Executors;
 
 import lombok.Getter;
 
@@ -401,6 +403,13 @@ public class SettingsActivity extends AppCompatActivity {
         seekBarDelayBetween.setProgress(0);
         seekBarDelayBetween.setProgress(delayBetweenReconnect - 1);
 
+        /* Obfuscation method spinner*/
+        Spinner obfuscationMethodSpinner = dialogView.findViewById(R.id.obfuscation_method_spinner);
+        obfuscationMethodSpinner.setAdapter(new ObfuscationMethodAdapter());
+
+        ObfuscationMethodEnum obfuscationMethod = SharedPrefUtils.getObfuscationMethod(this);
+        obfuscationMethodSpinner.setSelection(obfuscationMethod.getId());
+
         builder.setPositiveButton(getString(R.string.save_button), (dialog, which) -> {
             Log.d(TAG, "experimentalFeaturesDialog: save");
             SharedPrefUtils.saveReconnectOnChangeNetworkTypeEnabled(this, switchNetworkType.isChecked());
@@ -415,6 +424,9 @@ public class SettingsActivity extends AppCompatActivity {
 
             int delayBetweenProgress = seekBarDelayBetween.getProgress();
             SharedPrefUtils.saveDelayBetweenReconnect(this, delayBetweenProgress + 1);
+
+            ObfuscationMethodEnum selectedObfuscationMethod = (ObfuscationMethodEnum) obfuscationMethodSpinner.getSelectedItem();
+            SharedPrefUtils.saveObfuscationMethod(this, selectedObfuscationMethod);
         });
         builder.setNegativeButton(getString(R.string.cancel_button), (dialog, which) -> {
             Log.d(TAG, "experimentalFeaturesDialog: cancel");
