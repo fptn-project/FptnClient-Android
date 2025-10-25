@@ -22,8 +22,6 @@ enum class ErrorCode(
         private val errorCodesWithOfferingRefreshToken =
             listOf(
                 SERVER_LIST_NULL_OR_EMPTY,
-                FIND_FASTEST_SERVER_TIMEOUT,
-                ALL_SERVERS_UNREACHABLE,
                 ACCESS_TOKEN_ERROR,
             )
 

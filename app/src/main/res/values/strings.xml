@@ -89,14 +89,14 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="server_list_is_empty">Server list is empty</string>
     <string name="find_fastest_server_timeout">The time limit to find the fastest server has expired.</string>
     <string name="all_servers_are_unreachable">All servers are currently unreachable.</string>
-    <string name="connect_to_server_error">A technical error occurred while connecting to the server. Please check your device\'s time settings and make sure you are using a valid token.</string>
+    <string name="connect_to_server_error">A technical error occurred while connecting to the server.</string>
     <string name="dns_server_error">Network error: Failed to retrieve DNS information from the server.</string>
     <string name="vpn_interface_error">Failed to create the VPN interface.</string>
     <string name="ciphers_error">The list of supported ciphers is empty.</string>
     <string name="no_active_internet_connections">Not connected to Internet.</string>
     <string name="reconnecting_failed">Reconnection Failed.</string>
 
-    <string name="access_token_error">Authentication error! Please refresh your access token in the application settings.</string>
+    <string name="access_token_error">Authentication error! Please make sure you are using the most recently received access token in the application settings.</string>
 
     <string name="ssl_context_init_failed">SSL context initialization failed!</string>
 
