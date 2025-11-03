@@ -174,4 +174,6 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="tile_already_added">Tile already added</string>
     <string name="tile_added_successfully">Tile added successfully</string>
     <string name="tile_addition_failed">Tile addition failed!</string>
+    <string name="reset_selected_server_after_disconnect_label">Reset selected server after disconnect?</string>
+
 </resources>

@@ -32,6 +32,9 @@ import androidx.appcompat.widget.SwitchCompat;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.textfield.TextInputEditText;
+
 import org.fptn.vpn.R;
 import org.fptn.vpn.services.tile.FptnTileService;
 import org.fptn.vpn.utils.PermissionsUtils;
@@ -39,11 +42,7 @@ import org.fptn.vpn.utils.SharedPrefUtils;
 import org.fptn.vpn.viewmodel.FptnServerViewModel;
 import org.fptn.vpn.views.adapter.FptnServerAdapter;
 
-import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.android.material.textfield.TextInputEditText;
-
 import java.util.Optional;
-import java.util.concurrent.Executors;
 
 import lombok.Getter;
 
@@ -401,10 +400,16 @@ public class SettingsActivity extends AppCompatActivity {
         seekBarDelayBetween.setProgress(0);
         seekBarDelayBetween.setProgress(delayBetweenReconnect - 1);
 
+
+        /* Reset selected server on disconnect */
+        SwitchCompat resetServerAfterDisconnectSwitch = dialogView.findViewById(R.id.reset_selected_server_after_disconnect_switch);
+        resetServerAfterDisconnectSwitch.setChecked(SharedPrefUtils.getResetSelectedServerEnabled(this));
+
         builder.setPositiveButton(getString(R.string.save_button), (dialog, which) -> {
             Log.d(TAG, "experimentalFeaturesDialog: save");
             SharedPrefUtils.saveReconnectOnChangeNetworkTypeEnabled(this, switchNetworkType.isChecked());
             SharedPrefUtils.saveReconnectOnChangeIPEnabled(this, switchIPAddress.isChecked());
+            SharedPrefUtils.saveResetSelectedServerEnabled(this, resetServerAfterDisconnectSwitch.isChecked());
 
             int attemptsCountProgress = seekBarAttemptsCount.getProgress();
             if (attemptsCountProgress == 3) {
