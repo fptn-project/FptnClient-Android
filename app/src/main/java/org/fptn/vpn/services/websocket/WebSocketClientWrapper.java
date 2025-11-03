@@ -110,6 +110,12 @@ public class WebSocketClientWrapper {
                     Log.e(getTag(), "Some error occurs on parsing accessToken response: " + e);
                     throw new PVNClientException(ErrorCode.CONNECT_TO_SERVER_ERROR);
                 }
+            } else if (response.code == 401) {
+                Log.e(getTag(), "Server return unsuccess response: " + response.errorMessage);
+                throw new PVNClientException(ErrorCode.ACCESS_TOKEN_ERROR);
+            } else {
+                Log.e(getTag(), "Server return unsuccess response!");
+                throw new PVNClientException(ErrorCode.CONNECT_TO_SERVER_ERROR);
             }
         }
         throw new PVNClientException(ErrorCode.CONNECT_TO_SERVER_ERROR);
