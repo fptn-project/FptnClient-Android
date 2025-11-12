@@ -23,7 +23,7 @@ material = "1.13.0"
 monitor = "1.8.0"
 protobuf = "4.26.1"
 roomRuntime = "2.8.3"
-zxing = "3.5.3"
+zxing = "3.5.4"
 
 [libraries]
 android-gradle-plugin = { group = "com.android.tools.build", name = "gradle", version.ref = "gradlePlugin" }
