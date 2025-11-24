@@ -178,4 +178,10 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="tile_addition_failed">Tile addition failed!</string>
     <string name="reset_selected_server_after_disconnect_label">Reset selected server after disconnect?</string>
 
+    <string name="bypass_censorship_method_title">Bypass censorship method:</string>
+    <string name="sni_spoofing_radio_button_label">SNI spoofing</string>
+    <string name="tls_handshake_obfuscation_radio_button_label">TLS-Handshake Obfuscation</string>
+
+    <string name="obfuscation_method_label">Obfuscation:</string>
+    <string name="obfuscation_text_description">"Obfuscation is a method of hiding the protocol from the provider. "</string>
 </resources>

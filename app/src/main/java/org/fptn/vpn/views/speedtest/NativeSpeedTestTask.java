@@ -26,8 +26,8 @@ public class NativeSpeedTestTask implements Callable<NativeSpeedTestResult> {
         this.nativeHttpsClient = new NativeHttpsClientImpl(
                 fptnServerDto.host,
                 fptnServerDto.port,
-                sniHost,
-                fptnServerDto.md5ServerFingerprint);
+                fptnServerDto.md5ServerFingerprint, sniHost
+        );
     }
 
     @Override

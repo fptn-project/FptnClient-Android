@@ -5,6 +5,8 @@ import android.net.NetworkCapabilities;
 import android.net.NetworkRequest;
 import android.util.Log;
 
+import org.fptn.vpn.enums.NetworkType;
+
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;

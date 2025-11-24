@@ -18,11 +18,12 @@ import android.util.Log;
 import org.fptn.vpn.database.model.FptnServerDto;
 import org.fptn.vpn.enums.ConnectionState;
 import org.fptn.vpn.enums.HandlerMessageTypes;
+import org.fptn.vpn.enums.NetworkType;
+import org.fptn.vpn.enums.TLSHandshakeObfuscation;
 import org.fptn.vpn.services.websocket.WebSocketAlreadyShutdownException;
 import org.fptn.vpn.services.websocket.WebSocketClientWrapper;
 import org.fptn.vpn.utils.DataRateCalculator;
 import org.fptn.vpn.utils.IPUtils;
-import org.fptn.vpn.utils.NetworkType;
 import org.fptn.vpn.vpnclient.exception.ErrorCode;
 import org.fptn.vpn.vpnclient.exception.PVNClientException;
 
@@ -97,22 +98,48 @@ public class CustomVpnConnection extends Thread {
     public CustomVpnConnection(final CustomVpnService service,
                                final int connectionId,
                                final FptnServerDto fptnServerDto,
-                               final String sniHostName,
                                final String currentIPAddress,
                                final NetworkType currentNetworkType,
                                final int maxReconnectCount,
-                               int delayBetweenAttempts) throws PVNClientException {
+                               final int delayBetweenAttempts,
+                               final String sniHostName) {
         this.service = service;
         this.connectionId = connectionId;
         this.fptnServerDto = fptnServerDto;
         this.currentIPAddress = currentIPAddress;
         this.currentNetworkType = currentNetworkType;
-        this.webSocketClient = new WebSocketClientWrapper(this.fptnServerDto,
+        this.webSocketClient = new WebSocketClientWrapper(
+                this.fptnServerDto,
                 TUN_ADDRESS.getIpAddress(),
-                sniHostName,
                 this::onConnectionOpen,
                 this::onMessageReceived,
-                this::onConnectionFailure
+                this::onConnectionFailure,
+                sniHostName
+        );
+        this.maxReconnectCount = maxReconnectCount;
+        this.delayBetweenAttempts = delayBetweenAttempts;
+    }
+
+    public CustomVpnConnection(final CustomVpnService service,
+                               final int connectionId,
+                               final FptnServerDto fptnServerDto,
+                               final String currentIPAddress,
+                               final NetworkType currentNetworkType,
+                               final int maxReconnectCount,
+                               final int delayBetweenAttempts,
+                               final TLSHandshakeObfuscation handshakeObfuscation) {
+        this.service = service;
+        this.connectionId = connectionId;
+        this.fptnServerDto = fptnServerDto;
+        this.currentIPAddress = currentIPAddress;
+        this.currentNetworkType = currentNetworkType;
+        this.webSocketClient = new WebSocketClientWrapper(
+                this.fptnServerDto,
+                TUN_ADDRESS.getIpAddress(),
+                this::onConnectionOpen,
+                this::onMessageReceived,
+                this::onConnectionFailure,
+                handshakeObfuscation
         );
         this.maxReconnectCount = maxReconnectCount;
         this.delayBetweenAttempts = delayBetweenAttempts;

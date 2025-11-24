@@ -34,11 +34,13 @@ import androidx.lifecycle.Observer;
 import org.fptn.vpn.R;
 import org.fptn.vpn.core.common.Constants;
 import org.fptn.vpn.database.model.FptnServerDto;
+import org.fptn.vpn.enums.BypassCensorshipMethod;
 import org.fptn.vpn.enums.ConnectionState;
 import org.fptn.vpn.enums.HandlerMessageTypes;
+import org.fptn.vpn.enums.NetworkType;
+import org.fptn.vpn.enums.TLSHandshakeObfuscation;
 import org.fptn.vpn.repository.FptnServerRepository;
 import org.fptn.vpn.services.tile.FptnTileService;
-import org.fptn.vpn.utils.NetworkType;
 import org.fptn.vpn.utils.NetworkUtils;
 import org.fptn.vpn.utils.NotificationUtils;
 import org.fptn.vpn.utils.SharedPrefUtils;
@@ -455,23 +457,37 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
         int maxReconnectCount = SharedPrefUtils.getReconnectAttemptsCount(this);
         int delayBetweenAttempts = SharedPrefUtils.getDelayBetweenReconnect(this);
 
-        try {
-            CustomVpnConnection connection = new CustomVpnConnection(
+        CustomVpnConnection connection;
+
+        BypassCensorshipMethod bypassCensorshipMethod = SharedPrefUtils.getBypassCensorshipMethod(this);
+        if (bypassCensorshipMethod == BypassCensorshipMethod.SNI_SPOOFING) {
+            connection = new CustomVpnConnection(
                     this,
                     nextConnectionId.getAndIncrement(),
                     fptnServerDto,
-                    sniHostname,
                     currentIPAddress,
                     networkType,
                     maxReconnectCount,
-                    delayBetweenAttempts);
-            connection.setConfigureVpnIntent(launchMainActivityPendingIntent);
-            connection.start();
-
-            setActiveConnection(connection);
-        } catch (PVNClientException ex) {
-            disconnect(ex);
+                    delayBetweenAttempts,
+                    sniHostname
+            );
+        } else {
+            TLSHandshakeObfuscation tlsHandshakeObfuscation = SharedPrefUtils.getObfuscationMethod(this);
+            connection = new CustomVpnConnection(
+                    this,
+                    nextConnectionId.getAndIncrement(),
+                    fptnServerDto,
+                    currentIPAddress,
+                    networkType,
+                    maxReconnectCount,
+                    delayBetweenAttempts,
+                    tlsHandshakeObfuscation
+            );
         }
+        connection.setConfigureVpnIntent(launchMainActivityPendingIntent);
+        connection.start();
+
+        setActiveConnection(connection);
     }
 
     @SuppressLint("WakelockTimeout")

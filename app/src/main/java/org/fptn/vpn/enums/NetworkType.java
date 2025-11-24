@@ -1,4 +1,4 @@
-package org.fptn.vpn.utils;
+package org.fptn.vpn.enums;
 
 public enum NetworkType {
     WIFI, CELLULAR, ETHERNET, UNKNOWN

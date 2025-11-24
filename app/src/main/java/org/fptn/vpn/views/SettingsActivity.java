@@ -18,10 +18,14 @@ import android.text.method.LinkMovementMethod;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListAdapter;
 import android.widget.ListView;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.SeekBar;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -36,11 +40,14 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.textfield.TextInputEditText;
 
 import org.fptn.vpn.R;
+import org.fptn.vpn.enums.BypassCensorshipMethod;
+import org.fptn.vpn.enums.TLSHandshakeObfuscation;
 import org.fptn.vpn.services.tile.FptnTileService;
 import org.fptn.vpn.utils.PermissionsUtils;
 import org.fptn.vpn.utils.SharedPrefUtils;
 import org.fptn.vpn.viewmodel.FptnServerViewModel;
 import org.fptn.vpn.views.adapter.FptnServerAdapter;
+import org.fptn.vpn.views.adapter.ObfuscationMethodAdapter;
 
 import java.util.Optional;
 
@@ -52,6 +59,8 @@ public class SettingsActivity extends AppCompatActivity {
     private ListView serverListView;
 
     private MutableLiveData<String> SNIMutableLiveData;
+
+    private MutableLiveData<BypassCensorshipMethod> bypassCensorshipMethodMutableLiveData;
 
     @Getter
     private FptnServerViewModel fptnViewModel;
@@ -67,6 +76,7 @@ public class SettingsActivity extends AppCompatActivity {
         setContentView(R.layout.settings_layout);
 
         SNIMutableLiveData = new MutableLiveData<>(getApplication().getString(R.string.default_sni));
+        bypassCensorshipMethodMutableLiveData = new MutableLiveData<>();
 
         initializeVariable();
     }
@@ -111,6 +121,66 @@ public class SettingsActivity extends AppCompatActivity {
         tokenInfo.setText(Html.fromHtml(getString(R.string.settings_token_info_html), Html.FROM_HTML_MODE_LEGACY));
         tokenInfo.setMovementMethod(LinkMovementMethod.getInstance());
 
+        View sniLayout = findViewById(R.id.sni_layout);
+        sniLayout.setOnClickListener(this::onEditSNIServer);
+
+        View obfuscationLayout = findViewById(R.id.obfuscation_method_layout);
+        /* Obfuscation method spinner*/
+        Spinner obfuscationMethodSpinner = findViewById(R.id.obfuscation_method_spinner);
+        obfuscationMethodSpinner.setAdapter(new ObfuscationMethodAdapter());
+        obfuscationMethodSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                for (TLSHandshakeObfuscation value : TLSHandshakeObfuscation.values()) {
+                    if (id == value.getId()) {
+                        Log.d(TAG, "selected obfuscationMethod: " + value);
+                        SharedPrefUtils.saveObfuscationMethod(SettingsActivity.this, value);
+                    }
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+        // initial value spinner
+        TLSHandshakeObfuscation obfuscationMethod = SharedPrefUtils.getObfuscationMethod(this);
+        obfuscationMethodSpinner.setSelection(obfuscationMethod.getId());
+
+
+        // bypass censorship method selector - radioButtonGroup
+        RadioGroup protocolRadioGroup = findViewById(R.id.bypass_method_radio_button_group);
+        RadioButton sniSpoofingRadioButton = findViewById(R.id.sni_spoofing_radio_button);
+        RadioButton obfuscationRadioButton = findViewById(R.id.obfuscation_radio_button);
+
+        protocolRadioGroup.setOnCheckedChangeListener((group, checkedId) -> {
+            if (checkedId == R.id.sni_spoofing_radio_button) {
+                bypassCensorshipMethodMutableLiveData.postValue(BypassCensorshipMethod.SNI_SPOOFING);
+            } else if (checkedId == R.id.obfuscation_radio_button) {
+                bypassCensorshipMethodMutableLiveData.postValue(BypassCensorshipMethod.TLS_OBFUSCATION);
+            }
+        });
+
+        bypassCensorshipMethodMutableLiveData.observe(this, selectedMethod -> {
+            Log.d(TAG, "Bypass censorship method changed to: " + selectedMethod);
+            if (selectedMethod != null) {
+                if (selectedMethod == BypassCensorshipMethod.SNI_SPOOFING) {
+                    sniSpoofingRadioButton.setChecked(true);
+                    showView(sniLayout);
+                    hideView(obfuscationLayout);
+                } else {
+                    obfuscationRadioButton.setChecked(true);
+                    showView(obfuscationLayout);
+                    hideView(sniLayout);
+                }
+                SharedPrefUtils.saveBypassCensorshipMethod(this, selectedMethod);
+            }
+        });
+
+        // bypass censorship method selector - setting initial state
+        bypassCensorshipMethodMutableLiveData.postValue(SharedPrefUtils.getBypassCensorshipMethod(this));
+
         // SNI field
         TextView sniTextField = findViewById(R.id.SNI_text_field);
         SNIMutableLiveData.observe(this, sniTextField::setText);
@@ -131,9 +201,6 @@ public class SettingsActivity extends AppCompatActivity {
         textView.setText(Html.fromHtml(getString(R.string.sponsors_usernames)));
 
         // Set on click listeners
-        View sniLayout = findViewById(R.id.sni_layout);
-        sniLayout.setOnClickListener(this::onEditSNIServer);
-
         View updateTokenLayout = findViewById(R.id.update_token_layout);
         updateTokenLayout.setOnClickListener(this::onUpdateToken);
 
@@ -153,6 +220,18 @@ public class SettingsActivity extends AppCompatActivity {
         setPermissionButtonState(PermissionsUtils.checkNotificationPermission(this), permissionShowNotificationButton);
         setPermissionButtonState(PermissionsUtils.checkBatteryOptimizations(this), permissionBatteryOptimizationButton);
         setPermissionButtonState(PermissionsUtils.checkBackgroundDataTransferRestrictions(this), permissionBackgroundDataTransferButton);
+    }
+
+    private void hideView(View view) {
+        if (view != null) {
+            view.setVisibility(View.GONE);
+        }
+    }
+
+    private void showView(View view) {
+        if (view != null) {
+            view.setVisibility(View.VISIBLE);
+        }
     }
 
     private void setPermissionButtonState(boolean isGranted, SwitchCompat switchView) {

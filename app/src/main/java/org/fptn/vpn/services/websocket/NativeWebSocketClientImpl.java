@@ -2,6 +2,7 @@ package org.fptn.vpn.services.websocket;
 
 import android.util.Log;
 
+import org.fptn.vpn.enums.TLSHandshakeObfuscation;
 import org.fptn.vpn.services.websocket.callback.OnFailureCallback;
 import org.fptn.vpn.services.websocket.callback.OnMessageReceivedCallback;
 import org.fptn.vpn.services.websocket.callback.OnOpenCallback;
@@ -31,12 +32,12 @@ public class NativeWebSocketClientImpl {
             String host,
             int port,
             String tunAddress,
-            String sniHostName,
             String accessToken,
             String md5ServerFingerprint,
             OnOpenCallback onOpenCallback,
             OnMessageReceivedCallback onMessageReceivedCallback,
-            OnFailureCallback onFailureCallback) throws PVNClientException {
+            OnFailureCallback onFailureCallback,
+            String sniHostName) throws PVNClientException {
         this.onOpenCallback = onOpenCallback;
         this.onMessageReceivedCallback = onMessageReceivedCallback;
         this.onFailureCallback = onFailureCallback;
@@ -46,6 +47,38 @@ public class NativeWebSocketClientImpl {
                 port,
                 tunAddress,
                 sniHostName,
+                accessToken,
+                md5ServerFingerprint
+        );
+
+        this.serialNum = SERIAL_NUM.getAndIncrement();
+
+        if (this.nativeHandle == 0L) {
+            throw new PVNClientException(ErrorCode.CONNECT_TO_SERVER_ERROR);
+        }
+    }
+
+    public NativeWebSocketClientImpl(
+            String host,
+            int port,
+            String tunAddress,
+            String accessToken,
+            String md5ServerFingerprint,
+            OnOpenCallback onOpenCallback,
+            OnMessageReceivedCallback onMessageReceivedCallback,
+            OnFailureCallback onFailureCallback,
+            TLSHandshakeObfuscation tlsHandshakeObfuscation) throws PVNClientException {
+        this.onOpenCallback = onOpenCallback;
+        this.onMessageReceivedCallback = onMessageReceivedCallback;
+        this.onFailureCallback = onFailureCallback;
+
+        // todo: need add to native new constructor with tlsHandshakeObfuscation
+        // todo: or in native code check if string == one of values of tlsHandshakeObfuscation
+        this.nativeHandle = nativeCreate(
+                host,
+                port,
+                tunAddress,
+                tlsHandshakeObfuscation.toString(),
                 accessToken,
                 md5ServerFingerprint
         );
