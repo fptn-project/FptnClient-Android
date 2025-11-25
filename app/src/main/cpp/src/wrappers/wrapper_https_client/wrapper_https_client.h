@@ -9,11 +9,11 @@ Distributed under the MIT License (https://opensource.org/licenses/MIT)
 
 #include <jni.h>
 
-#include "fptn-protocol-lib/https/https_client.h"
+#include "fptn-protocol-lib/https/api_client/api_client.h"
 
 namespace fptn::wrapper {
 
-using fptn::protocol::https::HttpsClient;
+using fptn::protocol::https::ApiClient;
 using fptn::protocol::https::Response;
 
 class WrapperHttpsClient {
@@ -33,6 +33,6 @@ class WrapperHttpsClient {
  private:
   const JNIEnv* env_;
   const jobject wrapper_;
-  HttpsClient https_client_;
+  ApiClient https_client_;
 };
 }  // namespace fptn::wrapper

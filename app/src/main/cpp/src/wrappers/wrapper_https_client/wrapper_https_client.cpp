@@ -7,9 +7,10 @@ Distributed under the MIT License (https://opensource.org/licenses/MIT)
 
 #include "wrapper_https_client.h"
 
-using fptn::wrapper::WrapperHttpsClient;
-
+using fptn::protocol::https::ApiClient;
 using fptn::protocol::https::Response;
+
+namespace fptn::wrapper {
 
 WrapperHttpsClient::WrapperHttpsClient(JNIEnv* env,
     jobject wrapper,
@@ -29,5 +30,6 @@ Response WrapperHttpsClient::Get(const std::string& handle, int timeout) {
 
 Response WrapperHttpsClient::Post(
     const std::string& handle, const std::string& request, int timeout) {
-  return https_client_.Post(handle, request, "application/json", timeout);
+    return https_client_.Post(handle, request, "application/json", timeout);
+}
 }
