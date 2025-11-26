@@ -2,6 +2,7 @@ package org.fptn.vpn.services;
 
 import static org.fptn.vpn.core.common.Constants.SELECTED_SERVER;
 import static org.fptn.vpn.core.common.Constants.SELECTED_SERVER_ID_AUTO;
+import static org.fptn.vpn.core.common.Constants.START_FROM_TILE_AUTO;
 
 import android.annotation.SuppressLint;
 import android.app.AlarmManager;
@@ -139,6 +140,17 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
         context.startService(intent);
     }
 
+    public static void startToConnect(Context context) {
+        Intent intent = new Intent(context, CustomVpnService.class);
+        intent.setAction(ACTION_CONNECT);
+        // Now it method called only from FptnTileService
+        intent.putExtra(SELECTED_SERVER, START_FROM_TILE_AUTO);
+
+        // If started service not become foreground - will be exception ANR - after 30 seconds approx.
+        //context.startForegroundService(intent);
+        context.startService(intent);
+    }
+
     public static void startToDisconnect(Context context) {
         Intent intent = new Intent(context, CustomVpnService.class);
         intent.setAction(ACTION_DISCONNECT);
@@ -221,6 +233,29 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
                     setConnectionState(ConnectionState.CONNECTING, null);
 
                     int serverId = intent.getIntExtra(SELECTED_SERVER, SELECTED_SERVER_ID_AUTO);
+
+                    // Process startService from TileService
+                    if (serverId == START_FROM_TILE_AUTO) {
+                        Log.i(TAG, "onStartCommand: start from tileService");
+                        // If reset selected server enabled - process like average auto
+                        if (SharedPrefUtils.getResetSelectedServerEnabled(this)) {
+                            Log.i(TAG, "onStartCommand: start from tileService. Reset selected server enabled");
+                            serverId = SELECTED_SERVER_ID_AUTO;
+                        } else {
+                            // But if reset disabled, try to get previously selected server from DB
+                            FptnServerDto server = fptnServerRepository.getSelected().get();
+                            if (server != null) {
+                                // if found
+                                Log.i(TAG, "onStartCommand: start from tileService. Previously selected server found: " + server);
+                                serverId = server.id;
+                            } else {
+                                // if not found - auto
+                                Log.i(TAG, "onStartCommand: start from tileService. Previously selected server not found: select auto");
+                                serverId = SELECTED_SERVER_ID_AUTO;
+                            }
+                        }
+                    }
+
                     if (serverId == SELECTED_SERVER_ID_AUTO) {
                         try {
                             List<FptnServerDto> fptnServerDtos = fptnServerRepository.getServersListFuture(false).get();

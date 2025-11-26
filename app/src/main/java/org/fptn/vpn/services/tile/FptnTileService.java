@@ -52,7 +52,7 @@ public class FptnTileService extends TileService {
         if (connectionState != null && connectionState.isActiveState()) {
             CustomVpnService.startToDisconnect(this);
         } else {
-            CustomVpnService.startToConnect(this, FptnServerDto.AUTO);
+            CustomVpnService.startToConnect(this);
         }
     }
 

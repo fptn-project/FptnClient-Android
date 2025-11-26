@@ -4,6 +4,7 @@ object Constants {
     const val QUICK_SETTINGS_TILE_REQUESTED_SHARED_PREF_KEY: String = "QUICK_SETTINGS_TILE_REQUESTED_SHARED_PREF_KEY"
     const val SELECTED_SERVER: String = "fptn.selected.server"
     const val SELECTED_SERVER_ID_AUTO: Int = -1
+    const val START_FROM_TILE_AUTO: Int = -1000
 
     // NOTIFICATIONS CONSTANTS
     const val MAIN_NOTIFICATION_CHANNEL_ID = "fptnvpn-notification-main"
