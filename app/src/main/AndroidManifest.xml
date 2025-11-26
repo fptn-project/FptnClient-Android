@@ -64,6 +64,12 @@
             android:label="@string/app_name"
             android:launchMode="singleTop"
             android:screenOrientation="portrait" />
+        <activity
+            android:name="org.fptn.vpn.views.BypassMethodsActivity"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:launchMode="singleTop"
+            android:screenOrientation="portrait" />
 
         <service
             android:name="org.fptn.vpn.services.CustomVpnService"

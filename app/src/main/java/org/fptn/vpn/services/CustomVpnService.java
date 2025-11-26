@@ -200,6 +200,9 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
 
             try {
                 String sniHostname = SharedPrefUtils.getSniHostname(getApplicationContext());
+                BypassCensorshipMethod bypassCensorshipMethod = SharedPrefUtils.getBypassCensorshipMethod(this);
+                boolean useObfuscator = bypassCensorshipMethod != BypassCensorshipMethod.SNI_SPOOFING;
+
                 if (intent == null) {
                     /* restart after service destruction - all fields of intent is null */
                     Log.w(TAG, "onStartCommand: restart after service was killed");
@@ -226,7 +229,7 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
                     if (serverId == SELECTED_SERVER_ID_AUTO) {
                         try {
                             List<FptnServerDto> fptnServerDtos = fptnServerRepository.getServersListFuture(false).get();
-                            FptnServerDto server = SpeedTestUtils.findFastestServer(fptnServerDtos, sniHostname);
+                            FptnServerDto server = SpeedTestUtils.findFastestServer(fptnServerDtos, sniHostname, useObfuscator);
                             fptnServerRepository.setIsSelected(server.id);
                             connect(server, sniHostname);
                         } catch (PVNClientException e) {
@@ -469,10 +472,10 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
                     networkType,
                     maxReconnectCount,
                     delayBetweenAttempts,
-                    sniHostname
+                    sniHostname,
+                    false
             );
         } else {
-            TLSHandshakeObfuscation tlsHandshakeObfuscation = SharedPrefUtils.getObfuscationMethod(this);
             connection = new CustomVpnConnection(
                     this,
                     nextConnectionId.getAndIncrement(),
@@ -481,7 +484,8 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
                     networkType,
                     maxReconnectCount,
                     delayBetweenAttempts,
-                    tlsHandshakeObfuscation
+                    sniHostname,
+                    true
             );
         }
         connection.setConfigureVpnIntent(launchMainActivityPendingIntent);

@@ -23,7 +23,8 @@ class WrapperHttpsClient {
       std::string host,
       int port,
       std::string sni,
-      std::string md5_fingerprint);
+      std::string md5_fingerprint,
+      fptn::protocol::https::obfuscator::IObfuscatorSPtr);
 
   Response Get(const std::string& handle, int timeout = 5);
 

@@ -3,7 +3,6 @@ package org.fptn.vpn.services.websocket;
 import android.util.Log;
 
 import org.fptn.vpn.database.model.FptnServerDto;
-import org.fptn.vpn.enums.TLSHandshakeObfuscation;
 import org.fptn.vpn.services.websocket.callback.OnFailureCallback;
 import org.fptn.vpn.services.websocket.callback.OnMessageReceivedCallback;
 import org.fptn.vpn.services.websocket.callback.OnOpenCallback;
@@ -25,7 +24,7 @@ public class WebSocketClientWrapper {
     private final OnFailureCallback onFailureCallback;
     private final NativeHttpsClientImpl nativeHttpsClient;
     private final String sniHostName;
-    private final TLSHandshakeObfuscation tlsHandshakeObfuscation;
+    private final boolean useObfuscator;
 
     private NativeWebSocketClientImpl nativeWebSocketClient;
 
@@ -37,7 +36,8 @@ public class WebSocketClientWrapper {
                                   OnOpenCallback onOpenCallback,
                                   OnMessageReceivedCallback onMessageReceivedCallback,
                                   OnFailureCallback onFailureCallback,
-                                  String sniHostName) {
+                                  String sniHostName,
+                                  boolean useObfuscator) {
         this.fptnServerDto = fptnServerDto;
         this.tunAddress = tunAddress;
         this.onOpenCallback = onOpenCallback;
@@ -46,28 +46,9 @@ public class WebSocketClientWrapper {
 
         // this is SNI spoofing
         this.sniHostName = sniHostName;
-        this.tlsHandshakeObfuscation = null;
+        this.useObfuscator = useObfuscator;
 
-        this.nativeHttpsClient = new NativeHttpsClientImpl(fptnServerDto.host, fptnServerDto.port, fptnServerDto.md5ServerFingerprint, sniHostName);
-    }
-
-    public WebSocketClientWrapper(FptnServerDto fptnServerDto,
-                                  String tunAddress,
-                                  OnOpenCallback onOpenCallback,
-                                  OnMessageReceivedCallback onMessageReceivedCallback,
-                                  OnFailureCallback onFailureCallback,
-                                  TLSHandshakeObfuscation tlsHandshakeObfuscation) {
-        this.fptnServerDto = fptnServerDto;
-        this.tunAddress = tunAddress;
-        this.onOpenCallback = onOpenCallback;
-        this.onMessageReceivedCallback = onMessageReceivedCallback;
-        this.onFailureCallback = onFailureCallback;
-
-        // this is TLS obfuscation
-        this.sniHostName = null;
-        this.tlsHandshakeObfuscation = tlsHandshakeObfuscation;
-
-        this.nativeHttpsClient = new NativeHttpsClientImpl(fptnServerDto.host, fptnServerDto.port, fptnServerDto.md5ServerFingerprint, tlsHandshakeObfuscation);
+        this.nativeHttpsClient = new NativeHttpsClientImpl(fptnServerDto.host, fptnServerDto.port, fptnServerDto.md5ServerFingerprint, sniHostName, useObfuscator);
     }
 
     public synchronized void startWebSocket() throws PVNClientException, WebSocketAlreadyShutdownException {
@@ -77,31 +58,20 @@ public class WebSocketClientWrapper {
         stopWebSocket();
 
         String accessToken = getAccessToken(); // maybe move to constructor if it not changed between connections?
-        if (sniHostName != null) {
-            nativeWebSocketClient = new NativeWebSocketClientImpl(
-                    fptnServerDto.host,
-                    fptnServerDto.port,
-                    tunAddress,
-                    accessToken,
-                    fptnServerDto.md5ServerFingerprint,
-                    onOpenCallback,
-                    onMessageReceivedCallback,
-                    onFailureCallback,
-                    sniHostName
-            );
-        } else {
-            nativeWebSocketClient = new NativeWebSocketClientImpl(
-                    fptnServerDto.host,
-                    fptnServerDto.port,
-                    tunAddress,
-                    accessToken,
-                    fptnServerDto.md5ServerFingerprint,
-                    onOpenCallback,
-                    onMessageReceivedCallback,
-                    onFailureCallback,
-                    tlsHandshakeObfuscation
-            );
-        }
+
+        nativeWebSocketClient = new NativeWebSocketClientImpl(
+                fptnServerDto.host,
+                fptnServerDto.port,
+                tunAddress,
+                accessToken,
+                fptnServerDto.md5ServerFingerprint,
+                onOpenCallback,
+                onMessageReceivedCallback,
+                onFailureCallback,
+                sniHostName,
+                useObfuscator
+        );
+
         Log.d(getTag(), "startWebSocket() nativeWebSocketClient.start() Thread.id: " + Thread.currentThread().getId());
         nativeWebSocketClient.start();
     }

@@ -22,7 +22,8 @@ class WrapperWebsocketClient final {
       std::string tun_ipv4,
       std::string sni,
       std::string access_token,
-      std::string expected_md5_fingerprint);
+      std::string expected_md5_fingerprint,
+      fptn::protocol::https::obfuscator::IObfuscatorSPtr);
 
   ~WrapperWebsocketClient();
 
@@ -57,6 +58,7 @@ class WrapperWebsocketClient final {
   const std::string sni_;
   const std::string access_token_;
   const std::string expected_md5_fingerprint_;
+  const fptn::protocol::https::obfuscator::IObfuscatorSPtr obfuscator_;
 
   fptn::protocol::https::WebsocketClientSPtr client_;
 };

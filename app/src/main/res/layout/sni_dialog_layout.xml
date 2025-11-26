@@ -19,6 +19,6 @@
             android:id="@+id/text_edit_sni"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="@string/sni_text_view_hint" />
+            />
     </com.google.android.material.textfield.TextInputLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

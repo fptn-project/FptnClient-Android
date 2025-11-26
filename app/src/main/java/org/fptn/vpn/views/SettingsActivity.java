@@ -58,10 +58,6 @@ public class SettingsActivity extends AppCompatActivity {
 
     private ListView serverListView;
 
-    private MutableLiveData<String> SNIMutableLiveData;
-
-    private MutableLiveData<BypassCensorshipMethod> bypassCensorshipMethodMutableLiveData;
-
     @Getter
     private FptnServerViewModel fptnViewModel;
 
@@ -75,9 +71,6 @@ public class SettingsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.settings_layout);
 
-        SNIMutableLiveData = new MutableLiveData<>(getApplication().getString(R.string.default_sni));
-        bypassCensorshipMethodMutableLiveData = new MutableLiveData<>();
-
         initializeVariable();
     }
 
@@ -90,7 +83,7 @@ public class SettingsActivity extends AppCompatActivity {
         fptnViewModel = new ViewModelProvider(this).get(FptnServerViewModel.class);
         fptnViewModel.getServerDtoListLiveData().observe(this, fptnServerDtos -> {
             if (fptnServerDtos != null && !fptnServerDtos.isEmpty()) {
-                serverListView.setAdapter(new FptnServerAdapter(fptnServerDtos, R.layout.settings_server_list_item)); // NEED TO CHANGE THE ITEM LAYOUT
+                serverListView.setAdapter(new FptnServerAdapter(fptnServerDtos, R.layout.settings_server_list_item));
                 setListViewHeightBasedOnChildren(serverListView);
             } else {
                 // goto Login activity
@@ -121,71 +114,6 @@ public class SettingsActivity extends AppCompatActivity {
         tokenInfo.setText(Html.fromHtml(getString(R.string.settings_token_info_html), Html.FROM_HTML_MODE_LEGACY));
         tokenInfo.setMovementMethod(LinkMovementMethod.getInstance());
 
-        View sniLayout = findViewById(R.id.sni_layout);
-        sniLayout.setOnClickListener(this::onEditSNIServer);
-
-        View obfuscationLayout = findViewById(R.id.obfuscation_method_layout);
-        /* Obfuscation method spinner*/
-        Spinner obfuscationMethodSpinner = findViewById(R.id.obfuscation_method_spinner);
-        obfuscationMethodSpinner.setAdapter(new ObfuscationMethodAdapter());
-        obfuscationMethodSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                for (TLSHandshakeObfuscation value : TLSHandshakeObfuscation.values()) {
-                    if (id == value.getId()) {
-                        Log.d(TAG, "selected obfuscationMethod: " + value);
-                        SharedPrefUtils.saveObfuscationMethod(SettingsActivity.this, value);
-                    }
-                }
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-
-            }
-        });
-        // initial value spinner
-        TLSHandshakeObfuscation obfuscationMethod = SharedPrefUtils.getObfuscationMethod(this);
-        obfuscationMethodSpinner.setSelection(obfuscationMethod.getId());
-
-
-        // bypass censorship method selector - radioButtonGroup
-        RadioGroup protocolRadioGroup = findViewById(R.id.bypass_method_radio_button_group);
-        RadioButton sniSpoofingRadioButton = findViewById(R.id.sni_spoofing_radio_button);
-        RadioButton obfuscationRadioButton = findViewById(R.id.obfuscation_radio_button);
-
-        protocolRadioGroup.setOnCheckedChangeListener((group, checkedId) -> {
-            if (checkedId == R.id.sni_spoofing_radio_button) {
-                bypassCensorshipMethodMutableLiveData.postValue(BypassCensorshipMethod.SNI_SPOOFING);
-            } else if (checkedId == R.id.obfuscation_radio_button) {
-                bypassCensorshipMethodMutableLiveData.postValue(BypassCensorshipMethod.TLS_OBFUSCATION);
-            }
-        });
-
-        bypassCensorshipMethodMutableLiveData.observe(this, selectedMethod -> {
-            Log.d(TAG, "Bypass censorship method changed to: " + selectedMethod);
-            if (selectedMethod != null) {
-                if (selectedMethod == BypassCensorshipMethod.SNI_SPOOFING) {
-                    sniSpoofingRadioButton.setChecked(true);
-                    showView(sniLayout);
-                    hideView(obfuscationLayout);
-                } else {
-                    obfuscationRadioButton.setChecked(true);
-                    showView(obfuscationLayout);
-                    hideView(sniLayout);
-                }
-                SharedPrefUtils.saveBypassCensorshipMethod(this, selectedMethod);
-            }
-        });
-
-        // bypass censorship method selector - setting initial state
-        bypassCensorshipMethodMutableLiveData.postValue(SharedPrefUtils.getBypassCensorshipMethod(this));
-
-        // SNI field
-        TextView sniTextField = findViewById(R.id.SNI_text_field);
-        SNIMutableLiveData.observe(this, sniTextField::setText);
-        SNIMutableLiveData.postValue(SharedPrefUtils.getSniHostname(this));
-
         // Permission settings
         permissionShowNotificationButton = findViewById(R.id.permission_show_notification_button);
         permissionShowNotificationButton.setOnClickListener(view -> requestNotificationPermission());
@@ -209,6 +137,10 @@ public class SettingsActivity extends AppCompatActivity {
 
         View logoutLayout = findViewById(R.id.logout_layout);
         logoutLayout.setOnClickListener(this::onLogout);
+
+        // NEW: Bypass methods layout click listener
+        View bypassMethodsLayout = findViewById(R.id.bypass_methods_layout);
+        bypassMethodsLayout.setOnClickListener(this::onBypassMethods);
     }
 
     @Override
@@ -220,18 +152,6 @@ public class SettingsActivity extends AppCompatActivity {
         setPermissionButtonState(PermissionsUtils.checkNotificationPermission(this), permissionShowNotificationButton);
         setPermissionButtonState(PermissionsUtils.checkBatteryOptimizations(this), permissionBatteryOptimizationButton);
         setPermissionButtonState(PermissionsUtils.checkBackgroundDataTransferRestrictions(this), permissionBackgroundDataTransferButton);
-    }
-
-    private void hideView(View view) {
-        if (view != null) {
-            view.setVisibility(View.GONE);
-        }
-    }
-
-    private void showView(View view) {
-        if (view != null) {
-            view.setVisibility(View.VISIBLE);
-        }
     }
 
     private void setPermissionButtonState(boolean isGranted, SwitchCompat switchView) {
@@ -265,7 +185,6 @@ public class SettingsActivity extends AppCompatActivity {
 
     private void requestBatteryOptimisationPermission() {
         new AlertDialog.Builder(this)
-                // todo: add in settings show all needed restrictions granted?
                 .setTitle(getString(R.string.battery_optimization_request_dialog_title))
                 .setMessage(getString(R.string.battery_optimization_request_dialog_text))
                 .setPositiveButton(getString(R.string.grant), (d, w) -> {
@@ -318,6 +237,12 @@ public class SettingsActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
+    // NEW: Bypass methods click handler
+    public void onBypassMethods(View v) {
+        Intent intent = new Intent(SettingsActivity.this, BypassMethodsActivity.class);
+        startActivity(intent);
+    }
+
     private static void setListViewHeightBasedOnChildren(ListView listView) {
         ListAdapter listAdapter = listView.getAdapter();
         if (listAdapter == null) {
@@ -335,35 +260,6 @@ public class SettingsActivity extends AppCompatActivity {
         params.height = totalHeight + (listView.getDividerHeight() * (listAdapter.getCount() - 1));
         listView.setLayoutParams(params);
         listView.requestLayout();
-    }
-
-    public void onEditSNIServer(View view) {
-        View inflated = View.inflate(this, R.layout.sni_dialog_layout, null);
-        TextInputEditText sniEditText = inflated.findViewById(R.id.text_edit_sni);
-        SNIMutableLiveData.observe(this, sniEditText::setText);
-
-        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
-        alertDialogBuilder.setView(inflated);
-        alertDialogBuilder.setPositiveButton(R.string.save_button, (dialog, which) -> {
-            Log.d(TAG, "onEditSNIServer: save_button");
-            Optional.ofNullable(sniEditText.getText())
-                    .map(Object::toString)
-                    .filter(s -> !s.isBlank())
-                    .ifPresent(newSni -> {
-                        //todo: add validation?
-                        Log.d(TAG, "new SNI: " + newSni);
-                        SharedPrefUtils.saveSniHostname(this, newSni);
-                        SNIMutableLiveData.postValue(newSni);
-                    });
-        });
-        alertDialogBuilder.setNeutralButton(getString(R.string.reset_default_button), (dialog, which) -> {
-            Log.d(TAG, "onEditSNIServer: reset_default_button");
-            SharedPrefUtils.resetToDefaultSniHostname(this);
-        });
-        alertDialogBuilder.setNegativeButton(getString(R.string.cancel_button), (dialog, which) -> {
-            Log.d(TAG, "onEditSNIServer: cancel_button");
-        });
-        alertDialogBuilder.show();
     }
 
     public void showExperimentalSettingsDialog(View view) {
@@ -478,7 +374,6 @@ public class SettingsActivity extends AppCompatActivity {
         int delayBetweenReconnect = SharedPrefUtils.getDelayBetweenReconnect(this);
         seekBarDelayBetween.setProgress(0);
         seekBarDelayBetween.setProgress(delayBetweenReconnect - 1);
-
 
         /* Reset selected server on disconnect */
         SwitchCompat resetServerAfterDisconnectSwitch = dialogView.findViewById(R.id.reset_selected_server_after_disconnect_switch);

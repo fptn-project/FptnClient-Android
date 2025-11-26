@@ -16,26 +16,14 @@ public class NativeHttpsClientImpl {
     public NativeHttpsClientImpl(String server_ip,
                                  int server_port,
                                  String md5_fingerprint,
-                                 String sni) {
+                                 String sni,
+                                 boolean use_obfuscator) {
         this.nativeHandle = nativeCreate(
                 server_ip,
                 server_port,
                 sni,
-                md5_fingerprint
-        );
-    }
-
-    public NativeHttpsClientImpl(String server_ip,
-                                 int server_port,
-                                 String md5_fingerprint,
-                                 TLSHandshakeObfuscation tlsHandshakeObfuscation) {
-        // todo: need add to native new constructor with tlsHandshakeObfuscation
-        // todo: or in native code check if string == one of values of tlsHandshakeObfuscation
-        this.nativeHandle = nativeCreate(
-                server_ip,
-                server_port,
-                tlsHandshakeObfuscation.toString(),
-                md5_fingerprint
+                md5_fingerprint,
+                use_obfuscator
         );
     }
 
@@ -58,7 +46,8 @@ public class NativeHttpsClientImpl {
     private native long nativeCreate(String server_ip,
                                      int server_port,
                                      String sni,
-                                     String expected_md5_fingerprint);
+                                     String expected_md5_fingerprint,
+                                     boolean use_obfuscator);
 
     @Override
     protected void finalize() throws Throwable {

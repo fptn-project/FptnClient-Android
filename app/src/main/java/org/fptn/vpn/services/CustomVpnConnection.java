@@ -95,30 +95,8 @@ public class CustomVpnConnection extends Thread {
     private final int maxReconnectCount;
     private final int delayBetweenAttempts;
 
-    public CustomVpnConnection(final CustomVpnService service,
-                               final int connectionId,
-                               final FptnServerDto fptnServerDto,
-                               final String currentIPAddress,
-                               final NetworkType currentNetworkType,
-                               final int maxReconnectCount,
-                               final int delayBetweenAttempts,
-                               final String sniHostName) {
-        this.service = service;
-        this.connectionId = connectionId;
-        this.fptnServerDto = fptnServerDto;
-        this.currentIPAddress = currentIPAddress;
-        this.currentNetworkType = currentNetworkType;
-        this.webSocketClient = new WebSocketClientWrapper(
-                this.fptnServerDto,
-                TUN_ADDRESS.getIpAddress(),
-                this::onConnectionOpen,
-                this::onMessageReceived,
-                this::onConnectionFailure,
-                sniHostName
-        );
-        this.maxReconnectCount = maxReconnectCount;
-        this.delayBetweenAttempts = delayBetweenAttempts;
-    }
+    private final String sniHostName;
+    private final boolean useObfuscation;
 
     public CustomVpnConnection(final CustomVpnService service,
                                final int connectionId,
@@ -127,19 +105,23 @@ public class CustomVpnConnection extends Thread {
                                final NetworkType currentNetworkType,
                                final int maxReconnectCount,
                                final int delayBetweenAttempts,
-                               final TLSHandshakeObfuscation handshakeObfuscation) {
+                               final String sniHostName,
+                               final boolean useObfuscation) {
         this.service = service;
         this.connectionId = connectionId;
         this.fptnServerDto = fptnServerDto;
         this.currentIPAddress = currentIPAddress;
         this.currentNetworkType = currentNetworkType;
+        this.sniHostName = sniHostName;
+        this.useObfuscation = useObfuscation;
         this.webSocketClient = new WebSocketClientWrapper(
                 this.fptnServerDto,
                 TUN_ADDRESS.getIpAddress(),
                 this::onConnectionOpen,
                 this::onMessageReceived,
                 this::onConnectionFailure,
-                handshakeObfuscation
+                this.sniHostName,
+                this.useObfuscation
         );
         this.maxReconnectCount = maxReconnectCount;
         this.delayBetweenAttempts = delayBetweenAttempts;

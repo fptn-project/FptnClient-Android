@@ -37,7 +37,8 @@ public class NativeWebSocketClientImpl {
             OnOpenCallback onOpenCallback,
             OnMessageReceivedCallback onMessageReceivedCallback,
             OnFailureCallback onFailureCallback,
-            String sniHostName) throws PVNClientException {
+            String sniHostName,
+            boolean use_obfuscator) throws PVNClientException {
         this.onOpenCallback = onOpenCallback;
         this.onMessageReceivedCallback = onMessageReceivedCallback;
         this.onFailureCallback = onFailureCallback;
@@ -48,39 +49,8 @@ public class NativeWebSocketClientImpl {
                 tunAddress,
                 sniHostName,
                 accessToken,
-                md5ServerFingerprint
-        );
-
-        this.serialNum = SERIAL_NUM.getAndIncrement();
-
-        if (this.nativeHandle == 0L) {
-            throw new PVNClientException(ErrorCode.CONNECT_TO_SERVER_ERROR);
-        }
-    }
-
-    public NativeWebSocketClientImpl(
-            String host,
-            int port,
-            String tunAddress,
-            String accessToken,
-            String md5ServerFingerprint,
-            OnOpenCallback onOpenCallback,
-            OnMessageReceivedCallback onMessageReceivedCallback,
-            OnFailureCallback onFailureCallback,
-            TLSHandshakeObfuscation tlsHandshakeObfuscation) throws PVNClientException {
-        this.onOpenCallback = onOpenCallback;
-        this.onMessageReceivedCallback = onMessageReceivedCallback;
-        this.onFailureCallback = onFailureCallback;
-
-        // todo: need add to native new constructor with tlsHandshakeObfuscation
-        // todo: or in native code check if string == one of values of tlsHandshakeObfuscation
-        this.nativeHandle = nativeCreate(
-                host,
-                port,
-                tunAddress,
-                tlsHandshakeObfuscation.toString(),
-                accessToken,
-                md5ServerFingerprint
+                md5ServerFingerprint,
+                use_obfuscator
         );
 
         this.serialNum = SERIAL_NUM.getAndIncrement();
@@ -159,7 +129,8 @@ public class NativeWebSocketClientImpl {
                                      String tun_ipv4,
                                      String sni,
                                      String access_token,
-                                     String expected_md5_fingerprint);
+                                     String expected_md5_fingerprint,
+                                     boolean use_obfuscator);
 
     private native void nativeDestroy(long nativeHandle);
 
