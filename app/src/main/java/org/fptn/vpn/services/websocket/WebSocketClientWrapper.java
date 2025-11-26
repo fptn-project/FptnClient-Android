@@ -19,11 +19,12 @@ public class WebSocketClientWrapper {
 
     private final FptnServerDto fptnServerDto;
     private final String tunAddress;
-    private final String sniHostName;
     private final OnOpenCallback onOpenCallback;
     private final OnMessageReceivedCallback onMessageReceivedCallback;
     private final OnFailureCallback onFailureCallback;
     private final NativeHttpsClientImpl nativeHttpsClient;
+    private final String sniHostName;
+    private final boolean useObfuscator;
 
     private NativeWebSocketClientImpl nativeWebSocketClient;
 
@@ -32,17 +33,22 @@ public class WebSocketClientWrapper {
 
     public WebSocketClientWrapper(FptnServerDto fptnServerDto,
                                   String tunAddress,
-                                  String sniHostName,
                                   OnOpenCallback onOpenCallback,
                                   OnMessageReceivedCallback onMessageReceivedCallback,
-                                  OnFailureCallback onFailureCallback) {
+                                  OnFailureCallback onFailureCallback,
+                                  String sniHostName,
+                                  boolean useObfuscator) {
         this.fptnServerDto = fptnServerDto;
         this.tunAddress = tunAddress;
-        this.sniHostName = sniHostName;
         this.onOpenCallback = onOpenCallback;
         this.onMessageReceivedCallback = onMessageReceivedCallback;
         this.onFailureCallback = onFailureCallback;
-        this.nativeHttpsClient = new NativeHttpsClientImpl(fptnServerDto.host, fptnServerDto.port, this.sniHostName, fptnServerDto.md5ServerFingerprint);
+
+        // this is SNI spoofing
+        this.sniHostName = sniHostName;
+        this.useObfuscator = useObfuscator;
+
+        this.nativeHttpsClient = new NativeHttpsClientImpl(fptnServerDto.host, fptnServerDto.port, fptnServerDto.md5ServerFingerprint, sniHostName, useObfuscator);
     }
 
     public synchronized void startWebSocket() throws PVNClientException, WebSocketAlreadyShutdownException {
@@ -52,17 +58,20 @@ public class WebSocketClientWrapper {
         stopWebSocket();
 
         String accessToken = getAccessToken(); // maybe move to constructor if it not changed between connections?
+
         nativeWebSocketClient = new NativeWebSocketClientImpl(
                 fptnServerDto.host,
                 fptnServerDto.port,
                 tunAddress,
-                sniHostName,
                 accessToken,
                 fptnServerDto.md5ServerFingerprint,
                 onOpenCallback,
                 onMessageReceivedCallback,
-                onFailureCallback
+                onFailureCallback,
+                sniHostName,
+                useObfuscator
         );
+
         Log.d(getTag(), "startWebSocket() nativeWebSocketClient.start() Thread.id: " + Thread.currentThread().getId());
         nativeWebSocketClient.start();
     }

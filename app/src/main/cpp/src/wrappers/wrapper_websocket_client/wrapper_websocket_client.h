@@ -9,7 +9,8 @@ Distributed under the MIT License (https://opensource.org/licenses/MIT)
 
 #include <jni.h>
 
-#include "fptn-protocol-lib/websocket/websocket_client.h"
+#define FPTN_IP_ADDRESS_WITHOUT_PCAP
+#include "fptn-protocol-lib/https/websocket_client/websocket_client.h"
 
 namespace fptn::wrapper {
 
@@ -21,7 +22,8 @@ class WrapperWebsocketClient final {
       std::string tun_ipv4,
       std::string sni,
       std::string access_token,
-      std::string expected_md5_fingerprint);
+      std::string expected_md5_fingerprint,
+      fptn::protocol::https::obfuscator::IObfuscatorSPtr);
 
   ~WrapperWebsocketClient();
 
@@ -56,7 +58,8 @@ class WrapperWebsocketClient final {
   const std::string sni_;
   const std::string access_token_;
   const std::string expected_md5_fingerprint_;
+  const fptn::protocol::https::obfuscator::IObfuscatorSPtr obfuscator_;
 
-  fptn::protocol::websocket::WebsocketClientSPtr client_;
+  fptn::protocol::https::WebsocketClientSPtr client_;
 };
 }  // namespace fptn::wrapper

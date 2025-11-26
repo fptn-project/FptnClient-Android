@@ -2,6 +2,8 @@ package org.fptn.vpn.services.websocket;
 
 import android.util.Log;
 
+import org.fptn.vpn.enums.TLSHandshakeObfuscation;
+
 public class NativeHttpsClientImpl {
     private static final String TAG = NativeHttpsClientImpl.class.getName();
 
@@ -13,13 +15,15 @@ public class NativeHttpsClientImpl {
 
     public NativeHttpsClientImpl(String server_ip,
                                  int server_port,
+                                 String md5_fingerprint,
                                  String sni,
-                                 String md5_fingerprint) {
+                                 boolean use_obfuscator) {
         this.nativeHandle = nativeCreate(
                 server_ip,
                 server_port,
                 sni,
-                md5_fingerprint
+                md5_fingerprint,
+                use_obfuscator
         );
     }
 
@@ -42,7 +46,8 @@ public class NativeHttpsClientImpl {
     private native long nativeCreate(String server_ip,
                                      int server_port,
                                      String sni,
-                                     String expected_md5_fingerprint);
+                                     String expected_md5_fingerprint,
+                                     boolean use_obfuscator);
 
     @Override
     protected void finalize() throws Throwable {

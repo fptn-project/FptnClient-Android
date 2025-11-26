@@ -9,6 +9,8 @@ Distributed under the MIT License (https://opensource.org/licenses/MIT)
 
 #include "wrappers/utils/utils.h"
 #include "wrappers/wrapper_https_client/wrapper_https_client.h"
+#include "wrappers/wrapper_websocket_client/wrapper_websocket_client.h"
+#include "fptn-protocol-lib/https/obfuscator/methods/tls/tls_obfuscator.h"
 
 namespace {
 jobject create_response(JNIEnv* env,
@@ -76,6 +78,7 @@ using fptn::wrapper::WrapperHttpsClient;
  * @param[in] port_param Server port number
  * @param[in] sni_param SNI hostname as Java string
  * @param[in] md5_fingerprint_param Expected server certificate fingerprint as
+ * @param[in] use_obfuscator obfuscator
  * Java string
  *
  * @return jlong Native pointer to the created WrapperHttpsClient instance
@@ -90,7 +93,8 @@ Java_org_fptn_vpn_services_websocket_NativeHttpsClientImpl_nativeCreate(
     jstring host_param,
     jint port_param,
     jstring sni_param,
-    jstring md5_fingerprint_param) {
+    jstring md5_fingerprint_param,
+    jboolean use_obfuscator) {
   fptn::wrapper::init_logger();  // will call only once
 
   jobject global_object_ref = env->NewWeakGlobalRef(thiz);
@@ -101,8 +105,13 @@ Java_org_fptn_vpn_services_websocket_NativeHttpsClientImpl_nativeCreate(
   auto md5_fingerprint =
       fptn::wrapper::ConvertToCString(env, md5_fingerprint_param);
 
+  fptn::protocol::https::obfuscator::IObfuscatorSPtr obfuscator = nullptr;
+  if (use_obfuscator) {
+    obfuscator = std::make_shared<fptn::protocol::https::obfuscator::TlsObfuscator>();
+  }
+
   auto* https_client = new WrapperHttpsClient(env, global_object_ref,
-      std::move(host), port, std::move(sni), std::move(md5_fingerprint));
+      std::move(host), port, std::move(sni), std::move(md5_fingerprint), obfuscator);
   return reinterpret_cast<jlong>(https_client);
 }
 

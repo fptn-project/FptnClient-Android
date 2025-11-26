@@ -35,11 +35,13 @@ import androidx.lifecycle.Observer;
 import org.fptn.vpn.R;
 import org.fptn.vpn.core.common.Constants;
 import org.fptn.vpn.database.model.FptnServerDto;
+import org.fptn.vpn.enums.BypassCensorshipMethod;
 import org.fptn.vpn.enums.ConnectionState;
 import org.fptn.vpn.enums.HandlerMessageTypes;
+import org.fptn.vpn.enums.NetworkType;
+import org.fptn.vpn.enums.TLSHandshakeObfuscation;
 import org.fptn.vpn.repository.FptnServerRepository;
 import org.fptn.vpn.services.tile.FptnTileService;
-import org.fptn.vpn.utils.NetworkType;
 import org.fptn.vpn.utils.NetworkUtils;
 import org.fptn.vpn.utils.NotificationUtils;
 import org.fptn.vpn.utils.SharedPrefUtils;
@@ -210,6 +212,9 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
 
             try {
                 String sniHostname = SharedPrefUtils.getSniHostname(getApplicationContext());
+                BypassCensorshipMethod bypassCensorshipMethod = SharedPrefUtils.getBypassCensorshipMethod(this);
+                boolean useObfuscator = bypassCensorshipMethod != BypassCensorshipMethod.SNI_SPOOFING;
+
                 if (intent == null) {
                     /* restart after service destruction - all fields of intent is null */
                     Log.w(TAG, "onStartCommand: restart after service was killed");
@@ -259,7 +264,7 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
                     if (serverId == SELECTED_SERVER_ID_AUTO) {
                         try {
                             List<FptnServerDto> fptnServerDtos = fptnServerRepository.getServersListFuture(false).get();
-                            FptnServerDto server = SpeedTestUtils.findFastestServer(fptnServerDtos, sniHostname);
+                            FptnServerDto server = SpeedTestUtils.findFastestServer(fptnServerDtos, sniHostname, useObfuscator);
                             fptnServerRepository.setIsSelected(server.id);
                             connect(server, sniHostname);
                         } catch (PVNClientException e) {
@@ -490,23 +495,38 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
         int maxReconnectCount = SharedPrefUtils.getReconnectAttemptsCount(this);
         int delayBetweenAttempts = SharedPrefUtils.getDelayBetweenReconnect(this);
 
-        try {
-            CustomVpnConnection connection = new CustomVpnConnection(
+        CustomVpnConnection connection;
+
+        BypassCensorshipMethod bypassCensorshipMethod = SharedPrefUtils.getBypassCensorshipMethod(this);
+        if (bypassCensorshipMethod == BypassCensorshipMethod.SNI_SPOOFING) {
+            connection = new CustomVpnConnection(
                     this,
                     nextConnectionId.getAndIncrement(),
                     fptnServerDto,
-                    sniHostname,
                     currentIPAddress,
                     networkType,
                     maxReconnectCount,
-                    delayBetweenAttempts);
-            connection.setConfigureVpnIntent(launchMainActivityPendingIntent);
-            connection.start();
-
-            setActiveConnection(connection);
-        } catch (PVNClientException ex) {
-            disconnect(ex);
+                    delayBetweenAttempts,
+                    sniHostname,
+                    false
+            );
+        } else {
+            connection = new CustomVpnConnection(
+                    this,
+                    nextConnectionId.getAndIncrement(),
+                    fptnServerDto,
+                    currentIPAddress,
+                    networkType,
+                    maxReconnectCount,
+                    delayBetweenAttempts,
+                    sniHostname,
+                    true
+            );
         }
+        connection.setConfigureVpnIntent(launchMainActivityPendingIntent);
+        connection.start();
+
+        setActiveConnection(connection);
     }
 
     @SuppressLint("WakelockTimeout")

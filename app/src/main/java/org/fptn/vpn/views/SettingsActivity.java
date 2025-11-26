@@ -18,10 +18,14 @@ import android.text.method.LinkMovementMethod;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListAdapter;
 import android.widget.ListView;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.SeekBar;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -36,11 +40,14 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.textfield.TextInputEditText;
 
 import org.fptn.vpn.R;
+import org.fptn.vpn.enums.BypassCensorshipMethod;
+import org.fptn.vpn.enums.TLSHandshakeObfuscation;
 import org.fptn.vpn.services.tile.FptnTileService;
 import org.fptn.vpn.utils.PermissionsUtils;
 import org.fptn.vpn.utils.SharedPrefUtils;
 import org.fptn.vpn.viewmodel.FptnServerViewModel;
 import org.fptn.vpn.views.adapter.FptnServerAdapter;
+import org.fptn.vpn.views.adapter.ObfuscationMethodAdapter;
 
 import java.util.Optional;
 
@@ -50,8 +57,6 @@ public class SettingsActivity extends AppCompatActivity {
     private final String TAG = this.getClass().getSimpleName();
 
     private ListView serverListView;
-
-    private MutableLiveData<String> SNIMutableLiveData;
 
     @Getter
     private FptnServerViewModel fptnViewModel;
@@ -66,8 +71,6 @@ public class SettingsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.settings_layout);
 
-        SNIMutableLiveData = new MutableLiveData<>(getApplication().getString(R.string.default_sni));
-
         initializeVariable();
     }
 
@@ -80,7 +83,7 @@ public class SettingsActivity extends AppCompatActivity {
         fptnViewModel = new ViewModelProvider(this).get(FptnServerViewModel.class);
         fptnViewModel.getServerDtoListLiveData().observe(this, fptnServerDtos -> {
             if (fptnServerDtos != null && !fptnServerDtos.isEmpty()) {
-                serverListView.setAdapter(new FptnServerAdapter(fptnServerDtos, R.layout.settings_server_list_item)); // NEED TO CHANGE THE ITEM LAYOUT
+                serverListView.setAdapter(new FptnServerAdapter(fptnServerDtos, R.layout.settings_server_list_item));
                 setListViewHeightBasedOnChildren(serverListView);
             } else {
                 // goto Login activity
@@ -111,11 +114,6 @@ public class SettingsActivity extends AppCompatActivity {
         tokenInfo.setText(Html.fromHtml(getString(R.string.settings_token_info_html), Html.FROM_HTML_MODE_LEGACY));
         tokenInfo.setMovementMethod(LinkMovementMethod.getInstance());
 
-        // SNI field
-        TextView sniTextField = findViewById(R.id.SNI_text_field);
-        SNIMutableLiveData.observe(this, sniTextField::setText);
-        SNIMutableLiveData.postValue(SharedPrefUtils.getSniHostname(this));
-
         // Permission settings
         permissionShowNotificationButton = findViewById(R.id.permission_show_notification_button);
         permissionShowNotificationButton.setOnClickListener(view -> requestNotificationPermission());
@@ -131,9 +129,6 @@ public class SettingsActivity extends AppCompatActivity {
         textView.setText(Html.fromHtml(getString(R.string.sponsors_usernames)));
 
         // Set on click listeners
-        View sniLayout = findViewById(R.id.sni_layout);
-        sniLayout.setOnClickListener(this::onEditSNIServer);
-
         View updateTokenLayout = findViewById(R.id.update_token_layout);
         updateTokenLayout.setOnClickListener(this::onUpdateToken);
 
@@ -142,6 +137,10 @@ public class SettingsActivity extends AppCompatActivity {
 
         View logoutLayout = findViewById(R.id.logout_layout);
         logoutLayout.setOnClickListener(this::onLogout);
+
+        // NEW: Bypass methods layout click listener
+        View bypassMethodsLayout = findViewById(R.id.bypass_methods_layout);
+        bypassMethodsLayout.setOnClickListener(this::onBypassMethods);
     }
 
     @Override
@@ -186,7 +185,6 @@ public class SettingsActivity extends AppCompatActivity {
 
     private void requestBatteryOptimisationPermission() {
         new AlertDialog.Builder(this)
-                // todo: add in settings show all needed restrictions granted?
                 .setTitle(getString(R.string.battery_optimization_request_dialog_title))
                 .setMessage(getString(R.string.battery_optimization_request_dialog_text))
                 .setPositiveButton(getString(R.string.grant), (d, w) -> {
@@ -239,6 +237,12 @@ public class SettingsActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
+    // NEW: Bypass methods click handler
+    public void onBypassMethods(View v) {
+        Intent intent = new Intent(SettingsActivity.this, BypassMethodsActivity.class);
+        startActivity(intent);
+    }
+
     private static void setListViewHeightBasedOnChildren(ListView listView) {
         ListAdapter listAdapter = listView.getAdapter();
         if (listAdapter == null) {
@@ -256,35 +260,6 @@ public class SettingsActivity extends AppCompatActivity {
         params.height = totalHeight + (listView.getDividerHeight() * (listAdapter.getCount() - 1));
         listView.setLayoutParams(params);
         listView.requestLayout();
-    }
-
-    public void onEditSNIServer(View view) {
-        View inflated = View.inflate(this, R.layout.sni_dialog_layout, null);
-        TextInputEditText sniEditText = inflated.findViewById(R.id.text_edit_sni);
-        SNIMutableLiveData.observe(this, sniEditText::setText);
-
-        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
-        alertDialogBuilder.setView(inflated);
-        alertDialogBuilder.setPositiveButton(R.string.save_button, (dialog, which) -> {
-            Log.d(TAG, "onEditSNIServer: save_button");
-            Optional.ofNullable(sniEditText.getText())
-                    .map(Object::toString)
-                    .filter(s -> !s.isBlank())
-                    .ifPresent(newSni -> {
-                        //todo: add validation?
-                        Log.d(TAG, "new SNI: " + newSni);
-                        SharedPrefUtils.saveSniHostname(this, newSni);
-                        SNIMutableLiveData.postValue(newSni);
-                    });
-        });
-        alertDialogBuilder.setNeutralButton(getString(R.string.reset_default_button), (dialog, which) -> {
-            Log.d(TAG, "onEditSNIServer: reset_default_button");
-            SharedPrefUtils.resetToDefaultSniHostname(this);
-        });
-        alertDialogBuilder.setNegativeButton(getString(R.string.cancel_button), (dialog, which) -> {
-            Log.d(TAG, "onEditSNIServer: cancel_button");
-        });
-        alertDialogBuilder.show();
     }
 
     public void showExperimentalSettingsDialog(View view) {
@@ -399,7 +374,6 @@ public class SettingsActivity extends AppCompatActivity {
         int delayBetweenReconnect = SharedPrefUtils.getDelayBetweenReconnect(this);
         seekBarDelayBetween.setProgress(0);
         seekBarDelayBetween.setProgress(delayBetweenReconnect - 1);
-
 
         /* Reset selected server on disconnect */
         SwitchCompat resetServerAfterDisconnectSwitch = dialogView.findViewById(R.id.reset_selected_server_after_disconnect_switch);

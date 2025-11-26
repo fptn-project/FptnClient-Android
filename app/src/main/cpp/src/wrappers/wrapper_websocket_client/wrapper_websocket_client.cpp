@@ -5,18 +5,19 @@ Copyright (c) 2024-2025 brightsunshine54
 Distributed under the MIT License (https://opensource.org/licenses/MIT)
 =============================================================================*/
 
-#include "wrapper_websocket_client.h"
-
+#include <chrono>
 #include <jni.h>
+#include <utility>
 
 #include "jnienv/jnienv.h"
+#include "spdlog/spdlog.h"
+#include "wrapper_websocket_client.h"
 
 #ifndef FPTN_CLIENT_DEFAULT_ADDRESS_IP6
 #define FPTN_CLIENT_DEFAULT_ADDRESS_IP6 "fd00::1"
 #endif
 
-using fptn::protocol::websocket::WebsocketClient;
-using fptn::wrapper::WrapperWebsocketClient;
+namespace fptn::wrapper {
 
 WrapperWebsocketClient::WrapperWebsocketClient(jobject wrapper,
     std::string server_ip,
@@ -24,23 +25,28 @@ WrapperWebsocketClient::WrapperWebsocketClient(jobject wrapper,
     std::string tun_ipv4,
     std::string sni,
     std::string access_token,
-    std::string expected_md5_fingerprint)
+    std::string expected_md5_fingerprint,
+    fptn::protocol::https::obfuscator::IObfuscatorSPtr obfuscator)
     : running_(false),
       reconnection_attempts_(kMaxReconnectionAttempts_),
-      wrapper_(std::move(wrapper)),
+      wrapper_(wrapper),
       server_ip_(std::move(server_ip)),
       server_port_(server_port),
       tun_ipv4_(std::move(tun_ipv4)),
       sni_(std::move(sni)),
       access_token_(std::move(access_token)),
-      expected_md5_fingerprint_(std::move(expected_md5_fingerprint)) {
-  (void)wrapper_;
-}
+      expected_md5_fingerprint_(std::move(expected_md5_fingerprint)),
+      obfuscator_(std::move(obfuscator))
+      {}
 
 WrapperWebsocketClient::~WrapperWebsocketClient() { Stop(); }
 
 bool WrapperWebsocketClient::Start() {
-  const std::unique_lock<std::mutex> lock(mutex_);  // mutex
+  std::unique_lock<std::mutex> lock(mutex_);
+
+  if (running_) {
+    return false;  // Already running
+  }
 
   running_ = true;
   th_ = std::thread(&WrapperWebsocketClient::Run, this);
@@ -48,21 +54,17 @@ bool WrapperWebsocketClient::Start() {
 }
 
 bool WrapperWebsocketClient::Stop() {
-  if (!running_) {
-    return false;
-  }
+  {
+    std::unique_lock<std::mutex> lock(mutex_);
+    if (!running_) {
+      return false;
+    }
+    running_ = false;
 
-  const std::unique_lock<std::mutex> lock(mutex_);  // mutex
-
-  // cppcheck-suppress identicalConditionAfterEarlyExit
-  if (!running_) {  // Double-check after acquiring lock
-    return false;
-  }
-
-  running_ = false;
-  if (client_) {
-    client_->Stop();
-    client_.reset();
+    if (client_) {
+      client_->Stop();
+      client_.reset();
+    }
   }
 
   if (th_.joinable()) {
@@ -72,6 +74,7 @@ bool WrapperWebsocketClient::Stop() {
 }
 
 bool WrapperWebsocketClient::IsStarted() {
+  std::unique_lock<std::mutex> lock(mutex_);
   return client_ && running_ && client_->IsStarted();
 }
 
@@ -85,21 +88,48 @@ void WrapperWebsocketClient::Run() {
   reconnection_attempts_ = kMaxReconnectionAttempts_;
   auto window_start_time = std::chrono::steady_clock::now();
 
-  while (running_ && reconnection_attempts_) {
+  while (running_ && reconnection_attempts_ > 0) {
     try {
+      const auto server_ip_addr = fptn::common::network::IPv4Address::Create(server_ip_);
+      const auto tun_ipv4_addr = fptn::common::network::IPv4Address::Create(tun_ipv4_);
+      const auto tun_ipv6_addr = fptn::common::network::IPv6Address::Create(
+              FPTN_CLIENT_DEFAULT_ADDRESS_IP6);
+
+      if (!server_ip_addr.IsValid() || !tun_ipv4_addr.IsValid() || !tun_ipv6_addr.IsValid()) {
+        SPDLOG_ERROR(
+            "Invalid IP address configuration - server: {}, tun_ipv4: {}, tun_ipv6: {}",
+            server_ip_, tun_ipv4_, FPTN_CLIENT_DEFAULT_ADDRESS_IP6);
+        break;
+      }
+
       {
         const std::unique_lock<std::mutex> lock(mutex_);  // mutex
 
-        client_ = std::make_shared<WebsocketClient>(
-            fptn::common::network::IPv4Address::Create(server_ip_),
+        auto new_ip_pkt_callback = std::bind(
+            &WrapperWebsocketClient::onIPPacket, this, std::placeholders::_1);
+        auto on_connected_callback =
+            std::bind(&WrapperWebsocketClient::onConnectedCallback, this);
+
+
+          fptn::protocol::https::obfuscator::IObfuscatorSPtr obfuscator = nullptr;
+          if (obfuscator_ != nullptr) {
+              obfuscator = obfuscator_->Clone();
+          }
+
+          client_ = std::make_shared<fptn::protocol::https::WebsocketClient>(
+            server_ip_addr,
             server_port_,
-            fptn::common::network::IPv4Address::Create(tun_ipv4_),
-            fptn::common::network::IPv6Address::Create(FPTN_CLIENT_DEFAULT_ADDRESS_IP6),
-            std::bind(&WrapperWebsocketClient::onIPPacket, this,
-                std::placeholders::_1),
-            sni_, access_token_, expected_md5_fingerprint_,
-            [this]() { onConnectedCallback(); });
+            tun_ipv4_addr,
+            tun_ipv6_addr,
+            new_ip_pkt_callback,
+            sni_,
+            access_token_,
+            expected_md5_fingerprint_,
+            obfuscator,
+            on_connected_callback
+        );
       }
+
       if (running_ && client_) {
         client_->Run();
       }
@@ -114,8 +144,9 @@ void WrapperWebsocketClient::Run() {
     }
 
     // Calculate time since last window start
-    auto current_time = std::chrono::steady_clock::now();
-    auto elapsed = current_time - window_start_time;
+    const auto current_time = std::chrono::steady_clock::now();
+    const auto elapsed = current_time - window_start_time;
+
     // Reconnection attempt counting logic
     if (elapsed >= kReconnectionWindow) {
       // Reset counter if we're past the time window
@@ -126,52 +157,46 @@ void WrapperWebsocketClient::Run() {
       --reconnection_attempts_;
     }
 
-    // Log connection failure and wait before retrying
-    SPDLOG_ERROR(
-        "Connection closed (attempt {}/{} in current window). Reconnecting in "
-        "{}ms...",
-        kMaxReconnectionAttempts_ - reconnection_attempts_,
-        kMaxReconnectionAttempts_, kReconnectionDelay.count());
-    std::this_thread::sleep_for(kReconnectionDelay);
+    if (running_ && reconnection_attempts_ > 0) {
+      // Log connection failure and wait before retrying
+      SPDLOG_ERROR(
+          "Connection closed (attempt {}/{} in current window). Reconnecting "
+          "in {}ms...",
+          kMaxReconnectionAttempts_ - reconnection_attempts_,
+          kMaxReconnectionAttempts_, kReconnectionDelay.count());
+      std::this_thread::sleep_for(kReconnectionDelay);
+    }
   }
 
   // Final failure handler
-  JNIEnv* env = nullptr;
-  jclass cls = nullptr;
-  try {
-    if (running_ && !reconnection_attempts_) {
-      SPDLOG_ERROR("Failed to establish connection after {} attempts",
-          kMaxReconnectionAttempts_);
-      env = getJniEnv();
-      if (!env) {
-        throw std::runtime_error("JNIEnv is null in final failure block");
-      }
+  if (running_ && reconnection_attempts_ == 0) {
+    SPDLOG_ERROR("Failed to establish connection after {} attempts",
+        kMaxReconnectionAttempts_);
 
-      cls = env->GetObjectClass(wrapper_);
-      if (!cls) {
-        throw std::runtime_error("Failed to get Java class from wrapper_");
-      }
+    JNIEnv* env = getJniEnv();
+    if (!env) {
+      SPDLOG_ERROR("JNIEnv is null in final failure block");
+      return;
+    }
 
-      jmethodID on_failure_impl = env->GetMethodID(cls, "onFailureImpl", "()V");
-      if (!on_failure_impl) {
-        throw std::runtime_error(
-            "Failed to find method ID for onFailureImpl()");
-        return;
-      }
+    jclass cls = env->GetObjectClass(wrapper_);
+    if (!cls) {
+      SPDLOG_ERROR("Failed to get Java class from wrapper_");
+      return;
+    }
 
+    jmethodID on_failure_impl = env->GetMethodID(cls, "onFailureImpl", "()V");
+    if (on_failure_impl) {
       env->CallVoidMethod(wrapper_, on_failure_impl);
       if (env->ExceptionCheck()) {
         SPDLOG_ERROR("JNI Exception in CallVoidMethod(onFailureImpl)");
         env->ExceptionDescribe();
         env->ExceptionClear();
       }
+    } else {
+      SPDLOG_ERROR("Failed to find method ID for onFailureImpl()");
     }
-  } catch (const std::exception& e) {
-    SPDLOG_ERROR("Caught std::exception: {}", e.what());
-  } catch (...) {
-    SPDLOG_ERROR("Caught unknown exception");
-  }
-  if (env && cls) {
+
     env->DeleteLocalRef(cls);
   }
 }
@@ -182,52 +207,58 @@ void WrapperWebsocketClient::onIPPacket(
     return;
   }
 
-  JNIEnv* env = nullptr;
+  JNIEnv* env = getJniEnv();
+  if (!env) {
+    SPDLOG_ERROR("Failed to get JNI environment in onIPPacket");
+    return;
+  }
+
   jbyteArray jpacket = nullptr;
   jclass cls = nullptr;
-  try {
-    env = getJniEnv();
-    if (!env) {
-      throw std::runtime_error("Failed to get JNI environment");
-    }
 
+  try {
     const auto* raw_packet = packet->GetRawPacket();
     const void* data = static_cast<const void*>(raw_packet->getRawData());
     const auto len = raw_packet->getRawDataLen();
 
     if (!len || data == nullptr) {
-      throw std::runtime_error("Serialized packet is empty");
+      SPDLOG_ERROR("Serialized packet is empty");
+      return;
     }
 
     jpacket = env->NewByteArray(len);
     if (!jpacket) {
-      throw std::runtime_error("Failed to allocate jbyteArray");
+      SPDLOG_ERROR("Failed to allocate jbyteArray");
+      return;
     }
 
-    env->SetByteArrayRegion(jpacket, 0, len, reinterpret_cast<const jbyte*>(data));
+    env->SetByteArrayRegion(
+        jpacket, 0, len, reinterpret_cast<const jbyte*>(data));
     if (env->ExceptionCheck()) {
+      SPDLOG_ERROR("JNI Exception in SetByteArrayRegion");
       env->ExceptionDescribe();
       env->ExceptionClear();
-      throw std::runtime_error("JNI Exception in SetByteArrayRegion");
+      return;
     }
 
     cls = env->GetObjectClass(wrapper_);
     if (!cls) {
-      throw std::runtime_error("Failed to get object class");
+      SPDLOG_ERROR("Failed to get object class");
+      return;
     }
 
     jmethodID on_message_impl = env->GetMethodID(cls, "onMessageImpl", "([B)V");
     if (!on_message_impl) {
-      throw std::runtime_error("Failed to get method ID: onMessageImpl([B)V");
+      SPDLOG_ERROR("Failed to get method ID: onMessageImpl([B)V");
+      return;
     }
+
     // Call java method
-    if (running_) {
-      env->CallVoidMethod(wrapper_, on_message_impl, jpacket);
-      if (env->ExceptionCheck()) {
-        env->ExceptionDescribe();
-        env->ExceptionClear();
-        throw std::runtime_error("JNI Exception in CallVoidMethod");
-      }
+    env->CallVoidMethod(wrapper_, on_message_impl, jpacket);
+    if (env->ExceptionCheck()) {
+      SPDLOG_ERROR("JNI Exception in CallVoidMethod");
+      env->ExceptionDescribe();
+      env->ExceptionClear();
     }
   } catch (const std::exception& ex) {
     SPDLOG_ERROR("Exception in onIPPacket: {}", ex.what());
@@ -236,66 +267,70 @@ void WrapperWebsocketClient::onIPPacket(
   }
 
   // Clean up
-  if (env && jpacket) {
+  if (jpacket) {
     env->DeleteLocalRef(jpacket);
   }
-  if (env && cls) {
+  if (cls) {
     env->DeleteLocalRef(cls);
   }
 }
 
 void WrapperWebsocketClient::onConnectedCallback() {
-  if (!running_) {
+  if (!running_.load()) {
     SPDLOG_WARN("onConnectedCallback called but client is not running");
     return;
   }
 
-  JNIEnv* env = nullptr;
-  jclass cls = nullptr;
+  JNIEnv* env = getJniEnv();
+  if (!env) {
+    SPDLOG_ERROR("Failed to get JNI environment in onConnectedCallback");
+    return;
+  }
 
-  try {
-    env = getJniEnv();
-    if (!env) {
-      throw std::runtime_error("Failed to get JNI environment");
-    }
+  jclass cls = env->GetObjectClass(wrapper_);
+  if (!cls) {
+    SPDLOG_ERROR("Failed to get Java class from wrapper_");
+    return;
+  }
 
-    cls = env->GetObjectClass(wrapper_);
-    if (!cls) {
-      throw std::runtime_error("Failed to get Java class from wrapper_");
-    }
-
-    jmethodID on_open_impl = env->GetMethodID(cls, "onOpenImpl", "()V");
-    if (!on_open_impl) {
-      throw std::runtime_error("Failed to find method ID for onOpenImpl()");
-    }
-
+  jmethodID on_open_impl = env->GetMethodID(cls, "onOpenImpl", "()V");
+  if (on_open_impl) {
     env->CallVoidMethod(wrapper_, on_open_impl);
     if (env->ExceptionCheck()) {
+      SPDLOG_ERROR("JNI Exception in CallVoidMethod for onOpenImpl()");
       env->ExceptionDescribe();
       env->ExceptionClear();
-      throw std::runtime_error(
-          "JNI Exception in CallVoidMethod for onOpenImpl()");
     }
-  } catch (const std::exception& ex) {
-    SPDLOG_ERROR("Exception in onConnectedCallback: {}", ex.what());
-  } catch (...) {
-    SPDLOG_ERROR("Unknown exception in onConnectedCallback");
+  } else {
+    SPDLOG_ERROR("Failed to find method ID for onOpenImpl()");
   }
-  // Cleanup
-  if (env && cls) {
-    env->DeleteLocalRef(cls);
-  }
+  env->DeleteLocalRef(cls);
 }
 
 bool WrapperWebsocketClient::Send(std::string pkt) {
-  auto ip_packet = fptn::common::network::IPPacket::Parse(std::move(pkt));
-  if (ip_packet && running_) {
+  if (!running_) {
+    return false;
+  }
+
+  try {
+    auto ip_packet = fptn::common::network::IPPacket::Parse(std::move(pkt));
+    if (!ip_packet) {
+      SPDLOG_ERROR("Failed to parse IP packet in Send");
+      return false;
+    }
+
     const std::unique_lock<std::mutex> lock(mutex_);  // mutex
 
     if (running_ && client_ && client_->IsStarted()) {
       client_->Send(std::move(ip_packet));
       return true;
     }
+  } catch (const std::exception& ex) {
+    SPDLOG_ERROR("Exception in Send: {}", ex.what());
+  } catch (...) {
+    SPDLOG_ERROR("Unknown exception in Send");
   }
   return false;
 }
+
+}  // namespace fptn::wrapper

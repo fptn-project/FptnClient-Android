@@ -151,4 +151,10 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="tile_added_successfully">Плитка быстрых настроек добавлена</string>
     <string name="tile_addition_failed">Плитка быстрых настроек не добавлена!</string>
     <string name="reset_selected_server_after_disconnect_label">Сброс выбранного сервера после отключения?</string>
+
+    <string name="bypass_methods_title">Методы обхода блокировок</string>
+    <string name="bypass_methods_info">Настройка методов обхода блокировок</string>
+
+    <string name="sni_spoofing_radio_button_label">Подмена домена (SNI)</string>
+    <string name="tls_handshake_obfuscation_radio_button_label">Маскировка трафика (обфускация)</string>
 </resources>

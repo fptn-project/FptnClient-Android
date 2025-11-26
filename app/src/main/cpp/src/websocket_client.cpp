@@ -9,6 +9,8 @@ Distributed under the MIT License (https://opensource.org/licenses/MIT)
 #include <mutex>
 #include <unordered_map>
 
+#include "fptn-protocol-lib/https/obfuscator/methods/tls/tls_obfuscator.h"
+
 #include "wrappers/utils/utils.h"
 #include "wrappers/wrapper_websocket_client/wrapper_websocket_client.h"
 
@@ -67,7 +69,8 @@ Java_org_fptn_vpn_services_websocket_NativeWebSocketClientImpl_nativeCreate(
     jstring tun_ipv4_param,
     jstring sni_param,
     jstring access_token_param,
-    jstring expected_md5_fingerprint_param) {
+    jstring expected_md5_fingerprint_param,
+    jboolean use_obfuscator) {
   fptn::wrapper::init_logger();  // will call only once
 
   auto server_ip = fptn::wrapper::ConvertToCString(env, server_ip_param);
@@ -78,10 +81,15 @@ Java_org_fptn_vpn_services_websocket_NativeWebSocketClientImpl_nativeCreate(
   auto expected_md5_fingerprint =
       fptn::wrapper::ConvertToCString(env, expected_md5_fingerprint_param);
 
+  fptn::protocol::https::obfuscator::IObfuscatorSPtr obfuscator = nullptr;
+  if (use_obfuscator) {
+      obfuscator = std::make_shared<fptn::protocol::https::obfuscator::TlsObfuscator>();
+  }
+
   jobject global_object_ref = env->NewWeakGlobalRef(thiz);
   auto* websocket_client = new WrapperWebsocketClient(global_object_ref,
       std::move(server_ip), server_port, std::move(tun_ipv4), std::move(sni),
-      std::move(access_token), std::move(expected_md5_fingerprint));
+      std::move(access_token), std::move(expected_md5_fingerprint), std::move(obfuscator));
 
   auto jobj_client = reinterpret_cast<jlong>(websocket_client);
 

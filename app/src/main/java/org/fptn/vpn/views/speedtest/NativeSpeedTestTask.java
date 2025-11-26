@@ -21,13 +21,15 @@ public class NativeSpeedTestTask implements Callable<NativeSpeedTestResult> {
     private final FptnServerDto fptnServerDto;
     private final NativeHttpsClientImpl nativeHttpsClient;
 
-    public NativeSpeedTestTask(FptnServerDto fptnServerDto, String sniHost) {
+    public NativeSpeedTestTask(FptnServerDto fptnServerDto, String sniHost, Boolean useObfuscation) {
         this.fptnServerDto = fptnServerDto;
         this.nativeHttpsClient = new NativeHttpsClientImpl(
                 fptnServerDto.host,
                 fptnServerDto.port,
+                fptnServerDto.md5ServerFingerprint,
                 sniHost,
-                fptnServerDto.md5ServerFingerprint);
+                useObfuscation
+        );
     }
 
     @Override

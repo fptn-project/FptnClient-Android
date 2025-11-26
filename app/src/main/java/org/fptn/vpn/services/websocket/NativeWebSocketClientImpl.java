@@ -2,6 +2,7 @@ package org.fptn.vpn.services.websocket;
 
 import android.util.Log;
 
+import org.fptn.vpn.enums.TLSHandshakeObfuscation;
 import org.fptn.vpn.services.websocket.callback.OnFailureCallback;
 import org.fptn.vpn.services.websocket.callback.OnMessageReceivedCallback;
 import org.fptn.vpn.services.websocket.callback.OnOpenCallback;
@@ -31,12 +32,13 @@ public class NativeWebSocketClientImpl {
             String host,
             int port,
             String tunAddress,
-            String sniHostName,
             String accessToken,
             String md5ServerFingerprint,
             OnOpenCallback onOpenCallback,
             OnMessageReceivedCallback onMessageReceivedCallback,
-            OnFailureCallback onFailureCallback) throws PVNClientException {
+            OnFailureCallback onFailureCallback,
+            String sniHostName,
+            boolean use_obfuscator) throws PVNClientException {
         this.onOpenCallback = onOpenCallback;
         this.onMessageReceivedCallback = onMessageReceivedCallback;
         this.onFailureCallback = onFailureCallback;
@@ -47,7 +49,8 @@ public class NativeWebSocketClientImpl {
                 tunAddress,
                 sniHostName,
                 accessToken,
-                md5ServerFingerprint
+                md5ServerFingerprint,
+                use_obfuscator
         );
 
         this.serialNum = SERIAL_NUM.getAndIncrement();
@@ -126,7 +129,8 @@ public class NativeWebSocketClientImpl {
                                      String tun_ipv4,
                                      String sni,
                                      String access_token,
-                                     String expected_md5_fingerprint);
+                                     String expected_md5_fingerprint,
+                                     boolean use_obfuscator);
 
     private native void nativeDestroy(long nativeHandle);
 

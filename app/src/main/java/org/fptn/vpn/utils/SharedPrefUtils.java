@@ -2,14 +2,15 @@ package org.fptn.vpn.utils;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.util.Log;
 
 import org.fptn.vpn.R;
 import org.fptn.vpn.core.common.Constants;
+import org.fptn.vpn.enums.BypassCensorshipMethod;
+import org.fptn.vpn.enums.TLSHandshakeObfuscation;
+
+import java.util.Objects;
 
 public class SharedPrefUtils {
-    private static final String TAG = SharedPrefUtils.class.getSimpleName();
-
     /* SNI */
     public static String getSniHostname(Context context) {
         SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
@@ -87,8 +88,6 @@ public class SharedPrefUtils {
     }
 
     public static void saveReconnectAttemptsCount(Context context, int count) {
-        Log.d(TAG, "saveReconnectAttemptsCount: " + count);
-
         SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
         sharedPreferences.edit().putInt(Constants.RECONNECT_ATTEMPTS_COUNT_SHARED_PREF_KEY, count).apply();
     }
@@ -100,7 +99,6 @@ public class SharedPrefUtils {
     }
 
     public static void saveDelayBetweenReconnect(Context context, int delayInSeconds) {
-        Log.d(TAG, "saveDelayBetweenReconnect: " + delayInSeconds);
         SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
         sharedPreferences.edit().putInt(Constants.RECONNECT_DELAY_BETWEEN_SHARED_PREF_KEY, delayInSeconds).apply();
     }
@@ -114,4 +112,38 @@ public class SharedPrefUtils {
         SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
         sharedPreferences.edit().putBoolean(Constants.RESET_SELECTED_SERVER_PREF_KEY, enabled).apply();
     }
+
+
+    public static BypassCensorshipMethod getBypassCensorshipMethod(Context context) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        String methodName = sharedPreferences.getString(Constants.BYPASS_CENSORSHIP_METHOD_SHARED_PREF_KEY, null);
+        for (BypassCensorshipMethod value : BypassCensorshipMethod.values()) {
+            if (Objects.equals(methodName, value.name())) {
+                return value;
+            }
+        }
+        return BypassCensorshipMethod.SNI_SPOOFING;
+    }
+
+    public static void saveBypassCensorshipMethod(Context context, BypassCensorshipMethod method) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        sharedPreferences.edit().putString(Constants.BYPASS_CENSORSHIP_METHOD_SHARED_PREF_KEY, method.toString()).apply();
+    }
+
+    public static TLSHandshakeObfuscation getObfuscationMethod(Context context) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        int methodId = sharedPreferences.getInt(Constants.OBFUSCATION_METHOD_SHARED_PREF_KEY, -1);
+        for (TLSHandshakeObfuscation value : TLSHandshakeObfuscation.values()) {
+            if (methodId == value.getId()) {
+                return value;
+            }
+        }
+        return TLSHandshakeObfuscation.TLS_APP_DATA;
+    }
+
+    public static void saveObfuscationMethod(Context context, TLSHandshakeObfuscation obfuscationMethodEnum) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        sharedPreferences.edit().putInt(Constants.OBFUSCATION_METHOD_SHARED_PREF_KEY, obfuscationMethodEnum.getId()).apply();
+    }
+
 }

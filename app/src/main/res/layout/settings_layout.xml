@@ -65,9 +65,10 @@
                     android:textStyle="bold" />
             </LinearLayout>
 
-            <!-- Your SNI -->
+
+            <!--Method bypass censorship-->
             <LinearLayout
-                android:id="@+id/sni_layout"
+                android:id="@+id/bypass_methods_layout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="20dp"
@@ -81,43 +82,26 @@
                 <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content">
-
                     <ImageView
-                        android:id="@+id/sni_image_view"
+                        android:id="@+id/setting_bypass_methods_icon"
                         android:layout_width="wrap_content"
                         android:layout_height="32dp"
-                        android:layout_gravity="center"
                         android:importantForAccessibility="no"
                         android:paddingLeft="12dp"
                         android:paddingRight="12dp"
-                        android:src="@drawable/ic_baseline_your_servers_24" />
-
+                        android:src="@drawable/ic_logo_24" />
                     <TextView
-                        android:id="@+id/SNI_label"
+                        android:id="@+id/bypassMethodsLabel"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_centerVertical="true"
-                        android:layout_toEndOf="@id/sni_image_view"
-                        android:text="@string/your_current_sni"
+                        android:layout_toStartOf="@+id/imageViewBypassMethods"
+                        android:layout_toEndOf="@id/setting_bypass_methods_icon"
+                        android:text="@string/bypass_methods_title"
                         android:textColor="@color/white"
-                        android:textStyle="normal" />
-
-                    <TextView
-                        android:id="@+id/SNI_text_field"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_centerVertical="true"
-                        android:layout_marginEnd="12dp"
-                        android:layout_toStartOf="@+id/imageView"
-                        android:layout_toEndOf="@id/SNI_label"
-                        android:paddingLeft="12dp"
-                        android:paddingRight="12dp"
-                        android:text="@string/default_sni"
-                        android:textColor="@color/white"
-                        android:textStyle="normal" />
-
+                        android:textStyle="bold" />
                     <ImageView
-                        android:id="@+id/imageView"
+                        android:id="@+id/imageViewBypassMethods"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_alignParentTop="true"
@@ -129,18 +113,234 @@
                         android:textStyle="bold" />
                 </RelativeLayout>
 
-                <TextView
-                    android:id="@+id/sni_text_description"
-                    android:layout_width="wrap_content"
+                <RelativeLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:paddingLeft="10dp"
-                    android:paddingTop="8dp"
-                    android:paddingRight="10dp"
-                    android:paddingBottom="10dp"
-                    android:text="@string/sni_text_description"
-                    android:textColor="@color/gray"
-                    android:textSize="12sp" />
+                    android:layout_marginStart="0dp">
+                    <TextView
+                        android:id="@+id/settings_bypass_methods_info_html"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:paddingLeft="10dp"
+                        android:paddingTop="10dp"
+                        android:paddingRight="10dp"
+                        android:paddingBottom="10dp"
+                        android:text="@string/bypass_methods_info"
+                        android:textColor="@color/gray"
+                        android:textSize="12sp" />
+                </RelativeLayout>
             </LinearLayout>
+
+
+
+            <!--Method bypass censorship-->
+<!--            <LinearLayout-->
+<!--                android:id="@+id/bypass_method_layout"-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_marginStart="20dp"-->
+<!--                android:layout_marginTop="20dp"-->
+<!--                android:layout_marginEnd="20dp"-->
+<!--                android:background="@drawable/round_settings_back_white10_20"-->
+<!--                android:orientation="vertical"-->
+<!--                android:padding="10dp"-->
+<!--                android:paddingBottom="0dp">-->
+
+<!--&lt;!&ndash;                <RelativeLayout&ndash;&gt;-->
+<!--&lt;!&ndash;                    android:layout_width="match_parent"&ndash;&gt;-->
+<!--&lt;!&ndash;                    android:layout_height="wrap_content">&ndash;&gt;-->
+
+<!--&lt;!&ndash;                    <ImageView&ndash;&gt;-->
+<!--&lt;!&ndash;                        android:id="@+id/bypass_method_image_view"&ndash;&gt;-->
+<!--&lt;!&ndash;                        android:layout_width="wrap_content"&ndash;&gt;-->
+<!--&lt;!&ndash;                        android:layout_height="32dp"&ndash;&gt;-->
+<!--&lt;!&ndash;                        android:layout_gravity="center"&ndash;&gt;-->
+<!--&lt;!&ndash;                        android:importantForAccessibility="no"&ndash;&gt;-->
+<!--&lt;!&ndash;                        android:paddingStart="4dp"&ndash;&gt;-->
+<!--&lt;!&ndash;                        android:paddingEnd="12dp"&ndash;&gt;-->
+<!--&lt;!&ndash;                        android:src="@drawable/ic_logo_24" />&ndash;&gt;-->
+
+<!--&lt;!&ndash;                    <TextView&ndash;&gt;-->
+<!--&lt;!&ndash;                        android:id="@+id/bypass_method_label"&ndash;&gt;-->
+<!--&lt;!&ndash;                        android:layout_width="wrap_content"&ndash;&gt;-->
+<!--&lt;!&ndash;                        android:layout_height="wrap_content"&ndash;&gt;-->
+<!--&lt;!&ndash;                        android:layout_centerVertical="true"&ndash;&gt;-->
+<!--&lt;!&ndash;                        android:layout_toEndOf="@id/bypass_method_image_view"&ndash;&gt;-->
+<!--&lt;!&ndash;                        android:text="@string/bypass_censorship_method_title"&ndash;&gt;-->
+<!--&lt;!&ndash;                        android:textColor="@color/white"&ndash;&gt;-->
+<!--&lt;!&ndash;                        android:textSize="16sp"&ndash;&gt;-->
+<!--&lt;!&ndash;                        android:textStyle="bold" />&ndash;&gt;-->
+
+<!--&lt;!&ndash;                </RelativeLayout>&ndash;&gt;-->
+
+
+<!--&lt;!&ndash;                <RadioGroup&ndash;&gt;-->
+<!--&lt;!&ndash;                    android:id="@+id/bypass_method_radio_button_group"&ndash;&gt;-->
+<!--&lt;!&ndash;                    android:layout_width="match_parent"&ndash;&gt;-->
+<!--&lt;!&ndash;                    android:layout_height="match_parent"&ndash;&gt;-->
+<!--&lt;!&ndash;                    android:paddingStart="8dp"&ndash;&gt;-->
+<!--&lt;!&ndash;                    android:paddingEnd="12dp">&ndash;&gt;-->
+
+<!--&lt;!&ndash;                    <RadioButton&ndash;&gt;-->
+<!--&lt;!&ndash;                        android:id="@+id/sni_spoofing_radio_button"&ndash;&gt;-->
+<!--&lt;!&ndash;                        android:layout_width="match_parent"&ndash;&gt;-->
+<!--&lt;!&ndash;                        android:layout_height="wrap_content"&ndash;&gt;-->
+<!--&lt;!&ndash;                        android:layout_marginTop="12dp"&ndash;&gt;-->
+<!--&lt;!&ndash;                        android:layout_marginEnd="12dp"&ndash;&gt;-->
+<!--&lt;!&ndash;                        android:text="@string/sni_spoofing_radio_button_label"&ndash;&gt;-->
+<!--&lt;!&ndash;                        android:textSize="14sp"&ndash;&gt;-->
+<!--&lt;!&ndash;                        android:textStyle="bold" />&ndash;&gt;-->
+
+<!--&lt;!&ndash;                    <RadioButton&ndash;&gt;-->
+<!--&lt;!&ndash;                        android:id="@+id/obfuscation_radio_button"&ndash;&gt;-->
+<!--&lt;!&ndash;                        android:layout_width="match_parent"&ndash;&gt;-->
+<!--&lt;!&ndash;                        android:layout_height="wrap_content"&ndash;&gt;-->
+<!--&lt;!&ndash;                        android:layout_marginTop="12dp"&ndash;&gt;-->
+<!--&lt;!&ndash;                        android:layout_marginEnd="12dp"&ndash;&gt;-->
+<!--&lt;!&ndash;                        android:text="@string/tls_handshake_obfuscation_radio_button_label"&ndash;&gt;-->
+<!--&lt;!&ndash;                        android:textSize="14sp"&ndash;&gt;-->
+<!--&lt;!&ndash;                        android:textStyle="bold" />&ndash;&gt;-->
+<!--&lt;!&ndash;                </RadioGroup>&ndash;&gt;-->
+<!--            </LinearLayout>-->
+<!--            &lt;!&ndash;obfuscation method layout&ndash;&gt;-->
+<!--            <LinearLayout-->
+<!--                android:id="@+id/obfuscation_method_layout"-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_marginStart="20dp"-->
+<!--                android:layout_marginTop="20dp"-->
+<!--                android:layout_marginEnd="20dp"-->
+<!--                android:background="@drawable/round_settings_back_white10_20"-->
+<!--                android:orientation="vertical"-->
+<!--                android:padding="10dp"-->
+<!--                android:paddingBottom="0dp">-->
+
+<!--                <RelativeLayout-->
+<!--                    android:layout_width="match_parent"-->
+<!--                    android:layout_height="wrap_content">-->
+
+<!--                    <ImageView-->
+<!--                        android:id="@+id/obfuscation_image_view"-->
+<!--                        android:layout_width="wrap_content"-->
+<!--                        android:layout_height="32dp"-->
+<!--                        android:layout_gravity="center"-->
+<!--                        android:importantForAccessibility="no"-->
+<!--                        android:paddingLeft="12dp"-->
+<!--                        android:paddingRight="12dp"-->
+<!--                        android:src="@drawable/ic_baseline_your_servers_24" />-->
+
+<!--                    <TextView-->
+<!--                        android:id="@+id/obfuscation_method_label"-->
+<!--                        android:layout_width="wrap_content"-->
+<!--                        android:layout_height="wrap_content"-->
+<!--                        android:layout_centerVertical="true"-->
+<!--                        android:layout_toEndOf="@id/obfuscation_image_view"-->
+<!--                        android:text="@string/obfuscation_method_label"-->
+<!--                        android:textColor="@color/white"-->
+<!--                        android:textSize="14sp"-->
+<!--                        android:textStyle="bold" />-->
+
+<!--                    <Spinner-->
+<!--                        android:id="@+id/obfuscation_method_spinner"-->
+<!--                        android:layout_width="match_parent"-->
+<!--                        android:layout_height="48sp"-->
+<!--                        android:layout_marginStart="12sp"-->
+<!--                        android:layout_toEndOf="@id/obfuscation_method_label"-->
+<!--                        android:textColor="@color/white"-->
+<!--                        android:textSize="16sp"-->
+<!--                        android:textStyle="bold" />-->
+
+<!--                </RelativeLayout>-->
+
+<!--                <TextView-->
+<!--                    android:id="@+id/obfuscation_text_description"-->
+<!--                    android:layout_width="wrap_content"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:paddingLeft="10dp"-->
+<!--                    android:paddingTop="8dp"-->
+<!--                    android:paddingRight="10dp"-->
+<!--                    android:paddingBottom="10dp"-->
+<!--                    android:text="@string/obfuscation_text_description"-->
+<!--                    android:textColor="@color/gray"-->
+<!--                    android:textSize="12sp" />-->
+<!--            </LinearLayout>-->
+
+            <!-- SNI settings -->
+<!--            <LinearLayout-->
+<!--                android:id="@+id/sni_layout"-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_marginStart="20dp"-->
+<!--                android:layout_marginTop="20dp"-->
+<!--                android:layout_marginEnd="20dp"-->
+<!--                android:background="@drawable/round_settings_back_white10_20"-->
+<!--                android:orientation="vertical"-->
+<!--                android:padding="10dp"-->
+<!--                android:paddingBottom="0dp">-->
+
+<!--                <RelativeLayout-->
+<!--                    android:layout_width="match_parent"-->
+<!--                    android:layout_height="wrap_content">-->
+
+<!--                    <ImageView-->
+<!--                        android:id="@+id/sni_image_view"-->
+<!--                        android:layout_width="wrap_content"-->
+<!--                        android:layout_height="32dp"-->
+<!--                        android:layout_gravity="center"-->
+<!--                        android:importantForAccessibility="no"-->
+<!--                        android:paddingLeft="12dp"-->
+<!--                        android:paddingRight="12dp"-->
+<!--                        android:src="@drawable/ic_baseline_your_servers_24" />-->
+
+<!--                    <TextView-->
+<!--                        android:id="@+id/SNI_label"-->
+<!--                        android:layout_width="wrap_content"-->
+<!--                        android:layout_height="wrap_content"-->
+<!--                        android:layout_centerVertical="true"-->
+<!--                        android:layout_toEndOf="@id/sni_image_view"-->
+<!--                        android:text="@string/your_current_sni"-->
+<!--                        android:textColor="@color/white"-->
+<!--                        android:textStyle="bold" />-->
+
+<!--                    <TextView-->
+<!--                        android:id="@+id/SNI_text_field"-->
+<!--                        android:layout_width="wrap_content"-->
+<!--                        android:layout_height="wrap_content"-->
+<!--                        android:layout_centerVertical="true"-->
+<!--                        android:layout_marginEnd="12dp"-->
+<!--                        android:layout_toStartOf="@+id/imageView"-->
+<!--                        android:layout_toEndOf="@id/SNI_label"-->
+<!--                        android:paddingLeft="12dp"-->
+<!--                        android:paddingRight="12dp"-->
+<!--                        android:text="@string/default_sni"-->
+<!--                        android:textColor="@color/white"-->
+<!--                        android:textStyle="bold" />-->
+
+<!--                    <ImageView-->
+<!--                        android:id="@+id/imageView"-->
+<!--                        android:layout_width="wrap_content"-->
+<!--                        android:layout_height="wrap_content"-->
+<!--                        android:layout_alignParentTop="true"-->
+<!--                        android:layout_alignParentEnd="true"-->
+<!--                        android:layout_centerVertical="true"-->
+<!--                        android:importantForAccessibility="no"-->
+<!--                        android:src="@drawable/ic_outline_arrow_forward_ios_16"-->
+<!--                        android:textColor="@color/white"-->
+<!--                        android:textStyle="bold" />-->
+<!--                </RelativeLayout>-->
+
+<!--                <TextView-->
+<!--                    android:id="@+id/sni_text_description"-->
+<!--                    android:layout_width="wrap_content"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:paddingLeft="10dp"-->
+<!--                    android:paddingTop="8dp"-->
+<!--                    android:paddingRight="10dp"-->
+<!--                    android:paddingBottom="10dp"-->
+<!--                    android:text="@string/sni_text_description"-->
+<!--                    android:textColor="@color/gray"-->
+<!--                    android:textSize="12sp" />-->
+<!--            </LinearLayout>-->
 
             <!-- Required permissions -->
             <LinearLayout
