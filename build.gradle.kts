@@ -11,7 +11,7 @@ data class VersionInfo(
 
 fun parseVersionTag(versionTag: String?): VersionInfo {
     if (versionTag.isNullOrBlank()) {
-        return VersionInfo(0, 0, 0, 1)
+        return VersionInfo(1, 2, 21, 2)
     }
     val cleanTag = versionTag.removePrefix("v")
     val parts = cleanTag.split(".").mapNotNull { it.toIntOrNull() }
