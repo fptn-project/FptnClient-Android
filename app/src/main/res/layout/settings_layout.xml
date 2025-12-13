@@ -795,7 +795,6 @@
                         android:layout_width="fill_parent"
                         android:layout_height="wrap_content"
                         android:lineSpacingExtra="8dp"
-                        android:maxLines="10"
                         android:scrollbars="vertical"
                         android:text="@string/sponsors_usernames"
                         android:textColor="@color/white"
