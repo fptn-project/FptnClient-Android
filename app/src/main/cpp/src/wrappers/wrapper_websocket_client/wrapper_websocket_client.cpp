@@ -26,7 +26,7 @@ WrapperWebsocketClient::WrapperWebsocketClient(jobject wrapper,
     std::string sni,
     std::string access_token,
     std::string expected_md5_fingerprint,
-    fptn::protocol::https::obfuscator::IObfuscatorSPtr obfuscator)
+    fptn::protocol::https::CensorshipStrategy censorship_strategy)
     : running_(false),
       reconnection_attempts_(kMaxReconnectionAttempts_),
       wrapper_(wrapper),
@@ -36,7 +36,7 @@ WrapperWebsocketClient::WrapperWebsocketClient(jobject wrapper,
       sni_(std::move(sni)),
       access_token_(std::move(access_token)),
       expected_md5_fingerprint_(std::move(expected_md5_fingerprint)),
-      obfuscator_(std::move(obfuscator))
+      censorship_strategy_(censorship_strategy)
       {}
 
 WrapperWebsocketClient::~WrapperWebsocketClient() { Stop(); }
@@ -110,12 +110,6 @@ void WrapperWebsocketClient::Run() {
         auto on_connected_callback =
             std::bind(&WrapperWebsocketClient::onConnectedCallback, this);
 
-
-          fptn::protocol::https::obfuscator::IObfuscatorSPtr obfuscator = nullptr;
-          if (obfuscator_ != nullptr) {
-              obfuscator = obfuscator_->Clone();
-          }
-
           client_ = std::make_shared<fptn::protocol::https::WebsocketClient>(
             server_ip_addr,
             server_port_,
@@ -125,7 +119,7 @@ void WrapperWebsocketClient::Run() {
             sni_,
             access_token_,
             expected_md5_fingerprint_,
-            obfuscator,
+            censorship_strategy_,
             on_connected_callback
         );
       }

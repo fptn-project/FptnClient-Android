@@ -18,7 +18,7 @@ data class FptnServerDto(
     @JvmField val host: String,
     @JvmField val port: Int,
     @JvmField val countryCode: String?,
-    @JvmField val md5ServerFingerprint: String?,
+    @JvmField val md5ServerFingerprint: String? = null,
     @JvmField val censured: Boolean,
 ) {
     val serverInfo: String

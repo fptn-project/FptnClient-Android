@@ -18,11 +18,11 @@ WrapperHttpsClient::WrapperHttpsClient(JNIEnv* env,
     int port,
     std::string sni,
     std::string md5_fingerprint,
-    fptn::protocol::https::obfuscator::IObfuscatorSPtr obfuscator)
+    fptn::protocol::https::CensorshipStrategy censorship_strategy)
     : env_(env),
       wrapper_(std::move(wrapper)),
       https_client_(
-          std::move(host), port, std::move(sni), std::move(md5_fingerprint), std::move(obfuscator)) {
+          std::move(host), port, std::move(sni), std::move(md5_fingerprint), censorship_strategy) {
 }
 
 Response WrapperHttpsClient::Get(const std::string& handle, int timeout) {

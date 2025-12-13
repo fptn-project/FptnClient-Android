@@ -3,6 +3,7 @@ package org.fptn.vpn.services.websocket;
 import android.util.Log;
 
 import org.fptn.vpn.database.model.FptnServerDto;
+import org.fptn.vpn.enums.BypassCensorshipMethod;
 import org.fptn.vpn.services.websocket.callback.OnFailureCallback;
 import org.fptn.vpn.services.websocket.callback.OnMessageReceivedCallback;
 import org.fptn.vpn.services.websocket.callback.OnOpenCallback;
@@ -24,7 +25,7 @@ public class WebSocketClientWrapper {
     private final OnFailureCallback onFailureCallback;
     private final NativeHttpsClientImpl nativeHttpsClient;
     private final String sniHostName;
-    private final boolean useObfuscator;
+    private final BypassCensorshipMethod censorshipStrategy;
 
     private NativeWebSocketClientImpl nativeWebSocketClient;
 
@@ -37,7 +38,7 @@ public class WebSocketClientWrapper {
                                   OnMessageReceivedCallback onMessageReceivedCallback,
                                   OnFailureCallback onFailureCallback,
                                   String sniHostName,
-                                  boolean useObfuscator) {
+                                  BypassCensorshipMethod censorshipStrategy) {
         this.fptnServerDto = fptnServerDto;
         this.tunAddress = tunAddress;
         this.onOpenCallback = onOpenCallback;
@@ -46,9 +47,14 @@ public class WebSocketClientWrapper {
 
         // this is SNI spoofing
         this.sniHostName = sniHostName;
-        this.useObfuscator = useObfuscator;
+        this.censorshipStrategy = censorshipStrategy;
 
-        this.nativeHttpsClient = new NativeHttpsClientImpl(fptnServerDto.host, fptnServerDto.port, fptnServerDto.md5ServerFingerprint, sniHostName, useObfuscator);
+        this.nativeHttpsClient = new NativeHttpsClientImpl(fptnServerDto.host,
+                fptnServerDto.port,
+                fptnServerDto.md5ServerFingerprint,
+                sniHostName,
+                censorshipStrategy
+        );
     }
 
     public synchronized void startWebSocket() throws PVNClientException, WebSocketAlreadyShutdownException {
@@ -69,7 +75,7 @@ public class WebSocketClientWrapper {
                 onMessageReceivedCallback,
                 onFailureCallback,
                 sniHostName,
-                useObfuscator
+                censorshipStrategy
         );
 
         Log.d(getTag(), "startWebSocket() nativeWebSocketClient.start() Thread.id: " + Thread.currentThread().getId());

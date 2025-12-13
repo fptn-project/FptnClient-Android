@@ -2,5 +2,6 @@ package org.fptn.vpn.enums;
 
 public enum BypassCensorshipMethod {
     SNI_SPOOFING,
-    TLS_OBFUSCATION
+    TLS_OBFUSCATION,
+    SNI_REALITY
 }

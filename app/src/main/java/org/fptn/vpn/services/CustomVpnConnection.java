@@ -16,6 +16,7 @@ import android.os.ParcelFileDescriptor;
 import android.util.Log;
 
 import org.fptn.vpn.database.model.FptnServerDto;
+import org.fptn.vpn.enums.BypassCensorshipMethod;
 import org.fptn.vpn.enums.ConnectionState;
 import org.fptn.vpn.enums.HandlerMessageTypes;
 import org.fptn.vpn.enums.NetworkType;
@@ -96,7 +97,7 @@ public class CustomVpnConnection extends Thread {
     private final int delayBetweenAttempts;
 
     private final String sniHostName;
-    private final boolean useObfuscation;
+    private final BypassCensorshipMethod censorshipStrategy;
 
     public CustomVpnConnection(final CustomVpnService service,
                                final int connectionId,
@@ -106,14 +107,14 @@ public class CustomVpnConnection extends Thread {
                                final int maxReconnectCount,
                                final int delayBetweenAttempts,
                                final String sniHostName,
-                               final boolean useObfuscation) {
+                               final BypassCensorshipMethod censorshipStrategy) {
         this.service = service;
         this.connectionId = connectionId;
         this.fptnServerDto = fptnServerDto;
         this.currentIPAddress = currentIPAddress;
         this.currentNetworkType = currentNetworkType;
         this.sniHostName = sniHostName;
-        this.useObfuscation = useObfuscation;
+        this.censorshipStrategy = censorshipStrategy;
         this.webSocketClient = new WebSocketClientWrapper(
                 this.fptnServerDto,
                 TUN_ADDRESS.getIpAddress(),
@@ -121,7 +122,7 @@ public class CustomVpnConnection extends Thread {
                 this::onMessageReceived,
                 this::onConnectionFailure,
                 this.sniHostName,
-                this.useObfuscation
+                this.censorshipStrategy
         );
         this.maxReconnectCount = maxReconnectCount;
         this.delayBetweenAttempts = delayBetweenAttempts;
