@@ -52,18 +52,26 @@ public class BypassMethodsActivity extends AppCompatActivity {
         RadioGroup protocolRadioGroup = findViewById(R.id.bypass_method_radio_button_group);
         RadioButton sniSpoofingRadioButton = findViewById(R.id.sni_spoofing_radio_button);
         RadioButton obfuscationRadioButton = findViewById(R.id.obfuscation_radio_button);
+        RadioButton sniRealityRadioButton = findViewById(R.id.sni_reality_radio_button);
 
         // Set initial state
         BypassCensorshipMethod currentMethod = SharedPrefUtils.getBypassCensorshipMethod(this);
-        if (currentMethod == BypassCensorshipMethod.SNI_SPOOFING) {
-            sniSpoofingRadioButton.setChecked(true);
-            showView(sniLayout);
-        } else {
-            obfuscationRadioButton.setChecked(true);
-            hideView(sniLayout);
+
+        switch (currentMethod) {
+            case SNI_SPOOFING:
+                sniSpoofingRadioButton.setChecked(true);
+                showView(sniLayout);
+                break;
+            case TLS_OBFUSCATION:
+                obfuscationRadioButton.setChecked(true);
+                hideView(sniLayout);
+                break;
+            case SNI_REALITY:
+                sniRealityRadioButton.setChecked(true);
+                showView(sniLayout);
+                break;
         }
 
-        // Bypass method change handler
         protocolRadioGroup.setOnCheckedChangeListener((group, checkedId) -> {
             if (checkedId == R.id.sni_spoofing_radio_button) {
                 Log.d(TAG, "Selected SNI spoofing");
@@ -73,6 +81,10 @@ public class BypassMethodsActivity extends AppCompatActivity {
                 Log.d(TAG, "Selected TLS obfuscation");
                 SharedPrefUtils.saveBypassCensorshipMethod(this, BypassCensorshipMethod.TLS_OBFUSCATION);
                 hideView(sniLayout);
+            } else if (checkedId == R.id.sni_reality_radio_button) {
+                Log.d(TAG, "Selected SNI Reality");
+                SharedPrefUtils.saveBypassCensorshipMethod(this, BypassCensorshipMethod.SNI_REALITY);
+                showView(sniLayout);
             }
         });
 

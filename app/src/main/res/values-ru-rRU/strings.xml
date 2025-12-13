@@ -157,4 +157,5 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
 
     <string name="sni_spoofing_radio_button_label">Подмена домена (SNI)</string>
     <string name="tls_handshake_obfuscation_radio_button_label">Маскировка трафика (обфускация)</string>
+    <string name="sni_reality_radio_button_label">Продвинутая подмена домена (SNI + REALITY)</string>
 </resources>

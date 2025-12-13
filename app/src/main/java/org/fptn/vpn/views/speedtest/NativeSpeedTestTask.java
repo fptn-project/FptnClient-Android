@@ -3,6 +3,7 @@ package org.fptn.vpn.views.speedtest;
 import android.util.Log;
 
 import org.fptn.vpn.database.model.FptnServerDto;
+import org.fptn.vpn.enums.BypassCensorshipMethod;
 import org.fptn.vpn.services.websocket.NativeHttpsClientImpl;
 import org.fptn.vpn.services.websocket.NativeResponse;
 import org.fptn.vpn.vpnclient.exception.PVNClientException;
@@ -21,14 +22,14 @@ public class NativeSpeedTestTask implements Callable<NativeSpeedTestResult> {
     private final FptnServerDto fptnServerDto;
     private final NativeHttpsClientImpl nativeHttpsClient;
 
-    public NativeSpeedTestTask(FptnServerDto fptnServerDto, String sniHost, Boolean useObfuscation) {
+    public NativeSpeedTestTask(FptnServerDto fptnServerDto, String sniHost, BypassCensorshipMethod censorshipStrategy) {
         this.fptnServerDto = fptnServerDto;
         this.nativeHttpsClient = new NativeHttpsClientImpl(
                 fptnServerDto.host,
                 fptnServerDto.port,
                 fptnServerDto.md5ServerFingerprint,
                 sniHost,
-                useObfuscation
+                censorshipStrategy
         );
     }
 

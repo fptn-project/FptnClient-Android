@@ -2,7 +2,9 @@ package org.fptn.vpn.services.websocket;
 
 import android.util.Log;
 
+import org.fptn.vpn.enums.BypassCensorshipMethod;
 import org.fptn.vpn.enums.TLSHandshakeObfuscation;
+
 
 public class NativeHttpsClientImpl {
     private static final String TAG = NativeHttpsClientImpl.class.getName();
@@ -13,17 +15,24 @@ public class NativeHttpsClientImpl {
         System.loadLibrary("fptn_native_lib");
     }
 
-    public NativeHttpsClientImpl(String server_ip,
-                                 int server_port,
-                                 String md5_fingerprint,
+    public NativeHttpsClientImpl(String serverIP,
+                                 int serverPort,
+                                 String md5Fingerprint,
                                  String sni,
-                                 boolean use_obfuscator) {
+                                 BypassCensorshipMethod censorshipStrategy) {
+        String censorshipStrategyName = "SNI";
+        if (censorshipStrategy == BypassCensorshipMethod.TLS_OBFUSCATION) {
+            censorshipStrategyName = "OBFUSCATION";
+        } else if (censorshipStrategy == BypassCensorshipMethod.SNI_REALITY) {
+            censorshipStrategyName = "SNI-REALITY";
+        }
+
         this.nativeHandle = nativeCreate(
-                server_ip,
-                server_port,
+                serverIP,
+                serverPort,
                 sni,
-                md5_fingerprint,
-                use_obfuscator
+                md5Fingerprint,
+                censorshipStrategyName
         );
     }
 
@@ -47,7 +56,7 @@ public class NativeHttpsClientImpl {
                                      int server_port,
                                      String sni,
                                      String expected_md5_fingerprint,
-                                     boolean use_obfuscator);
+                                     String censorship_strategy_name);
 
     @Override
     protected void finalize() throws Throwable {

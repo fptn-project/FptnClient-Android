@@ -2,6 +2,7 @@ package org.fptn.vpn.services.websocket;
 
 import android.util.Log;
 
+import org.fptn.vpn.enums.BypassCensorshipMethod;
 import org.fptn.vpn.enums.TLSHandshakeObfuscation;
 import org.fptn.vpn.services.websocket.callback.OnFailureCallback;
 import org.fptn.vpn.services.websocket.callback.OnMessageReceivedCallback;
@@ -10,6 +11,7 @@ import org.fptn.vpn.vpnclient.exception.ErrorCode;
 import org.fptn.vpn.vpnclient.exception.PVNClientException;
 
 import java.util.concurrent.atomic.AtomicInteger;
+
 
 public class NativeWebSocketClientImpl {
     private static final String TAG = NativeWebSocketClientImpl.class.getName();
@@ -38,10 +40,17 @@ public class NativeWebSocketClientImpl {
             OnMessageReceivedCallback onMessageReceivedCallback,
             OnFailureCallback onFailureCallback,
             String sniHostName,
-            boolean use_obfuscator) throws PVNClientException {
+            BypassCensorshipMethod censorship_strategy) throws PVNClientException {
         this.onOpenCallback = onOpenCallback;
         this.onMessageReceivedCallback = onMessageReceivedCallback;
         this.onFailureCallback = onFailureCallback;
+
+        String censorship_strategy_name = "SNI";
+        if (censorship_strategy == BypassCensorshipMethod.TLS_OBFUSCATION) {
+            censorship_strategy_name = "OBFUSCATION";
+        } else if (censorship_strategy == BypassCensorshipMethod.SNI_REALITY) {
+            censorship_strategy_name = "SNI-REALITY";
+        }
 
         this.nativeHandle = nativeCreate(
                 host,
@@ -50,7 +59,7 @@ public class NativeWebSocketClientImpl {
                 sniHostName,
                 accessToken,
                 md5ServerFingerprint,
-                use_obfuscator
+                censorship_strategy_name
         );
 
         this.serialNum = SERIAL_NUM.getAndIncrement();
@@ -130,7 +139,7 @@ public class NativeWebSocketClientImpl {
                                      String sni,
                                      String access_token,
                                      String expected_md5_fingerprint,
-                                     boolean use_obfuscator);
+                                     String censorship_strategy_name);
 
     private native void nativeDestroy(long nativeHandle);
 

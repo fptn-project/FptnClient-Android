@@ -94,7 +94,7 @@ Java_org_fptn_vpn_services_websocket_NativeHttpsClientImpl_nativeCreate(
     jint port_param,
     jstring sni_param,
     jstring md5_fingerprint_param,
-    jboolean use_obfuscator) {
+    jstring censorship_strategy_name_param) {
   fptn::wrapper::init_logger();  // will call only once
 
   jobject global_object_ref = env->NewWeakGlobalRef(thiz);
@@ -105,13 +105,18 @@ Java_org_fptn_vpn_services_websocket_NativeHttpsClientImpl_nativeCreate(
   auto md5_fingerprint =
       fptn::wrapper::ConvertToCString(env, md5_fingerprint_param);
 
-  fptn::protocol::https::obfuscator::IObfuscatorSPtr obfuscator = nullptr;
-  if (use_obfuscator) {
-    obfuscator = std::make_shared<fptn::protocol::https::obfuscator::TlsObfuscator>();
+  const auto censorship_strategy_name =  fptn::wrapper::ConvertToCString(
+          env,censorship_strategy_name_param);
+  fptn::protocol::https::CensorshipStrategy censorship_strategy =
+          fptn::protocol::https::CensorshipStrategy::kSni;
+  if (censorship_strategy_name == "OBFUSCATION") {
+      censorship_strategy = fptn::protocol::https::CensorshipStrategy::kTlsObfuscator;
+  } else if (censorship_strategy_name == "SNI-REALITY") {
+      censorship_strategy = fptn::protocol::https::CensorshipStrategy::kSniRealityMode;
   }
 
   auto* https_client = new WrapperHttpsClient(env, global_object_ref,
-      std::move(host), port, std::move(sni), std::move(md5_fingerprint), obfuscator);
+      std::move(host), port, std::move(sni), std::move(md5_fingerprint), censorship_strategy);
   return reinterpret_cast<jlong>(https_client);
 }
 

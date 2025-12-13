@@ -64,10 +64,10 @@ public class FptnTokenValidationUtils {
         }
 
         // Validate md5Fingerprint
-        if (server.getMd5Fingerprint() == null || server.getMd5Fingerprint().isBlank()) {
-            Log.e(TAG, "MD5 fingerprint cannot be blank");
-            throw new PVNClientException(ErrorCode.ACCESS_TOKEN_FORMAT_ERROR);
-        }
+//        if (server.getMd5Fingerprint() == null || server.getMd5Fingerprint().isBlank()) {
+//            Log.e(TAG, "MD5 fingerprint cannot be blank");
+//            throw new PVNClientException(ErrorCode.ACCESS_TOKEN_FORMAT_ERROR);
+//        }
 
         // Validate port
         if (server.getPort() == null) {

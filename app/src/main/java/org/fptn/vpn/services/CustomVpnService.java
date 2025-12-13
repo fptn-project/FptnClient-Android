@@ -213,7 +213,6 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
             try {
                 String sniHostname = SharedPrefUtils.getSniHostname(getApplicationContext());
                 BypassCensorshipMethod bypassCensorshipMethod = SharedPrefUtils.getBypassCensorshipMethod(this);
-                boolean useObfuscator = bypassCensorshipMethod != BypassCensorshipMethod.SNI_SPOOFING;
 
                 if (intent == null) {
                     /* restart after service destruction - all fields of intent is null */
@@ -264,7 +263,7 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
                     if (serverId == SELECTED_SERVER_ID_AUTO) {
                         try {
                             List<FptnServerDto> fptnServerDtos = fptnServerRepository.getServersListFuture(false).get();
-                            FptnServerDto server = SpeedTestUtils.findFastestServer(fptnServerDtos, sniHostname, useObfuscator);
+                            FptnServerDto server = SpeedTestUtils.findFastestServer(fptnServerDtos, sniHostname, bypassCensorshipMethod);
                             fptnServerRepository.setIsSelected(server.id);
                             connect(server, sniHostname);
                         } catch (PVNClientException e) {
@@ -498,31 +497,18 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
         CustomVpnConnection connection;
 
         BypassCensorshipMethod bypassCensorshipMethod = SharedPrefUtils.getBypassCensorshipMethod(this);
-        if (bypassCensorshipMethod == BypassCensorshipMethod.SNI_SPOOFING) {
-            connection = new CustomVpnConnection(
-                    this,
-                    nextConnectionId.getAndIncrement(),
-                    fptnServerDto,
-                    currentIPAddress,
-                    networkType,
-                    maxReconnectCount,
-                    delayBetweenAttempts,
-                    sniHostname,
-                    false
-            );
-        } else {
-            connection = new CustomVpnConnection(
-                    this,
-                    nextConnectionId.getAndIncrement(),
-                    fptnServerDto,
-                    currentIPAddress,
-                    networkType,
-                    maxReconnectCount,
-                    delayBetweenAttempts,
-                    sniHostname,
-                    true
-            );
-        }
+
+        connection = new CustomVpnConnection(
+                this,
+                nextConnectionId.getAndIncrement(),
+                fptnServerDto,
+                currentIPAddress,
+                networkType,
+                maxReconnectCount,
+                delayBetweenAttempts,
+                sniHostname,
+                bypassCensorshipMethod
+        );
         connection.setConfigureVpnIntent(launchMainActivityPendingIntent);
         connection.start();
 

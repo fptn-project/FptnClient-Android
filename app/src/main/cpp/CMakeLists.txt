@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.22.1)
 
 project("fptn_native_lib")
 
+add_definitions(-BOOST_PROCESS_V2_HEADER_ONLY)
 add_definitions(-DBOOST_ASIO_HAS_CO_AWAIT)
 add_definitions(-DBOOST_ASIO_HAS_CO_SPAWN)
 add_definitions(-DBOOST_ASIO_HAS_COROUTINES)
