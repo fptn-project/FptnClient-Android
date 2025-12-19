@@ -102,8 +102,13 @@ public class HomeActivity extends AppCompatActivity {
 
             @Override
             public void onServiceDisconnected(ComponentName name) {
-                Log.i(TAG, "onServiceDisconnected: " + name);
-                fptnViewModel.unsubscribe();
+                try {
+                    if (fptnViewModel != null) {
+                        fptnViewModel.unsubscribe();
+                    }
+                } catch (Exception e) {
+                    Log.e(TAG, "Error in onServiceDisconnected: " + e.getMessage());
+                }
             }
         };
         CustomVpnService.bindService(this, connection);
@@ -113,7 +118,13 @@ public class HomeActivity extends AppCompatActivity {
     protected void onStop() {
         super.onStop();
 
-        unbindService(connection);
+        try {
+            if (connection != null) {
+                unbindService(connection);
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error unbinding service: " + e.getMessage());
+        }
     }
 
     @SuppressLint("InlinedApi")
@@ -223,8 +234,9 @@ public class HomeActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-
-        bottomNavigationView.setSelectedItemId(R.id.menuHome);
+        if (!isFinishing() && !isDestroyed()) {
+            bottomNavigationView.setSelectedItemId(R.id.menuHome);
+        }
     }
 
     private void disconnectedStateUiItems() {
