@@ -51,7 +51,9 @@
             android:exported="true"
             android:label="@string/app_name"
             android:launchMode="singleTop"
-            android:screenOrientation="portrait" />
+            android:screenOrientation="portrait"
+            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:windowSoftInputMode="adjustResize"/>
         <activity
             android:name="org.fptn.vpn.views.SettingsActivity"
             android:exported="true"
@@ -76,6 +78,7 @@
             android:exported="false"
             android:foregroundServiceType="systemExempted"
             android:permission="android.permission.BIND_VPN_SERVICE"
+            android:stopWithTask="false"
             tools:ignore="ForegroundServicePermission"> <!--add this to turn off warning-->
             <intent-filter>
                 <action android:name="android.net.VpnService" />

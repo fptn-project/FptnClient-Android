@@ -130,16 +130,19 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
     }
 
     /* Static methods to start/stop service */
+
     public static void startToConnect(Context context, FptnServerDto fptnServerDto) {
         Intent intent = new Intent(context, CustomVpnService.class);
         intent.setAction(ACTION_CONNECT);
         if (fptnServerDto != null) {
             intent.putExtra(SELECTED_SERVER, fptnServerDto.id);
         }
-
-        // If started service not become foreground - will be exception ANR - after 30 seconds approx.
-        //context.startForegroundService(intent);
-        context.startService(intent);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            context.startForegroundService(intent);
+        } else {
+            // If started service not become foreground - will be exception ANR - after 30 seconds approx.
+            context.startService(intent);
+        }
     }
 
     public static void startToConnect(Context context) {
@@ -199,7 +202,7 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
 
         if (intent != null && ACTION_RESET_ALARM.equals(intent.getAction())) {
             resetServiceKeepAliveAlarm();
-            return START_NOT_STICKY;
+            return START_STICKY;
         }
 
         executorService.submit(() -> {
@@ -285,11 +288,8 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
                 disconnect(new PVNClientException(e.getMessage()));
             }
         });
-        // START_STICKY works not great, OS can restart service after 3 seconds or 3 minutes
-        // START_NOT_STICKY - no need to restart
-        return START_NOT_STICKY;
+        return START_STICKY;
     }
-
 
     @Override
     public void onDestroy() {
@@ -522,7 +522,9 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
         // we need this lock so our service gets not affected by Doze Mode
         PowerManager powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
         try {
-            wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, FPTN_SERVICE_POWER_LOCK);
+            wakeLock = powerManager.newWakeLock(
+                    PowerManager.PARTIAL_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP,
+                    FPTN_SERVICE_POWER_LOCK);
             wakeLock.acquire();
         } catch (Exception e) {
             Log.e(TAG, "Can't acquire power lock!", e);
@@ -596,6 +598,22 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
             startForeground(Constants.MAIN_CONNECTED_NOTIFICATION_ID, notification);
         }
     }
+
+//    private void startForegroundWithNotification(String title) {
+//        if (!isNotificationAllowed) {
+//            return;
+//        }
+//
+//        NotificationUtils.configureNotificationChannel(this);
+//        Notification notification = createNotification(title, "");
+//
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+//            startForeground(Constants.MAIN_CONNECTED_NOTIFICATION_ID, notification,
+//                    ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE);
+//        } else {
+//            startForeground(Constants.MAIN_CONNECTED_NOTIFICATION_ID, notification);
+//        }
+//    }
 
     private void updateNotificationWithMessage(String title, String message) {
         if (!isNotificationAllowed) {

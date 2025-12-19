@@ -26,12 +26,12 @@ public class CustomSpinner extends AppCompatSpinner {
         super(context, attrs, defStyleAttr);
     }
 
-    @Override
-    public boolean performClick() {
-        mOpenInitiated = true;
-        setBackground(ContextCompat.getDrawable(getContext(), R.drawable.spinner_background_up));
-        return super.performClick();
-    }
+//    @Override
+//    public boolean performClick() {
+//        mOpenInitiated = true;
+//        setBackground(ContextCompat.getDrawable(getContext(), R.drawable.spinner_background_up));
+//        return super.performClick();
+//    }
 
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
