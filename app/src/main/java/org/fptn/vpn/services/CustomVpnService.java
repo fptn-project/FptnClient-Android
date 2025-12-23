@@ -200,6 +200,11 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.i(TAG, "CustomVpnService.onStartCommand() Intent: " + intent + ", Thread.Id: " + Thread.currentThread().getId());
 
+        // ВАЖНОЕ ИСПРАВЛЕНИЕ: Немедленно запускаем foreground service
+        // Это предотвращает ForegroundServiceDidNotStartInTimeException
+        // Создаем простое уведомление для быстрого старта
+        startQuickForegroundService();
+
         if (intent != null && ACTION_RESET_ALARM.equals(intent.getAction())) {
             resetServiceKeepAliveAlarm();
             return START_STICKY;
@@ -467,9 +472,36 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
         return true;
     }
 
+    private void startQuickForegroundService() {
+        Notification notification = createQuickNotification();
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            startForeground(Constants.MAIN_CONNECTED_NOTIFICATION_ID, notification,
+                    ServiceInfo.FOREGROUND_SERVICE_TYPE_SYSTEM_EXEMPTED);
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            startForeground(Constants.MAIN_CONNECTED_NOTIFICATION_ID, notification,
+                    ServiceInfo.FOREGROUND_SERVICE_TYPE_MANIFEST);
+        } else {
+            startForeground(Constants.MAIN_CONNECTED_NOTIFICATION_ID, notification);
+        }
+    }
+
+    private Notification createQuickNotification() {
+        NotificationUtils.configureNotificationChannel(this);
+
+        return new Notification.Builder(this, Constants.MAIN_NOTIFICATION_CHANNEL_ID)
+                .setSmallIcon(R.drawable.ic_logo)
+                .setContentTitle("VPN Service")
+                .setContentText("Запуск...")
+                .setVisibility(Notification.VISIBILITY_PUBLIC)
+                .setOnlyAlertOnce(true)
+                .setOngoing(true)
+                .setContentIntent(launchMainActivityPendingIntent)
+                .build();
+    }
+
     private void connect(FptnServerDto fptnServerDto, String sniHostname) {
-        // Moving VPNService to foreground to give it higher priority in system
-        startForegroundWithNotification(getString(R.string.connecting_to) + fptnServerDto.getServerInfo());
+        updateNotificationWithMessage(getString(R.string.connecting_to) + fptnServerDto.getServerInfo(), "");
 
         acquirePowerLock();
 
@@ -598,22 +630,6 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
             startForeground(Constants.MAIN_CONNECTED_NOTIFICATION_ID, notification);
         }
     }
-
-//    private void startForegroundWithNotification(String title) {
-//        if (!isNotificationAllowed) {
-//            return;
-//        }
-//
-//        NotificationUtils.configureNotificationChannel(this);
-//        Notification notification = createNotification(title, "");
-//
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-//            startForeground(Constants.MAIN_CONNECTED_NOTIFICATION_ID, notification,
-//                    ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE);
-//        } else {
-//            startForeground(Constants.MAIN_CONNECTED_NOTIFICATION_ID, notification);
-//        }
-//    }
 
     private void updateNotificationWithMessage(String title, String message) {
         if (!isNotificationAllowed) {
