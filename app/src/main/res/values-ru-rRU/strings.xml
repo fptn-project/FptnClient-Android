@@ -35,7 +35,7 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     </string>
     <string name="info_message_html">
         <![CDATA[
-        FPTN — это некоммерческий VPN, волонтерский проект для обхода цензуры.
+        FPTN — это полностью разработанная с нуля технология VPN, включая собственный протокол, сервер и кроссплатформенные клиенты. Это некоммерческий проект с открытым исходным кодом, развиваемый волонтерами и предназначенный для обхода цензуры.
         <br/>
         <br/>
         Наш сайт: <a href="https://batchar2.github.io/fptn/">fptn.org</a>
@@ -117,18 +117,18 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="reset_default_button">Сбросить по умолчанию</string>
 
     <string name="warning">Внимание</string>
-    <string name="battery_optimization_request_dialog_title">Оптимизация батареи</string>
+    <string name="battery_optimization_request_dialog_title">Откл оптимизацию батареи</string>
     <string name="battery_optimization_request_dialog_text">Для стабильного подключения предоставьте разрешение на отключение оптимизации энергопотребления для этого приложения</string>
 
-    <string name="required_permissions">Требуемые разрешения:</string>
+    <string name="required_permissions">Необходимые разрешения:</string>
     <string name="denied_text">ОТКЛОНЕНО</string>
     <string name="background_data_request_dialog_title">Передача данных в фоне</string>
     <string name="background_data_request_dialog_text">Для стабильного подключения предоставьте разрешение на передачу данных в фоне</string>
 
     <string name="granted_text">РАЗРЕШЕНО</string>
 
-    <string name="show_notification_label">Показывать уведомления</string>
-    <string name="permission_warning_text">Для стабильного соединения предоставьте необходимые разрешения на экране настроек</string>
+    <string name="show_notification_label">Обязательные уведомления</string>
+    <string name="permission_warning_text">Для стабильной работы приложения предоставьте все разрешения на экране настроек</string>
 
     <string name="permission_request_title">Запрос разрешений</string>
     <string name="permission_request_text">Для стабильного соединения предоставьте необходимые разрешения</string>
@@ -158,4 +158,6 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="sni_spoofing_radio_button_label">Подмена домена (SNI)</string>
     <string name="tls_handshake_obfuscation_radio_button_label">Маскировка трафика (обфускация)</string>
     <string name="sni_reality_radio_button_label">Продвинутая подмена домена (SNI + REALITY)</string>
+
+    <string name="sni_reality_radio_button_label_additional_info">Требуется реальный существующий домен (иначе возможны ошибки)</string>
 </resources>

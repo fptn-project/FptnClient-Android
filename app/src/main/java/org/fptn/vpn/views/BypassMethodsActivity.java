@@ -135,6 +135,17 @@ public class BypassMethodsActivity extends AppCompatActivity {
             Log.d(TAG, "onEditSNIServer: save_button");
             Optional.ofNullable(sniEditText.getText())
                     .map(Object::toString)
+                    .map(input -> {
+                        String cleaned = input
+                                .replaceAll("^https?://", "")
+                                .replaceAll("^ftp://", "")
+                                .replaceAll("^www\\.", "")
+                                .replaceAll("[^a-zA-Zа-яА-Я0-9.-]", "")
+                                .replaceAll("/.*", "")
+                                .trim();
+                        cleaned = cleaned.replaceAll("^\\.+|\\.+$", "");
+                        return cleaned.toLowerCase();
+                    })
                     .filter(s -> !s.isBlank())
                     .ifPresent(newSni -> {
                         Log.d(TAG, "new SNI: " + newSni);
