@@ -36,7 +36,7 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     </string>
     <string name="info_message_html">
         <![CDATA[
-        FPTN is a non-commercial, volunteer-driven VPN project aimed at bypassing censorship.
+        FPTN is a fully custom-built VPN technology — developed from scratch, including the core protocol, server implementation, and cross-platform clients. It is a non-commercial, open-source project developed by volunteers and designed to bypass censorship.
         <br/>
         <br/>
         Our website: <a href="https://batchar2.github.io/fptn/">fptn.org</a>
@@ -126,19 +126,19 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="access_token_format">Invalid token format! Check the correctness of the input.</string>
     <string name="warning">Warning</string>
 
-    <string name="battery_optimization_request_dialog_title">Battery Optimization</string>
+    <string name="battery_optimization_request_dialog_title">Disable battery optimization</string>
     <string name="battery_optimization_request_dialog_text">For a stable connection, please grant permission to disable battery optimization for this app</string>
 
     <string name="required_permissions">Required permissions:</string>
     <string name="granted_text">GRANTED</string>
     <string name="denied_text">DENIED</string>
 
-    <string name="show_notification_label">Show notifications</string>
+    <string name="show_notification_label">Mandatory notifications</string>
 
 
     <string name="background_data_request_dialog_title">Background data transfer</string>
     <string name="background_data_request_dialog_text">For a stable connection, please grant permission to disable data transfer restrictions in background for this app</string>
-    <string name="permission_warning_text">For a stable connection, please grant required permissions on Settings screen</string>
+    <string name="permission_warning_text">Allow all permissions for stable connection on Settings screen</string>
 
     <string name="permission_request_title">Permissions request</string>
     <string name="permission_request_text">For a stable connection, please grant required permissions</string>
@@ -196,4 +196,6 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="sni_spoofing_radio_button_label">Domain spoofing (SNI)</string>
     <string name="tls_handshake_obfuscation_radio_button_label">Traffic masking (obfuscation)</string>
     <string name="sni_reality_radio_button_label">Advanced domain spoofing (SNI + REALITY)</string>
+
+    <string name="sni_reality_radio_button_label_additional_info">Requires a real existing domain (otherwise errors may occur)</string>
 </resources>
