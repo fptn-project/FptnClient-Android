@@ -54,8 +54,11 @@ bool WrapperWebsocketClient::Start() {
 }
 
 bool WrapperWebsocketClient::Stop() {
+  if (!running_) {
+    return true;
+  }
   {
-    std::unique_lock<std::mutex> lock(mutex_);
+    const std::unique_lock<std::mutex> lock(mutex_);  // mutex
     if (!running_) {
       return false;
     }
@@ -74,7 +77,8 @@ bool WrapperWebsocketClient::Stop() {
 }
 
 bool WrapperWebsocketClient::IsStarted() {
-  std::unique_lock<std::mutex> lock(mutex_);
+  const std::unique_lock<std::mutex> lock(mutex_);  // mutex
+
   return client_ && running_ && client_->IsStarted();
 }
 
@@ -312,10 +316,13 @@ bool WrapperWebsocketClient::Send(std::string pkt) {
       SPDLOG_ERROR("Failed to parse IP packet in Send");
       return false;
     }
-
-    const std::unique_lock<std::mutex> lock(mutex_);  // mutex
-
     if (running_ && client_ && client_->IsStarted()) {
+      const std::unique_lock<std::mutex> lock(mutex_);  // mutex
+
+      // cppcheck-suppress identicalConditionAfterEarlyExit
+      if (!running_ || !client_ || !client_->IsStarted()) {
+        return false;
+      }
       client_->Send(std::move(ip_packet));
       return true;
     }
