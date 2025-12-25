@@ -1,6 +1,5 @@
 package org.fptn.vpn.views;
 
-import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.StatusBarManager;
@@ -254,7 +253,7 @@ public class HomeActivity extends AppCompatActivity {
         showView(homeSpeedFrame);
 
         // check is need to show permissions warning
-        if (!PermissionsUtils.isAllPermissionsGranted(this)) {
+        if (!PermissionsUtils.isAllOptionalPermissionsGranted(this)) {
             showView(permissionWarningFrame);
         }
 
@@ -278,6 +277,22 @@ public class HomeActivity extends AppCompatActivity {
                 .map(CustomVpnServiceState::getConnectionState)
                 .orElse(ConnectionState.DISCONNECTED);
         if (currentConnectionState == ConnectionState.DISCONNECTED) {
+
+            // Check notification enabled
+            if (!PermissionsUtils.checkNotificationEnabled(this)) {
+                Toast.makeText(this, R.string.notifications_request_title, Toast.LENGTH_SHORT)
+                        .show();
+
+                Intent intent = new Intent();
+                intent.setAction(Settings.ACTION_APP_NOTIFICATION_SETTINGS);
+                intent.putExtra(Settings.EXTRA_APP_PACKAGE, getPackageName());
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
+
+                startStopButton.setChecked(false);
+                return;
+            }
+
             // Request required permission
             boolean hasPermissionsRequestedBefore = SharedPrefUtils.isPermissionsRequested(this);
             if (!hasPermissionsRequestedBefore) {
@@ -361,20 +376,6 @@ public class HomeActivity extends AppCompatActivity {
 
     private final AtomicInteger requestedPermissions = new AtomicInteger(0);
 
-    private final ActivityResultLauncher<String> showNotificationActivityResultLauncher = registerForActivityResult(
-            new ActivityResultContracts.RequestPermission(),
-            isGranted -> {
-                if (isGranted) {
-                    Log.i(TAG, "Notifications enabled!");
-                } else {
-                    Log.i(TAG, "Notifications disabled!");
-                }
-                if (requestedPermissions.decrementAndGet() == 0) {
-                    startStopButton.callOnClick();
-                }
-            }
-    );
-
     private final ActivityResultLauncher<Intent> settingsPermissionActivityResultLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             activityResult -> {
@@ -396,13 +397,6 @@ public class HomeActivity extends AppCompatActivity {
                 .setTitle(getString(R.string.permission_request_title))
                 .setMessage(getString(R.string.permission_request_text))
                 .setPositiveButton(getString(R.string.grant), (d, w) -> {
-                    // Show notifications permission
-                    if (!PermissionsUtils.checkNotificationPermission(this)) {
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                            requestedPermissions.incrementAndGet();
-                            showNotificationActivityResultLauncher.launch(Manifest.permission.POST_NOTIFICATIONS);
-                        }
-                    }
                     // Battery optimization permission
                     if (!PermissionsUtils.checkBatteryOptimizations(this)) {
                         //Manifest.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS

@@ -18,38 +18,26 @@ import android.text.method.LinkMovementMethod;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListAdapter;
 import android.widget.ListView;
-import android.widget.RadioButton;
-import android.widget.RadioGroup;
 import android.widget.SeekBar;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
-import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.android.material.textfield.TextInputEditText;
 
 import org.fptn.vpn.R;
-import org.fptn.vpn.enums.BypassCensorshipMethod;
-import org.fptn.vpn.enums.TLSHandshakeObfuscation;
 import org.fptn.vpn.services.tile.FptnTileService;
 import org.fptn.vpn.utils.PermissionsUtils;
 import org.fptn.vpn.utils.SharedPrefUtils;
 import org.fptn.vpn.viewmodel.FptnServerViewModel;
 import org.fptn.vpn.views.adapter.FptnServerAdapter;
-import org.fptn.vpn.views.adapter.ObfuscationMethodAdapter;
-
-import java.util.Optional;
 
 import lombok.Getter;
 
@@ -61,7 +49,6 @@ public class SettingsActivity extends AppCompatActivity {
     @Getter
     private FptnServerViewModel fptnViewModel;
 
-    private SwitchCompat permissionShowNotificationButton;
     private SwitchCompat permissionBatteryOptimizationButton;
     private SwitchCompat permissionBackgroundDataTransferButton;
     private BottomNavigationView bottomNavigationView;
@@ -115,9 +102,6 @@ public class SettingsActivity extends AppCompatActivity {
         tokenInfo.setMovementMethod(LinkMovementMethod.getInstance());
 
         // Permission settings
-        permissionShowNotificationButton = findViewById(R.id.permission_show_notification_button);
-        permissionShowNotificationButton.setOnClickListener(view -> requestNotificationPermission());
-
         permissionBatteryOptimizationButton = findViewById(R.id.permission_battery_optimization_button);
         permissionBatteryOptimizationButton.setOnClickListener(view -> requestBatteryOptimisationPermission());
 
@@ -149,7 +133,6 @@ public class SettingsActivity extends AppCompatActivity {
 
         bottomNavigationView.setSelectedItemId(R.id.menuSettings);
 
-        setPermissionButtonState(PermissionsUtils.checkNotificationPermission(this), permissionShowNotificationButton);
         setPermissionButtonState(PermissionsUtils.checkBatteryOptimizations(this), permissionBatteryOptimizationButton);
         setPermissionButtonState(PermissionsUtils.checkBackgroundDataTransferRestrictions(this), permissionBackgroundDataTransferButton);
     }
@@ -163,24 +146,6 @@ public class SettingsActivity extends AppCompatActivity {
             switchView.setClickable(true);
             switchView.setChecked(false);
         }
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
-    private void requestNotificationPermission() {
-        // Permission is not granted, show a dialog to explain reason
-        new AlertDialog.Builder(this)
-                .setTitle(R.string.notifications_request_title)
-                .setMessage(R.string.notifications_request_reason)
-                .setPositiveButton(R.string.grant, (dialog, which) -> {
-                    Intent intent = new Intent();
-                    intent.setAction(Settings.ACTION_APP_NOTIFICATION_SETTINGS);
-                    intent.putExtra(Settings.EXTRA_APP_PACKAGE, getPackageName());
-                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    startActivity(intent);
-                })
-                .setOnDismissListener(v -> permissionShowNotificationButton.setChecked(false))
-                .create()
-                .show();
     }
 
     private void requestBatteryOptimisationPermission() {

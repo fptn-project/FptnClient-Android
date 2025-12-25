@@ -4,6 +4,8 @@ import static android.content.Context.CONNECTIVITY_SERVICE;
 import static android.content.Context.POWER_SERVICE;
 
 import android.Manifest;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
@@ -13,14 +15,27 @@ import android.util.Log;
 
 import androidx.core.content.ContextCompat;
 
+import java.util.List;
+
 public class PermissionsUtils {
     private static final String TAG = PermissionsUtils.class.getSimpleName();
 
-    public static boolean isAllPermissionsGranted(Context context) {
-        return checkBackgroundDataTransferRestrictions(context) && checkBatteryOptimizations(context) && checkNotificationPermission(context);
+    public static boolean isAllOptionalPermissionsGranted(Context context) {
+        return checkBackgroundDataTransferRestrictions(context) && checkBatteryOptimizations(context);
     }
 
-    public static boolean checkNotificationPermission(Context context) {
+    public static boolean checkNotificationEnabled(Context context) {
+        NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+        if (!notificationManager.areNotificationsEnabled()) {
+            return false;
+        }
+        List<NotificationChannel> channels = notificationManager.getNotificationChannels();
+        for (NotificationChannel channel : channels) {
+            if (channel.getImportance() == NotificationManager.IMPORTANCE_NONE) {
+                return false;
+            }
+        }
+
         boolean isGranted = true;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             isGranted = ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED;

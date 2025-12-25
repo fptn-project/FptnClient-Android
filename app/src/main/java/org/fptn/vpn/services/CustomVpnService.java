@@ -39,7 +39,6 @@ import org.fptn.vpn.enums.BypassCensorshipMethod;
 import org.fptn.vpn.enums.ConnectionState;
 import org.fptn.vpn.enums.HandlerMessageTypes;
 import org.fptn.vpn.enums.NetworkType;
-import org.fptn.vpn.enums.TLSHandshakeObfuscation;
 import org.fptn.vpn.repository.FptnServerRepository;
 import org.fptn.vpn.services.tile.FptnTileService;
 import org.fptn.vpn.utils.NetworkUtils;
@@ -137,12 +136,9 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
         if (fptnServerDto != null) {
             intent.putExtra(SELECTED_SERVER, fptnServerDto.id);
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            context.startForegroundService(intent);
-        } else {
-            // If started service not become foreground - will be exception ANR - after 30 seconds approx.
-            context.startService(intent);
-        }
+
+        // If started service not become foreground - will be exception ANR - after 5 seconds
+        context.startForegroundService(intent);
     }
 
     public static void startToConnect(Context context) {
@@ -151,9 +147,8 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
         // Now it method called only from FptnTileService
         intent.putExtra(SELECTED_SERVER, START_FROM_TILE_AUTO);
 
-        // If started service not become foreground - will be exception ANR - after 30 seconds approx.
-        //context.startForegroundService(intent);
-        context.startService(intent);
+        // If started service not become foreground - will be exception ANR - after 5 seconds
+        context.startForegroundService(intent);
     }
 
     public static void startToDisconnect(Context context) {
