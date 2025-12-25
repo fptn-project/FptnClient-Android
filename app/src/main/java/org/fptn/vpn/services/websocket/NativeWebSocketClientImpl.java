@@ -28,7 +28,7 @@ public class NativeWebSocketClientImpl {
     private final OnMessageReceivedCallback onMessageReceivedCallback;
     private final OnFailureCallback onFailureCallback;
 
-    private long nativeHandle;
+    private long nativeHandle = 0L;
 
     public NativeWebSocketClientImpl(
             String host,

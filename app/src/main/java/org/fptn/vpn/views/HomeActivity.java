@@ -25,6 +25,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 import androidx.lifecycle.ViewModelProvider;
 
 import org.fptn.vpn.R;
@@ -278,21 +279,20 @@ public class HomeActivity extends AppCompatActivity {
                 .map(CustomVpnServiceState::getConnectionState)
                 .orElse(ConnectionState.DISCONNECTED);
         if (currentConnectionState == ConnectionState.DISCONNECTED) {
-            // Request required permission
-            boolean hasPermissionsRequestedBefore = SharedPrefUtils.isPermissionsRequested(this);
-            if (!hasPermissionsRequestedBefore) {
-                // we don't know result of vpn permission request yet
+            // Check if all permissions are granted
+            if (!PermissionsUtils.isAllPermissionsGranted(this)) {
+                // Show message that all permissions are required
+                Toast.makeText(this, R.string.all_permissions_required, Toast.LENGTH_LONG).show();
+
+                // Reset button state
                 startStopButton.setChecked(false);
 
+                // Request all required permissions
                 requestRequiredPermissions();
-
-                // remember to not ask everytime
-                SharedPrefUtils.savePermissionsRequested(this, true);
-
-                // we call onClick later - when receive all permissions request results
                 return;
             }
 
+            // All permissions are granted, now check VPN permission
             Intent intent = VpnService.prepare(this);
             if (intent != null) {
                 // Request to user on launch vpn
@@ -300,6 +300,7 @@ public class HomeActivity extends AppCompatActivity {
                 // we don't know result of vpn permission request yet
                 startStopButton.setChecked(false);
             } else {
+                // All permissions are granted, start VPN connection
                 // explicit assignment cause service may start slowly
                 fptnViewModel.getServiceStateMutableLiveData().postValue(CustomVpnServiceState.FAKE_CONNECTING);
 
@@ -351,10 +352,18 @@ public class HomeActivity extends AppCompatActivity {
     private final ActivityResultLauncher<Intent> vpnPermissionActivityResultLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(), activityResult -> {
                 if (activityResult != null && activityResult.getResultCode() == RESULT_OK) {
+                    // Check again if all permissions are granted before starting VPN
+                    if (!PermissionsUtils.isAllPermissionsGranted(this)) {
+                        Toast.makeText(this, R.string.all_permissions_required, Toast.LENGTH_LONG).show();
+                        startStopButton.setChecked(false);
+                        return;
+                    }
+
                     CustomVpnService.startToConnect(this, (FptnServerDto) spinnerServers.getSelectedItem());
                 } else {
                     Toast.makeText(this, R.string.vpn_permission_warning, Toast.LENGTH_SHORT).show();
                     fptnViewModel.getErrorTextLiveData().postValue(getString(R.string.vpn_permission_warning));
+                    startStopButton.setChecked(false);
                 }
             }
     );
@@ -369,64 +378,120 @@ public class HomeActivity extends AppCompatActivity {
                 } else {
                     Log.i(TAG, "Notifications disabled!");
                 }
-                if (requestedPermissions.decrementAndGet() == 0) {
-                    startStopButton.callOnClick();
-                }
+
+                // Check if all permissions are granted after this permission request
+                checkAndCompletePermissionRequest();
             }
     );
 
     private final ActivityResultLauncher<Intent> settingsPermissionActivityResultLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             activityResult -> {
-                if (activityResult != null && activityResult.getResultCode() == RESULT_OK) {
-                    Log.i(TAG, "Permission granted!");
-                } else {
-                    Log.i(TAG, "Permission disabled!");
-                }
-                if (requestedPermissions.decrementAndGet() == 0) {
-                    startStopButton.callOnClick();
-                }
+                Log.i(TAG, "Returned from settings activity");
+
+                // Check if all permissions are granted after returning from settings
+                checkAndCompletePermissionRequest();
             }
     );
+
+    // Helper method to check permissions and complete the request
+    private void checkAndCompletePermissionRequest() {
+        if (requestedPermissions.decrementAndGet() == 0) {
+            // All permission requests have completed
+            if (PermissionsUtils.isAllPermissionsGranted(this)) {
+                // All permissions are granted, proceed with VPN connection
+                startStopButton.callOnClick();
+            } else {
+                // Still missing some permissions
+                Toast.makeText(this, R.string.all_permissions_required, Toast.LENGTH_LONG).show();
+                startStopButton.setChecked(false);
+            }
+        }
+    }
 
     /* PERMISSIONS PART */
     @SuppressLint("BatteryLife")
     private void requestRequiredPermissions() {
+        requestedPermissions.set(0); // Reset counter
+
+        // Check notification permission first - handle special case for "Don't ask again"
+        final boolean[] shouldRequestNotificationPermission = {false};
+        final boolean[] shouldOpenSettingsForNotifications = {false};
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (!PermissionsUtils.checkNotificationPermission(this)) {
+                // Check if we can request the permission or need to open settings
+                if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.POST_NOTIFICATIONS)) {
+                    // We can request the permission
+                    shouldRequestNotificationPermission[0] = true;
+                    requestedPermissions.incrementAndGet();
+                } else {
+                    // Permission was denied with "Don't ask again", need to open settings
+                    shouldOpenSettingsForNotifications[0] = true;
+                    requestedPermissions.incrementAndGet();
+                }
+            }
+        }
+
+        // Check battery optimizations
+        final boolean[] shouldRequestBatteryOptimization = {false};
+        if (!PermissionsUtils.checkBatteryOptimizations(this)) {
+            shouldRequestBatteryOptimization[0] = true;
+            requestedPermissions.incrementAndGet();
+        }
+
+        // Check background data restrictions
+        final boolean[] shouldRequestBackgroundData = {false};
+        if (!PermissionsUtils.checkBackgroundDataTransferRestrictions(this)) {
+            shouldRequestBackgroundData[0] = true;
+            requestedPermissions.incrementAndGet();
+        }
+
+        if (requestedPermissions.get() == 0) {
+            // All permissions are already granted
+            startStopButton.callOnClick();
+            return;
+        }
+
+        // Show dialog explaining why permissions are needed
         new AlertDialog.Builder(this)
                 .setTitle(getString(R.string.permission_request_title))
                 .setMessage(getString(R.string.permission_request_text))
                 .setPositiveButton(getString(R.string.grant), (d, w) -> {
-                    // Show notifications permission
-                    if (!PermissionsUtils.checkNotificationPermission(this)) {
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                            requestedPermissions.incrementAndGet();
-                            showNotificationActivityResultLauncher.launch(Manifest.permission.POST_NOTIFICATIONS);
-                        }
+                    // Request notification permission if needed
+                    if (shouldRequestNotificationPermission[0]) {
+                        showNotificationActivityResultLauncher.launch(Manifest.permission.POST_NOTIFICATIONS);
+                    } else if (shouldOpenSettingsForNotifications[0]) {
+                        // Open app settings for notification permission
+                        Intent intent = new Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS);
+                        intent.putExtra(Settings.EXTRA_APP_PACKAGE, getPackageName());
+                        settingsPermissionActivityResultLauncher.launch(intent);
                     }
-                    // Battery optimization permission
-                    if (!PermissionsUtils.checkBatteryOptimizations(this)) {
-                        //Manifest.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
-                        requestedPermissions.incrementAndGet();
-                        startActivityWithSettings(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+
+                    // Request battery optimization permission
+                    if (shouldRequestBatteryOptimization[0]) {
+                        Intent intent = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+                        intent.setData(Uri.parse("package:" + getPackageName()));
+                        settingsPermissionActivityResultLauncher.launch(intent);
                     }
-                    // Background data transfer restriction permission
-                    if (!PermissionsUtils.checkBackgroundDataTransferRestrictions(this)) {
-                        requestedPermissions.incrementAndGet();
-                        startActivityWithSettings(Settings.ACTION_IGNORE_BACKGROUND_DATA_RESTRICTIONS_SETTINGS);
+
+                    // Request background data restriction permission
+                    if (shouldRequestBackgroundData[0]) {
+                        Intent intent = new Intent(Settings.ACTION_IGNORE_BACKGROUND_DATA_RESTRICTIONS_SETTINGS);
+                        intent.setData(Uri.parse("package:" + getPackageName()));
+                        settingsPermissionActivityResultLauncher.launch(intent);
                     }
                 })
                 .setNegativeButton(getString(R.string.deny), (dialog, which) -> {
                     Log.i(TAG, "Permissions request denied!");
-                    // it must work without permissions
-                    startStopButton.callOnClick();
+                    Toast.makeText(this, R.string.all_permissions_required, Toast.LENGTH_LONG).show();
+                    startStopButton.setChecked(false);
+                })
+                .setOnCancelListener(dialog -> {
+                    Log.i(TAG, "Permissions request cancelled!");
+                    Toast.makeText(this, R.string.all_permissions_required, Toast.LENGTH_LONG).show();
+                    startStopButton.setChecked(false);
                 })
                 .show();
     }
-
-    private void startActivityWithSettings(String settingsAction) {
-        Intent intent = new Intent(settingsAction);
-        intent.setData(Uri.parse("package:" + getPackageName()));
-        settingsPermissionActivityResultLauncher.launch(intent);
-    }
-
 }
