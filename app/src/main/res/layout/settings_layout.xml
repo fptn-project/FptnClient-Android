@@ -393,42 +393,6 @@
                     android:paddingBottom="4dp">
 
                     <!-- Notification permission -->
-                    <RelativeLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:paddingVertical="0dp">
-
-                        <ImageView
-                            android:id="@+id/permission_icon_show_notification"
-                            android:layout_width="28dp"
-                            android:layout_height="28dp"
-                            android:layout_gravity="center"
-                            android:importantForAccessibility="no"
-                            android:paddingStart="0dp"
-                            android:paddingEnd="8dp"
-                            android:src="@drawable/bell_ring_24" />
-
-                        <TextView
-                            android:id="@+id/permission_label_show_notification"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_centerVertical="true"
-                            android:layout_toEndOf="@id/permission_icon_show_notification"
-                            android:text="@string/show_notification_label"
-                            android:textColor="@color/white"
-                            android:textStyle="normal" />
-
-                        <androidx.appcompat.widget.SwitchCompat
-                            android:id="@+id/permission_show_notification_button"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_alignParentTop="true"
-                            android:layout_alignParentEnd="true"
-                            android:layout_centerVertical="true"
-                            android:enabled="true"
-                            android:paddingEnd="2dp"
-                            android:textStyle="bold" />
-                    </RelativeLayout>
 
                     <!-- Battery optimisation disable permission -->
                     <RelativeLayout

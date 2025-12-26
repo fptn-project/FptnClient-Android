@@ -66,6 +66,9 @@ bool WrapperWebsocketClient::Stop() {
 
     if (client_) {
       client_->Stop();
+
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
       client_.reset();
     }
   }
@@ -77,9 +80,7 @@ bool WrapperWebsocketClient::Stop() {
 }
 
 bool WrapperWebsocketClient::IsStarted() {
-  const std::unique_lock<std::mutex> lock(mutex_);  // mutex
-
-  return client_ && running_ && client_->IsStarted();
+  return client_ && running_;
 }
 
 void WrapperWebsocketClient::Run() {

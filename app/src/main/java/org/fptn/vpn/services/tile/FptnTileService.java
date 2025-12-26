@@ -1,10 +1,14 @@
 package org.fptn.vpn.services.tile;
 
+import android.app.PendingIntent;
+import android.content.Intent;
 import android.graphics.drawable.Icon;
 import android.os.Build;
+import android.provider.Settings;
 import android.service.quicksettings.Tile;
 import android.service.quicksettings.TileService;
 import android.util.Log;
+import android.widget.Toast;
 
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
@@ -13,6 +17,7 @@ import org.fptn.vpn.R;
 import org.fptn.vpn.database.model.FptnServerDto;
 import org.fptn.vpn.enums.ConnectionState;
 import org.fptn.vpn.services.CustomVpnService;
+import org.fptn.vpn.utils.PermissionsUtils;
 
 import lombok.Getter;
 
@@ -52,6 +57,30 @@ public class FptnTileService extends TileService {
         if (connectionState != null && connectionState.isActiveState()) {
             CustomVpnService.startToDisconnect(this);
         } else {
+            // Check notification enabled
+            if (!PermissionsUtils.checkNotificationEnabled(this)) {
+                // todo: say user what to do (can't show toasts from tileService or other services)
+                Intent intent = new Intent();
+                intent.setAction(Settings.ACTION_APP_NOTIFICATION_SETTINGS);
+                intent.putExtra(Settings.EXTRA_APP_PACKAGE, getPackageName());
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+                PendingIntent pendingIntent = PendingIntent.getActivity(
+                        this,
+                        0,
+                        intent,
+                        PendingIntent.FLAG_IMMUTABLE
+                );
+
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                    startActivityAndCollapse(pendingIntent);
+                } else {
+                    startActivityAndCollapse(intent);
+                }
+
+                return;
+            }
+
             CustomVpnService.startToConnect(this);
         }
     }
