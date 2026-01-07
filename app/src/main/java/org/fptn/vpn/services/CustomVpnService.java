@@ -130,7 +130,7 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
 
     /* Static methods to start/stop service */
 
-    public static void startToConnect(Context context, FptnServerDto fptnServerDto) {
+    public synchronized static void startToConnect(Context context, FptnServerDto fptnServerDto) {
         Intent intent = new Intent(context, CustomVpnService.class);
         intent.setAction(ACTION_CONNECT);
         if (fptnServerDto != null) {
@@ -141,7 +141,7 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
         context.startForegroundService(intent);
     }
 
-    public static void startToConnect(Context context) {
+    public synchronized static void startToConnect(Context context) {
         Intent intent = new Intent(context, CustomVpnService.class);
         intent.setAction(ACTION_CONNECT);
         // Now it method called only from FptnTileService
@@ -151,7 +151,7 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
         context.startForegroundService(intent);
     }
 
-    public static void startToDisconnect(Context context) {
+    public synchronized static void startToDisconnect(Context context) {
         Intent intent = new Intent(context, CustomVpnService.class);
         intent.setAction(ACTION_DISCONNECT);
         context.startService(intent);
