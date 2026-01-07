@@ -129,6 +129,7 @@ dependencies {
     implementation(libs.jackson.databind)
     implementation(libs.material)
     implementation(libs.zxing)
+    implementation(libs.decoding)
 
     compileOnly(libs.lombock)
 

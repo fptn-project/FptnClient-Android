@@ -5,6 +5,7 @@ autonomousappsSorting = "0.16"
 autonomousappsUnused = "3.5.1"
 constraintlayout = "2.2.1"
 crashlytics = "3.0.6"
+decoding = "0.1.2"
 detektPlugin = "1.23.8"
 firebaseBom = "34.7.0"
 firebaseCrashlyticsPlugin = "3.0.6"
@@ -35,6 +36,7 @@ androidx-monitor = { group = "androidx.test", name = "monitor", version.ref = "m
 androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "roomRuntime" }
 androidx-room-guava = { module = "androidx.room:room-guava", version.ref = "roomRuntime" }
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "roomRuntime" }
+decoding = { module = "org.brotli:dec", version.ref = "decoding" }
 detekt = { group = "io.gitlab.arturbosch.detekt", name = "detekt-gradle-plugin", version.ref = "detektPlugin" }
 firebase-analytics = { group = "com.google.firebase", name = "firebase-analytics" }
 firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }

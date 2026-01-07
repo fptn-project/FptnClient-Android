@@ -17,6 +17,7 @@ import org.fptn.vpn.enums.ConnectionState;
 import org.fptn.vpn.repository.FptnServerRepository;
 import org.fptn.vpn.services.CustomVpnService;
 import org.fptn.vpn.services.CustomVpnServiceState;
+import org.fptn.vpn.utils.BrotliUtils;
 import org.fptn.vpn.utils.CountryFlags;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -129,12 +130,19 @@ public class FptnServerViewModel extends AndroidViewModel {
         try {
             List<FptnServerDto> serverDtoList = new ArrayList<>();
 
-            // removes all whitespaces and non-visible characters (e.g., tab, \n) and prefixes fptn://  fptn:
+            // removes all whitespaces and non-visible characters (e.g., tab, \n) and prefixes fptn://  fptn: fptnb:
             final String clearedToken = fptnTokenString.replaceAll("\\s+", "")
                     .replace("fptn://", "")
-                    .replace("fptn:", "");
+                    .replace("fptn:", "")
+                    .replace("fptnb:", "");
             try {
-                String decodedToken = new String(Base64.getDecoder().decode(clearedToken));
+                String decodedToken;
+                if (fptnTokenString.contains("fptnb:")){
+                    decodedToken = BrotliUtils.decodeBrotliString(clearedToken);
+                } else {
+                    decodedToken = new String(Base64.getDecoder().decode(clearedToken));
+                }
+
                 FptnToken fptnToken = OBJECT_MAPPER.readValue(decodedToken, FptnToken.class);
                 FptnTokenValidationUtils.validate(fptnToken);
 
