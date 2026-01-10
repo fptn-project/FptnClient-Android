@@ -122,6 +122,7 @@ dependencies {
     implementation(libs.androidx.monitor)
     implementation(libs.androidx.room.guava)
     implementation(libs.androidx.room.runtime)
+    implementation(libs.decoding)
     implementation(libs.firebase.analytics)
     implementation(libs.firebase.crashlytics.ndk)
     implementation(libs.guava)
