@@ -20,9 +20,7 @@ import android.net.NetworkCapabilities;
 import android.net.VpnService;
 import android.os.Binder;
 import android.os.Build;
-import android.os.Handler;
 import android.os.IBinder;
-import android.os.Message;
 import android.os.PowerManager;
 import android.os.SystemClock;
 import android.service.quicksettings.TileService;
@@ -37,7 +35,6 @@ import org.fptn.vpn.core.common.Constants;
 import org.fptn.vpn.database.model.FptnServerDto;
 import org.fptn.vpn.enums.BypassCensorshipMethod;
 import org.fptn.vpn.enums.ConnectionState;
-import org.fptn.vpn.enums.HandlerMessageTypes;
 import org.fptn.vpn.enums.NetworkType;
 import org.fptn.vpn.repository.FptnServerRepository;
 import org.fptn.vpn.services.tile.FptnTileService;
@@ -49,7 +46,6 @@ import org.fptn.vpn.views.speedtest.SpeedTestUtils;
 import org.fptn.vpn.vpnclient.exception.ErrorCode;
 import org.fptn.vpn.vpnclient.exception.PVNClientException;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -62,7 +58,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import kotlin.Triple;
 import lombok.Getter;
 
-public class CustomVpnService extends VpnService implements Handler.Callback {
+public class CustomVpnService extends VpnService {
     private static final String TAG = CustomVpnService.class.getSimpleName();
 
     public static final String ACTION_CONNECT = "CustomVpnService:CONNECT";
@@ -74,10 +70,6 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
     // for set alarming
     public static final String ACTION_RESET_ALARM = "CustomVpnService:ACTION_RESET_ALARM";
     public static final int ONE_MINUTE = 60_000;
-
-    //Handler - queue of events from another threads, that need to process in this thread
-    @Getter
-    private Handler handler;
 
     private final AtomicReference<CustomVpnConnection> activeConnection = new AtomicReference<>();
 
@@ -115,6 +107,28 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
         Intent intent = new Intent(context, CustomVpnService.class);
         intent.setAction(ACTION_BIND);
         context.bindService(intent, connection, BIND_AUTO_CREATE);
+    }
+
+    public void updateSpeedInfo(String downloadSpeed, String uploadSpeed, long duration) {
+        if (serviceStateMutableLiveData.getValue().getConnectionState() == ConnectionState.CONNECTED) {
+            updateNotificationWithMessage(
+                    String.format("%s %s", getString(R.string.connected_to), getActionConnectServerInfo()),
+                    String.format(getString(R.string.download_upload_speed_pattern), downloadSpeed, uploadSpeed)
+            );
+
+            speedAndDurationMutableLiveData.postValue(new Triple<>(downloadSpeed, uploadSpeed, duration));
+        }
+    }
+
+    public void sendExceptionToService(PVNClientException exception) {
+        disconnect(exception);
+        if (Objects.equals(exception.errorCode, ErrorCode.RECONNECTING_FAILED)) {
+            showReconnectionFailedNotification();
+        }
+    }
+
+    public void updateConnectionState(ConnectionState connectionState, int reconnectionCount) {
+        switchState(connectionState, reconnectionCount);
     }
 
     public class LocalBinder extends Binder {
@@ -160,10 +174,6 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
     @Override
     public void onCreate() {
         Log.i(TAG, "CustomVpnService.onCreate() Thread.Id: " + Thread.currentThread().getId());
-        // The handler is only used to show messages.
-        if (handler == null) {
-            handler = new Handler(this);
-        }
         // pending intent for open MainActivity on tap
         launchMainActivityPendingIntent = PendingIntent.getActivity(this, 0,
                 new Intent(this, HomeActivity.class),
@@ -419,49 +429,6 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
                 .build());
     }
 
-    @Override
-    public boolean handleMessage(@NonNull Message message) {
-        Log.d(TAG, "handleMessage: " + message);
-
-        /* Check connectionId in message to exclude false positive change state UI on dead connection */
-        int connectionId = message.arg1;
-        if (Optional.ofNullable(activeConnection.get()).map(CustomVpnConnection::getConnectionId).orElse(-1) == connectionId) {
-            HandlerMessageTypes type = Arrays.stream(HandlerMessageTypes.values()).filter(t -> t.getValue() == message.what).findFirst().orElse(HandlerMessageTypes.UNKNOWN);
-            switch (type) {
-                case SPEED_INFO:
-                    if (serviceStateMutableLiveData.getValue().getConnectionState() == ConnectionState.CONNECTED) {
-                        Triple<String, String, Long> speedAndDuration = (Triple<String, String, Long>) message.obj;
-                        String downloadSpeed = speedAndDuration.getFirst();
-                        String uploadSpeed = speedAndDuration.getSecond();
-
-                        updateNotificationWithMessage(
-                                String.format("%s %s", getString(R.string.connected_to), getActionConnectServerInfo()),
-                                String.format(getString(R.string.download_upload_speed_pattern), downloadSpeed, uploadSpeed)
-                        );
-
-                        speedAndDurationMutableLiveData.postValue(speedAndDuration);
-                    }
-                    break;
-                case CONNECTION_STATE:
-                    ConnectionState connectionState = (ConnectionState) message.obj;
-                    int reconnectionCount = message.arg2;
-
-                    switchState(connectionState, reconnectionCount);
-                    break;
-                case ERROR:
-                    PVNClientException exception = (PVNClientException) message.obj;
-                    disconnect(exception);
-                    if (Objects.equals(exception.errorCode, ErrorCode.RECONNECTING_FAILED)) {
-                        showReconnectionFailedNotification();
-                    }
-                    break;
-                default:
-                    Log.e(TAG, "unexpected message: " + message);
-            }
-        }
-        return true;
-    }
-
     private void connect(FptnServerDto fptnServerDto, String sniHostname) {
         // Moving VPNService to foreground to give it higher priority in system
         startForegroundWithNotification(getString(R.string.connecting_to) + fptnServerDto.getServerInfo());
@@ -593,22 +560,6 @@ public class CustomVpnService extends VpnService implements Handler.Callback {
             startForeground(Constants.MAIN_CONNECTED_NOTIFICATION_ID, notification);
         }
     }
-
-//    private void startForegroundWithNotification(String title) {
-//        if (!isNotificationAllowed) {
-//            return;
-//        }
-//
-//        NotificationUtils.configureNotificationChannel(this);
-//        Notification notification = createNotification(title, "");
-//
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-//            startForeground(Constants.MAIN_CONNECTED_NOTIFICATION_ID, notification,
-//                    ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE);
-//        } else {
-//            startForeground(Constants.MAIN_CONNECTED_NOTIFICATION_ID, notification);
-//        }
-//    }
 
     private void updateNotificationWithMessage(String title, String message) {
         if (!isNotificationAllowed) {

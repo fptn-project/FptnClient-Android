@@ -11,16 +11,13 @@ import android.app.PendingIntent;
 import android.net.IpPrefix;
 import android.net.VpnService;
 import android.os.Build;
-import android.os.Message;
 import android.os.ParcelFileDescriptor;
 import android.util.Log;
 
 import org.fptn.vpn.database.model.FptnServerDto;
 import org.fptn.vpn.enums.BypassCensorshipMethod;
 import org.fptn.vpn.enums.ConnectionState;
-import org.fptn.vpn.enums.HandlerMessageTypes;
 import org.fptn.vpn.enums.NetworkType;
-import org.fptn.vpn.enums.TLSHandshakeObfuscation;
 import org.fptn.vpn.services.websocket.WebSocketAlreadyShutdownException;
 import org.fptn.vpn.services.websocket.WebSocketClientWrapper;
 import org.fptn.vpn.utils.DataRateCalculator;
@@ -47,7 +44,6 @@ import java.util.stream.Stream;
 
 import inet.ipaddr.IPAddress;
 import inet.ipaddr.IPAddressString;
-import kotlin.Triple;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -314,20 +310,15 @@ public class CustomVpnConnection extends Thread {
     }
 
     private void sendExceptionToService(PVNClientException exception) {
-        service.getHandler().sendMessage(Message.obtain(service.getHandler(), HandlerMessageTypes.ERROR.getValue(), connectionId, 0, exception));
+        service.sendExceptionToService(exception);
     }
 
     private void sendSpeedInfoAndDurationToService(String downloadSpeed, String uploadSpeed, long duration) {
-        service.getHandler().sendMessage(
-                Message.obtain(service.getHandler(), HandlerMessageTypes.SPEED_INFO.getValue(), connectionId, 0,
-                        new Triple<>(downloadSpeed, uploadSpeed, duration))
-        );
+        service.updateSpeedInfo(downloadSpeed, uploadSpeed, duration);
     }
 
     private void sendConnectionStateToService(ConnectionState connectionState) {
-        service.getHandler().sendMessage(
-                Message.obtain(service.getHandler(), HandlerMessageTypes.CONNECTION_STATE.getValue(), connectionId, reconnectCount.get(), connectionState)
-        );
+        service.updateConnectionState(connectionState, reconnectCount.get());
     }
 
     private boolean isTunInterfaceValid(ParcelFileDescriptor vpnInterface) {
