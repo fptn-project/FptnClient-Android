@@ -30,14 +30,14 @@ public class SharedPrefUtils {
     }
 
     /* NOTIFICATIONS */
-    public static int getNotificationChannelVersion(Context context) {
+    public static int getNotificationChannelVersion(Context context, String channelVersionTag) {
         SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
-        return sharedPreferences.getInt(Constants.MAIN_NOTIFICATION_CHANNEL_VERSION, 0);
+        return sharedPreferences.getInt(channelVersionTag, 0);
     }
 
-    public static void saveNotificationChannelVersion(Context context, int version) {
+    public static void saveNotificationChannelVersion(Context context, String channelVersionTag, int version) {
         SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
-        sharedPreferences.edit().putInt(Constants.MAIN_NOTIFICATION_CHANNEL_VERSION, version).apply();
+        sharedPreferences.edit().putInt(channelVersionTag, version).apply();
     }
 
     public static boolean isPermissionsRequested(Context context) {

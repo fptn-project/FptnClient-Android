@@ -9,18 +9,19 @@ import org.fptn.vpn.R;
 import org.fptn.vpn.core.common.Constants;
 
 public class NotificationUtils {
-
     public static void configureNotificationChannel(Context context) {
         NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-        NotificationChannel notificationChannel = notificationManager.getNotificationChannel(Constants.MAIN_NOTIFICATION_CHANNEL_ID);
+
+        // add main notification channel
+        NotificationChannel mainNotificationChannel = notificationManager.getNotificationChannel(Constants.MAIN_NOTIFICATION_CHANNEL_ID);
+        int mainNotificationChannelOnDevice = SharedPrefUtils.getNotificationChannelVersion(context, Constants.MAIN_NOTIFICATION_CHANNEL_VERSION);
         // remove existed notification channel if their version lower than in constants
-        int notificationChannelOnDevice = SharedPrefUtils.getNotificationChannelVersion(context);
-        if (notificationChannel != null && notificationChannelOnDevice < Constants.MAIN_NOTIFICATION_CHANNEL_VERSION_NUM) {
+        if (mainNotificationChannel != null && mainNotificationChannelOnDevice < Constants.MAIN_NOTIFICATION_CHANNEL_VERSION_NUM) {
             notificationManager.deleteNotificationChannel(Constants.MAIN_NOTIFICATION_CHANNEL_ID);
-            notificationChannel = null;
+            mainNotificationChannel = null;
         }
 
-        if (notificationChannel == null) {
+        if (mainNotificationChannel == null) {
             notificationManager.createNotificationChannelGroup(
                     new NotificationChannelGroup(Constants.MAIN_NOTIFICATION_CHANNEL_GROUP_ID, context.getString(R.string.notification_group_name)));
 
@@ -32,7 +33,30 @@ public class NotificationUtils {
             newNotificationChannel.setSound(null, null); //disable sound
 
             notificationManager.createNotificationChannel(newNotificationChannel);
-            SharedPrefUtils.saveNotificationChannelVersion(context, Constants.MAIN_NOTIFICATION_CHANNEL_VERSION_NUM);
+            SharedPrefUtils.saveNotificationChannelVersion(context, Constants.MAIN_NOTIFICATION_CHANNEL_VERSION, Constants.MAIN_NOTIFICATION_CHANNEL_VERSION_NUM);
+        }
+
+        // add error notification channel
+        NotificationChannel errorNotificationChannel = notificationManager.getNotificationChannel(Constants.ERROR_NOTIFICATION_CHANNEL_ID);
+        int errorNotificationChannelOnDevice = SharedPrefUtils.getNotificationChannelVersion(context, Constants.ERROR_NOTIFICATION_CHANNEL_VERSION);
+        // remove existed notification channel if their version lower than in constants
+        if (errorNotificationChannel != null && errorNotificationChannelOnDevice < Constants.ERROR_NOTIFICATION_CHANNEL_VERSION_NUM) {
+            notificationManager.deleteNotificationChannel(Constants.ERROR_NOTIFICATION_CHANNEL_ID);
+            errorNotificationChannel = null;
+        }
+
+        if (errorNotificationChannel == null) {
+            notificationManager.createNotificationChannelGroup(
+                    new NotificationChannelGroup(Constants.ERROR_NOTIFICATION_CHANNEL_GROUP_ID, context.getString(R.string.errors_notification_group_name)));
+
+            NotificationChannel newNotificationChannel = new NotificationChannel(
+                    Constants.ERROR_NOTIFICATION_CHANNEL_ID,
+                    context.getString(R.string.errors_notification_group_name),
+                    NotificationManager.IMPORTANCE_HIGH);
+            newNotificationChannel.setGroup(Constants.ERROR_NOTIFICATION_CHANNEL_GROUP_ID);
+
+            notificationManager.createNotificationChannel(newNotificationChannel);
+            SharedPrefUtils.saveNotificationChannelVersion(context, Constants.ERROR_NOTIFICATION_CHANNEL_VERSION, Constants.ERROR_NOTIFICATION_CHANNEL_VERSION_NUM);
         }
     }
 }

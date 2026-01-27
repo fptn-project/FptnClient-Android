@@ -78,7 +78,9 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
 
     <string name="notification_channel_name">When connected</string>
     <string name="notification_group_name">Main</string>
+    <string name="errors_notification_group_name">Errors</string>
     <string name="disconnect_action">Disconnect</string>
+    <string name="reconnect_action">Reconnect</string>
 
     <string name="token_was_updated">Token was updated!</string>
     <string name="token_saving_failed">Invalid link format!</string>
