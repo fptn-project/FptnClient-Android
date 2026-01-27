@@ -3,9 +3,9 @@ package org.fptn.vpn.services;
 import static org.fptn.vpn.core.common.Constants.SELECTED_SERVER;
 import static org.fptn.vpn.core.common.Constants.SELECTED_SERVER_ID_AUTO;
 import static org.fptn.vpn.core.common.Constants.START_FROM_TILE_AUTO;
+import static org.fptn.vpn.utils.ResourcesUtils.getStringResourceByName;
 
 import android.annotation.SuppressLint;
-import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -22,7 +22,6 @@ import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.PowerManager;
-import android.os.SystemClock;
 import android.service.quicksettings.TileService;
 import android.util.Log;
 
@@ -64,12 +63,7 @@ public class CustomVpnService extends VpnService {
     public static final String ACTION_CONNECT = "CustomVpnService:CONNECT";
     public static final String ACTION_DISCONNECT = "CustomVpnService:DISCONNECT";
     public static final String ACTION_BIND = "CustomVpnService:BIND";
-
     public static final String FPTN_SERVICE_POWER_LOCK = "CustomVpnService::POWER_LOCK";
-
-    // for set alarming
-    public static final String ACTION_RESET_ALARM = "CustomVpnService:ACTION_RESET_ALARM";
-    public static final int ONE_MINUTE = 60_000;
 
     private final AtomicReference<CustomVpnConnection> activeConnection = new AtomicReference<>();
 
@@ -81,9 +75,10 @@ public class CustomVpnService extends VpnService {
     // Pending Intent to disconnect from notification
     private PendingIntent disconnectPendingIntent;
 
-    private FptnServerRepository fptnServerRepository;
+    // Pending Intent to reconnect from notification
+    private PendingIntent reconnectPendingIntent;
 
-    private boolean isNotificationAllowed = false;
+    private FptnServerRepository fptnServerRepository;
 
     private ConnectivityManager.NetworkCallback networkCallback;
     private ConnectivityManager connectivityManager;
@@ -143,16 +138,13 @@ public class CustomVpnService extends VpnService {
     }
 
     /* Static methods to start/stop service */
-
     public synchronized static void startToConnect(Context context, FptnServerDto fptnServerDto) {
         Intent intent = new Intent(context, CustomVpnService.class);
         intent.setAction(ACTION_CONNECT);
         if (fptnServerDto != null) {
             intent.putExtra(SELECTED_SERVER, fptnServerDto.id);
         }
-
-        // If started service not become foreground - will be exception ANR - after 5 seconds
-        context.startForegroundService(intent);
+        context.startService(intent);
     }
 
     public synchronized static void startToConnect(Context context) {
@@ -160,9 +152,7 @@ public class CustomVpnService extends VpnService {
         intent.setAction(ACTION_CONNECT);
         // Now it method called only from FptnTileService
         intent.putExtra(SELECTED_SERVER, START_FROM_TILE_AUTO);
-
-        // If started service not become foreground - will be exception ANR - after 5 seconds
-        context.startForegroundService(intent);
+        context.startService(intent);
     }
 
     public synchronized static void startToDisconnect(Context context) {
@@ -174,20 +164,26 @@ public class CustomVpnService extends VpnService {
     @Override
     public void onCreate() {
         Log.i(TAG, "CustomVpnService.onCreate() Thread.Id: " + Thread.currentThread().getId());
+
         // pending intent for open MainActivity on tap
         launchMainActivityPendingIntent = PendingIntent.getActivity(this, 0,
                 new Intent(this, HomeActivity.class),
                 PendingIntent.FLAG_IMMUTABLE);
-        // pending intent for disconnect button in notification
+
+        // pending intent for disconnect button in connected notification
         disconnectPendingIntent = PendingIntent.getService(this, 0,
                 new Intent(this, CustomVpnService.class)
                         .setAction(CustomVpnService.ACTION_DISCONNECT),
                 PendingIntent.FLAG_IMMUTABLE);
-        fptnServerRepository = new FptnServerRepository(getApplicationContext());
 
-        /* check if notification allowed */
-        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        isNotificationAllowed = notificationManager.areNotificationsEnabled();
+        // pending intent for reconnect button in error notification
+        reconnectPendingIntent = PendingIntent.getService(this, 0,
+                new Intent(this, CustomVpnService.class)
+                        .setAction(CustomVpnService.ACTION_CONNECT),
+                PendingIntent.FLAG_IMMUTABLE);
+
+        // create fptnServerRepository
+        fptnServerRepository = new FptnServerRepository(getApplicationContext());
 
         connectivityManager = (ConnectivityManager) getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
 
@@ -205,43 +201,31 @@ public class CustomVpnService extends VpnService {
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.i(TAG, "CustomVpnService.onStartCommand() Intent: " + intent + ", Thread.Id: " + Thread.currentThread().getId());
 
-        if (intent != null && ACTION_RESET_ALARM.equals(intent.getAction())) {
-            resetServiceKeepAliveAlarm();
-            return START_STICKY;
-        }
-
         executorService.submit(() -> {
-            /* check is internet connection available */
-            if (!NetworkUtils.isOnline(connectivityManager)) {
-                Log.e(TAG, "onStartCommand: no active internet connections!");
-                disconnect(new PVNClientException(ErrorCode.NO_ACTIVE_INTERNET_CONNECTIONS));
-                return;
-            }
-
             try {
+                /* check is internet connection available */
+                if (!NetworkUtils.isOnline(connectivityManager)) {
+                    Log.e(TAG, "onStartCommand: no active internet connections!");
+                    disconnect(new PVNClientException(ErrorCode.NO_ACTIVE_INTERNET_CONNECTIONS));
+                    return;
+                }
+
+                // dismiss error notification
+                NotificationManager notificationManager = (NotificationManager) getSystemService(
+                        NOTIFICATION_SERVICE);
+                notificationManager.cancel(Constants.ERROR_CONNECTED_NOTIFICATION_ID);
+
                 String sniHostname = SharedPrefUtils.getSniHostname(getApplicationContext());
                 BypassCensorshipMethod bypassCensorshipMethod = SharedPrefUtils.getBypassCensorshipMethod(this);
 
-                if (intent == null) {
-                    /* restart after service destruction - all fields of intent is null */
-                    Log.w(TAG, "onStartCommand: restart after service was killed");
-                    FptnServerDto server = fptnServerRepository.getSelected().get();
-                    if (server != null) {
-                        connect(server, sniHostname);
-                    } else {
-                        /* selected server not selected - that should means that we were disconnected correct previously */
-                        Log.i(TAG, "connectToPreviouslySelectedServer: previously selected server is null. No need to reconnect");
-                        disconnect();
-                    }
-                } else if (ACTION_DISCONNECT.equals(intent.getAction())) {
-                    Log.i(TAG, "onStartCommand: disconnect!");
-                    /* if we need disconnect */
+                boolean isActiveState = serviceStateMutableLiveData.getValue().getConnectionState().isActiveState();
+                if (ACTION_DISCONNECT.equals(intent.getAction()) && isActiveState) {
                     if (SharedPrefUtils.getResetSelectedServerEnabled(this)) {
-                        fptnServerRepository.resetSelected();
+                        fptnServerRepository.resetSelected().get();
                     }
                     // stop running threads
                     disconnect();
-                } else if (ACTION_CONNECT.equals(intent.getAction())) {
+                } else if (ACTION_CONNECT.equals(intent.getAction()) && !isActiveState) {
                     setConnectionState(ConnectionState.CONNECTING, null);
 
                     int serverId = intent.getIntExtra(SELECTED_SERVER, SELECTED_SERVER_ID_AUTO);
@@ -272,7 +256,7 @@ public class CustomVpnService extends VpnService {
                         try {
                             List<FptnServerDto> fptnServerDtos = fptnServerRepository.getServersListFuture(false).get();
                             FptnServerDto server = SpeedTestUtils.findFastestServer(fptnServerDtos, sniHostname, bypassCensorshipMethod);
-                            fptnServerRepository.setIsSelected(server.id);
+                            fptnServerRepository.setIsSelected(server.id).get();
                             connect(server, sniHostname);
                         } catch (PVNClientException e) {
                             /* We don't need to connect if all servers are unreachable */
@@ -285,15 +269,13 @@ public class CustomVpnService extends VpnService {
                         FptnServerDto server = fptnServerRepository.getSelected().get();
                         connect(server, sniHostname);
                     }
-
-                    // for infinite run
-                    resetServiceKeepAliveAlarm();
                 }
-            } catch (ExecutionException | InterruptedException e) {
+            } catch (ExecutionException | InterruptedException | RuntimeException e) {
                 disconnect(new PVNClientException(e.getMessage()));
             }
         });
-        return START_STICKY;
+
+        return START_NOT_STICKY;
     }
 
     @Override
@@ -308,34 +290,6 @@ public class CustomVpnService extends VpnService {
         }
     }
 
-    // this methods call when user remove activity from stack
-    @Override
-    public void onTaskRemoved(Intent rootIntent) {
-        Log.i(TAG, "onTaskRemoved()");
-    }
-
-    // alarming must keep service alive (maybe not)
-    private void resetServiceKeepAliveAlarm() {
-        Log.i(TAG, "resetAlarm()");
-
-        ConnectionState connectionState = Optional.ofNullable(serviceStateMutableLiveData.getValue()).map(CustomVpnServiceState::getConnectionState).orElse(null);
-        if (connectionState == ConnectionState.CONNECTED ||
-                connectionState == ConnectionState.CONNECTING ||
-                connectionState == ConnectionState.RECONNECTING) {
-            Log.i(TAG, "Add restart event with one minute delay");
-            AlarmManager systemService = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-            if (systemService != null) {
-                Intent restartIntent = new Intent(getApplicationContext(), CustomVpnService.class);
-                restartIntent.setPackage(getPackageName());
-                restartIntent.setAction(CustomVpnService.ACTION_RESET_ALARM);
-
-                PendingIntent pendingRestartIntent = PendingIntent.getService(getApplicationContext(), 1, restartIntent, PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_IMMUTABLE);
-                systemService.set(AlarmManager.ELAPSED_REALTIME, SystemClock.elapsedRealtime() + ONE_MINUTE, pendingRestartIntent);
-            }
-        } else {
-            Log.i(TAG, "No need keep alive");
-        }
-    }
 
     private void registerNetworkCallback() {
         networkCallback = new ConnectivityManager.NetworkCallback() {
@@ -525,6 +479,16 @@ public class CustomVpnService extends VpnService {
         //send to UI activity that state is disconnected.
         setConnectionState(ConnectionState.DISCONNECTED, exception);
 
+        if (exception != null) {
+            ErrorCode errorCode = exception.errorCode;
+            if (errorCode != ErrorCode.UNKNOWN_ERROR) {
+                String stringResourceByName = getStringResourceByName(getApplication(), errorCode.getValue());
+                showErrorNotification(stringResourceByName);
+            } else {
+                showErrorNotification(exception.errorMessage);
+            }
+        }
+
         // Release wakelock
         if (wakeLock != null && wakeLock.isHeld()) {
             wakeLock.release();
@@ -539,19 +503,11 @@ public class CustomVpnService extends VpnService {
     }
 
     private void removeForegroundNotification() {
-        if (!isNotificationAllowed) {
-            return;
-        }
-
         NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         notificationManager.cancel(Constants.MAIN_CONNECTED_NOTIFICATION_ID);
     }
 
     private void startForegroundWithNotification(String title) {
-        if (!isNotificationAllowed) {
-            return;
-        }
-
         NotificationUtils.configureNotificationChannel(this);
         Notification notification = createNotification(title, "");
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
@@ -562,9 +518,6 @@ public class CustomVpnService extends VpnService {
     }
 
     private void updateNotificationWithMessage(String title, String message) {
-        if (!isNotificationAllowed) {
-            return;
-        }
         NotificationManager notificationManager = (NotificationManager) getSystemService(
                 NOTIFICATION_SERVICE);
         Notification notification = createNotification(title, message);
@@ -575,7 +528,6 @@ public class CustomVpnService extends VpnService {
         // In Api level 24 an above, there is no icon in design!!!
         Notification.Action actionDisconnect = new Notification.Action.Builder(null, getString(R.string.disconnect_action), disconnectPendingIntent)
                 .build();
-        // todo: add log if service in foreground?
         Notification.Builder builder = new Notification.Builder(this, Constants.MAIN_NOTIFICATION_CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_logo)
                 .setContentTitle(title)
@@ -593,19 +545,34 @@ public class CustomVpnService extends VpnService {
     }
 
     private void showReconnectionFailedNotification() {
-        if (!isNotificationAllowed) {
-            return;
-        }
-
         Notification notification = new Notification.Builder(this, Constants.MAIN_NOTIFICATION_CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_logo)
                 .setVisibility(Notification.VISIBILITY_PUBLIC)
                 .setContentTitle(getApplication().getString(R.string.reconnecting_failed))
                 .setContentIntent(launchMainActivityPendingIntent)
+                .setAutoCancel(true) // if you tap on notification - opens activity and notification dismissed
                 .build();
 
         NotificationManager notificationManager = (NotificationManager) getSystemService(
                 NOTIFICATION_SERVICE);
         notificationManager.notify(Constants.INFO_NOTIFICATION_NOTIFICATION_ID, notification);
+    }
+
+    private void showErrorNotification(String message) {
+        Notification.Action actionDisconnect = new Notification.Action.Builder(null, getString(R.string.reconnect_action), reconnectPendingIntent)
+                .build();
+        Notification notification = new Notification.Builder(this, Constants.ERROR_NOTIFICATION_CHANNEL_ID)
+                .setSmallIcon(R.drawable.ic_logo)
+                .setVisibility(Notification.VISIBILITY_PUBLIC)
+                .setContentTitle(getApplication().getString(R.string.error))
+                .setContentText(message)
+                .setAutoCancel(true) // if you tap on notification - opens activity and notification dismissed
+                .setContentIntent(launchMainActivityPendingIntent)
+                .addAction(actionDisconnect)
+                .build();
+
+        NotificationManager notificationManager = (NotificationManager) getSystemService(
+                NOTIFICATION_SERVICE);
+        notificationManager.notify(Constants.ERROR_CONNECTED_NOTIFICATION_ID, notification);
     }
 }

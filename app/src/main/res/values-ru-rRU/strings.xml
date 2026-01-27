@@ -75,8 +75,10 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
 
     <string name="notification_channel_name">Когда подключено</string>
     <string name="notification_group_name">Основные</string>
+    <string name="errors_notification_group_name">Ошибки</string>
     <string name="disconnect_action">Отключить</string>
 
+    <string name="reconnect_action">Переподключиться</string>
     <string name="token_was_updated">Токен был обновлен!</string>
     <string name="token_saving_failed">Неверный формат токена!</string>
 

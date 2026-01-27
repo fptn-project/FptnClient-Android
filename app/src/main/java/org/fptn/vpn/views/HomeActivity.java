@@ -183,6 +183,7 @@ public class HomeActivity extends AppCompatActivity {
                     disconnectedStateUiItems();
                     break;
                 default:
+
                     break;
             }
 
