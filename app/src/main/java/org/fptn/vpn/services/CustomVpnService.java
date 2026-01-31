@@ -5,7 +5,6 @@ import static org.fptn.vpn.core.common.Constants.SELECTED_SERVER_ID_AUTO;
 import static org.fptn.vpn.core.common.Constants.START_FROM_TILE_AUTO;
 import static org.fptn.vpn.utils.ResourcesUtils.getStringResourceByName;
 
-import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -152,7 +151,11 @@ public class CustomVpnService extends VpnService {
         intent.setAction(ACTION_CONNECT);
         // Now it method called only from FptnTileService
         intent.putExtra(SELECTED_SERVER, START_FROM_TILE_AUTO);
-        context.startService(intent);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) { // error occurs only on start from tile
+            context.startForegroundService(intent);
+        } else {
+            context.startService(intent);
+        }
     }
 
     public synchronized static void startToDisconnect(Context context) {
@@ -291,7 +294,7 @@ public class CustomVpnService extends VpnService {
     }
 
 
-    private void registerNetworkCallback() {
+    private synchronized void registerNetworkCallback() {
         networkCallback = new ConnectivityManager.NetworkCallback() {
             @Override
             public void onCapabilitiesChanged(@NonNull Network network, @NonNull NetworkCapabilities networkCapabilities) {
@@ -340,7 +343,7 @@ public class CustomVpnService extends VpnService {
         connectivityManager.registerNetworkCallback(NetworkUtils.createNetworkRequest(), networkCallback);
     }
 
-    private void unregisterNetworkCallback() {
+    private synchronized void unregisterNetworkCallback() {
         if (networkCallback != null) {
             connectivityManager.unregisterNetworkCallback(networkCallback);
             networkCallback = null;
@@ -431,23 +434,20 @@ public class CustomVpnService extends VpnService {
         setActiveConnection(connection);
     }
 
-    @SuppressLint("WakelockTimeout")
-    private void acquirePowerLock() {
+    private synchronized void acquirePowerLock() {
         // release previous power lock
         releasePowerLock();
         // we need this lock so our service gets not affected by Doze Mode
         PowerManager powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
         try {
-            wakeLock = powerManager.newWakeLock(
-                    PowerManager.PARTIAL_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP,
-                    FPTN_SERVICE_POWER_LOCK);
-            wakeLock.acquire();
+            wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, FPTN_SERVICE_POWER_LOCK);
+            wakeLock.acquire(5000);
         } catch (Exception e) {
             Log.e(TAG, "Can't acquire power lock!", e);
         }
     }
 
-    private void releasePowerLock() {
+    private synchronized void releasePowerLock() {
         if (wakeLock != null && wakeLock.isHeld()) {
             try {
                 wakeLock.release();
@@ -490,10 +490,7 @@ public class CustomVpnService extends VpnService {
         }
 
         // Release wakelock
-        if (wakeLock != null && wakeLock.isHeld()) {
-            wakeLock.release();
-            wakeLock = null;
-        }
+        releasePowerLock();
 
         // unregister network callback
         unregisterNetworkCallback();
