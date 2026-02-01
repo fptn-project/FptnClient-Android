@@ -31,7 +31,6 @@
 
     <string name="share_title">Share via</string>
     <string name="share_message">FPTN is a non-commercial VPN, a volunteer project for bypassing censorship.
-https://fptn.org
 https://play.google.com/store/apps/details?id=org.fptn.vpn
     </string>
     <string name="info_message_html">
@@ -39,7 +38,7 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
         FPTN is a fully custom-built VPN technology — developed from scratch, including the core protocol, server implementation, and cross-platform clients. It is a non-commercial, open-source project developed by volunteers and designed to bypass censorship.
         <br/>
         <br/>
-        Our website: <a href="https://batchar2.github.io/fptn/">fptn.org</a>
+        Our <a href="https://storage.googleapis.com/fptn.org/index.html">website</a>
         <br/>
         Our Telegram group: <a href="https://t.me/fptn_project">@fptn_project</a>
         <br/>
@@ -181,6 +180,9 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
         •&nbsp;&nbsp;Azeasy<br/>
         •&nbsp;&nbsp;NekoDark<br/>
         •&nbsp;&nbsp;Alin Zoberg<br/>
+        •&nbsp;&nbsp;zsergey<br/>
+        •&nbsp;&nbsp;OlegPaRe<br/>
+        •&nbsp;&nbsp;Norelax<br/>
         ]]>
     </string>
     <string name="experimental_features_label">Experimental features</string>
