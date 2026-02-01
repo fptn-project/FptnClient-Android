@@ -30,20 +30,25 @@ import androidx.lifecycle.Observer;
 
 import org.fptn.vpn.R;
 import org.fptn.vpn.core.common.Constants;
+import org.fptn.vpn.database.FptnDatabase;
+import org.fptn.vpn.database.model.AppInfoEntity;
 import org.fptn.vpn.database.model.FptnServerDto;
 import org.fptn.vpn.enums.BypassCensorshipMethod;
 import org.fptn.vpn.enums.ConnectionState;
 import org.fptn.vpn.enums.NetworkType;
+import org.fptn.vpn.enums.PerAppVpnMode;
 import org.fptn.vpn.repository.FptnServerRepository;
 import org.fptn.vpn.services.tile.FptnTileService;
 import org.fptn.vpn.utils.NetworkUtils;
 import org.fptn.vpn.utils.NotificationUtils;
 import org.fptn.vpn.utils.SharedPrefUtils;
 import org.fptn.vpn.views.HomeActivity;
+import org.fptn.vpn.views.perappvpn.AppInfo;
 import org.fptn.vpn.views.speedtest.SpeedTestUtils;
 import org.fptn.vpn.vpnclient.exception.ErrorCode;
 import org.fptn.vpn.vpnclient.exception.PVNClientException;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -52,6 +57,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 import kotlin.Triple;
 import lombok.Getter;
@@ -425,6 +431,23 @@ public class CustomVpnService extends VpnService {
 
         BypassCensorshipMethod bypassCensorshipMethod = SharedPrefUtils.getBypassCensorshipMethod(this);
 
+        PerAppVpnMode perAppVpnMode = SharedPrefUtils.getPerAppVPNMode(this);
+        List<AppInfo> appInfos = new ArrayList<>();
+        if (perAppVpnMode == PerAppVpnMode.ONLY_ALLOWED || perAppVpnMode == PerAppVpnMode.EXCEPT_DISALLOWED) {
+            List<AppInfo> packages = FptnDatabase.getInstance(getApplication()).appInfoDAO().getAll().stream()
+                    .filter(appInfoEntity -> {
+                        if (perAppVpnMode == PerAppVpnMode.ONLY_ALLOWED) {
+                            return appInfoEntity.isAllowed();
+                        } else {
+                            return appInfoEntity.isDisallowed();
+                        }
+                    }).map(
+                            appInfo -> AppInfo.builder()
+                                    .packageName(appInfo.getPackageName()).build()
+                    ).collect(Collectors.toList());
+            appInfos.addAll(packages);
+        }
+
         connection = new CustomVpnConnection(
                 this,
                 nextConnectionId.getAndIncrement(),
@@ -434,7 +457,9 @@ public class CustomVpnService extends VpnService {
                 maxReconnectCount,
                 delayBetweenAttempts,
                 sniHostname,
-                bypassCensorshipMethod
+                bypassCensorshipMethod,
+                perAppVpnMode,
+                appInfos
         );
         connection.setConfigureVpnIntent(launchMainActivityPendingIntent);
         connection.start();

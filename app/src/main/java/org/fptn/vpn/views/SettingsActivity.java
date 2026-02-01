@@ -38,6 +38,8 @@ import org.fptn.vpn.utils.PermissionsUtils;
 import org.fptn.vpn.utils.SharedPrefUtils;
 import org.fptn.vpn.viewmodel.FptnServerViewModel;
 import org.fptn.vpn.views.adapter.FptnServerAdapter;
+import org.fptn.vpn.views.bypassmethod.BypassMethodsActivity;
+import org.fptn.vpn.views.perappvpn.PerAppVpnModeActivity;
 
 import lombok.Getter;
 
@@ -125,6 +127,10 @@ public class SettingsActivity extends AppCompatActivity {
         // NEW: Bypass methods layout click listener
         View bypassMethodsLayout = findViewById(R.id.bypass_methods_layout);
         bypassMethodsLayout.setOnClickListener(this::onBypassMethods);
+
+        // NEW: Per-app VPN mode layout click listener
+        View perAppVPNLayout = findViewById(R.id.per_app_vpn_mode_layout);
+        perAppVPNLayout.setOnClickListener(this::perAppVpnMode);
     }
 
     @Override
@@ -205,6 +211,11 @@ public class SettingsActivity extends AppCompatActivity {
     // NEW: Bypass methods click handler
     public void onBypassMethods(View v) {
         Intent intent = new Intent(SettingsActivity.this, BypassMethodsActivity.class);
+        startActivity(intent);
+    }
+
+    private void perAppVpnMode(View view) {
+        Intent intent = new Intent(SettingsActivity.this, PerAppVpnModeActivity.class);
         startActivity(intent);
     }
 

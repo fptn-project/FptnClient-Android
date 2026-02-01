@@ -3,8 +3,6 @@ package org.fptn.vpn.services.websocket;
 import android.util.Log;
 
 import org.fptn.vpn.enums.BypassCensorshipMethod;
-import org.fptn.vpn.enums.TLSHandshakeObfuscation;
-
 
 public class NativeHttpsClientImpl {
     private static final String TAG = NativeHttpsClientImpl.class.getName();

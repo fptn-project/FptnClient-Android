@@ -131,6 +131,71 @@
                 </RelativeLayout>
             </LinearLayout>
 
+            <!--Per-app VPN mode settings-->
+            <LinearLayout
+                android:id="@+id/per_app_vpn_mode_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="20dp"
+                android:layout_marginEnd="20dp"
+                android:background="@drawable/round_settings_back_white10_20"
+                android:orientation="vertical"
+                android:padding="10dp"
+                android:paddingBottom="0dp">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+                    <ImageView
+                        android:id="@+id/per_app_vpn_mode_icon"
+                        android:layout_width="wrap_content"
+                        android:layout_height="32dp"
+                        android:importantForAccessibility="no"
+                        android:paddingLeft="12dp"
+                        android:paddingRight="12dp"
+                        android:src="@drawable/ic_per_app_vpn_mode" />
+                    <TextView
+                        android:id="@+id/per_app_vpn_modeLabel"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:layout_toStartOf="@+id/image_view_per_app_vpn_mode"
+                        android:layout_toEndOf="@id/per_app_vpn_mode_icon"
+                        android:text="@string/per_app_vpn_mode_title"
+                        android:textColor="@color/white"
+                        android:textStyle="bold" />
+                    <ImageView
+                        android:id="@+id/image_view_per_app_vpn_mode"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentTop="true"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:importantForAccessibility="no"
+                        android:src="@drawable/ic_outline_arrow_forward_ios_16"
+                        android:textColor="@color/white"
+                        android:textStyle="bold" />
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="0dp">
+                    <TextView
+                        android:id="@+id/settings_per_app_vpn_mode_info_html"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:paddingLeft="10dp"
+                        android:paddingTop="10dp"
+                        android:paddingRight="10dp"
+                        android:paddingBottom="10dp"
+                        android:text="@string/per_app_vpn_mode_info"
+                        android:textColor="@color/gray"
+                        android:textSize="12sp" />
+                </RelativeLayout>
+            </LinearLayout>
+
             <!-- Required permissions -->
             <LinearLayout
                 android:layout_width="match_parent"
@@ -454,7 +519,6 @@
                 </RelativeLayout>
             </LinearLayout>
 
-
             <!-- LOGOUT -->
             <RelativeLayout
                 android:id="@+id/logout_layout"
@@ -499,7 +563,6 @@
                     android:textColor="@color/white"
                     android:textStyle="bold" />
             </RelativeLayout>
-
 
             <!-- Sponsors -->
             <LinearLayout

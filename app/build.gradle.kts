@@ -133,8 +133,8 @@ dependencies {
 
     compileOnly(libs.lombock)
 
-    annotationProcessor(libs.androidx.room.compiler)
     annotationProcessor(libs.lombock)
+    annotationProcessor(libs.androidx.room.compiler)
 
     testImplementation(libs.junit)
 

@@ -6,7 +6,7 @@ import android.content.SharedPreferences;
 import org.fptn.vpn.R;
 import org.fptn.vpn.core.common.Constants;
 import org.fptn.vpn.enums.BypassCensorshipMethod;
-import org.fptn.vpn.enums.TLSHandshakeObfuscation;
+import org.fptn.vpn.enums.PerAppVpnMode;
 
 import java.util.Objects;
 
@@ -22,11 +22,6 @@ public class SharedPrefUtils {
             SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
             sharedPreferences.edit().putString(Constants.CURRENT_SNI_SHARED_PREF_KEY, newSni).apply();
         }
-    }
-
-    public static void resetToDefaultSniHostname(Context context) {
-        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
-        sharedPreferences.edit().putString(Constants.CURRENT_SNI_SHARED_PREF_KEY, context.getString(R.string.default_sni)).apply();
     }
 
     /* NOTIFICATIONS */
@@ -130,20 +125,21 @@ public class SharedPrefUtils {
         sharedPreferences.edit().putString(Constants.BYPASS_CENSORSHIP_METHOD_SHARED_PREF_KEY, method.toString()).apply();
     }
 
-    public static TLSHandshakeObfuscation getObfuscationMethod(Context context) {
+    /* Per-app VPN settings */
+    public static PerAppVpnMode getPerAppVPNMode(Context context) {
         SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
-        int methodId = sharedPreferences.getInt(Constants.OBFUSCATION_METHOD_SHARED_PREF_KEY, -1);
-        for (TLSHandshakeObfuscation value : TLSHandshakeObfuscation.values()) {
-            if (methodId == value.getId()) {
+        String modeName = sharedPreferences.getString(Constants.PER_APP_VPN_MODE_SHARED_PREF_KEY, null);
+        for (PerAppVpnMode value : PerAppVpnMode.values()) {
+            if (Objects.equals(modeName, value.name())) {
                 return value;
             }
         }
-        return TLSHandshakeObfuscation.TLS_APP_DATA;
+        return PerAppVpnMode.OFF;
     }
 
-    public static void saveObfuscationMethod(Context context, TLSHandshakeObfuscation obfuscationMethodEnum) {
+    public static void savePerAppVPNMode(Context context, PerAppVpnMode perAppVPNMode) {
         SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
-        sharedPreferences.edit().putInt(Constants.OBFUSCATION_METHOD_SHARED_PREF_KEY, obfuscationMethodEnum.getId()).apply();
+        sharedPreferences.edit().putString(Constants.PER_APP_VPN_MODE_SHARED_PREF_KEY, perAppVPNMode.toString()).apply();
     }
 
 }

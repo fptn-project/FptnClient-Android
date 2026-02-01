@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/application_background"
@@ -52,9 +51,11 @@
                 android:orientation="vertical"
                 android:padding="10dp"
                 android:paddingBottom="0dp">
+
                 <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content">
+
                     <ImageView
                         android:id="@+id/bypass_method_image_view"
                         android:layout_width="wrap_content"
@@ -64,6 +65,7 @@
                         android:paddingStart="4dp"
                         android:paddingEnd="12dp"
                         android:src="@drawable/ic_logo_24" />
+
                     <TextView
                         android:id="@+id/bypass_method_label"
                         android:layout_width="wrap_content"
@@ -114,9 +116,9 @@
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical"
                         android:layout_marginTop="3dp"
-                        android:layout_marginEnd="12dp">
+                        android:layout_marginEnd="12dp"
+                        android:orientation="vertical">
 
                         <TextView
                             android:layout_width="match_parent"
@@ -211,10 +213,11 @@
 
     <LinearLayout
         android:id="@+id/buttons_layout"
+        style="?android:attr/buttonBarStyle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
         android:gravity="center"
+        android:orientation="horizontal"
         android:padding="10dp"
         app:layout_constraintBottom_toTopOf="@id/bottomNavBar"
         app:layout_constraintEnd_toEndOf="parent"
@@ -222,6 +225,7 @@
 
         <Button
             android:id="@+id/cancel_button"
+            style="?android:attr/buttonBarButtonStyle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginEnd="8dp"
@@ -235,6 +239,7 @@
 
         <Button
             android:id="@+id/save_button"
+            style="?android:attr/buttonBarButtonStyle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
