@@ -30,7 +30,6 @@
     </string>
     <string name="share_title">Поделиться через</string>
     <string name="share_message">FPTN — это некоммерческий VPN, волонтерский проект для обхода цензуры.
-https://fptn.org
 https://play.google.com/store/apps/details?id=org.fptn.vpn
     </string>
     <string name="info_message_html">
@@ -38,7 +37,7 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
         FPTN — это полностью разработанная с нуля технология VPN, включая собственный протокол, сервер и кроссплатформенные клиенты. Это некоммерческий проект с открытым исходным кодом, развиваемый волонтерами и предназначенный для обхода цензуры.
         <br/>
         <br/>
-        Наш сайт: <a href="https://batchar2.github.io/fptn/">fptn.org</a>
+        Наш <a href="https://storage.googleapis.com/fptn.org/index.html">сайт</a>
         <br/>
         Наша группа в Telegram <a href="https://t.me/fptn_project">@fptn_project</a>
         <br/>
