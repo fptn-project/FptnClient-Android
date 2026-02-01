@@ -49,6 +49,7 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="vpn_permission_warning">Для работы FPTN необходимы разрешения!</string>
 
     <string name="connecting">Подключаемся...</string>
+    <string name="connecting_auto">Подбираем лучший сервер...</string>
     <string name="reconnection">Переподключаемся...</string>
     <string name="connected">Подключен</string>
     <string name="disconnected">Отключен</string>
