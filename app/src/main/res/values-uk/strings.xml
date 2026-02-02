@@ -1,0 +1,122 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_version">Version 1.0.0</string>
+    <string name="select_server">Вибір сервера</string>
+    <string name="connection_time">Час підключення</string>
+    <string name="state_disconnect">Відключено</string>
+    <string name="login_button">Увійти</string>
+    <string name="logout_button">Вийти</string>
+    <string name="update_token_button">Оновити токен</string>
+    <string name="menu_home">Головна</string>
+    <string name="menu_settings">Налаштування</string>
+    <string name="menu_share">Поділитися</string>
+    <string name="your_servers">Ваші VPN сервери</string>
+    <string name="reconnect_on_change_ip_settings_title">Reconnect when IP address changes?</string>
+    <string name="settings_token_info_html">The list of available servers is encrypted in the token.
+<br/>
+To update the server list, enter a new token.
+<br/>
+The token works like a password: after updating it, it will stop working on all devices where it was previously used.</string>
+    <string name="share_title">Поділитися через</string>
+    <string name="share_message">FPTN is a non-profit VPN, a volunteer project to bypass censorship.
+https://play.google.com/store/apps/details?id=org.fptn.vpn</string>
+    <string name="info_message_html">FPTN is a VPN technology built from scratch, including its own protocol, server, and cross-platform clients. It is a non-profit open-source project maintained by volunteers and intended to bypass censorship.
+<br/>
+<br/>
+Our <a href="https://storage.googleapis.com/fptn.org/index.html">website</a>
+<br/>
+Our Telegram group <a href="https://t.me/fptn_project">@fptn_project</a>
+<br/>
+App on <a href="https://play.google.com/store/apps/details?id=org.fptn.vpn">Google Play</a>
+<br/>
+You can support us on <a href="https://boosty.to/fptn/donate">Boosty</a></string>
+    <string name="vpn_permission_warning">Для роботи FPTN потрібні дозволи!</string>
+    <string name="connecting">Підключення…</string>
+    <string name="connecting_auto">Підбір найкращого сервера…</string>
+    <string name="reconnection">Перепідключення…</string>
+    <string name="connected">Підключено</string>
+    <string name="disconnected">Відключено</string>
+    <string name="error">Помилка підключення!</string>
+    <string name="paste_your_token">Вставте токен сюди…</string>
+    <string name="running">Connected</string>
+    <string name="dialog_logout_title">Confirm action</string>
+    <string name="dialog_logout_message">Are you sure you want to sign out?</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="cancel_button">Скасувати</string>
+    <string name="save_button">Зберегти</string>
+    <string name="server_label">Server:</string>
+    <string name="telegram_bot_html">Use the Telegram bot <a href="https://t.me/fptn_bot">@fptn_bot</a> to get a token</string>
+    <string name="notification_channel_name">When connected</string>
+    <string name="notification_group_name">Main</string>
+    <string name="errors_notification_group_name">Errors</string>
+    <string name="disconnect_action">Відключити</string>
+    <string name="reconnect_action">Перепідключитися</string>
+    <string name="token_was_updated">Token updated!</string>
+    <string name="token_saving_failed">Invalid token format!</string>
+    <string name="server_list_is_empty">Server list is empty!</string>
+    <string name="find_fastest_server_timeout">Timed out while searching for the fastest server!</string>
+    <string name="all_servers_are_unreachable">All servers are unreachable!</string>
+    <string name="connect_to_server_error">A technical error occurred while connecting to the server.</string>
+    <string name="dns_server_error">Network error! Failed to obtain a DNS server!</string>
+    <string name="no_active_internet_connections">No internet connection!</string>
+    <string name="reconnecting_failed">Reconnection failed!</string>
+    <string name="vpn_interface_error">Failed to create a VPN tunnel!</string>
+    <string name="ciphers_error">Failed to find supported ciphers!</string>
+    <string name="access_token_error">Authentication error! Please make sure you use the latest access token in the app settings.</string>
+    <string name="access_token_format">Invalid token format! Check the input.</string>
+    <string name="ssl_context_init_failed">Error initializing SSL context!</string>
+    <string name="unknown_error">An unknown error occurred!</string>
+    <string name="notifications_request_title">Notification permission required!</string>
+    <string name="notifications_request_reason">For stable service operation, the app must show a notification about the active connection.</string>
+    <string name="grant">Дозволити</string>
+    <string name="deny">Відхилити</string>
+    <string name="connecting_to">"Connecting to "</string>
+    <string name="connected_to">"Connected to "</string>
+    <string name="reconnection_to">"Reconnecting to "</string>
+    <string name="try_number">"Attempt number: "</string>
+    <string name="download_upload_speed_pattern">Download: %s Upload: %s</string>
+    <string name="refresh_token">Refresh token…</string>
+    <string name="close_button_text">Закрити</string>
+    <string name="share_via_message">Share in a message</string>
+    <string name="sni_text_description">Server Name Indication (SNI) is the website address declared when connecting to a VPN server. Specify a popular domain that is accessible without VPN in your country.</string>
+    <string name="your_current_sni">Current SNI:</string>
+    <string name="default_sni">ads.x5.ru</string>
+    <string name="sni_text_view_hint">New SNI</string>
+    <string name="reset_default_button">Reset to default</string>
+    <string name="warning">Увага</string>
+    <string name="battery_optimization_request_dialog_title">Disable battery optimization</string>
+    <string name="battery_optimization_request_dialog_text">For a stable connection, allow disabling battery optimization for this app.</string>
+    <string name="required_permissions">Required permissions:</string>
+    <string name="denied_text">DENIED</string>
+    <string name="background_data_request_dialog_title">Background data</string>
+    <string name="background_data_request_dialog_text">For a stable connection, allow background data usage.</string>
+    <string name="granted_text">GRANTED</string>
+    <string name="show_notification_label">Required notifications</string>
+    <string name="permission_warning_text">For stable operation, grant all permissions on the settings screen.</string>
+    <string name="permission_request_title">Permissions request</string>
+    <string name="permission_request_text">For a stable connection, grant the required permissions.</string>
+    <string name="sponsors_text">Thanks to our sponsors</string>
+    <string name="experimental_features_label">Experimental settings</string>
+    <string name="experimental_features_info">Enable or disable experimental features to avoid breaking core functionality.</string>
+    <string name="reconnect_on_change">Reconnect on change:</string>
+    <string name="reconnect_on_change_network_type">network type</string>
+    <string name="reconnect_on_change_ip_address">IP address</string>
+    <string name="reconnection_on_failure_attempts">Reconnection attempts when network is lost:</string>
+    <string name="attempts_count">Attempts count:</string>
+    <string name="delay_between_attempts">Delay between:</string>
+    <string name="delay_between_attempts_seconds">"%d s"</string>
+    <string name="reconnect_attempts_text">"%d"</string>
+    <string name="another_settings">Other settings:</string>
+    <string name="quick_settings_tile">Quick Settings tile (notification shade)</string>
+    <string name="tile_already_added">Quick Settings tile was already added</string>
+    <string name="tile_added_successfully">Quick Settings tile added</string>
+    <string name="tile_addition_failed">Quick Settings tile was not added!</string>
+    <string name="reset_selected_server_after_disconnect_label">Reset selected server after disconnect?</string>
+    <string name="bypass_methods_title">Bypass methods</string>
+    <string name="bypass_methods_info">Configure bypass methods</string>
+    <string name="sni_spoofing_radio_button_label">Domain spoofing (SNI)</string>
+    <string name="tls_handshake_obfuscation_radio_button_label">Traffic obfuscation</string>
+    <string name="sni_reality_radio_button_label">Advanced domain spoofing (SNI + REALITY)</string>
+    <string name="sni_reality_radio_button_label_additional_info">A real existing domain is required (otherwise errors may occur)</string>
+</resources>
