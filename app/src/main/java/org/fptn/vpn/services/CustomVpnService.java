@@ -255,21 +255,29 @@ public class CustomVpnService extends VpnService {
                         }
                     }
 
+                    // Moving VPNService to foreground to give it higher priority in system
+                    startForegroundWithNotification(getString(R.string.connecting));
+
                     if (serverId == SELECTED_SERVER_ID_AUTO) {
                         try {
+                            updateNotificationWithMessage(getString(R.string.connecting_auto), "");
+
                             List<FptnServerDto> fptnServerDtos = fptnServerRepository.getServersListFuture(false).get();
                             FptnServerDto server = SpeedTestUtils.findFastestServer(fptnServerDtos, sniHostname, bypassCensorshipMethod);
                             fptnServerRepository.setIsSelected(server.id).get();
+
                             connect(server, sniHostname);
                         } catch (PVNClientException e) {
                             /* We don't need to connect if all servers are unreachable */
                             Log.e(TAG, "onStartCommand: findFastestServer error! ", e);
+
                             disconnect(e);
                         }
                     } else {
                         Log.i(TAG, "onStartCommand: connectToServer with id: " + serverId);
                         fptnServerRepository.setIsSelected(serverId).get();
                         FptnServerDto server = fptnServerRepository.getSelected().get();
+
                         connect(server, sniHostname);
                     }
                 }
@@ -388,7 +396,7 @@ public class CustomVpnService extends VpnService {
 
     private void connect(FptnServerDto fptnServerDto, String sniHostname) {
         // Moving VPNService to foreground to give it higher priority in system
-        startForegroundWithNotification(getString(R.string.connecting_to) + fptnServerDto.getServerInfo());
+        updateNotificationWithMessage(getString(R.string.connecting_to) + fptnServerDto.getServerInfo(), "");
 
         acquirePowerLock();
 
