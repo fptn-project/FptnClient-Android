@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_version">Version 1.0.0 </string>
+    <!-- app_name - translatable="false" -->
+
+
+    <string name="select_server">Sélection du serveur</string>
+    <string name="connection_time">Temps de connexion</string>
+    <string name="state_disconnect">Déconnecté</string>
+
+    <string name="login_button">Se connecter</string>
+    <string name="logout_button">Se déconnecter</string>
+    <string name="update_token_button">Mettre à jour le jeton</string>
+
+    <string name="menu_home">Accueil</string>
+    <string name="menu_settings">Paramètres</string>
+    <string name="menu_share">Partager</string>
+
+    <string name="your_servers">Vos serveurs VPN</string>
+
+    <string name="reconnect_on_change_ip_settings_title">Se reconnecter lors d’un changement d’adresse IP ?</string>
+    <string name="settings_token_info_html">
+        <![CDATA[
+        La liste des serveurs disponibles est chiffrée dans le jeton.
+        <br/>
+        Pour mettre à jour la liste des serveurs, saisissez un nouveau jeton.
+        <br/>
+        Le jeton fonctionne comme un mot de passe : après sa mise à jour, il cessera de fonctionner sur tous les appareils où il était utilisé auparavant.
+        ]]>
+    </string>
+    <string name="share_title">Partager via</string>
+    <string name="share_message">FPTN est un VPN non commercial, un projet bénévole pour contourner la censure.
+https://play.google.com/store/apps/details?id=org.fptn.vpn
+    </string>
+    <string name="info_message_html">
+        <![CDATA[
+        FPTN est une technologie VPN entièrement développée à partir de zéro, incluant son propre protocole, serveur et des clients multiplateformes. Il s’agit d’un projet non commercial à code source ouvert, développé par des bénévoles et destiné au contournement de la censure.
+        <br/>
+        <br/>
+        Notre <a href="https://storage.googleapis.com/fptn.org/index.html">site web</a>
+        <br/>
+        Notre groupe Telegram <a href="https://t.me/fptn_project">@fptn_project</a>
+        <br/>
+        Application sur <a href="https://play.google.com/store/apps/details?id=org.fptn.vpn">Google Play</a>
+        <br/>
+        Vous pouvez nous soutenir sur <a href="https://boosty.to/fptn/donate">Boosty</a>
+        ]]>
+    </string>
+    <string name="vpn_permission_warning">Les autorisations sont nécessaires pour que FPTN fonctionne !</string>
+
+    <string name="connecting">Connexion…</string>
+    <string name="connecting_auto">Sélection du meilleur serveur…</string>
+    <string name="reconnection">Reconnexion…</string>
+    <string name="connected">Connecté</string>
+    <string name="disconnected">Déconnecté</string>
+    <string name="error">Erreur de connexion !</string>
+    <string name="paste_your_token">Collez le jeton ici…</string>
+    <string name="running">Connecté</string>
+
+    <string name="dialog_logout_title">Confirmer l’action</string>
+    <string name="dialog_logout_message">Êtes-vous sûr de vouloir vous déconnecter ?</string>
+    <string name="yes">Oui</string>
+    <string name="no">Non</string>
+
+    <string name="cancel_button">Annuler</string>
+    <string name="save_button">Enregistrer</string>
+
+    <string name="server_label">Serveur :</string>
+
+    <string name="telegram_bot_html">
+        <![CDATA[
+        Utilisez le bot Telegram <a href="https://t.me/fptn_bot">@fptn_bot</a> pour obtenir un jeton
+        ]]>
+    </string>
+
+    <string name="notification_channel_name">Lorsqu’il est connecté</string>
+    <string name="notification_group_name">Principal</string>
+    <string name="errors_notification_group_name">Erreurs</string>
+    <string name="disconnect_action">Déconnecter</string>
+
+    <string name="reconnect_action">Reconnecter</string>
+    <string name="token_was_updated">Le jeton a été mis à jour !</string>
+    <string name="token_saving_failed">Format de jeton invalide !</string>
+
+    <!--Messages d'erreur-->
+    <string name="server_list_is_empty">La liste des serveurs est vide !</string>
+    <string name="find_fastest_server_timeout">Délai dépassé lors de la recherche du serveur le plus rapide !</string>
+    <string name="all_servers_are_unreachable">Tous les serveurs sont inaccessibles !</string>
+    <string name="connect_to_server_error">Une erreur technique s’est produite lors de la connexion au serveur.</string>
+    <string name="dns_server_error">Erreur réseau ! Impossible d’obtenir le serveur DNS !</string>
+    <string name="no_active_internet_connections">Aucune connexion Internet !</string>
+    <string name="reconnecting_failed">La reconnexion a échoué !</string>
+    <string name="vpn_interface_error">Impossible de créer le tunnel VPN !</string>
+    <string name="ciphers_error">Impossible de trouver des chiffrements pris en charge !</string>
+
+    <string name="access_token_error">Erreur d’authentification ! Veuillez vous assurer que vous utilisez le dernier jeton d’accès reçu dans les paramètres de l’application</string>
+    <string name="access_token_format">Format de jeton invalide ! Vérifiez la saisie</string>
+
+    <string name="ssl_context_init_failed">Erreur lors de l’initialisation du contexte SSL !</string>
+
+    <string name="unknown_error">Une erreur inconnue est survenue !</string>
+
+    <string name="notifications_request_title">Autorisation de notifications requise !</string>
+    <string name="notifications_request_reason">Pour un fonctionnement stable du service, l’application doit afficher une notification de connexion active</string>
+    <string name="grant">Autoriser</string>
+    <string name="deny">Refuser</string>
+
+    <string name="connecting_to">"Connexion à "</string>
+    <string name="connected_to">"Connecté à "</string>
+    <string name="reconnection_to">"Reconnexion à "</string>
+    <string name="try_number">"Tentative numéro : "</string>
+    <string name="download_upload_speed_pattern">Téléchargement : %s Envoi : %s</string>
+    <string name="refresh_token">Mettre à jour le jeton…</string>
+    <string name="close_button_text">Fermer</string>
+    <string name="share_via_message">Partager par message</string>
+    <string name="sni_text_description">Server Name Indication (SNI) — l’adresse du site déclarée lors de la connexion au serveur VPN. Indiquez un site populaire accessible sans VPN depuis votre pays.</string>
+    <string name="your_current_sni">SNI actuel :</string>
+    <string name="default_sni">ads.x5.ru</string>
+    <string name="sni_text_view_hint">Nouveau SNI</string>
+    <string name="reset_default_button">Rétablir par défaut</string>
+
+    <string name="warning">Attention</string>
+    <string name="battery_optimization_request_dialog_title">Désactiver l’optimisation de la batterie</string>
+    <string name="battery_optimization_request_dialog_text">Pour une connexion stable, accordez l’autorisation de désactiver l’optimisation d’énergie pour cette application</string>
+
+    <string name="required_permissions">Autorisations requises :</string>
+    <string name="denied_text">REFUSÉ</string>
+    <string name="background_data_request_dialog_title">Données en arrière-plan</string>
+    <string name="background_data_request_dialog_text">Pour une connexion stable, accordez l’autorisation de transférer des données en arrière-plan</string>
+
+    <string name="granted_text">AUTORISÉ</string>
+
+    <string name="show_notification_label">Notifications obligatoires</string>
+    <string name="permission_warning_text">Pour un fonctionnement stable de l’application, accordez toutes les autorisations sur l’écran des paramètres</string>
+
+    <string name="permission_request_title">Demande d’autorisations</string>
+    <string name="permission_request_text">Pour une connexion stable, accordez les autorisations nécessaires</string>
+
+    <string name="sponsors_text">Merci à nos sponsors</string>
+    <string name="experimental_features_label">Paramètres expérimentaux</string>
+    <string name="experimental_features_info">Activez ou désactivez les fonctions expérimentales afin d’éviter d’altérer les fonctionnalités principales.</string>
+    <string name="reconnect_on_change">Reconnexion en cas de modification :</string>
+    <string name="reconnect_on_change_network_type">du type de réseau</string>
+    <string name="reconnect_on_change_ip_address">de l’adresse IP</string>
+    <string name="reconnection_on_failure_attempts">Tentatives de reconnexion en cas de perte de réseau :</string>
+    <string name="attempts_count">Nombre de tentatives :</string>
+    <string name="delay_between_attempts">Pause entre :</string>
+    <string name="delay_between_attempts_seconds">"%d c"</string>
+    <string name="reconnect_attempts_text">"%d"</string>
+
+    <string name="another_settings">Autres paramètres :</string>
+    <string name="quick_settings_tile">Tuile de réglages rapides (volet)</string>
+    <string name="tile_already_added">La tuile de réglages rapides a déjà été ajoutée</string>
+    <string name="tile_added_successfully">Tuile de réglages rapides ajoutée</string>
+    <string name="tile_addition_failed">La tuile de réglages rapides n’a pas été ajoutée !</string>
+    <string name="reset_selected_server_after_disconnect_label">Réinitialiser le serveur sélectionné après la déconnexion ?</string>
+
+    <string name="bypass_methods_title">Méthodes de contournement des blocages</string>
+    <string name="bypass_methods_info">Configurer les méthodes de contournement des blocages</string>
+
+    <string name="sni_spoofing_radio_button_label">Usurpation de domaine (SNI)</string>
+    <string name="tls_handshake_obfuscation_radio_button_label">Masquage du trafic (obfuscation)</string>
+    <string name="sni_reality_radio_button_label">Usurpation avancée de domaine (SNI + REALITY)</string>
+
+    <string name="sni_reality_radio_button_label_additional_info">Un domaine réel existant est requis (sinon des erreurs sont possibles)</string>
+</resources>
