@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_version">Version 1.0.0 </string>
+
+    <string name="select_server">انتخاب سرور</string>
+    <string name="connection_time">زمان اتصال</string>
+    <string name="state_disconnect">قطع شده</string>
+
+    <string name="login_button">ورود</string>
+    <string name="logout_button">خروج</string>
+    <string name="update_token_button">به‌روزرسانی توکن</string>
+
+    <string name="menu_home">صفحه اصلی</string>
+    <string name="menu_settings">تنظیمات</string>
+    <string name="menu_share">اشتراک‌گذاری</string>
+
+    <string name="your_servers">سرورهای VPN شما</string>
+
+    <string name="reconnect_on_change_ip_settings_title">در صورت تغییر آدرس IP دوباره متصل شود؟</string>
+    <string name="settings_token_info_html">
+        <![CDATA[
+        فهرست سرورهای در دسترس در توکن رمزگذاری شده است.
+        <br/>
+        برای به‌روزرسانی فهرست سرورها، یک توکن جدید وارد کنید.
+        <br/>
+        توکن مانند گذرواژه عمل می‌کند: با به‌روزرسانی آن، در تمام دستگاه‌هایی که قبلاً استفاده شده بود غیرفعال می‌شود.
+        ]]>
+    </string>
+    <string name="share_title">اشتراک‌گذاری از طریق</string>
+    <string name="share_message">FPTN یک VPN غیرانتفاعی است؛ پروژه‌ای داوطلبانه برای دور زدن سانسور.
+https://play.google.com/store/apps/details?id=org.fptn.vpn
+    </string>
+    <string name="info_message_html">
+        <![CDATA[
+        FPTN یک فناوری VPN است که کاملاً از صفر توسعه داده شده و شامل پروتکل اختصاصی، سرور و کلاینت‌های چندسکویی می‌شود. این یک پروژه غیرانتفاعی با متن‌باز است که توسط داوطلبان توسعه داده می‌شود و برای دور زدن سانسور طراحی شده است.
+        <br/>
+        <br/>
+        وب‌سایت ما: =<a href="https://storage.googleapis.com/fptn.org/index.html"></a>
+        <br/>
+        گروه ما در تلگرام <a href="https://t.me/fptn_project">@fptn_project</a>
+        <br/>
+        اپلیکیشن در <a href="https://play.google.com/store/apps/details?id=org.fptn.vpn">Google Play Market</a>
+        <br/>
+        می‌توانید از ما حمایت کنید در <a href="https://boosty.to/fptn/donate">Boosty</a>
+        ]]>
+    </string>
+    <string name="vpn_permission_warning">برای عملکرد FPTN، دسترسی‌های لازم مورد نیاز است!</string>
+
+    <string name="connecting">در حال اتصال...</string>
+    <string name="reconnection">در حال اتصال مجدد...</string>
+    <string name="connected">متصل است</string>
+    <string name="disconnected">قطع شده</string>
+    <string name="error">خطا در اتصال!</string>
+    <string name="paste_your_token">توکن را اینجا کپی کنید...</string>
+    <string name="running">متصل شد</string>
+
+    <string name="dialog_logout_title">اقدام را تأیید کنید</string>
+    <string name="dialog_logout_message">آیا مطمئن هستید که می‌خواهید خارج شوید؟</string>
+    <string name="yes">بله</string>
+    <string name="no">خیر</string>
+
+    <string name="cancel_button">لغو</string>
+    <string name="save_button">ذخیره</string>
+
+    <string name="server_label">سرور:</string>
+
+    <string name="telegram_bot_html">
+        <![CDATA[
+        برای دریافت توکن از ربات تلگرام <a href="https://t.me/fptn_bot">@fptn_bot</a> استفاده کنید
+        ]]>
+    </string>
+
+    <string name="notification_channel_name">در حالت اتصال</string>
+    <string name="notification_group_name">اصلی</string>
+    <string name="errors_notification_group_name">خطاها</string>
+    <string name="disconnect_action">قطع اتصال</string>
+
+    <string name="reconnect_action">اتصال مجدد</string>
+    <string name="token_was_updated">توکن به‌روزرسانی شد!</string>
+    <string name="token_saving_failed">فرمت توکن نامعتبر است!</string>
+
+
+
+    <!--Сообщения об ошибках-->
+    <string name="server_list_is_empty">فهرست سرورها خالی است!</string>
+    <string name="find_fastest_server_timeout">مهلت زمانی برای یافتن سریع‌ترین سرور به پایان رسید!</string>
+    <string name="all_servers_are_unreachable">تمام سرورها در دسترس نیستند!</string>
+    <string name="connect_to_server_error">هنگام اتصال به سرور، یک خطای فنی رخ داد.</string>
+    <string name="dns_server_error">خطای شبکه! دریافت سرور DNS ناموفق بود!</string>
+    <string name="no_active_internet_connections">اتصال به اینترنت وجود ندارد!</string>
+    <string name="reconnecting_failed">اتصال مجدد ناموفق بود!</string>
+    <string name="vpn_interface_error">ایجاد تونل VPN ناموفق بود!</string>
+    <string name="ciphers_error">رمزنگاری‌های پشتیبانی‌شده یافت نشد!</string>
+
+    <string name="access_token_error">خطای احراز هویت! لطفاً مطمئن شوید که از آخرین توکن دسترسی دریافت‌شده در تنظیمات برنامه استفاده می‌کنید</string>
+    <string name="access_token_format">فرمت توکن نامعتبر است! لطفاً صحت ورودی را بررسی کنید</string>
+
+    <string name="ssl_context_init_failed">خطا در مقداردهی اولیهٔ زمینهٔ SSL!</string>
+
+    <string name="unknown_error">یک خطای ناشناخته رخ داد!</string>
+
+    <string name="notifications_request_title">مجوز نمایش اعلان‌ها مورد نیاز است!</string>
+    <string name="notifications_request_reason">برای عملکرد پایدار سرویس، برنامه باید اعلان اتصال فعال را نمایش دهد</string>
+    <string name="grant">اجازه دادن</string>
+    <string name="deny">رد کردن</string>
+
+    <string name="connecting_to">"در حال اتصال به "</string>
+    <string name="connected_to">"متصل به "</string>
+    <string name="reconnection_to">"در حال اتصال مجدد به "</string>
+    <string name="try_number">"شماره تلاش: "</string>
+    <string name="download_upload_speed_pattern">دانلود: %s آپلود: %s</string>
+    <string name="refresh_token">به‌روزرسانی توکن...</string>
+    <string name="close_button_text">بستن</string>
+    <string name="share_via_message">اشتراک‌گذاری از طریق پیام</string>
+
+    <string name="sni_text_description">Server Name Indication (SNI) — آدرس وب‌سایتی است که هنگام اتصال به سرور VPN اعلام می‌شود. یک وب‌سایت محبوب که در کشور شما بدون VPN در دسترس است وارد کنید.</string>
+    <string name="your_current_sni">SNI فعلی:</string>
+    <string name="default_sni">snapp.ir</string>
+    <string name="sni_text_view_hint">SNI جدید</string>
+    <string name="reset_default_button">بازنشانی به پیش‌فرض</string>
+
+    <string name="warning">هشدار</string>
+    <string name="battery_optimization_request_dialog_title">غیرفعال‌سازی بهینه‌سازی باتری</string>
+    <string name="battery_optimization_request_dialog_text">برای اتصال پایدار، لطفاً مجوز غیرفعال‌سازی بهینه‌سازی مصرف انرژی برای این برنامه را ارائه دهید</string>
+
+    <string name="required_permissions">مجوزهای مورد نیاز:</string>
+    <string name="denied_text">رد شده</string>
+    <string name="background_data_request_dialog_title">انتقال داده در پس‌زمینه</string>
+    <string name="background_data_request_dialog_text">برای اتصال پایدار، لطفاً مجوز انتقال داده در پس‌زمینه را ارائه دهید</string>
+
+    <string name="granted_text">مجاز</string>
+
+    <string name="show_notification_label">اعلان‌های الزامی</string>
+    <string name="permission_warning_text">برای عملکرد پایدار برنامه، لطفاً همهٔ مجوزها را در صفحهٔ تنظیمات ارائه دهید</string>
+
+    <string name="permission_request_title">درخواست مجوزها</string>
+    <string name="permission_request_text">برای اتصال پایدار، لطفاً مجوزهای لازم را ارائه دهید</string>
+
+
+    <string name="sponsors_text">با تشکر از حامیان ما</string>
+    <string name="experimental_features_label">تنظیمات آزمایشی</string>
+    <string name="experimental_features_info">برای جلوگیری از اختلال در عملکرد اصلی، قابلیت‌های آزمایشی را فعال یا غیرفعال کنید.</string>
+    <string name="reconnect_on_change">اتصال مجدد در صورت تغییر:</string>
+    <string name="reconnect_on_change_network_type">نوع شبکه</string>
+    <string name="reconnect_on_change_ip_address">آدرس IP</string>
+    <string name="reconnection_on_failure_attempts">تلاش‌های اتصال مجدد هنگام قطع شبکه:</string>
+    <string name="attempts_count">تعداد تلاش‌ها:</string>
+    <string name="delay_between_attempts">وقفه بین تلاش‌ها:</string>
+    <string name="delay_between_attempts_seconds">"%d ث"</string>
+    <string name="reconnect_attempts_text">"%d"</string>
+
+    <string name="another_settings">سایر تنظیمات:</string>
+    <string name="quick_settings_tile">کاشی تنظیمات سریع (نوار اعلان)</string>
+    <string name="tile_already_added">کاشی تنظیمات سریع قبلاً اضافه شده است</string>
+    <string name="tile_added_successfully">کاشی تنظیمات سریع با موفقیت اضافه شد</string>
+    <string name="tile_addition_failed">افزودن کاشی تنظیمات سریع ناموفق بود!</string>
+    <string name="reset_selected_server_after_disconnect_label">بازنشانی سرور انتخاب‌شده پس از قطع اتصال؟</string>
+
+    <string name="bypass_methods_title">روش‌های دور زدن محدودیت‌ها</string>
+    <string name="bypass_methods_info">پیکربندی روش‌های دور زدن فیلترینگ</string>
+
+    <string name="sni_spoofing_radio_button_label">جعل دامنه (SNI)</string>
+    <string name="tls_handshake_obfuscation_radio_button_label">مخفی‌سازی ترافیک (Obfuscation)</string>
+    <string name="sni_reality_radio_button_label">جعل پیشرفتهٔ دامنه (SNI + REALITY)</string>
+
+    <string name="sni_reality_radio_button_label_additional_info">نیازمند یک دامنهٔ واقعی و فعال است (در غیر این صورت ممکن است خطا رخ دهد)</string>
+</resources>
