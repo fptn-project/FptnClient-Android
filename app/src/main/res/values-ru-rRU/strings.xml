@@ -164,9 +164,9 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
 
     <string name="sni_reality_radio_button_label_additional_info">Требуется реальный существующий домен (иначе возможны ошибки)</string>
 
-    <string name="per_app_vpn_mode_title">Режим VPN для приложений</string>
+    <string name="per_app_vpn_mode_title">Настройки туннелирования для приложений</string>
     <string name="per_app_vpn_mode_info">Здесь вы можете настроить выборочный VPN: использовать VPN для всех приложений (по умолчанию) или разрешить/запретить доступ для конкретных программ.</string>
-    <string name="per_app_vpn_settings_title">VPN для отдельных приложений</string>
+    <string name="per_app_vpn_settings_title">Настройки туннелирования для приложений</string>
     <string name="all_app_mode_radio_button_label">Все приложения разрешены</string>
     <string name="all_app_mode_radio_button_label_additional_info">Все приложения используют VPN</string>
     <string name="only_allowed_apps_mode_radio_button_label">Только разрешённые приложения</string>

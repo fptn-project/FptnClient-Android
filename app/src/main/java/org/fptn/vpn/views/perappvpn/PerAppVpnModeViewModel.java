@@ -9,6 +9,7 @@ import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.MutableLiveData;
 
 import org.fptn.vpn.database.FptnDatabase;
+import org.fptn.vpn.database.dao.AppInfoDAO;
 import org.fptn.vpn.database.model.AppInfoEntity;
 import org.fptn.vpn.enums.PerAppVpnMode;
 import org.fptn.vpn.utils.SharedPrefUtils;
@@ -97,9 +98,17 @@ public class PerAppVpnModeViewModel extends AndroidViewModel {
                 List<AppInfo> appInfoList = getAppListMutableLiveData().getValue();
                 if (appInfoList != null && !appInfoList.isEmpty()) {
                     List<AppInfoEntity> entities = appInfoList.stream()
-                            .map(app -> new AppInfoEntity(app.getPackageName(), app.isAllowed(), app.isDisallowed()))
+                            .map(app -> {
+                                AppInfoEntity appInfoEntity = new AppInfoEntity();
+                                appInfoEntity.setPackageName(app.getPackageName());
+                                appInfoEntity.setAllowed(app.isAllowed());
+                                appInfoEntity.setDisallowed(appInfoEntity.isDisallowed());
+                                return appInfoEntity;
+                            })
                             .collect(Collectors.toList());
-                    FptnDatabase.getInstance(getApplication()).appInfoDAO().insertAll(entities);
+                    AppInfoDAO appInfoDAO = FptnDatabase.getInstance(getApplication()).appInfoDAO();
+                    appInfoDAO.deleteAll(); // delete all previous records
+                    appInfoDAO.insertAll(entities);
                 }
             }).start();
         }

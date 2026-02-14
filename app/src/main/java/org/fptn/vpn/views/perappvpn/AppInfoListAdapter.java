@@ -50,7 +50,7 @@ public class AppInfoListAdapter extends RecyclerView.Adapter<AppInfoListAdapter.
             holder.checkBox.setChecked(app.isDisallowed());
         }
 
-        holder.itemView.setOnClickListener(v -> {
+        holder.checkBox.setOnClickListener(v -> {
             if (perAppVpnMode == PerAppVpnMode.ONLY_ALLOWED){
                 app.setAllowed(!app.isAllowed());
             } else if (perAppVpnMode == PerAppVpnMode.EXCEPT_DISALLOWED){

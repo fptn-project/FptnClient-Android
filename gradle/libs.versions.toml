@@ -1,5 +1,6 @@
 [versions]
 activity = "1.10.1"
+androidGradlePlugin = "8.13.0"
 appcompat = "1.7.1"
 autonomousappsSorting = "0.15"
 autonomousappsUnused = "3.5.1"
@@ -10,7 +11,6 @@ detektPlugin = "1.23.8"
 firebaseBom = "34.8.0"
 firebaseCrashlyticsPlugin = "3.0.6"
 googlePlayServices = "4.4.4"
-gradlePlugin = "8.13.0"
 guava = "33.5.0-jre"
 ipaddress = "5.5.1"
 jacksonDatabind = "2.21.0"
@@ -27,7 +27,7 @@ roomRuntime = "2.8.4"
 zxing = "3.5.4"
 
 [libraries]
-android-gradle-plugin = { group = "com.android.tools.build", name = "gradle", version.ref = "gradlePlugin" }
+android-gradle-plugin = { group = "com.android.tools.build", name = "gradle", version.ref = "androidGradlePlugin" }
 androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
