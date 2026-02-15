@@ -33,7 +33,7 @@ public class AppInfoListAdapter extends RecyclerView.Adapter<AppInfoListAdapter.
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_app_selection, parent, false);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.settings_per_app_vpnmode_layout_item_app_selection, parent, false);
         return new ViewHolder(view);
     }
 
