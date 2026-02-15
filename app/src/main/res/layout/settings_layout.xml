@@ -65,6 +65,74 @@
                     android:textStyle="bold" />
             </LinearLayout>
 
+            <!-- UPDATE TOKEN -->
+            <LinearLayout
+                android:id="@+id/update_token_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="20dp"
+                android:layout_marginEnd="20dp"
+                android:background="@drawable/round_settings_back_white10_20"
+                android:orientation="vertical"
+                android:padding="10dp"
+                android:paddingBottom="0dp">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <ImageView
+                        android:id="@+id/setting_update_token_icon"
+                        android:layout_width="wrap_content"
+                        android:layout_height="32dp"
+                        android:importantForAccessibility="no"
+                        android:paddingLeft="12dp"
+                        android:paddingRight="12dp"
+                        android:src="@drawable/ic_baseline_update_24" />
+
+                    <TextView
+                        android:id="@+id/updateTokenLabel"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:layout_toStartOf="@+id/imageView2"
+                        android:layout_toEndOf="@id/setting_update_token_icon"
+                        android:text="@string/update_token_button"
+                        android:textColor="@color/white"
+                        android:textStyle="bold" />
+
+                    <ImageView
+                        android:id="@+id/imageView2"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentTop="true"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:importantForAccessibility="no"
+                        android:src="@drawable/ic_outline_arrow_forward_ios_16"
+                        android:textColor="@color/white"
+                        android:textStyle="bold" />
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="0dp">
+
+                    <TextView
+                        android:id="@+id/settings_token_info_html"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:paddingLeft="10dp"
+                        android:paddingTop="10dp"
+                        android:paddingRight="10dp"
+                        android:paddingBottom="10dp"
+                        android:text="@string/settings_token_info_html"
+                        android:textColor="@color/gray"
+                        android:textSize="12sp" />
+                </RelativeLayout>
+            </LinearLayout>
 
             <!--Method bypass censorship-->
             <LinearLayout
@@ -327,75 +395,6 @@
                     </RelativeLayout>
 
                 </LinearLayout>
-            </LinearLayout>
-
-            <!-- UPDATE TOKEN -->
-            <LinearLayout
-                android:id="@+id/update_token_layout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="20dp"
-                android:layout_marginTop="20dp"
-                android:layout_marginEnd="20dp"
-                android:background="@drawable/round_settings_back_white10_20"
-                android:orientation="vertical"
-                android:padding="10dp"
-                android:paddingBottom="0dp">
-
-                <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
-
-                    <ImageView
-                        android:id="@+id/setting_update_token_icon"
-                        android:layout_width="wrap_content"
-                        android:layout_height="32dp"
-                        android:importantForAccessibility="no"
-                        android:paddingLeft="12dp"
-                        android:paddingRight="12dp"
-                        android:src="@drawable/ic_baseline_update_24" />
-
-                    <TextView
-                        android:id="@+id/updateTokenLabel"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_centerVertical="true"
-                        android:layout_toStartOf="@+id/imageView2"
-                        android:layout_toEndOf="@id/setting_update_token_icon"
-                        android:text="@string/update_token_button"
-                        android:textColor="@color/white"
-                        android:textStyle="bold" />
-
-                    <ImageView
-                        android:id="@+id/imageView2"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_alignParentTop="true"
-                        android:layout_alignParentEnd="true"
-                        android:layout_centerVertical="true"
-                        android:importantForAccessibility="no"
-                        android:src="@drawable/ic_outline_arrow_forward_ios_16"
-                        android:textColor="@color/white"
-                        android:textStyle="bold" />
-                </RelativeLayout>
-
-                <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="0dp">
-
-                    <TextView
-                        android:id="@+id/settings_token_info_html"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:paddingLeft="10dp"
-                        android:paddingTop="10dp"
-                        android:paddingRight="10dp"
-                        android:paddingBottom="10dp"
-                        android:text="@string/settings_token_info_html"
-                        android:textColor="@color/gray"
-                        android:textSize="12sp" />
-                </RelativeLayout>
             </LinearLayout>
 
             <!-- Your VPN servers -->

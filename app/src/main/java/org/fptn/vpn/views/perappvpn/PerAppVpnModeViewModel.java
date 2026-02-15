@@ -102,7 +102,7 @@ public class PerAppVpnModeViewModel extends AndroidViewModel {
                                 AppInfoEntity appInfoEntity = new AppInfoEntity();
                                 appInfoEntity.setPackageName(app.getPackageName());
                                 appInfoEntity.setAllowed(app.isAllowed());
-                                appInfoEntity.setDisallowed(appInfoEntity.isDisallowed());
+                                appInfoEntity.setDisallowed(app.isDisallowed());
                                 return appInfoEntity;
                             })
                             .collect(Collectors.toList());

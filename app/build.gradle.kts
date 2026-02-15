@@ -131,9 +131,9 @@ dependencies {
     implementation(libs.material)
     implementation(libs.zxing)
 
-    compileOnly(libs.lombock)
+    compileOnly(libs.androidlombock)
 
-    annotationProcessor(libs.lombock)
+    annotationProcessor(libs.androidlombock)
     annotationProcessor(libs.androidx.room.compiler)
 
     testImplementation(libs.junit)
