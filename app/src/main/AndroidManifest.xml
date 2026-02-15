@@ -26,7 +26,7 @@
         android:theme="@style/Theme.FptnClient"
         tools:targetApi="33">
         <activity
-            android:name="org.fptn.vpn.views.SplashActivity"
+            android:name="org.fptn.vpn.views.splash.SplashActivity"
             android:exported="true"
             android:label="@string/app_name"
             android:launchMode="singleTop"
@@ -42,24 +42,24 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="org.fptn.vpn.views.LoginActivity"
+            android:name="org.fptn.vpn.views.login.LoginActivity"
             android:label="@string/app_name"
             android:launchMode="singleTop"
             android:noHistory="true"
             android:screenOrientation="portrait" />
         <activity
-            android:name="org.fptn.vpn.views.HomeActivity"
+            android:name="org.fptn.vpn.views.home.HomeActivity"
             android:label="@string/app_name"
             android:launchMode="singleTop"
             android:screenOrientation="portrait"
             android:windowSoftInputMode="adjustResize" />
         <activity
-            android:name="org.fptn.vpn.views.SettingsActivity"
+            android:name="org.fptn.vpn.views.settings.SettingsActivity"
             android:label="@string/app_name"
             android:launchMode="singleTop"
             android:screenOrientation="portrait" />
         <activity
-            android:name="org.fptn.vpn.views.SettingsActivityUpdateToken"
+            android:name="org.fptn.vpn.views.updatetoken.UpdateTokenActivity"
             android:label="@string/app_name"
             android:launchMode="singleTop"
             android:screenOrientation="portrait" />
@@ -75,7 +75,7 @@
             android:screenOrientation="portrait" />
 
         <service
-            android:name="org.fptn.vpn.services.CustomVpnService"
+            android:name="org.fptn.vpn.services.vpn.FptnService"
             android:exported="false"
             android:foregroundServiceType="systemExempted"
             android:permission="android.permission.BIND_VPN_SERVICE"
@@ -84,6 +84,14 @@
             <intent-filter>
                 <action android:name="android.net.VpnService" />
             </intent-filter>
+        </service>
+
+        <service
+            android:name="org.fptn.vpn.services.snichecker.SniCheckerService"
+            android:exported="false"
+            android:foregroundServiceType="systemExempted"
+            android:stopWithTask="false"
+            tools:ignore="ForegroundServicePermission"> <!--add this to turn off warning-->
         </service>
 
         <service

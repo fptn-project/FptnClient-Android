@@ -49,7 +49,6 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="32dp"
         android:background="@drawable/round_back_secondary_100"
-        android:onClick="onLogin"
         android:padding="8dp"
         android:text="@string/login_button"
         android:textAllCaps="false"
@@ -58,13 +57,14 @@
 
     <TextView
         android:id="@+id/errorTextView"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
-        android:padding="8dp"
-        android:visibility="gone"
+        android:layout_margin="20dp"
+        android:layout_marginStart="5dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginBottom="20dp"
         android:text=""
-        android:textColor="@color/yellow"
-        android:textSize="16sp" />
+        android:textColor="@color/yellow" />
+
 </LinearLayout>
 

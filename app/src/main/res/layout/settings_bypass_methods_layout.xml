@@ -207,7 +207,104 @@
                     android:text="@string/sni_text_description"
                     android:textColor="@color/gray"
                     android:textSize="12sp" />
+
+                <!-- Auto SNI -->
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingVertical="0dp"
+                    android:paddingStart="14dp"
+                    android:paddingTop="10dp">
+
+                    <ImageView
+                        android:id="@+id/sql_server_icon"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:layout_gravity="center"
+                        android:importantForAccessibility="no"
+                        android:paddingStart="0dp"
+                        android:paddingEnd="8dp"
+                        android:src="@drawable/ic_sql_server_24" />
+
+                    <TextView
+                        android:id="@+id/loaded_sni_label"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:layout_toEndOf="@id/sql_server_icon"
+                        android:text="@string/loaded_sni_label"
+                        android:textColor="@color/white"
+                        android:textStyle="normal" />
+
+                    <TextView
+                        android:id="@+id/loaded_sni_count_label"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentTop="true"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:layout_marginEnd="24dp"
+                        android:text="456"
+                        android:textColor="@color/white"
+                        android:textStyle="normal" />
+
+                </RelativeLayout>
+
+                <LinearLayout
+                    android:padding="8dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginTop="6dp"
+                    android:layout_marginEnd="10dp"
+                    android:orientation="horizontal">
+
+                    <Button
+                        android:id="@+id/load_sni_button"
+                        android:background="@drawable/round_back_secondary_cancel_100"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:textColor="@color/primary"
+                        android:text="@string/load_sni_from_file" />
+
+                    <Space
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="0.1" />
+
+                    <Button
+                        android:id="@+id/delete_sni_button"
+                        android:background="@drawable/round_back_secondary_cancel_100"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:textColor="@color/primary"
+                        android:text="@string/delete_loaded_sni" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:padding="8dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginTop="6dp"
+                    android:layout_marginEnd="10dp"
+                    android:orientation="horizontal">
+
+                    <Button
+                        android:id="@+id/auto_select_sni_button"
+                        android:background="@drawable/round_back_secondary_100"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:textColor="@color/primary"
+                        android:text="@string/auto_select_sni" />
+
+                </LinearLayout>
+
             </LinearLayout>
+
         </LinearLayout>
     </ScrollView>
 

@@ -8,9 +8,9 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.MutableLiveData;
 
-import org.fptn.vpn.database.FptnDatabase;
+import org.fptn.vpn.database.AppDatabase;
 import org.fptn.vpn.database.dao.AppInfoDAO;
-import org.fptn.vpn.database.model.AppInfoEntity;
+import org.fptn.vpn.database.entity.AppInfoEntity;
 import org.fptn.vpn.enums.PerAppVpnMode;
 import org.fptn.vpn.utils.SharedPrefUtils;
 
@@ -31,6 +31,8 @@ public class PerAppVpnModeViewModel extends AndroidViewModel {
     @Getter
     private final MutableLiveData<List<AppInfo>> appListMutableLiveData;
 
+    private final AppDatabase appDatabase = AppDatabase.getInstance(getApplication());
+
     public PerAppVpnModeViewModel(@NonNull Application application) {
         super(application);
 
@@ -45,7 +47,7 @@ public class PerAppVpnModeViewModel extends AndroidViewModel {
 
     public void loadInstalledApps(PackageManager pm) {
         new Thread(() -> {
-            List<AppInfoEntity> savedApps = FptnDatabase.getInstance(getApplication()).appInfoDAO().getAll();
+            List<AppInfoEntity> savedApps = appDatabase.appInfoDAO().getAll();
 
             Map<String, AppInfo> savedAppsMap = new HashMap<>();
             for (AppInfoEntity entity : savedApps) {
@@ -98,15 +100,14 @@ public class PerAppVpnModeViewModel extends AndroidViewModel {
                 List<AppInfo> appInfoList = getAppListMutableLiveData().getValue();
                 if (appInfoList != null && !appInfoList.isEmpty()) {
                     List<AppInfoEntity> entities = appInfoList.stream()
-                            .map(app -> {
-                                AppInfoEntity appInfoEntity = new AppInfoEntity();
-                                appInfoEntity.setPackageName(app.getPackageName());
-                                appInfoEntity.setAllowed(app.isAllowed());
-                                appInfoEntity.setDisallowed(app.isDisallowed());
-                                return appInfoEntity;
-                            })
+                            .map(app -> AppInfoEntity.builder()
+                                    .packageName(app.getPackageName())
+                                    .allowed(app.isAllowed())
+                                    .disallowed(app.isDisallowed())
+                                    .build()
+                            )
                             .collect(Collectors.toList());
-                    AppInfoDAO appInfoDAO = FptnDatabase.getInstance(getApplication()).appInfoDAO();
+                    AppInfoDAO appInfoDAO = appDatabase.appInfoDAO();
                     appInfoDAO.deleteAll(); // delete all previous records
                     appInfoDAO.insertAll(entities);
                 }

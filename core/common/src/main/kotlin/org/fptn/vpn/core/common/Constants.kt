@@ -21,6 +21,12 @@ object Constants {
     const val ERROR_NOTIFICATION_CHANNEL_GROUP_ID = "fptnvpn-notification-error-group"
     const val ERROR_CONNECTED_NOTIFICATION_ID = 8989
 
+    const val SNI_CHECKER_NOTIFICATION_CHANNEL_ID = "fptnvpn-notification-sni"
+    const val SNI_CHECKER_NOTIFICATION_CHANNEL_VERSION = "fptnvpn-notification-sni-channel-version"
+    const val SNI_CHECKER_NOTIFICATION_CHANNEL_VERSION_NUM = 1
+    const val SNI_CHECKER_NOTIFICATION_CHANNEL_GROUP_ID = "fptnvpn-notification-sni-group"
+    const val SNI_CHECKER_NOTIFICATION_ID = 8999
+
     // Shares preferences constants
     const val CURRENT_SNI_SHARED_PREF_KEY: String = "CURRENT_SNI"
     const val RESET_SELECTED_SERVER_PREF_KEY: String = "RESET_SELECTED_SERVER_PREF_KEY"

@@ -53,10 +53,35 @@ public class NotificationUtils {
                     Constants.ERROR_NOTIFICATION_CHANNEL_ID,
                     context.getString(R.string.errors_notification_group_name),
                     NotificationManager.IMPORTANCE_HIGH);
+            newNotificationChannel.setSound(null, null); //disable sound
             newNotificationChannel.setGroup(Constants.ERROR_NOTIFICATION_CHANNEL_GROUP_ID);
 
             notificationManager.createNotificationChannel(newNotificationChannel);
             SharedPrefUtils.saveNotificationChannelVersion(context, Constants.ERROR_NOTIFICATION_CHANNEL_VERSION, Constants.ERROR_NOTIFICATION_CHANNEL_VERSION_NUM);
+        }
+
+        // add sni checker notifications
+        NotificationChannel sniCheckerNotificationChannel = notificationManager.getNotificationChannel(Constants.SNI_CHECKER_NOTIFICATION_CHANNEL_ID);
+        int sniCheckerNotificationChannelOnDevice = SharedPrefUtils.getNotificationChannelVersion(context, Constants.SNI_CHECKER_NOTIFICATION_CHANNEL_VERSION);
+        // remove existed notification channel if their version lower than in constants
+        if (sniCheckerNotificationChannel != null && sniCheckerNotificationChannelOnDevice < Constants.SNI_CHECKER_NOTIFICATION_CHANNEL_VERSION_NUM) {
+            notificationManager.deleteNotificationChannel(Constants.SNI_CHECKER_NOTIFICATION_CHANNEL_ID);
+            sniCheckerNotificationChannel = null;
+        }
+
+        if (sniCheckerNotificationChannel == null) {
+            notificationManager.createNotificationChannelGroup(
+                    new NotificationChannelGroup(Constants.SNI_CHECKER_NOTIFICATION_CHANNEL_GROUP_ID, context.getString(R.string.errors_notification_group_name)));
+
+            NotificationChannel newNotificationChannel = new NotificationChannel(
+                    Constants.SNI_CHECKER_NOTIFICATION_CHANNEL_ID,
+                    context.getString(R.string.sni_checker_notification_group_name),
+                    NotificationManager.IMPORTANCE_HIGH);
+            newNotificationChannel.setSound(null, null); //disable sound
+            newNotificationChannel.setGroup(Constants.SNI_CHECKER_NOTIFICATION_CHANNEL_GROUP_ID);
+
+            notificationManager.createNotificationChannel(newNotificationChannel);
+            SharedPrefUtils.saveNotificationChannelVersion(context, Constants.SNI_CHECKER_NOTIFICATION_CHANNEL_VERSION, Constants.SNI_CHECKER_NOTIFICATION_CHANNEL_VERSION_NUM);
         }
     }
 }

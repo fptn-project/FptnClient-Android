@@ -5,7 +5,7 @@ import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
 
-import org.fptn.vpn.database.model.AppInfoEntity;
+import org.fptn.vpn.database.entity.AppInfoEntity;
 
 import java.util.List;
 

@@ -14,7 +14,7 @@ import androidx.lifecycle.Observer;
 
 import org.fptn.vpn.R;
 import org.fptn.vpn.enums.ConnectionState;
-import org.fptn.vpn.services.CustomVpnService;
+import org.fptn.vpn.services.vpn.FptnService;
 import org.fptn.vpn.utils.PermissionsUtils;
 
 import lombok.Getter;
@@ -53,7 +53,7 @@ public class FptnTileService extends TileService {
 
         ConnectionState connectionState = serviceStateMutableLiveData.getValue();
         if (connectionState != null && connectionState.isActiveState()) {
-            CustomVpnService.startToDisconnect(this);
+            FptnService.startToDisconnect(this);
         } else {
             // Check notification enabled
             if (!PermissionsUtils.checkNotificationEnabled(this)) {
@@ -79,7 +79,7 @@ public class FptnTileService extends TileService {
                 return;
             }
 
-            CustomVpnService.startToConnect(this);
+            FptnService.startToConnect(this);
         }
     }
 
