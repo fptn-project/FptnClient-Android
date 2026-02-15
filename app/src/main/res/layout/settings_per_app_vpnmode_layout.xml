@@ -3,15 +3,16 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/application_background"
-    android:orientation="vertical">
+    android:background="@drawable/application_background">
 
     <ScrollView
+        android:id="@+id/scrollView"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
+        android:layout_height="match_parent"
         android:layout_marginBottom="80dp"
         android:fadeScrollbars="false"
-        app:layout_constraintBottom_toTopOf="@id/buttons_layout"
+        android:fillViewport="true"
+        app:layout_constraintBottom_toTopOf="@id/bottomNavBar"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
@@ -27,21 +28,25 @@
                 android:layout_gravity="center"
                 android:layout_marginTop="30dp"
                 android:importantForAccessibility="no"
-                android:src="@drawable/ic_logo_24" />
+                android:src="@drawable/ic_per_app_vpn_mode" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
+                android:textAlignment="center"
                 android:layout_marginTop="10dp"
-                android:text="@string/bypass_methods_title"
+                android:layout_marginStart="20dp"
+                android:layout_marginEnd="20dp"
+                android:paddingTop="10dp"
+                android:text="@string/per_app_vpn_settings_title"
                 android:textColor="@color/white"
                 android:textSize="18sp"
                 android:textStyle="bold" />
 
-            <!--Method bypass censorship-->
+            <!--Method per_app_vpn censorship-->
             <LinearLayout
-                android:id="@+id/bypass_method_layout"
+                android:id="@+id/per_app_vpn_method_layout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="20dp"
@@ -57,7 +62,7 @@
                     android:layout_height="wrap_content">
 
                     <ImageView
-                        android:id="@+id/bypass_method_image_view"
+                        android:id="@+id/per_app_vpn_method_image_view"
                         android:layout_width="wrap_content"
                         android:layout_height="32dp"
                         android:layout_gravity="center"
@@ -67,49 +72,31 @@
                         android:src="@drawable/ic_logo_24" />
 
                     <TextView
-                        android:id="@+id/bypass_method_label"
+                        android:id="@+id/per_app_vpn_mode_label"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_centerVertical="true"
-                        android:layout_toEndOf="@id/bypass_method_image_view"
-                        android:text="@string/bypass_methods_title"
+                        android:layout_toEndOf="@id/per_app_vpn_method_image_view"
+                        android:text="@string/per_app_vpn_mode_title"
                         android:textColor="@color/white"
                         android:textSize="16sp"
                         android:textStyle="bold" />
                 </RelativeLayout>
 
                 <RadioGroup
-                    android:id="@+id/bypass_method_radio_button_group"
+                    android:id="@+id/per_app_vpn_mode_radio_button_group"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:paddingStart="8dp"
                     android:paddingEnd="12dp">
 
                     <RadioButton
-                        android:id="@+id/sni_spoofing_radio_button"
+                        android:id="@+id/all_app_mode_radio_button"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="12dp"
                         android:layout_marginEnd="12dp"
-                        android:text="@string/sni_spoofing_radio_button_label"
-                        android:textSize="14sp"
-                        android:textStyle="bold" />
-
-                    <RadioButton
-                        android:id="@+id/obfuscation_radio_button"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="1dp"
-                        android:layout_marginEnd="12dp"
-                        android:text="@string/tls_handshake_obfuscation_radio_button_label"
-                        android:textSize="14sp"
-                        android:textStyle="bold" />
-
-                    <RadioButton
-                        android:id="@+id/sni_reality_radio_button"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/sni_reality_radio_button_label"
+                        android:text="@string/all_app_mode_radio_button_label"
                         android:textSize="14sp"
                         android:textStyle="bold" />
 
@@ -125,89 +112,93 @@
                             android:layout_height="wrap_content"
                             android:layout_marginStart="30dp"
                             android:layout_marginTop="0dp"
-                            android:text="@string/sni_reality_radio_button_label_additional_info"
+                            android:text="@string/all_app_mode_radio_button_label_additional_info"
+                            android:textColor="@color/gray"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+
+                    <RadioButton
+                        android:id="@+id/allowed_apps_mode_radio_button"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="1dp"
+                        android:layout_marginEnd="12dp"
+                        android:text="@string/only_allowed_apps_mode_radio_button_label"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="3dp"
+                        android:layout_marginEnd="12dp"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="30dp"
+                            android:layout_marginTop="0dp"
+                            android:text="@string/only_allowed_radio_button_label_additional_info"
+                            android:textColor="@color/gray"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+
+                    <RadioButton
+                        android:id="@+id/disallowed_apps_mode_radio_button"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/disallowed_apps_radio_button_label"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="3dp"
+                        android:layout_marginEnd="12dp"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="30dp"
+                            android:layout_marginTop="0dp"
+                            android:text="@string/disallowed_apps_radio_button_label_additional_info"
                             android:textColor="@color/gray"
                             android:textSize="12sp" />
                     </LinearLayout>
                 </RadioGroup>
             </LinearLayout>
 
-            <!-- SNI settings -->
+            <!--Select apps list-->
             <LinearLayout
-                android:id="@+id/sni_layout"
+                android:id="@+id/select_apps_list_layout"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="400dp"
                 android:layout_marginStart="20dp"
                 android:layout_marginTop="20dp"
                 android:layout_marginEnd="20dp"
+                android:layout_marginBottom="20dp"
                 android:background="@drawable/round_settings_back_white10_20"
                 android:orientation="vertical"
-                android:padding="10dp"
-                android:paddingBottom="0dp">
+                android:padding="10dp">
 
-                <RelativeLayout
+                <ProgressBar
+                    android:id="@+id/loading_apps_progress_bar"
+                    style="?android:attr/progressBarStyle"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
+                    android:layout_height="match_parent"
+                    android:visibility="gone" />
 
-                    <ImageView
-                        android:id="@+id/sni_image_view"
-                        android:layout_width="wrap_content"
-                        android:layout_height="32dp"
-                        android:layout_gravity="center"
-                        android:importantForAccessibility="no"
-                        android:paddingLeft="12dp"
-                        android:paddingRight="12dp"
-                        android:src="@drawable/ic_baseline_your_servers_24" />
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/apps_recycler_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scrollbars="vertical" />
 
-                    <TextView
-                        android:id="@+id/SNI_label"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_centerVertical="true"
-                        android:layout_toEndOf="@id/sni_image_view"
-                        android:text="@string/your_current_sni"
-                        android:textColor="@color/white"
-                        android:textStyle="normal" />
-
-                    <TextView
-                        android:id="@+id/SNI_text_field"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_centerVertical="true"
-                        android:layout_marginEnd="12dp"
-                        android:layout_toStartOf="@+id/imageView"
-                        android:layout_toEndOf="@id/SNI_label"
-                        android:paddingLeft="12dp"
-                        android:paddingRight="12dp"
-                        android:text="@string/default_sni"
-                        android:textColor="@color/white"
-                        android:textStyle="normal" />
-
-                    <ImageView
-                        android:id="@+id/imageView"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_alignParentTop="true"
-                        android:layout_alignParentEnd="true"
-                        android:layout_centerVertical="true"
-                        android:importantForAccessibility="no"
-                        android:src="@drawable/ic_outline_arrow_forward_ios_16"
-                        android:textColor="@color/white"
-                        android:textStyle="bold" />
-                </RelativeLayout>
-
-                <TextView
-                    android:id="@+id/sni_text_description"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:paddingLeft="10dp"
-                    android:paddingTop="8dp"
-                    android:paddingRight="10dp"
-                    android:paddingBottom="10dp"
-                    android:text="@string/sni_text_description"
-                    android:textColor="@color/gray"
-                    android:textSize="12sp" />
             </LinearLayout>
+
         </LinearLayout>
     </ScrollView>
 

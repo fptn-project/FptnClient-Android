@@ -8,13 +8,11 @@ import android.provider.Settings;
 import android.service.quicksettings.Tile;
 import android.service.quicksettings.TileService;
 import android.util.Log;
-import android.widget.Toast;
 
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 
 import org.fptn.vpn.R;
-import org.fptn.vpn.database.model.FptnServerDto;
 import org.fptn.vpn.enums.ConnectionState;
 import org.fptn.vpn.services.CustomVpnService;
 import org.fptn.vpn.utils.PermissionsUtils;
@@ -59,7 +57,7 @@ public class FptnTileService extends TileService {
         } else {
             // Check notification enabled
             if (!PermissionsUtils.checkNotificationEnabled(this)) {
-                // todo: say user what to do (can't show toasts from tileService or other services)
+                // And if not - open main activity
                 Intent intent = new Intent();
                 intent.setAction(Settings.ACTION_APP_NOTIFICATION_SETTINGS);
                 intent.putExtra(Settings.EXTRA_APP_PACKAGE, getPackageName());

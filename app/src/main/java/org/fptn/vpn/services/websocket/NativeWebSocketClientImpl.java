@@ -3,7 +3,6 @@ package org.fptn.vpn.services.websocket;
 import android.util.Log;
 
 import org.fptn.vpn.enums.BypassCensorshipMethod;
-import org.fptn.vpn.enums.TLSHandshakeObfuscation;
 import org.fptn.vpn.services.websocket.callback.OnFailureCallback;
 import org.fptn.vpn.services.websocket.callback.OnMessageReceivedCallback;
 import org.fptn.vpn.services.websocket.callback.OnOpenCallback;
@@ -11,7 +10,6 @@ import org.fptn.vpn.vpnclient.exception.ErrorCode;
 import org.fptn.vpn.vpnclient.exception.PVNClientException;
 
 import java.util.concurrent.atomic.AtomicInteger;
-
 
 public class NativeWebSocketClientImpl {
     private static final String TAG = NativeWebSocketClientImpl.class.getName();

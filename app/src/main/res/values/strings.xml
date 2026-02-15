@@ -218,4 +218,14 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
 
     <string name="sni_reality_radio_button_label_additional_info">Requires a real existing domain (otherwise errors may occur)</string>
     <string name="connecting_auto">Selecting the best server...</string>
+
+    <string name="per_app_vpn_mode_title">Per-app VPN mode</string>
+    <string name="per_app_vpn_mode_info">Here you can configure per-app VPN mode: enable vpn for apps (default) or allow/disallow VPN for specific apps.</string>
+    <string name="per_app_vpn_settings_title">Per-app VPN mode</string>
+    <string name="all_app_mode_radio_button_label">Disabled</string>
+    <string name="all_app_mode_radio_button_label_additional_info">All apps use the VPN</string>
+    <string name="only_allowed_apps_mode_radio_button_label">Only allowed apps</string>
+    <string name="only_allowed_radio_button_label_additional_info">Only the apps in the list use the VPN</string>
+    <string name="disallowed_apps_radio_button_label">All apps use VPN, except selected</string>
+    <string name="disallowed_apps_radio_button_label_additional_info">All apps use VPN, except selected</string>
 </resources>

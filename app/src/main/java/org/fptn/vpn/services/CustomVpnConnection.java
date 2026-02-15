@@ -8,6 +8,7 @@ import static org.fptn.vpn.enums.ConnectionSubnets.TUN_ADDRESS;
 import static org.fptn.vpn.enums.ConnectionSubnets.TUN_INTERFACE_SUBNET;
 
 import android.app.PendingIntent;
+import android.content.pm.PackageManager;
 import android.net.IpPrefix;
 import android.net.VpnService;
 import android.os.Build;
@@ -18,10 +19,12 @@ import org.fptn.vpn.database.model.FptnServerDto;
 import org.fptn.vpn.enums.BypassCensorshipMethod;
 import org.fptn.vpn.enums.ConnectionState;
 import org.fptn.vpn.enums.NetworkType;
+import org.fptn.vpn.enums.PerAppVpnMode;
 import org.fptn.vpn.services.websocket.WebSocketAlreadyShutdownException;
 import org.fptn.vpn.services.websocket.WebSocketClientWrapper;
 import org.fptn.vpn.utils.DataRateCalculator;
 import org.fptn.vpn.utils.IPUtils;
+import org.fptn.vpn.views.perappvpn.AppInfo;
 import org.fptn.vpn.vpnclient.exception.ErrorCode;
 import org.fptn.vpn.vpnclient.exception.PVNClientException;
 
@@ -48,6 +51,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 public class CustomVpnConnection extends Thread {
+    private static final String TAG = CustomVpnConnection.class.getSimpleName();
+
     /**
      * Minimum interval between sends
      */
@@ -94,6 +99,8 @@ public class CustomVpnConnection extends Thread {
 
     private final String sniHostName;
     private final BypassCensorshipMethod censorshipStrategy;
+    private final PerAppVpnMode perAppVpnMode;
+    private final List<AppInfo> appInfos;
 
     public CustomVpnConnection(final CustomVpnService service,
                                final int connectionId,
@@ -103,7 +110,9 @@ public class CustomVpnConnection extends Thread {
                                final int maxReconnectCount,
                                final int delayBetweenAttempts,
                                final String sniHostName,
-                               final BypassCensorshipMethod censorshipStrategy) {
+                               final BypassCensorshipMethod censorshipStrategy,
+                               final PerAppVpnMode perAppVpnMode,
+                               final List<AppInfo> appInfos) {
         this.service = service;
         this.connectionId = connectionId;
         this.fptnServerDto = fptnServerDto;
@@ -111,6 +120,8 @@ public class CustomVpnConnection extends Thread {
         this.currentNetworkType = currentNetworkType;
         this.sniHostName = sniHostName;
         this.censorshipStrategy = censorshipStrategy;
+        this.perAppVpnMode = perAppVpnMode;
+        this.appInfos = appInfos;
         this.webSocketClient = new WebSocketClientWrapper(
                 this.fptnServerDto,
                 TUN_ADDRESS.getIpAddress(),
@@ -131,13 +142,35 @@ public class CustomVpnConnection extends Thread {
         try {
             sendConnectionStateToService(ConnectionState.CONNECTING);
 
-            //todo: extract all magic constants to class
             VpnService.Builder builder = service.new Builder();
             builder.addAddress(TUN_ADDRESS.getIpAddress(), TUN_ADDRESS.getPrefix());
             builder.addRoute(HZ_WHAT_IS_THIS_IP.getIpAddress(), HZ_WHAT_IS_THIS_IP.getPrefix());
             builder.setMtu(MAX_PACKET_SIZE);
             // enable blocking reading
             builder.setBlocking(true);
+
+            /*
+            From documentation: You can create either an allowed list, or, a disallowed list, but not both
+             */
+            if (perAppVpnMode == PerAppVpnMode.ONLY_ALLOWED){
+                for (AppInfo appInfo : appInfos) {
+                    String packageName = appInfo.getPackageName();
+                    try {
+                        builder.addAllowedApplication(packageName);
+                    } catch (PackageManager.NameNotFoundException e) {
+                        Log.d(TAG, "Package not found: " + packageName);
+                    }
+                }
+            } else if (perAppVpnMode == PerAppVpnMode.EXCEPT_DISALLOWED){
+                for (AppInfo appInfo : appInfos) {
+                    String packageName = appInfo.getPackageName();
+                    try {
+                        builder.addDisallowedApplication(packageName);
+                    } catch (PackageManager.NameNotFoundException e) {
+                        Log.d(TAG, "Package not found: " + packageName);
+                    }
+                }
+            }
 
             final String dnsServer = webSocketClient.getDnsServerIPv4();
             builder.addDnsServer(dnsServer);
