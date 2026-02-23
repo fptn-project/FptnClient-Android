@@ -5,8 +5,8 @@ import static org.junit.Assert.assertEquals;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import org.fptn.vpn.viewmodel.model.FptnToken;
-import org.fptn.vpn.viewmodel.model.FptnTokenValidationUtils;
+import org.fptn.vpn.utils.token.TokenValidationUtils;
+import org.fptn.vpn.utils.token.Token;
 import org.fptn.vpn.vpnclient.exception.PVNClientException;
 import org.junit.Test;
 
@@ -29,9 +29,9 @@ public class BrotliUtilsTest {
         String decodedToken = BrotliUtils.decodeBrotliString(compressed);
 
         //then
-        FptnToken fptnToken = OBJECT_MAPPER.readValue(decodedToken, FptnToken.class);
-        FptnTokenValidationUtils.validate(fptnToken);
-        assertEquals("user242451984", fptnToken.getUsername());
-        assertEquals("CLRVpUxT", fptnToken.getPassword());
+        Token token = OBJECT_MAPPER.readValue(decodedToken, Token.class);
+        TokenValidationUtils.validate(token);
+        assertEquals("user242451984", token.getUsername());
+        assertEquals("CLRVpUxT", token.getPassword());
     }
 }

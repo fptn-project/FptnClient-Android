@@ -12,6 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
+        android:gravity="center"
         tools:ignore="MissingConstraints">
 
         <LinearLayout
@@ -108,17 +109,19 @@
                     android:textSize="18sp" />
             </LinearLayout>
 
-            <TextView
-                android:id="@+id/errorTextView"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="32dp"
-                android:padding="8dp"
-                android:visibility="gone"
-                android:text=""
-                android:textColor="@color/yellow"
-                android:textSize="16sp" />
         </LinearLayout>
+
+        <TextView
+            android:id="@+id/errorTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="20dp"
+            android:layout_marginStart="5dp"
+            android:layout_marginEnd="20dp"
+            android:layout_marginBottom="20dp"
+            android:text=""
+            android:textColor="@color/yellow" />
+
     </LinearLayout>
 
     <com.google.android.material.bottomnavigation.BottomNavigationView

@@ -16,7 +16,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        tools:context="org.fptn.vpn.views.HomeActivity">
+        tools:context="org.fptn.vpn.views.home.HomeActivity">
 
         <LinearLayout
             android:layout_width="match_parent"

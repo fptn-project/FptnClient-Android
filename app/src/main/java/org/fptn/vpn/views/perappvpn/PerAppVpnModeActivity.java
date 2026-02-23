@@ -1,7 +1,7 @@
 package org.fptn.vpn.views.perappvpn;
 
-import static org.fptn.vpn.views.ViewUtils.hideView;
-import static org.fptn.vpn.views.ViewUtils.showView;
+import static org.fptn.vpn.utils.ViewUtils.hideView;
+import static org.fptn.vpn.utils.ViewUtils.showView;
 
 import android.os.Bundle;
 import android.util.Log;
@@ -43,7 +43,7 @@ public class PerAppVpnModeActivity extends AppCompatActivity {
 
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavBar);
         bottomNavigationView.setSelectedItemId(R.id.menuSettings);
-        bottomNavigationView.setOnItemSelectedListener(new CustomBottomNavigationListener(this, bottomNavigationView, R.id.menuSettings));
+        bottomNavigationView.setOnItemSelectedListener(new CustomBottomNavigationListener(this, R.id.menuSettings));
 
         selectAppsListLayout = findViewById(R.id.select_apps_list_layout);
 
