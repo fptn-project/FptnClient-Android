@@ -52,7 +52,8 @@ public class NotificationUtils {
             NotificationChannel newNotificationChannel = new NotificationChannel(
                     Constants.ERROR_NOTIFICATION_CHANNEL_ID,
                     context.getString(R.string.errors_notification_group_name),
-                    NotificationManager.IMPORTANCE_HIGH);
+                    NotificationManager.IMPORTANCE_LOW);
+            newNotificationChannel.setSound(null, null); //disable sound
             newNotificationChannel.setGroup(Constants.ERROR_NOTIFICATION_CHANNEL_GROUP_ID);
 
             notificationManager.createNotificationChannel(newNotificationChannel);

@@ -2,7 +2,7 @@ package org.fptn.vpn.services.websocket;
 
 import android.util.Log;
 
-import org.fptn.vpn.database.model.FptnServerDto;
+import org.fptn.vpn.database.entity.ServerEntity;
 import org.fptn.vpn.enums.BypassCensorshipMethod;
 import org.fptn.vpn.services.websocket.callback.OnFailureCallback;
 import org.fptn.vpn.services.websocket.callback.OnMessageReceivedCallback;
@@ -18,7 +18,7 @@ public class WebSocketClientWrapper {
     private static final String DNS_URL = "/api/v1/dns";
     private static final String LOGIN_URL = "/api/v1/login";
 
-    private final FptnServerDto fptnServerDto;
+    private final ServerEntity serverEntity;
     private final String tunAddress;
     private final OnOpenCallback onOpenCallback;
     private final OnMessageReceivedCallback onMessageReceivedCallback;
@@ -32,14 +32,14 @@ public class WebSocketClientWrapper {
     @Getter
     private boolean shutdown = false;
 
-    public WebSocketClientWrapper(FptnServerDto fptnServerDto,
+    public WebSocketClientWrapper(ServerEntity serverEntity,
                                   String tunAddress,
                                   OnOpenCallback onOpenCallback,
                                   OnMessageReceivedCallback onMessageReceivedCallback,
                                   OnFailureCallback onFailureCallback,
                                   String sniHostName,
                                   BypassCensorshipMethod censorshipStrategy) {
-        this.fptnServerDto = fptnServerDto;
+        this.serverEntity = serverEntity;
         this.tunAddress = tunAddress;
         this.onOpenCallback = onOpenCallback;
         this.onMessageReceivedCallback = onMessageReceivedCallback;
@@ -49,9 +49,10 @@ public class WebSocketClientWrapper {
         this.sniHostName = sniHostName;
         this.censorshipStrategy = censorshipStrategy;
 
-        this.nativeHttpsClient = new NativeHttpsClientImpl(fptnServerDto.host,
-                fptnServerDto.port,
-                fptnServerDto.md5ServerFingerprint,
+        this.nativeHttpsClient = new NativeHttpsClientImpl(
+                serverEntity.getHost(),
+                serverEntity.getPort(),
+                serverEntity.getMd5ServerFingerprint(),
                 sniHostName,
                 censorshipStrategy
         );
@@ -66,11 +67,11 @@ public class WebSocketClientWrapper {
         String accessToken = getAccessToken(); // maybe move to constructor if it not changed between connections?
 
         nativeWebSocketClient = new NativeWebSocketClientImpl(
-                fptnServerDto.host,
-                fptnServerDto.port,
+                serverEntity.getHost(),
+                serverEntity.getPort(),
                 tunAddress,
                 accessToken,
-                fptnServerDto.md5ServerFingerprint,
+                serverEntity.getMd5ServerFingerprint(),
                 onOpenCallback,
                 onMessageReceivedCallback,
                 onFailureCallback,
@@ -110,8 +111,8 @@ public class WebSocketClientWrapper {
 
     private String getAccessToken() throws PVNClientException {
         String request = String.format("{\"username\": \"%s\", \"password\": \"%s\"}",
-                fptnServerDto.username,
-                fptnServerDto.password);
+                serverEntity.getUsername(),
+                serverEntity.getPassword());
 
         NativeResponse response = nativeHttpsClient.Post(LOGIN_URL, request, 5);
         if (response != null) {

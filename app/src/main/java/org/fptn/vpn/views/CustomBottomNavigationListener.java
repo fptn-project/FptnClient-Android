@@ -14,13 +14,14 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 
-import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.MultiFormatWriter;
 import com.google.zxing.common.BitMatrix;
 
 import org.fptn.vpn.R;
+import org.fptn.vpn.views.home.HomeActivity;
+import org.fptn.vpn.views.settings.SettingsActivity;
 
 import lombok.SneakyThrows;
 
@@ -28,7 +29,7 @@ public class CustomBottomNavigationListener implements NavigationBarView.OnItemS
     private final Context context;
     private final int currentViewId;
 
-    public CustomBottomNavigationListener(Context context, BottomNavigationView bottomNavigationView, int currentViewId) {
+    public CustomBottomNavigationListener(Context context, int currentViewId) {
         this.context = context;
         this.currentViewId = currentViewId;
     }

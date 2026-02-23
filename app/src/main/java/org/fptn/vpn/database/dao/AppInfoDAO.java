@@ -5,7 +5,7 @@ import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
 
-import org.fptn.vpn.database.model.AppInfoEntity;
+import org.fptn.vpn.database.entity.AppInfoEntity;
 
 import java.util.List;
 
@@ -25,7 +25,4 @@ public interface AppInfoDAO {
 
     @Query("DELETE FROM app_info")
     void deleteAll();
-
-    @Query("UPDATE app_info SET allowed = 0, disallowed = 0")
-    void resetAll();
 }

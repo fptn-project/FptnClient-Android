@@ -1,8 +1,5 @@
 package org.fptn.vpn.views.bypassmethod;
 
-import static org.fptn.vpn.views.ViewUtils.hideView;
-import static org.fptn.vpn.views.ViewUtils.showView;
-
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.os.Bundle;
@@ -22,6 +19,7 @@ import com.google.android.material.textfield.TextInputEditText;
 
 import org.fptn.vpn.R;
 import org.fptn.vpn.enums.BypassCensorshipMethod;
+import org.fptn.vpn.utils.ViewUtils;
 import org.fptn.vpn.views.CustomBottomNavigationListener;
 
 import java.util.Optional;
@@ -47,7 +45,7 @@ public class BypassMethodsActivity extends AppCompatActivity {
 
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavBar);
         bottomNavigationView.setSelectedItemId(R.id.menuSettings);
-        bottomNavigationView.setOnItemSelectedListener(new CustomBottomNavigationListener(this, bottomNavigationView, R.id.menuSettings));
+        bottomNavigationView.setOnItemSelectedListener(new CustomBottomNavigationListener(this, R.id.menuSettings));
 
         // Setup RadioGroup listener
         RadioGroup protocolRadioGroup = findViewById(R.id.bypass_method_radio_button_group);
@@ -71,15 +69,15 @@ public class BypassMethodsActivity extends AppCompatActivity {
             switch (bypassCensorshipMethod) {
                 case SNI_SPOOFING:
                     sniSpoofingRadioButton.setChecked(true);
-                    showView(sniLayout);
+                    ViewUtils.showView(sniLayout);
                     break;
                 case TLS_OBFUSCATION:
                     obfuscationRadioButton.setChecked(true);
-                    hideView(sniLayout);
+                    ViewUtils.hideView(sniLayout);
                     break;
                 case SNI_REALITY:
                     sniRealityRadioButton.setChecked(true);
-                    showView(sniLayout);
+                    ViewUtils.showView(sniLayout);
                     break;
             }
         });
