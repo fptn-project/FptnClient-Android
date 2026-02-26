@@ -207,6 +207,10 @@ public class FptnService extends VpnService {
     public int onStartCommand(Intent intent, int flags, int startId) {
         executorService.submit(() -> {
             try {
+                // Android may call onStartCommand with a null Intent in some edge cases
+                // (e.g., service restart). Avoid NPE on intent.getAction()/getIntExtra().
+                final String action = intent != null ? intent.getAction() : null;
+
                 /* check is internet connection available */
                 if (!NetworkUtils.isOnline(connectivityManager)) {
                     Log.e(TAG, "onStartCommand: no active internet connections!");
@@ -223,16 +227,18 @@ public class FptnService extends VpnService {
                 BypassCensorshipMethod bypassCensorshipMethod = SharedPrefUtils.getBypassCensorshipMethod(this);
 
                 boolean isActiveState = serviceStateMutableLiveData.getValue().getConnectionState().isActiveState();
-                if (ACTION_DISCONNECT.equals(intent.getAction()) && isActiveState) {
+                if (ACTION_DISCONNECT.equals(action) && isActiveState) {
                     if (SharedPrefUtils.getResetSelectedServerEnabled(this)) {
                         resetSelectedServer();
                     }
                     // stop running threads
                     disconnect();
-                } else if (ACTION_CONNECT.equals(intent.getAction()) && !isActiveState) {
+                } else if (ACTION_CONNECT.equals(action) && !isActiveState) {
                     setConnectionState(ConnectionState.CONNECTING, null);
 
-                    int serverId = intent.getIntExtra(SELECTED_SERVER, SELECTED_SERVER_ID_AUTO);
+                    int serverId = intent != null
+                            ? intent.getIntExtra(SELECTED_SERVER, SELECTED_SERVER_ID_AUTO)
+                            : SELECTED_SERVER_ID_AUTO;
 
                     // Process startService from TileService
                     if (serverId == START_FROM_TILE_AUTO) {
