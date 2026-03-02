@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_version">Версия 1.0.0 </string>
-    <!-- app_name - translatable="false" -->
-
 
     <string name="select_server">Выбор сервера</string>
     <string name="connection_time">Время подключения</string>
@@ -175,5 +173,20 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="disallowed_apps_radio_button_label_additional_info">Все приложения используют VPN, кроме выбранных</string>
     <string name="settings_reset_server_title">Выбор сервера:</string>
     <string name="settings_reset_server_on_disconnect">Сброс на Auto после отключения</string>
+
+    <string name="auto_sni_label">Автоподбор SNI</string>
+    <string name="sni_features_label">Настройки SNI</string>
+
+    <string name="load_sni_from_file">Загрузить SNI из файла</string>
+    <string name="delete_loaded_sni">Удалить загруженные SNI</string>
+    <string name="auto_select_sni">Запустить автоподбор SNI</string>
+    <string name="loaded_sni_label">Загруженные в локальную БД SNI:</string>
+    <string name="stop_sni_checking_button_label">Остановить поиск SNI</string>
+    <string name="reset_checked_previously_checkbox_label">Сбросить проверенные ранее?</string>
+    <string name="select_server_for_autoselect">Выберите сервер для автоподбора SNI</string>
+    <string name="start_sni_checking_button_label">Запустить</string>
+    <string name="selected_server">Выбранный сервер</string>
+    <string name="checking_current_sni">Проверяю SNI:</string>
+    <string name="load_default">Загрузить по-умолчанию</string>
 
 </resources>
