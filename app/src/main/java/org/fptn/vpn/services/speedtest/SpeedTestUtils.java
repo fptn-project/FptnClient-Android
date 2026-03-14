@@ -21,12 +21,13 @@ import java.util.stream.Collectors;
 public class SpeedTestUtils {
     private static final String TAG = SpeedTestUtils.class.getName();
     private static final long SEARCH_BEST_SERVER_MAX_TIMEOUT = 30L;
+    private static final String PREMIUM_KEYWORD = "premium";
 
     public static ServerEntity findFastestServer(List<ServerEntity> serverEntityList, String sniHostName, BypassCensorshipMethod censorshipStrategy) throws PVNClientException {
         Log.d(TAG, "SpeedTestUtils.findFastestServer() start: " + Instant.now() + ", Thread.Id: " + Thread.currentThread().getId());
 
         if (serverEntityList != null && !serverEntityList.isEmpty()) {
-            List<ServerEntity> selectedServers = selectRandomServers(serverEntityList);
+            List<ServerEntity> selectedServers = selectServersForTesting(serverEntityList);
             Log.d(TAG, "SpeedTestUtils.findFastestServer() testing " + selectedServers.size() +
                     " out of " + serverEntityList.size() + " servers");
 
@@ -51,13 +52,42 @@ public class SpeedTestUtils {
         throw new PVNClientException(ErrorCode.SERVER_LIST_NULL_OR_EMPTY);
     }
 
-    private static List<ServerEntity> selectRandomServers(List<ServerEntity> servers) {
+    private static List<ServerEntity> selectServersForTesting(List<ServerEntity> servers) {
         if (servers.size() <= 1) {
             return servers;
         }
-        List<ServerEntity> shuffled = new ArrayList<>(servers);
-        Collections.shuffle(shuffled);
-        int count = Math.max(1, (int) Math.ceil(servers.size() * 0.5));
-        return shuffled.subList(0, count);
+
+        // Select premium servers
+        List<ServerEntity> premiumServers = new ArrayList<>();
+        List<ServerEntity> regularServers = new ArrayList<>();
+        for (ServerEntity server : servers) {
+            if (server.getName() != null &&
+                    server.getName().toLowerCase().contains(PREMIUM_KEYWORD.toLowerCase())) {
+                premiumServers.add(server);
+            } else {
+                regularServers.add(server);
+            }
+        }
+
+        Log.d(TAG, "Found " + premiumServers.size() + " premium servers and " +
+                regularServers.size() + " regular servers");
+
+        List<ServerEntity> selectedServers = new ArrayList<>(premiumServers);
+        if (!regularServers.isEmpty()) {
+            Collections.shuffle(regularServers);
+            int totalServersCount = servers.size();
+            int regularCountToAdd = Math.max(0, (int) Math.ceil(totalServersCount * 0.3) - premiumServers.size());
+            regularCountToAdd = Math.min(regularCountToAdd, regularServers.size());
+            if (regularCountToAdd <= 0 && !regularServers.isEmpty()) {
+                regularCountToAdd = 1;
+            }
+            if (regularCountToAdd > 0) {
+                selectedServers.addAll(regularServers.subList(0, regularCountToAdd));
+            }
+        }
+        Log.d(TAG, "Selected " + selectedServers.size() + " servers for testing: " +
+                selectedServers.size() + " total (" + premiumServers.size() + " premium + " +
+                (selectedServers.size() - premiumServers.size()) + " regular)");
+        return selectedServers;
     }
 }
