@@ -29,6 +29,7 @@ import androidx.lifecycle.ViewModelProvider;
 import org.fptn.vpn.R;
 import org.fptn.vpn.database.entity.ServerEntity;
 import org.fptn.vpn.enums.ConnectionState;
+import org.fptn.vpn.services.ping.Pinger;
 import org.fptn.vpn.services.vpn.FptnServiceState;
 import org.fptn.vpn.services.tile.FptnTileService;
 import org.fptn.vpn.utils.CustomSpinner;
@@ -43,6 +44,7 @@ import org.fptn.vpn.vpnclient.exception.PVNClientException;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.snackbar.Snackbar;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -76,6 +78,8 @@ public class HomeActivity extends AppCompatActivity {
     //for service binding
     private ServiceConnection connection;
     private BottomNavigationView bottomNavigationView;
+
+    private Pinger pinger;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -147,8 +151,11 @@ public class HomeActivity extends AppCompatActivity {
                     spinnerServers.setSelection(i);
                 }
             }
-
             spinnerServers.performClosedEvent(); // FIX SPINNER BACKGROUND
+            FptnServiceState state = viewModel.getServiceStateMutableLiveData().getValue();
+            if (state == null || state.getConnectionState() == ConnectionState.DISCONNECTED) {
+                startPingingIfVpnDisabled();
+            }
         });
 
         View settingsMenuItem = findViewById(R.id.menuSettings);
@@ -157,9 +164,14 @@ public class HomeActivity extends AppCompatActivity {
             switch (fptnServiceState.getConnectionState()) {
                 case CONNECTED:
                     connectedStateUiItems();
+                    if (pinger != null) {
+                        pinger.stop();
+                        pinger = null;
+                    }
                     break;
                 case DISCONNECTED:
                     disconnectedStateUiItems();
+                    startPingingIfVpnDisabled();
                     break;
                 default:
                     break;
@@ -414,4 +426,48 @@ public class HomeActivity extends AppCompatActivity {
         settingsPermissionActivityResultLauncher.launch(intent);
     }
 
+    private void startPingingIfVpnDisabled() {
+        FptnServiceState state = viewModel.getServiceStateMutableLiveData().getValue();
+        if (state != null && state.getConnectionState().isActiveState()) {
+            return;
+        }
+
+        List<ServerEntity> servers = viewModel.getServerDtoListLiveData().getValue();
+        if (servers == null || servers.isEmpty()) {
+            return;
+        }
+
+        String[] hosts = new String[servers.size()];
+        int count = 0;
+        for (ServerEntity server : servers) {
+            if (server.getHost() != null && !server.getHost().isEmpty()) {
+                hosts[count++] = server.getHost();
+            }
+        }
+        if (count == 0) {
+            return;
+        }
+
+        String[] validHosts = new String[count];
+        System.arraycopy(hosts, 0, validHosts, 0, count);
+
+        if (pinger != null) {
+            pinger.stop();
+        }
+
+        pinger = new Pinger();
+        pinger.start(validHosts, result -> {
+            runOnUiThread(() -> {
+                ServerEntityAdapter adapter = (ServerEntityAdapter) spinnerServers.getAdapter();
+                for (int i = 0; i < adapter.getCount(); i++) {
+                    ServerEntity server = (ServerEntity) adapter.getItem(i);
+                    if (result.getHost().equals(server.getHost())) {
+                        server.setPingMs(result.getPingMs());
+                        adapter.notifyDataSetChanged();
+                        break;
+                    }
+                }
+            });
+        });
+    }
 }

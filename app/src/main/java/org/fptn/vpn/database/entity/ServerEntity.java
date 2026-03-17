@@ -29,6 +29,12 @@ public class ServerEntity {
     private String md5ServerFingerprint;
     private boolean censured;
 
+    private transient long pingMs = -1;
+
+    public String getGlag() {
+        return CountryFlags.getCountryFlagByCountryCode(countryCode);
+    }
+
     public String getServerInfo() {
         String flag = CountryFlags.getCountryFlagByCountryCode(countryCode);
         return name + " (" + (flag != null ? flag : host) + ")";
@@ -46,4 +52,12 @@ public class ServerEntity {
             .md5ServerFingerprint(null)
             .censured(false)
             .build();
+
+    public long getPingMs() {
+        return pingMs;
+    }
+
+    public void setPingMs(long pingMs) {
+        this.pingMs = pingMs;
+    }
 }
