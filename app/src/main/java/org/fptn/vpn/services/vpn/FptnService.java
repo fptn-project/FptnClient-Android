@@ -224,9 +224,6 @@ public class FptnService extends VpnService {
 
                 boolean isActiveState = serviceStateMutableLiveData.getValue().getConnectionState().isActiveState();
                 if (ACTION_DISCONNECT.equals(intent.getAction()) && isActiveState) {
-                    if (SharedPrefUtils.getResetSelectedServerEnabled(this)) {
-                        resetSelectedServer();
-                    }
                     // stop running threads
                     disconnect();
                 } else if (ACTION_CONNECT.equals(intent.getAction()) && !isActiveState) {
@@ -534,6 +531,16 @@ public class FptnService extends VpnService {
 
         // unregister network callback
         unregisterNetworkCallback();
+
+        if (SharedPrefUtils.getResetSelectedServerEnabled(this)) {
+            executorService.submit(() -> {
+                try {
+                    resetSelectedServer();
+                } catch (ExecutionException | InterruptedException e) {
+                    Log.e(TAG, "disconnect: can't reset selected server", e);
+                }
+            });
+        }
 
         // stop service
         stopSelf();
