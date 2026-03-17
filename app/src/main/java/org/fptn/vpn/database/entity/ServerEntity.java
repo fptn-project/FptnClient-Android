@@ -1,6 +1,7 @@
 package org.fptn.vpn.database.entity;
 
 import androidx.room.Entity;
+import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
 
 import org.fptn.vpn.core.common.Constants;
@@ -9,7 +10,9 @@ import org.fptn.vpn.utils.CountryFlags;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Data
 @Entity(tableName = "server_table")
@@ -28,6 +31,11 @@ public class ServerEntity {
     private String countryCode;
     private String md5ServerFingerprint;
     private boolean censured;
+
+    @Ignore // not save in DB (Room ORM annotation)
+    @Getter
+    @Setter
+    private long pingMs = -1;
 
     public String getServerInfo() {
         String flag = CountryFlags.getCountryFlagByCountryCode(countryCode);
