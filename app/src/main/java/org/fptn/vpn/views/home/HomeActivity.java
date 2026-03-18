@@ -43,6 +43,7 @@ import org.fptn.vpn.vpnclient.exception.PVNClientException;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.snackbar.Snackbar;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -142,12 +143,6 @@ public class HomeActivity extends AppCompatActivity {
         viewModel.getServerDtoListLiveData().observe(this, serverEntities -> {
             ((ServerEntityAdapter) spinnerServers.getAdapter()).setServerEntityList(serverEntities);
 
-            for (int i = 0; i < serverEntities.size(); i++) {
-                if (serverEntities.get(i).isSelected()) {
-                    spinnerServers.setSelection(i);
-                }
-            }
-
             spinnerServers.performClosedEvent(); // FIX SPINNER BACKGROUND
         });
 
@@ -160,6 +155,7 @@ public class HomeActivity extends AppCompatActivity {
                     break;
                 case DISCONNECTED:
                     disconnectedStateUiItems();
+                    updateSpinnerSelection();
                     break;
                 default:
                     break;
@@ -219,6 +215,30 @@ public class HomeActivity extends AppCompatActivity {
         disconnectedStateUiItems();
 
         requestAddTileService();
+    }
+
+    private void updateSpinnerSelection() {
+        if (spinnerServers.getAdapter() != null
+                && spinnerServers.getAdapter() instanceof ServerEntityAdapter serverEntityAdapter) {
+            List<ServerEntity> serverEntityList = serverEntityAdapter.getServerEntityList();
+            if (serverEntityList != null && !serverEntityList.isEmpty()) {
+                if (SharedPrefUtils.getResetSelectedServerEnabled(this)) {
+                    spinnerServers.setSelection(0);
+                } else {
+                    boolean selected = false;
+                    for (int i = 0; i < serverEntityList.size(); i++) {
+                        if (serverEntityList.get(i).isSelected()) {
+                            spinnerServers.setSelection(i);
+                            selected = true;
+                            break;
+                        }
+                    }
+                    if (!selected) {
+                        spinnerServers.setSelection(0);
+                    }
+                }
+            }
+        }
     }
 
     @Override
