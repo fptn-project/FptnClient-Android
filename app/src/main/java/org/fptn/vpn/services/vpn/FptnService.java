@@ -532,10 +532,14 @@ public class FptnService extends VpnService {
         // unregister network callback
         unregisterNetworkCallback();
 
-        if (SharedPrefUtils.getResetSelectedServerEnabled(this)) {
+        if (SharedPrefUtils.getResetSelectedServerEnabled(this)
+                || (!SharedPrefUtils.getResetSelectedServerEnabled(this) && exception != null)) {
             executorService.submit(() -> {
                 try {
                     resetSelectedServer();
+
+                    //send to UI activity that state is disconnected.
+                    setConnectionState(ConnectionState.DISCONNECTED, exception);
                 } catch (ExecutionException | InterruptedException e) {
                     Log.e(TAG, "disconnect: can't reset selected server", e);
                 }

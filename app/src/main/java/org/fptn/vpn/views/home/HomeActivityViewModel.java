@@ -29,6 +29,7 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -79,15 +80,16 @@ public class HomeActivityViewModel extends AndroidViewModel {
             if (fptnServiceState != null) {
                 ConnectionState connectionState = fptnServiceState.getConnectionState();
                 switch (connectionState) {
-                    case DISCONNECTED ->
-                            statusTextLiveData.postValue(getApplication().getString(R.string.disconnected));
+                    case DISCONNECTED -> {
+                        statusTextLiveData.postValue(getApplication().getString(R.string.disconnected));
+                        refreshServerListFromDB();
+                    }
                     case CONNECTING -> {
                         statusTextLiveData.postValue(getApplication().getString(R.string.connecting));
                         resetErrorMessage();
                     }
                     case CONNECTED -> {
                         statusTextLiveData.postValue(getApplication().getString(R.string.connected));
-                        updateServers();
                         resetErrorMessage();
                     }
                     case RECONNECTING ->
@@ -107,8 +109,6 @@ public class HomeActivityViewModel extends AndroidViewModel {
             }
         };
         serviceStateMutableLiveData.observeForever(serviceStateObserver);
-
-        updateServers();
     }
 
     private void startCheckingPing() {
@@ -192,15 +192,11 @@ public class HomeActivityViewModel extends AndroidViewModel {
         isPingCheckingActive = false;
     }
 
-    public void updateServers() {
+    public void refreshServerListFromDB() {
         executorService.submit(() -> {
             List<ServerEntity> serverList = new ArrayList<>();
             serverList.add(ServerEntity.AUTO);
             serverList.addAll(appDatabase.serverDAO().getServerList());
-
-            serverList.stream().filter(ServerEntity::isSelected).findFirst()
-                    .ifPresent(serverEntity ->
-                            connectedServerInfoLiveData.postValue(serverEntity.getServerInfo()));
 
             serverDtoListLiveData.postValue(serverList);
         });
@@ -238,7 +234,13 @@ public class HomeActivityViewModel extends AndroidViewModel {
             }
         });
 
-        service.getServiceStateMutableLiveData().observeForever(serviceStateMutableLiveData::postValue);
+        service.getServiceStateMutableLiveData().observeForever(serverState -> {
+            serviceStateMutableLiveData.postValue(serverState);
+
+            Optional.ofNullable(serverState).map(FptnServiceState::getConnectionState)
+                    .filter(ConnectionState::isActiveState)
+                    .ifPresent(state -> connectedServerInfoLiveData.postValue(service.getActionConnectServerInfo()));
+        });
     }
 
     public void unsubscribe() {
