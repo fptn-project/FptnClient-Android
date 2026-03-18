@@ -7,6 +7,8 @@ import androidx.room.PrimaryKey;
 import org.fptn.vpn.core.common.Constants;
 import org.fptn.vpn.utils.CountryFlags;
 
+import java.util.Objects;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -36,6 +38,10 @@ public class ServerEntity {
     @Getter
     @Setter
     private long pingMs = -1;
+
+    public boolean IsAuto() {
+        return Objects.equals(name, "Auto");
+    }
 
     public String getServerInfo() {
         String flag = CountryFlags.getCountryFlagByCountryCode(countryCode);

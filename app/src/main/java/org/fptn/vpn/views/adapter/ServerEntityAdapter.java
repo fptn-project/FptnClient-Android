@@ -3,11 +3,13 @@ package org.fptn.vpn.views.adapter;
 import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
 
-import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import org.fptn.vpn.R;
@@ -55,67 +57,124 @@ public class ServerEntityAdapter extends BaseAdapter {
         }
         ServerEntity server = serverEntityList.get(position);
 
-        TextView host = view.findViewById(R.id.fptn_server_host);
-        if (server.getCountryCode() != null) {
-            host.setVisibility(VISIBLE);
-
-            TextView tvCountryFlagEmoji = view.findViewById(R.id.tv_country_flag_emoji);
-            if (tvCountryFlagEmoji != null) {
-                tvCountryFlagEmoji.setText(CountryFlags.getCountryFlagByCountryCode(server.getCountryCode()));
-                tvCountryFlagEmoji.setVisibility(VISIBLE);
-            }
-            if (layoutViewResourceId == R.layout.home_list_recycler_server_item) {
-                view.findViewById(R.id.iv_country).setVisibility(GONE);
-            }
-        } else {
-            host.setVisibility(GONE);
-
-            if (layoutViewResourceId == R.layout.home_list_recycler_server_item) {
-                view.findViewById(R.id.iv_country).setVisibility(VISIBLE);
-            }
-        }
-
-        if (server.isCensured()) {
-            view.findViewById(R.id.censoredIcon).setVisibility(VISIBLE);
-        } else {
-            view.findViewById(R.id.censoredIcon).setVisibility(GONE);
-        }
-
-        TextView name = view.findViewById(R.id.fptn_server_name);
-        name.setText(server.getName());
-
-        // show ping
+        ImageView ivCountry = view.findViewById(R.id.iv_country);
+        TextView tvCountryFlagEmoji = view.findViewById(R.id.tv_country_flag_emoji);
+        LinearLayout topRow = view.findViewById(R.id.top_row);
+        LinearLayout bottomRow = view.findViewById(R.id.bottom_row);
+        TextView serverName = view.findViewById(R.id.fptn_server_name);
+        ImageView censoredIcon = view.findViewById(R.id.censoredIcon);
+        TextView pingEmoji = view.findViewById(R.id.tv_ping_emoji);
         TextView pingView = view.findViewById(R.id.server_ping);
-        if (pingView != null) {
-            long ping = server.getPingMs();
-            if (ping > 0) {
-                pingView.setText(ping + " ms");
-                pingView.setVisibility(VISIBLE);
-            } else if (ping == -1) {
-                pingView.setText("  --  ");
-                pingView.setVisibility(VISIBLE);
-            } else {
-                pingView.setVisibility(GONE);
-            }
-            // change color
-            int color = getPingColor(ping);
-            pingView.setBackgroundColor(color);
+        TextView hostView = view.findViewById(R.id.fptn_server_host);
+
+        if (topRow != null) {
+            RelativeLayout.LayoutParams topRowParams = (RelativeLayout.LayoutParams) topRow.getLayoutParams();
+            topRowParams.addRule(RelativeLayout.CENTER_VERTICAL, 0);
+            topRowParams.addRule(RelativeLayout.ALIGN_PARENT_TOP, RelativeLayout.TRUE);
+            topRowParams.setMarginStart((int) (38 * parent.getContext().getResources().getDisplayMetrics().density)); // возвращаем оригинальный отступ
+            topRow.setLayoutParams(topRowParams);
         }
 
+        if (server.IsAuto()) {
+            ivCountry.setVisibility(VISIBLE);
+            tvCountryFlagEmoji.setVisibility(GONE);
+            censoredIcon.setVisibility(GONE);
+            pingEmoji.setVisibility(GONE);
+            pingView.setVisibility(GONE);
+            hostView.setVisibility(GONE);
+
+            if (bottomRow != null) {
+                bottomRow.setVisibility(GONE);
+            }
+
+            // center Auto
+            if (topRow != null) {
+                RelativeLayout.LayoutParams topRowParams = (RelativeLayout.LayoutParams) topRow.getLayoutParams();
+                topRowParams.addRule(RelativeLayout.CENTER_VERTICAL, RelativeLayout.TRUE);
+                topRowParams.addRule(RelativeLayout.ALIGN_PARENT_TOP, 0);
+
+                int marginStartInPx = (int) (4 * parent.getContext().getResources().getDisplayMetrics().density);
+                topRowParams.setMarginStart(marginStartInPx);
+                topRow.setLayoutParams(topRowParams);
+
+                LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) serverName.getLayoutParams();
+                params.width = LinearLayout.LayoutParams.MATCH_PARENT;
+                params.weight = 0;
+                params.gravity = android.view.Gravity.CENTER_VERTICAL | android.view.Gravity.START;
+                serverName.setLayoutParams(params);
+
+                for (int i = 0; i < topRow.getChildCount(); i++) {
+                    View child = topRow.getChildAt(i);
+                    if (child.getId() == R.id.censoredIcon) {
+                        child.setVisibility(GONE);
+                    }
+                }
+            }
+            serverName.setVisibility(VISIBLE);
+            serverName.setText(server.getName());
+            serverName.setTextAlignment(View.TEXT_ALIGNMENT_VIEW_START);
+            serverName.setTypeface(serverName.getTypeface(), android.graphics.Typeface.NORMAL);
+
+        } else {
+            ivCountry.setVisibility(GONE);
+
+            if (server.getCountryCode() != null && !server.getCountryCode().isEmpty()) {
+                tvCountryFlagEmoji.setVisibility(VISIBLE);
+                tvCountryFlagEmoji.setText(CountryFlags.getCountryFlagByCountryCode(server.getCountryCode()));
+            } else {
+                tvCountryFlagEmoji.setVisibility(GONE);
+            }
+
+            serverName.setVisibility(VISIBLE);
+            serverName.setText(server.getName());
+            serverName.setTextAlignment(View.TEXT_ALIGNMENT_VIEW_START);
+            serverName.setTypeface(serverName.getTypeface(), android.graphics.Typeface.NORMAL);
+
+            if (topRow != null) {
+                LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) serverName.getLayoutParams();
+                params.width = 0;
+                params.weight = 1;
+                params.gravity = android.view.Gravity.START;
+                serverName.setLayoutParams(params);
+
+                if (server.isCensured()) {
+                    censoredIcon.setVisibility(VISIBLE);
+                } else {
+                    censoredIcon.setVisibility(GONE);
+                }
+            }
+
+            if (bottomRow != null) {
+                bottomRow.setVisibility(VISIBLE);
+                long ping = server.getPingMs();
+                if (ping > 0) {
+                    pingView.setVisibility(VISIBLE);
+                    pingView.setText(ping + "ms");
+                    pingEmoji.setVisibility(VISIBLE);
+                    pingEmoji.setText(getPingEmoji(ping));
+                } else if (ping < 0) {
+                    pingView.setVisibility(VISIBLE);
+                    pingView.setText("---  ---  ---");
+                    pingEmoji.setVisibility(GONE);
+                } else {
+                    pingView.setVisibility(GONE);
+                    pingEmoji.setVisibility(GONE);
+                }
+            }
+            hostView.setVisibility(GONE);
+        }
         return view;
     }
 
-    private int getPingColor(long ping) {
-        if (ping < 0) {
-            return Color.WHITE;
-        } else if (ping < 150) {
-            return 0xFF00FF00;
+    private String getPingEmoji(long ping) {
+        if (ping < 150) {
+            return "🟢";
         } else if (ping < 200) {
-            return 0xFFFFFF00;
+            return "🟡";
         } else if (ping < 300) {
-            return 0xFFFFA500;
+            return "🟠";
         }
-        return 0xFFFF0000;
+        return "🔴";
     }
 
     public void setServerEntityList(List<ServerEntity> serverEntityList) {
