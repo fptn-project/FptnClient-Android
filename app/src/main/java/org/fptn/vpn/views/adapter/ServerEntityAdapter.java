@@ -71,7 +71,7 @@ public class ServerEntityAdapter extends BaseAdapter {
             RelativeLayout.LayoutParams topRowParams = (RelativeLayout.LayoutParams) topRow.getLayoutParams();
             topRowParams.addRule(RelativeLayout.CENTER_VERTICAL, 0);
             topRowParams.addRule(RelativeLayout.ALIGN_PARENT_TOP, RelativeLayout.TRUE);
-            topRowParams.setMarginStart((int) (38 * parent.getContext().getResources().getDisplayMetrics().density)); // возвращаем оригинальный отступ
+            topRowParams.setMarginStart((int) (38 * parent.getContext().getResources().getDisplayMetrics().density));
             topRow.setLayoutParams(topRowParams);
         }
 
