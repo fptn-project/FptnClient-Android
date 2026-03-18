@@ -57,7 +57,7 @@ public class ServerEntityAdapter extends BaseAdapter {
         }
         ServerEntity server = serverEntityList.get(position);
 
-        ImageView ivCountry = view.findViewById(R.id.iv_country);
+        View ivCountry = view.findViewById(R.id.iv_country); // in one layout it is ImageView, in another - TextView
         TextView tvCountryFlagEmoji = view.findViewById(R.id.tv_country_flag_emoji);
         LinearLayout topRow = view.findViewById(R.id.top_row);
         LinearLayout bottomRow = view.findViewById(R.id.bottom_row);

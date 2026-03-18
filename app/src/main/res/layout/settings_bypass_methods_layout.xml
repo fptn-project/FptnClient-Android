@@ -175,7 +175,7 @@
                         android:layout_height="wrap_content"
                         android:layout_centerVertical="true"
                         android:layout_marginEnd="12dp"
-                        android:layout_toStartOf="@+id/imageView"
+                        android:layout_toStartOf="@id/imageView"
                         android:layout_toEndOf="@id/SNI_label"
                         android:paddingLeft="12dp"
                         android:paddingRight="12dp"
