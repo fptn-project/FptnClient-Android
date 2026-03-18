@@ -8,7 +8,7 @@
     android:paddingRight="20dp">
 
     <TextView
-        android:id="@+id/ivCountry"
+        android:id="@+id/iv_country"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentStart="true"
@@ -22,7 +22,7 @@
         android:layout_height="wrap_content"
         android:layout_centerVertical="true"
         android:layout_marginStart="10dp"
-        android:layout_toEndOf="@id/ivCountry"
+        android:layout_toEndOf="@id/iv_country"
         android:textColor="@color/white"
         tools:text="United Kingdom" />
 
