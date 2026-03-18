@@ -35,9 +35,9 @@
         android:id="@+id/top_row"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_toEndOf="@+id/iv_country"
         android:layout_alignParentTop="true"
         android:layout_marginStart="38dp"
+        android:layout_toEndOf="@+id/iv_country"
         android:orientation="horizontal">
 
         <!-- Имя сервера -->
@@ -46,12 +46,12 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
+            android:layout_marginStart="5dp"
             android:layout_weight="1"
             android:ellipsize="end"
             android:maxLines="1"
             android:textColor="@color/primary"
             android:textSize="16sp"
-            android:layout_marginStart="5dp"
             tools:text="United Kingdom" />
 
         <!-- Значок цензуры -->
@@ -73,9 +73,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/top_row"
-        android:layout_toEndOf="@+id/iv_country"
         android:layout_marginStart="44dp"
         android:layout_marginTop="0dp"
+        android:layout_toEndOf="@+id/iv_country"
         android:gravity="start"
         android:orientation="horizontal">
 
@@ -85,9 +85,9 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
             android:layout_marginEnd="8dp"
-            android:textSize="8sp"
-            tools:text="🔴"
+            android:textSize="11sp"
             android:visibility="gone"
+            tools:text="🔴"
             tools:visibility="visible" />
 
         <!-- Пинг -->

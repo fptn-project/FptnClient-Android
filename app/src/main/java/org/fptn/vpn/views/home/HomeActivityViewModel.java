@@ -37,7 +37,6 @@ import lombok.Getter;
 
 public class HomeActivityViewModel extends AndroidViewModel {
     private static final String TAG = HomeActivityViewModel.class.getSimpleName();
-    public static final int PING_DELAY_MILLIS = 2000;
 
     @Getter
     private final MutableLiveData<FptnServiceState> serviceStateMutableLiveData = new MutableLiveData<>(FptnServiceState.INITIAL);
@@ -65,8 +64,11 @@ public class HomeActivityViewModel extends AndroidViewModel {
     // observers
     private final Observer<FptnServiceState> serviceStateObserver;
 
+    // for pingers
     private final ConnectivityManager connectivityManager;
     private volatile boolean isPingCheckingActive = false;
+    public static final int PING_DELAY_MILLIS = 1000;
+    public static final int BATCH_SIZE = 8;
 
     public HomeActivityViewModel(@NonNull Application application) {
         super(application);
@@ -127,52 +129,60 @@ public class HomeActivityViewModel extends AndroidViewModel {
 
                 // Check is internet connection available
                 if (NetworkUtils.isOnline(connectivityManager)) {
-                    // Create a temporary pool for this batch of pings
-                    ExecutorService batchPingExecutor = Executors.newFixedThreadPool(servers.size());
-                    try {
-                        List<CompletableFuture<Void>> futures = new ArrayList<>();
+                    // Filter out AUTO and create a working list to avoid concurrent modification issues
+                    List<ServerEntity> targets = new ArrayList<>();
+                    for (ServerEntity s : servers) {
+                        if (s != ServerEntity.AUTO) targets.add(s);
+                    }
 
-                        for (ServerEntity server : servers) {
-                            if (server == ServerEntity.AUTO) continue;
+                    // Process in batches
+                    for (int i = 0; i < targets.size(); i += BATCH_SIZE) {
+                        // Calculate the end of the current batch
+                        int end = Math.min(i + BATCH_SIZE, targets.size());
+                        List<ServerEntity> batch = targets.subList(i, end);
 
-                            futures.add(CompletableFuture.runAsync(() -> {
+                        // Use a temporary executor for the current batch
+                        ExecutorService batchPingExecutor = Executors.newFixedThreadPool(batch.size());
+                        try {
+                            List<CompletableFuture<Void>> futures = new ArrayList<>();
 
-                                long startTime = System.currentTimeMillis();
-                                try (Socket socket = new Socket()) {
-                                    // Use port 443 or your specific VPN port
-                                    socket.connect(new InetSocketAddress(server.getHost(), 443), 2000);
-                                    server.setPingMs(System.currentTimeMillis() - startTime);
+                            for (ServerEntity server : batch) {
+                                futures.add(CompletableFuture.runAsync(() -> {
+                                    long startTime = System.currentTimeMillis();
+                                    try (Socket socket = new Socket()) {
+                                        // Connect with a timeout
+                                        socket.connect(new InetSocketAddress(server.getHost(), 443), 2000);
+                                        server.setPingMs(System.currentTimeMillis() - startTime);
 
-                                    Log.d(TAG, "Ping for host: " + server.getServerInfo() + " ping: " + server.getPingMs() + "ms");
-                                } catch (IOException e) {
-                                    server.setPingMs(-1);
-                                }
-                            }, batchPingExecutor));
+                                        Log.d(TAG, "Ping for host: " + server.getServerInfo() + " ping: " + server.getPingMs() + "ms");
+                                    } catch (IOException e) {
+                                        server.setPingMs(-1);
+                                    }
+                                }, batchPingExecutor));
+                            }
+
+                            // Wait for the current batch to finish before starting the next
+                            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+                        } finally {
+                            batchPingExecutor.shutdown();
                         }
 
-                        // Wait for the whole batch to finish
-                        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+                        // Update the UI with new ping values
+                        serverDtoListLiveData.postValue(servers);
 
-
-                    } finally {
-                        batchPingExecutor.shutdown();
+                        // Wait before take nest batch
+                        try {
+                            Thread.sleep(PING_DELAY_MILLIS);
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                            isPingCheckingActive = false;
+                        }
                     }
                 } else {
                     Log.d(TAG, "startCheckingPing: no active internet connections!");
                     for (ServerEntity server : servers) {
                         server.setPingMs(-1);
                     }
-                }
-
-                // Update the UI with new ping values
-                serverDtoListLiveData.postValue(servers);
-
-                // Wait before the next check
-                try {
-                    Thread.sleep(PING_DELAY_MILLIS);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    isPingCheckingActive = false;
                 }
             }
         });
