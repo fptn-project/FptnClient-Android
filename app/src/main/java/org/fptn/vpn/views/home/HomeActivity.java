@@ -24,6 +24,8 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.Lifecycle;
+import androidx.lifecycle.LiveData;
 import androidx.lifecycle.ViewModelProvider;
 
 import org.fptn.vpn.R;
@@ -152,10 +154,18 @@ public class HomeActivity extends AppCompatActivity {
             switch (fptnServiceState.getConnectionState()) {
                 case CONNECTED:
                     connectedStateUiItems();
+
+                    viewModel.stopCheckingPing();
                     break;
                 case DISCONNECTED:
                     disconnectedStateUiItems();
                     updateSpinnerSelection();
+
+                    // Check activity on foreground
+                    if (getLifecycle().getCurrentState() == Lifecycle.State.RESUMED){
+                        viewModel.startCheckingPing();
+                    }
+
                     break;
                 default:
                     break;
@@ -241,12 +251,35 @@ public class HomeActivity extends AppCompatActivity {
         }
     }
 
+    // Activity on background
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        Log.d(TAG, "onPause: ");
+
+        viewModel.stopCheckingPing();
+    }
+
+    // Activity on foreground
     @Override
     protected void onResume() {
         super.onResume();
+
+        Log.d(TAG, "onResume: ");
+
         if (!isFinishing() && !isDestroyed()) {
             bottomNavigationView.setSelectedItemId(R.id.menuHome);
         }
+
+        Optional.ofNullable(viewModel.getServiceStateMutableLiveData())
+                .map(LiveData::getValue)
+                .map(FptnServiceState::getConnectionState)
+                .ifPresent((state) -> {
+                    if (state == ConnectionState.DISCONNECTED) {
+                        viewModel.startCheckingPing();
+                    }
+                });
     }
 
     private void disconnectedStateUiItems() {
@@ -256,6 +289,12 @@ public class HomeActivity extends AppCompatActivity {
         hideView(permissionWarningFrame);
 
         showView(spinnerServers);
+
+        if (getLifecycle().getCurrentState() == Lifecycle.State.RESUMED) {
+            viewModel.startCheckingPing();
+        } else {
+            viewModel.stopCheckingPing();
+        }
     }
 
     private void connectedStateUiItems() {

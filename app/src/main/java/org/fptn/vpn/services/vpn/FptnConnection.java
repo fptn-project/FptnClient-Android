@@ -60,7 +60,7 @@ public class FptnConnection extends Thread {
     /**
      * Maximum packet size is constrained by the MTU
      */
-    private static final int MAX_PACKET_SIZE = 1450;
+    private static final int MAX_PACKET_SIZE = 1500;
 
     @Getter
     private final int connectionId;

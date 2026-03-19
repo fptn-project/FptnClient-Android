@@ -72,7 +72,6 @@ public class FptnService extends VpnService {
 
     private final AtomicReference<FptnConnection> activeConnection = new AtomicReference<>();
     private final AtomicInteger nextConnectionId = new AtomicInteger(1);
-    private final AppDatabase appDatabase = AppDatabase.getInstance(this);
 
     // Pending Intent for launch MainActivity when notification tapped
     private PendingIntent launchMainActivityPendingIntent;
@@ -95,6 +94,8 @@ public class FptnService extends VpnService {
     private PowerManager.WakeLock wakeLock;
 
     private Observer<FptnServiceState> serviceStateObserver;
+
+    private AppDatabase appDatabase;
 
     /**
      * LocalBinder - just the way to give HomeActivity link on FptnService object
@@ -173,6 +174,9 @@ public class FptnService extends VpnService {
     @Override
     public void onCreate() {
         Log.i(TAG, "FptnService.onCreate() Thread.Id: " + Thread.currentThread().getId());
+
+        // Get database instance (this need context! context may not exist earlier!)
+        appDatabase = AppDatabase.getInstance(this);
 
         // pending intent for open MainActivity on tap
         launchMainActivityPendingIntent = PendingIntent.getActivity(this, 0,

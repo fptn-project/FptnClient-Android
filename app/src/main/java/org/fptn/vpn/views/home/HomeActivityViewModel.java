@@ -59,7 +59,6 @@ public class HomeActivityViewModel extends AndroidViewModel {
     private final MutableLiveData<String> connectedServerInfoLiveData = new MutableLiveData<>();
 
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
-    private final ExecutorService pingExecutorService = Executors.newSingleThreadExecutor();
     private final AppDatabase appDatabase = AppDatabase.getInstance(getApplication());
 
     // observers
@@ -67,6 +66,7 @@ public class HomeActivityViewModel extends AndroidViewModel {
 
     // for pingers
     private final ConnectivityManager connectivityManager;
+    private final ExecutorService pingExecutorService = Executors.newSingleThreadExecutor();
     private volatile boolean isPingCheckingActive = false;
     public static final int PING_DELAY_MILLIS = 1000;
     public static final int BATCH_SIZE = 8;
@@ -96,12 +96,6 @@ public class HomeActivityViewModel extends AndroidViewModel {
                             statusTextLiveData.postValue(getApplication().getString(R.string.connected));
                 }
 
-                if (!connectionState.isActiveState()) {
-                    startCheckingPing();
-                } else {
-                    stopCheckingPing();
-                }
-
                 PVNClientException exception = fptnServiceState.getException();
                 if (exception != null) {
                     handlePVNClientException(exception);
@@ -111,7 +105,7 @@ public class HomeActivityViewModel extends AndroidViewModel {
         serviceStateMutableLiveData.observeForever(serviceStateObserver);
     }
 
-    private void startCheckingPing() {
+    public void startCheckingPing() {
         // Prevent multiple loops from starting
         if (isPingCheckingActive) return;
         isPingCheckingActive = true;
@@ -151,7 +145,7 @@ public class HomeActivityViewModel extends AndroidViewModel {
                                     long startTime = System.currentTimeMillis();
                                     try (Socket socket = new Socket()) {
                                         // Connect with a timeout
-                                        socket.connect(new InetSocketAddress(server.getHost(), 443), 2000);
+                                        socket.connect(new InetSocketAddress(server.getHost(), 443), 5000);
                                         server.setPingMs(System.currentTimeMillis() - startTime);
 
                                         Log.d(TAG, "Ping for host: " + server.getServerInfo() + " ping: " + server.getPingMs() + "ms");
@@ -188,7 +182,7 @@ public class HomeActivityViewModel extends AndroidViewModel {
         });
     }
 
-    private void stopCheckingPing() {
+    public void stopCheckingPing() {
         isPingCheckingActive = false;
     }
 
