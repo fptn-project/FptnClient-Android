@@ -53,6 +53,13 @@ import lombok.Setter;
 public class FptnConnection extends Thread {
     private static final String TAG = FptnConnection.class.getSimpleName();
 
+    private static final String[] FALLBACK_DNS_SERVERS = {
+            "1.1.1.1",        // Cloudflare
+            "8.8.8.8",        // Google
+            "216.146.35.35",  // Dyn
+            "208.67.222.222"  // OpenDNS
+    };
+
     /**
      * Minimum interval between sends
      */
@@ -152,7 +159,7 @@ public class FptnConnection extends Thread {
             /*
             From documentation: You can create either an allowed list, or, a disallowed list, but not both
              */
-            if (perAppVpnMode == PerAppVpnMode.ONLY_ALLOWED){
+            if (perAppVpnMode == PerAppVpnMode.ONLY_ALLOWED) {
                 for (AppInfo appInfo : appInfos) {
                     String packageName = appInfo.getPackageName();
                     try {
@@ -161,7 +168,7 @@ public class FptnConnection extends Thread {
                         Log.d(TAG, "Package not found: " + packageName);
                     }
                 }
-            } else if (perAppVpnMode == PerAppVpnMode.EXCEPT_DISALLOWED){
+            } else if (perAppVpnMode == PerAppVpnMode.EXCEPT_DISALLOWED) {
                 for (AppInfo appInfo : appInfos) {
                     String packageName = appInfo.getPackageName();
                     try {
@@ -172,13 +179,24 @@ public class FptnConnection extends Thread {
                 }
             }
 
-            final String dnsServer = webSocketClient.getDnsServerIPv4();
-            builder.addDnsServer(dnsServer);
-            builder.addDnsServer(InetAddress.getByName("1.1.1.1"));
-            builder.addDnsServer(InetAddress.getByName("8.8.8.8"));
-            builder.addDnsServer(InetAddress.getByName("9.9.9.9"));
-            builder.addDnsServer(InetAddress.getByName("216.146.35.35"));
-            builder.addDnsServer(InetAddress.getByName("208.67.222.222"));
+            // 1. Add the primary DNS server from the VPN client if available
+            try {
+                String dnsServer = webSocketClient.getDnsServerIPv4();
+                if (dnsServer != null && !dnsServer.trim().isEmpty()) {
+                    builder.addDnsServer(dnsServer);
+                }
+            } catch (PVNClientException e) {
+                Log.w(TAG, "Failed to get DNS server from WebSocket client", e);
+            }
+
+            // 2. Add fallback DNS servers using a loop
+            for (String dns : FALLBACK_DNS_SERVERS) {
+                try {
+                    builder.addDnsServer(dns);
+                } catch (IllegalArgumentException e) {
+                    Log.e(TAG, "Invalid fallback DNS address: " + dns, e);
+                }
+            }
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 builder.excludeRoute(new IpPrefix(InetAddress.getByName(serverEntity.getHost()), 32));
