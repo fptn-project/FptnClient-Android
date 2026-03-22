@@ -150,6 +150,7 @@
                 <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content">
+
                     <ImageView
                         android:id="@+id/setting_bypass_methods_icon"
                         android:layout_width="wrap_content"
@@ -158,6 +159,7 @@
                         android:paddingLeft="12dp"
                         android:paddingRight="12dp"
                         android:src="@drawable/ic_logo_24" />
+
                     <TextView
                         android:id="@+id/bypassMethodsLabel"
                         android:layout_width="wrap_content"
@@ -168,6 +170,7 @@
                         android:text="@string/bypass_methods_title"
                         android:textColor="@color/white"
                         android:textStyle="bold" />
+
                     <ImageView
                         android:id="@+id/imageViewBypassMethods"
                         android:layout_width="wrap_content"
@@ -185,6 +188,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="0dp">
+
                     <TextView
                         android:id="@+id/settings_bypass_methods_info_html"
                         android:layout_width="wrap_content"
@@ -215,6 +219,7 @@
                 <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content">
+
                     <ImageView
                         android:id="@+id/per_app_vpn_mode_icon"
                         android:layout_width="wrap_content"
@@ -223,6 +228,7 @@
                         android:paddingLeft="12dp"
                         android:paddingRight="12dp"
                         android:src="@drawable/ic_per_app_vpn_mode" />
+
                     <TextView
                         android:id="@+id/per_app_vpn_modeLabel"
                         android:layout_width="wrap_content"
@@ -233,6 +239,7 @@
                         android:text="@string/per_app_vpn_mode_title"
                         android:textColor="@color/white"
                         android:textStyle="bold" />
+
                     <ImageView
                         android:id="@+id/image_view_per_app_vpn_mode"
                         android:layout_width="wrap_content"
@@ -250,6 +257,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="0dp">
+
                     <TextView
                         android:id="@+id/settings_per_app_vpn_mode_info_html"
                         android:layout_width="wrap_content"
@@ -397,58 +405,6 @@
                 </LinearLayout>
             </LinearLayout>
 
-            <!-- Your VPN servers -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="20dp"
-                android:layout_marginTop="20dp"
-                android:layout_marginEnd="20dp"
-                android:background="@drawable/round_settings_back_white10_20"
-                android:orientation="vertical"
-                android:padding="10dp">
-
-                <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
-
-                    <ImageView
-                        android:id="@+id/settings_available_servers_icon"
-                        android:layout_width="wrap_content"
-                        android:layout_height="32dp"
-                        android:layout_gravity="center"
-                        android:importantForAccessibility="no"
-                        android:paddingLeft="12dp"
-                        android:paddingRight="12dp"
-                        android:src="@drawable/ic_baseline_your_servers_24" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_centerVertical="true"
-                        android:layout_toEndOf="@id/settings_available_servers_icon"
-                        android:text="@string/your_servers"
-                        android:textColor="@color/white"
-                        android:textStyle="normal" />
-                </RelativeLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="0dp"
-                    android:orientation="vertical"
-                    android:paddingLeft="10dp">
-
-                    <ListView
-                        android:id="@+id/settings_servers_list"
-                        android:layout_width="fill_parent"
-                        android:layout_height="wrap_content"
-                        android:divider="@android:color/transparent"
-                        android:dividerHeight="0dp"
-                        tools:listitem="@layout/settings_server_list_item" />
-                </LinearLayout>
-            </LinearLayout>
-
             <!-- Experimental features settings -->
             <LinearLayout
                 android:id="@+id/experimental_features_layout"
@@ -516,6 +472,58 @@
                         android:textColor="@color/gray"
                         android:textSize="12sp" />
                 </RelativeLayout>
+            </LinearLayout>
+
+            <!-- Your VPN servers -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="20dp"
+                android:layout_marginEnd="20dp"
+                android:background="@drawable/round_settings_back_white10_20"
+                android:orientation="vertical"
+                android:padding="10dp">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <ImageView
+                        android:id="@+id/settings_available_servers_icon"
+                        android:layout_width="wrap_content"
+                        android:layout_height="32dp"
+                        android:layout_gravity="center"
+                        android:importantForAccessibility="no"
+                        android:paddingLeft="12dp"
+                        android:paddingRight="12dp"
+                        android:src="@drawable/ic_baseline_your_servers_24" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:layout_toEndOf="@id/settings_available_servers_icon"
+                        android:text="@string/your_servers"
+                        android:textColor="@color/white"
+                        android:textStyle="normal" />
+                </RelativeLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="0dp"
+                    android:orientation="vertical"
+                    android:paddingLeft="10dp">
+
+                    <ListView
+                        android:id="@+id/settings_servers_list"
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:divider="@android:color/transparent"
+                        android:dividerHeight="0dp"
+                        tools:listitem="@layout/settings_server_list_item" />
+                </LinearLayout>
             </LinearLayout>
 
             <!-- LOGOUT -->

@@ -154,8 +154,8 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="tile_already_added">کاشی تنظیمات سریع قبلاً اضافه شده است</string>
     <string name="tile_added_successfully">کاشی تنظیمات سریع با موفقیت اضافه شد</string>
     <string name="tile_addition_failed">افزودن کاشی تنظیمات سریع ناموفق بود!</string>
-    <string name="reset_selected_server_after_disconnect_label">بازنشانی سرور انتخاب‌شده پس از قطع اتصال؟</string>
 
+    <string name="settings_reset_server_on_exception">تنظیم مجدد سرور فقط در صورت بروز خطاهای اتصال</string>
     <string name="bypass_methods_title">روش‌های دور زدن محدودیت‌ها</string>
     <string name="bypass_methods_info">پیکربندی روش‌های دور زدن فیلترینگ</string>
 
@@ -176,5 +176,7 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="only_allowed_radio_button_label_additional_info">فقط برنامه‌های موجود در لیست از VPN استفاده می‌کنند</string>
     <string name="disallowed_apps_radio_button_label">تمام برنامه‌ها از VPN استفاده می‌کنند، مگر موارد انتخابی</string>
     <string name="disallowed_apps_radio_button_label_additional_info">تمام برنامه‌ها از VPN استفاده می‌کنند، مگر موارد انتخابی</string>
+    <string name="settings_reset_server_title">انتخاب سرور:</string>
+    <string name="settings_reset_server_on_disconnect">پس از قطع ارتباط، سرور انتخاب شده را بازنشانی کنید</string>
 
 </resources>

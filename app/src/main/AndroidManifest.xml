@@ -4,7 +4,8 @@
     android:noHistory="true"
     tools:ignore="LockedOrientationActivity">
 
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"
+    <uses-permission
+        android:name="android.permission.FOREGROUND_SERVICE"
         tools:ignore="ForegroundServicesPolicy" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SYSTEM_EXEMPTED" />
     <uses-permission android:name="android.permission.INTERNET" />
@@ -13,7 +14,8 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
-    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"
+    <uses-permission
+        android:name="android.permission.QUERY_ALL_PACKAGES"
         tools:ignore="PackageVisibilityPolicy,QueryAllPackagesPermission" />
 
     <uses-permission
@@ -72,6 +74,11 @@
             android:screenOrientation="portrait" />
         <activity
             android:name="org.fptn.vpn.views.perappvpn.PerAppVpnModeActivity"
+            android:label="@string/app_name"
+            android:launchMode="singleTop"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name="org.fptn.vpn.views.experimentalsettings.ExperimentalSettingsActivity"
             android:label="@string/app_name"
             android:launchMode="singleTop"
             android:screenOrientation="portrait" />

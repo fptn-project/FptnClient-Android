@@ -537,7 +537,7 @@ public class FptnService extends VpnService {
         unregisterNetworkCallback();
 
         if (SharedPrefUtils.getResetSelectedServerEnabled(this)
-                || (!SharedPrefUtils.getResetSelectedServerEnabled(this) && exception != null)) {
+                || (SharedPrefUtils.getResetSelectedServerOnExceptionEnabled(this) && exception != null)) {
             executorService.submit(() -> {
                 try {
                     resetSelectedServer();
