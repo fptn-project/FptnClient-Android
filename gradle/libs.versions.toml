@@ -1,7 +1,7 @@
 [versions]
 activity = "1.10.1"
 androidGradlePlugin = "8.13.2"
-androidlombock = "1.18.42"
+androidlombock = "1.18.44"
 appcompat = "1.7.1"
 autonomousappsSorting = "0.15"
 autonomousappsUnused = "3.6.1"
