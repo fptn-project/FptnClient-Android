@@ -153,8 +153,8 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="tile_already_added">Плитка быстрых настроек была добавлена ранее</string>
     <string name="tile_added_successfully">Плитка быстрых настроек добавлена</string>
     <string name="tile_addition_failed">Плитка быстрых настроек не добавлена!</string>
-    <string name="reset_selected_server_after_disconnect_label">Сброс выбранного сервера после отключения?</string>
 
+    <string name="settings_reset_server_on_exception">Сброс на Auto только при ошибке</string>
     <string name="bypass_methods_title">Методы обхода блокировок</string>
     <string name="bypass_methods_info">Настройка методов обхода блокировок</string>
 
@@ -173,5 +173,7 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="only_allowed_radio_button_label_additional_info">Только приложения из списка используют VPN</string>
     <string name="disallowed_apps_radio_button_label">Все приложения используют VPN, кроме выбранных</string>
     <string name="disallowed_apps_radio_button_label_additional_info">Все приложения используют VPN, кроме выбранных</string>
+    <string name="settings_reset_server_title">Выбор сервера:</string>
+    <string name="settings_reset_server_on_disconnect">Сброс на Auto после отключения</string>
 
 </resources>

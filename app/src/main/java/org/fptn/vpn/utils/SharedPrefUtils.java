@@ -108,6 +108,16 @@ public class SharedPrefUtils {
         sharedPreferences.edit().putBoolean(Constants.RESET_SELECTED_SERVER_PREF_KEY, enabled).apply();
     }
 
+    public static boolean getResetSelectedServerOnExceptionEnabled(Context context) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        return sharedPreferences.getBoolean(Constants.RESET_SELECTED_SERVER_ON_EXCEPTION_PREF_KEY, false);
+    }
+
+    public static void saveResetSelectedServerOnExceptionEnabled(Context context, boolean enabled) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        sharedPreferences.edit().putBoolean(Constants.RESET_SELECTED_SERVER_ON_EXCEPTION_PREF_KEY, enabled).apply();
+    }
+
 
     public static BypassCensorshipMethod getBypassCensorshipMethod(Context context) {
         SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
