@@ -9,7 +9,7 @@
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginBottom="80dp"
+        android:layout_marginBottom="5dp"
         android:fadeScrollbars="false"
         app:layout_constraintBottom_toTopOf="@id/buttons_layout"
         app:layout_constraintEnd_toEndOf="parent"
@@ -89,8 +89,8 @@
                         android:id="@+id/sni_spoofing_radio_button"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        android:layout_marginEnd="12dp"
+                        android:layout_marginTop="8dp"
+                        android:layout_marginEnd="8dp"
                         android:text="@string/sni_spoofing_radio_button_label"
                         android:textSize="14sp"
                         android:textStyle="bold" />
@@ -99,24 +99,56 @@
                         android:id="@+id/obfuscation_radio_button"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="1dp"
-                        android:layout_marginEnd="12dp"
+                        android:layout_marginTop="8dp"
+                        android:layout_marginEnd="8dp"
                         android:text="@string/tls_handshake_obfuscation_radio_button_label"
                         android:textSize="14sp"
                         android:textStyle="bold" />
 
                     <RadioButton
-                        android:id="@+id/sni_reality_radio_button"
+                        android:id="@+id/sni_reality_radio_button_chrome_146"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="@string/sni_reality_radio_button_label"
+                        android:layout_marginTop="8dp"
+                        android:layout_marginEnd="8dp"
+                        android:text="@string/sni_reality_radio_button_label_chrome_146"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <RadioButton
+                        android:id="@+id/sni_reality_radio_button_firefox_149"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:layout_marginEnd="8dp"
+                        android:text="@string/sni_reality_radio_button_label_firefox_149"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <RadioButton
+                        android:id="@+id/sni_reality_radio_button_yandex_26"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:layout_marginEnd="8dp"
+                        android:text="@string/sni_reality_radio_button_label_yandex_26"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <RadioButton
+                        android:id="@+id/sni_reality_radio_button_yandex_25"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:layout_marginEnd="8dp"
+                        android:text="@string/sni_reality_radio_button_label_yandex_25"
                         android:textSize="14sp"
                         android:textStyle="bold" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="3dp"
+                        android:layout_marginTop="12dp"
                         android:layout_marginEnd="12dp"
                         android:orientation="vertical">
 

@@ -24,6 +24,8 @@ include_directories(src/)
 include_directories(libs/fptn/src/)
 include_directories(libs/fptn/src/fptn-protocol-lib)
 
+include(libs/fptn/depends/cmake/CamouflageTLS.cmake)  # FIXME
+
 # disable pcap++
 add_compile_definitions(FPTN_IP_ADDRESS_WITHOUT_PCAP)
 
@@ -46,7 +48,9 @@ target_link_libraries(
         android
         log
         fptn::fptn
-        nlohmann_json::nlohmann_json)
+        nlohmann_json::nlohmann_json
+        camouflage-tls  # FIXME
+)
 
 target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE FPTN_VERSION=\"0.0.0\")
 set_target_properties(

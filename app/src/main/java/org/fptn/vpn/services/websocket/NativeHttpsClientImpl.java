@@ -21,10 +21,17 @@ public class NativeHttpsClientImpl {
         String censorshipStrategyName = "SNI";
         if (censorshipStrategy == BypassCensorshipMethod.TLS_OBFUSCATION) {
             censorshipStrategyName = "OBFUSCATION";
-        } else if (censorshipStrategy == BypassCensorshipMethod.SNI_REALITY) {
+        } else if (censorshipStrategy == BypassCensorshipMethod.SNI_REALITY) {  // deprecated
             censorshipStrategyName = "SNI-REALITY";
+        } else if (censorshipStrategy == BypassCensorshipMethod.SNI_REALITY_CHROME_146) {
+            censorshipStrategyName = "SNI-REALITY-CHROME-146";
+        } else if (censorshipStrategy == BypassCensorshipMethod.SNI_REALITY_FIREFOX_149) {
+            censorshipStrategyName = "SNI-REALITY-FIREFOX-149";
+        } else if (censorshipStrategy == BypassCensorshipMethod.SNI_REALITY_YANDEX_26) {
+            censorshipStrategyName = "SNI-REALITY-YANDEX-26";
+        } else if (censorshipStrategy == BypassCensorshipMethod.SNI_REALITY_YANDEX_25) {
+            censorshipStrategyName = "SNI-REALITY-YANDEX-25";
         }
-
         this.nativeHandle = nativeCreate(
                 serverIP,
                 serverPort,

@@ -56,27 +56,61 @@ public class BypassMethodsActivity extends AppCompatActivity {
             } else if (checkedId == R.id.obfuscation_radio_button) {
                 Log.d(TAG, "Selected TLS obfuscation");
                 viewModel.setBypassMethod(BypassCensorshipMethod.TLS_OBFUSCATION);
-            } else if (checkedId == R.id.sni_reality_radio_button) {
-                Log.d(TAG, "Selected SNI Reality");
-                viewModel.setBypassMethod(BypassCensorshipMethod.SNI_REALITY);
+            } else if (checkedId == R.id.sni_reality_radio_button_chrome_146) {
+                Log.d(TAG, "Selected SNI Reality Chrome 146");
+                viewModel.setBypassMethod(BypassCensorshipMethod.SNI_REALITY_CHROME_146);
+            } else if (checkedId == R.id.sni_reality_radio_button_firefox_149) {
+                Log.d(TAG, "Selected SNI Reality Firefox 149");
+                viewModel.setBypassMethod(BypassCensorshipMethod.SNI_REALITY_FIREFOX_149);
+            } else if (checkedId == R.id.sni_reality_radio_button_yandex_26) {
+                Log.d(TAG, "Selected SNI Reality Yandex 26");
+                viewModel.setBypassMethod(BypassCensorshipMethod.SNI_REALITY_YANDEX_26);
+            } else if (checkedId == R.id.sni_reality_radio_button_yandex_25) {
+                Log.d(TAG, "Selected SNI Reality Yandex 25");
+                viewModel.setBypassMethod(BypassCensorshipMethod.SNI_REALITY_YANDEX_25);
+            } else {
+                // default
+                viewModel.setBypassMethod(BypassCensorshipMethod.SNI_SPOOFING);
             }
         });
 
         RadioButton sniSpoofingRadioButton = findViewById(R.id.sni_spoofing_radio_button);
         RadioButton obfuscationRadioButton = findViewById(R.id.obfuscation_radio_button);
-        RadioButton sniRealityRadioButton = findViewById(R.id.sni_reality_radio_button);
+
+        RadioButton sniRealityRadioButtonChrome146 = findViewById(R.id.sni_reality_radio_button_chrome_146);
+        RadioButton sniRealityRadioButtonFirefox149 = findViewById(R.id.sni_reality_radio_button_firefox_149);
+        RadioButton sniRealityRadioButtonYandex26 = findViewById(R.id.sni_reality_radio_button_yandex_26);
+        RadioButton sniRealityRadioButtonYandex25 = findViewById(R.id.sni_reality_radio_button_yandex_25);
+
         viewModel.getBypassCensorshipMethodMutableLiveData().observe(this, bypassCensorshipMethod -> {
             switch (bypassCensorshipMethod) {
                 case SNI_SPOOFING:
                     sniSpoofingRadioButton.setChecked(true);
-                    ViewUtils.showView(sniLayout);
+                    ViewUtils.hideView(sniLayout);
                     break;
                 case TLS_OBFUSCATION:
                     obfuscationRadioButton.setChecked(true);
                     ViewUtils.hideView(sniLayout);
                     break;
-                case SNI_REALITY:
-                    sniRealityRadioButton.setChecked(true);
+                case SNI_REALITY: // deprecated
+                case SNI_REALITY_CHROME_146:
+                    sniRealityRadioButtonChrome146.setChecked(true);
+                    ViewUtils.showView(sniLayout);
+                    break;
+                case SNI_REALITY_FIREFOX_149:
+                    sniRealityRadioButtonFirefox149.setChecked(true);
+                    ViewUtils.showView(sniLayout);
+                    break;
+                case SNI_REALITY_YANDEX_26:
+                    sniRealityRadioButtonYandex26.setChecked(true);
+                    ViewUtils.showView(sniLayout);
+                    break;
+                case SNI_REALITY_YANDEX_25:
+                    sniRealityRadioButtonYandex25.setChecked(true);
+                    ViewUtils.showView(sniLayout);
+                    break;
+                default:
+                    sniSpoofingRadioButton.setChecked(true);
                     ViewUtils.showView(sniLayout);
                     break;
             }

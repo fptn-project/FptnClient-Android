@@ -43,11 +43,19 @@ public class NativeWebSocketClientImpl {
         this.onMessageReceivedCallback = onMessageReceivedCallback;
         this.onFailureCallback = onFailureCallback;
 
-        String censorship_strategy_name = "SNI";
+        String censorshipStrategyName = "SNI";
         if (censorship_strategy == BypassCensorshipMethod.TLS_OBFUSCATION) {
-            censorship_strategy_name = "OBFUSCATION";
-        } else if (censorship_strategy == BypassCensorshipMethod.SNI_REALITY) {
-            censorship_strategy_name = "SNI-REALITY";
+            censorshipStrategyName = "OBFUSCATION";
+        } else if (censorship_strategy == BypassCensorshipMethod.SNI_REALITY) {  // deprecated
+            censorshipStrategyName = "SNI-REALITY";
+        } else if (censorship_strategy == BypassCensorshipMethod.SNI_REALITY_CHROME_146) {
+            censorshipStrategyName = "SNI-REALITY-CHROME-146";
+        } else if (censorship_strategy == BypassCensorshipMethod.SNI_REALITY_FIREFOX_149) {
+            censorshipStrategyName = "SNI-REALITY-FIREFOX-149";
+        } else if (censorship_strategy == BypassCensorshipMethod.SNI_REALITY_YANDEX_26) {
+            censorshipStrategyName = "SNI-REALITY-YANDEX-26";
+        } else if (censorship_strategy == BypassCensorshipMethod.SNI_REALITY_YANDEX_25) {
+            censorshipStrategyName = "SNI-REALITY-YANDEX-25";
         }
 
         this.nativeHandle = nativeCreate(
@@ -57,7 +65,7 @@ public class NativeWebSocketClientImpl {
                 sniHostName,
                 accessToken,
                 md5ServerFingerprint,
-                censorship_strategy_name
+                censorshipStrategyName
         );
 
         this.serialNum = SERIAL_NUM.getAndIncrement();

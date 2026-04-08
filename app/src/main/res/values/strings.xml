@@ -227,6 +227,11 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="sni_spoofing_radio_button_label">Domain spoofing (SNI)</string>
     <string name="tls_handshake_obfuscation_radio_button_label">Traffic masking (obfuscation)</string>
     <string name="sni_reality_radio_button_label">Advanced domain spoofing (SNI + REALITY)</string>
+    <string name="sni_reality_radio_button_label_chrome_146">Advanced domain spoofing (SNI + REALITY) - Chrome 146</string>
+    <string name="sni_reality_radio_button_label_firefox_149">Advanced domain spoofing (SNI + REALITY) - Firefox 149</string>
+    <string name="sni_reality_radio_button_label_yandex_26">Advanced domain spoofing (SNI + REALITY) - Yandex 26</string>
+    <string name="sni_reality_radio_button_label_yandex_25">Advanced domain spoofing (SNI + REALITY) - Yandex 25</string>
+
 
     <string name="sni_reality_radio_button_label_additional_info">Requires a real existing domain (otherwise errors may occur)</string>
     <string name="connecting_auto">Selecting the best server...</string>

@@ -36,15 +36,12 @@ public class NativeSpeedTestTask implements Callable<NativeSpeedTestResult> {
     @Override
     public NativeSpeedTestResult call() throws PVNClientException {
         Instant start = Instant.now();
-        Log.d(getTag(), "call() start test: " + serverEntity.getName());
         NativeResponse response = nativeHttpsClient.Get(GET_FILE_PATH, TIMEOUT);
         if (response.code == 200) {
             Instant end = Instant.now();
             long durationsMillis = Duration.between(start, end).toMillis();
-            Log.d(getTag(), "call() end test: " + serverEntity.getName() + " duration: " + durationsMillis + " ms");
             return new NativeSpeedTestResult(serverEntity, durationsMillis);
         } else {
-            Log.d(getTag(), "call() end test: " + serverEntity.getName() + " error: " + response.errorMessage);
             throw new PVNClientException(response.errorMessage);
         }
     }

@@ -81,15 +81,23 @@ Java_org_fptn_vpn_services_websocket_NativeWebSocketClientImpl_nativeCreate(
   auto expected_md5_fingerprint =
       fptn::wrapper::ConvertToCString(env, expected_md5_fingerprint_param);
 
-    const auto censorship_strategy_name =  fptn::wrapper::ConvertToCString(
+  const auto censorship_strategy_name =  fptn::wrapper::ConvertToCString(
             env,censorship_strategy_name_param);
-    fptn::protocol::https::CensorshipStrategy censorship_strategy =
+  fptn::protocol::https::CensorshipStrategy censorship_strategy =
             fptn::protocol::https::CensorshipStrategy::kSni;
-    if (censorship_strategy_name == "OBFUSCATION") {
-        censorship_strategy = fptn::protocol::https::CensorshipStrategy::kTlsObfuscator;
-    } else if (censorship_strategy_name == "SNI-REALITY") {
-        censorship_strategy = fptn::protocol::https::CensorshipStrategy::kSniRealityMode;
-    }
+  if (censorship_strategy_name == "OBFUSCATION") {
+    censorship_strategy = fptn::protocol::https::CensorshipStrategy::kTlsObfuscator;
+  } else if (censorship_strategy_name == "SNI-REALITY") {  // deprecated
+    censorship_strategy = fptn::protocol::https::CensorshipStrategy::kSniRealityMode;
+  } else if (censorship_strategy_name == "SNI-REALITY-CHROME-146") {
+    censorship_strategy = fptn::protocol::https::CensorshipStrategy::kSniRealityModeChrome146;
+  } else if (censorship_strategy_name == "SNI-REALITY-FIREFOX-149") {
+    censorship_strategy = fptn::protocol::https::CensorshipStrategy::kSniRealityModeFirefox149;
+  } else if (censorship_strategy_name == "SNI-REALITY-YANDEX-26") {
+    censorship_strategy = fptn::protocol::https::CensorshipStrategy::kSniRealityModeYandex26;
+  } else if (censorship_strategy_name == "SNI-REALITY-YANDEX-25") {
+    censorship_strategy = fptn::protocol::https::CensorshipStrategy::kSniRealityModeYandex25;
+  }
 
   jobject global_object_ref = env->NewWeakGlobalRef(thiz);
   auto* websocket_client = new WrapperWebsocketClient(global_object_ref,

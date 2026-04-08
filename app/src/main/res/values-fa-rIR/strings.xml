@@ -162,6 +162,10 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="sni_spoofing_radio_button_label">جعل دامنه (SNI)</string>
     <string name="tls_handshake_obfuscation_radio_button_label">مخفی‌سازی ترافیک (Obfuscation)</string>
     <string name="sni_reality_radio_button_label">جعل پیشرفتهٔ دامنه (SNI + REALITY)</string>
+    <string name="sni_reality_radio_button_label_chrome_146">Chrome 146 (SNI + REALITY) جعل پیشرفتهٔ دامنه</string>
+    <string name="sni_reality_radio_button_label_firefox_149">Firefox 149 (SNI + REALITY) جعل پیشرفتهٔ دامنه</string>
+    <string name="sni_reality_radio_button_label_yandex_26">Yandex 26 (SNI + REALITY) جعل پیشرفتهٔ دامنه</string>
+    <string name="sni_reality_radio_button_label_yandex_25">Yandex 25 (SNI + REALITY) جعل پیشرفتهٔ دامنه</string>
 
     <string name="sni_reality_radio_button_label_additional_info">نیازمند یک دامنهٔ واقعی و فعال است (در غیر این صورت ممکن است خطا رخ دهد)</string>
 
