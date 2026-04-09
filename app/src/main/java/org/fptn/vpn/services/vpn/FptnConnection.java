@@ -243,7 +243,7 @@ public class FptnConnection extends Thread {
                         int length = inputStream.read(byteBuffer);
                         if (length > 0) {
                             uploadRate.update(length);
-                            webSocketClient.send(byteBuffer);
+                            webSocketClient.send(Arrays.copyOf(byteBuffer, length));
                         } else {
                             // if read buffer empty - sleep
                             // I set blocking mode - it looks like no need anymore
