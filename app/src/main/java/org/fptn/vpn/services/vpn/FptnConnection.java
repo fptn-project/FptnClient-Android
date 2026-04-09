@@ -360,7 +360,9 @@ public class FptnConnection extends Thread {
     }
 
     private boolean isTunInterfaceValid(ParcelFileDescriptor vpnInterface) {
-        return vpnInterface.getFileDescriptor() != null;
+        return vpnInterface != null 
+            && vpnInterface.getFileDescriptor() != null 
+            && vpnInterface.getFileDescriptor().valid();
     }
 
     private String getTag() {
