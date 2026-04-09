@@ -110,9 +110,10 @@ public class WebSocketClientWrapper {
     }
 
     private String getAccessToken() throws PVNClientException {
-        String request = String.format("{\"username\": \"%s\", \"password\": \"%s\"}",
-                serverEntity.getUsername(),
-                serverEntity.getPassword());
+        JSONObject json = new JSONObject();
+        json.put("username", serverEntity.getUsername());
+        json.put("password", serverEntity.getPassword());
+        request = json.toString();
 
         NativeResponse response = nativeHttpsClient.Post(LOGIN_URL, request, 5);
         if (response != null) {
