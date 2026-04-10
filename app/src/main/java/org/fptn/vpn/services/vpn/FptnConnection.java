@@ -242,8 +242,10 @@ public class FptnConnection extends Thread {
                     try {
                         int length = inputStream.read(byteBuffer);
                         if (length > 0) {
+                            // update speed count
                             uploadRate.update(length);
-                            webSocketClient.send(byteBuffer);
+                            // send byteArray with length of new bytes
+                            webSocketClient.send(byteBuffer, length);
                         } else {
                             // if read buffer empty - sleep
                             // I set blocking mode - it looks like no need anymore

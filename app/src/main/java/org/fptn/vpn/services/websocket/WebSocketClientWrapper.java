@@ -96,9 +96,11 @@ public class WebSocketClientWrapper {
         }
     }
 
-    public void send(byte[] bytes) {
-        if (nativeWebSocketClient != null && nativeWebSocketClient.isStarted()) {
-            nativeWebSocketClient.send(bytes);
+    public void send(byte[] bytes, long length) {
+        if (nativeWebSocketClient != null
+                && nativeWebSocketClient.isStarted()
+                && length > 0) {
+            nativeWebSocketClient.send(bytes, length);
         } else {
             throw new RuntimeException("nativeWebSocketClient is null or not started");
         }
