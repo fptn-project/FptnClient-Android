@@ -34,7 +34,7 @@ class SafeProxy {
 
   void Delete(jlong client) {
     auto it = status_clients_.find(client);
-    if (it == status_clients_.end()) {
+    if (it != status_clients_.end()) {
       status_clients_.erase(it);
     }
   }
