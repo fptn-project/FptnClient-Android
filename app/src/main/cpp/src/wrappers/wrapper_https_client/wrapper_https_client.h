@@ -26,10 +26,10 @@ class WrapperHttpsClient {
       std::string md5_fingerprint,
       fptn::protocol::https::CensorshipStrategy censorship_strategy);
 
-  Response Get(const std::string& handle, int timeout = 5);
+  Response Get(const std::string& handle, int timeout = 10);
 
   Response Post(
-      const std::string& handle, const std::string& request, int timeout = 5);
+      const std::string& handle, const std::string& request, int timeout = 10);
 
  private:
   const JNIEnv* env_;

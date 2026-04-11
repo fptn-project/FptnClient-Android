@@ -160,7 +160,7 @@ Java_org_fptn_vpn_services_websocket_NativeWebSocketClientImpl_nativeStop(
 // Send
 extern "C" JNIEXPORT jboolean JNICALL
 Java_org_fptn_vpn_services_websocket_NativeWebSocketClientImpl_nativeSend(
-    JNIEnv* env, jobject thiz, jlong native_handle, jbyteArray data) {
+    JNIEnv* env, jobject thiz, jlong native_handle, jbyteArray data, jlong length) {
   (void)thiz;
 
   bool status = false;
@@ -170,7 +170,6 @@ Java_org_fptn_vpn_services_websocket_NativeWebSocketClientImpl_nativeSend(
   if (websocket_client && env && data) {
     // Java bytes to std::string
     jbyte* buffer = env->GetByteArrayElements(data, nullptr);
-    const jsize length = env->GetArrayLength(data);
     if (buffer != nullptr && length != 0) {
       std::string packet(reinterpret_cast<const char*>(buffer), length);
       status = websocket_client->Send(std::move(packet));
