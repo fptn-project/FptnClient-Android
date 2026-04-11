@@ -116,7 +116,7 @@ public class WebSocketClientWrapper {
                 serverEntity.getUsername(),
                 serverEntity.getPassword());
 
-        NativeResponse response = nativeHttpsClient.Post(LOGIN_URL, request, 5);
+        NativeResponse response = nativeHttpsClient.Post(LOGIN_URL, request, 15);
         if (response != null) {
             if (response.code == 200) {
                 try {
@@ -140,7 +140,7 @@ public class WebSocketClientWrapper {
     }
 
     public String getDnsServerIPv4() throws PVNClientException {
-        NativeResponse response = nativeHttpsClient.Get(DNS_URL, 5);
+        NativeResponse response = nativeHttpsClient.Get(DNS_URL, 15);
         if (response != null) {
             if (response.code == 200) {
                 try {
