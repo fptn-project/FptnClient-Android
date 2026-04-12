@@ -2,6 +2,8 @@ package org.fptn.vpn.services.websocket;
 
 import android.util.Log;
 
+import com.google.gson.Gson;
+
 import org.fptn.vpn.database.entity.ServerEntity;
 import org.fptn.vpn.enums.BypassCensorshipMethod;
 import org.fptn.vpn.services.websocket.callback.OnFailureCallback;
@@ -112,12 +114,12 @@ public class WebSocketClientWrapper {
     }
 
     private String getAccessToken() throws PVNClientException {
-        JSONObject json = new JSONObject();
-        json.put("username", serverEntity.getUsername());
-        json.put("password", serverEntity.getPassword());
-        request = json.toString();
-
-        NativeResponse response = nativeHttpsClient.Post(LOGIN_URL, request, 15);
+        LoginRequest loginRequest = new LoginRequest(
+                serverEntity.getUsername(),
+                serverEntity.getPassword()
+        );
+        String requestBody = new Gson().toJson(loginRequest);
+        NativeResponse response = nativeHttpsClient.Post(LOGIN_URL, requestBody, 15);
         if (response != null) {
             if (response.code == 200) {
                 try {

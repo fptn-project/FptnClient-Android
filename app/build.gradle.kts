@@ -130,6 +130,7 @@ dependencies {
     implementation(libs.jackson.databind)
     implementation(libs.material)
     implementation(libs.zxing)
+    implementation(libs.gson)
 
     compileOnly(libs.androidlombock)
 

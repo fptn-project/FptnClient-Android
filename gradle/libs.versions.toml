@@ -14,6 +14,7 @@ detektPlugin = "1.23.8"
 firebaseBom = "34.11.0"
 firebaseCrashlyticsPlugin = "3.0.6"
 googlePlayServices = "4.4.4"
+gson = "2.13.2"
 guava = "33.5.0-jre"
 ipaddress = "5.6.2"
 jacksonDatabind = "2.21.2"
@@ -51,6 +52,7 @@ firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.r
 firebase-crashlytics-gradle = { group = "com.google.firebase", name = "firebase-crashlytics-gradle", version.ref = "firebaseCrashlyticsPlugin" }
 firebase-crashlytics-ndk = { group = "com.google.firebase", name = "firebase-crashlytics-ndk" }
 google-services = { group = "com.google.gms", name = "google-services", version.ref = "googlePlayServices" }
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 guava = { module = "com.google.guava:guava", version.ref = "guava" }
 ipaddress = { module = "com.github.seancfoley:ipaddress", version.ref = "ipaddress" }
 jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jacksonDatabind" }
