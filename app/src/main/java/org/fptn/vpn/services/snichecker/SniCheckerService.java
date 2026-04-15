@@ -1,0 +1,358 @@
+package org.fptn.vpn.services.snichecker;
+
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.app.Service;
+import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
+import android.content.pm.ServiceInfo;
+import android.os.Binder;
+import android.os.Build;
+import android.os.IBinder;
+import android.os.PowerManager;
+import android.util.Log;
+import android.util.Pair;
+
+import androidx.lifecycle.MutableLiveData;
+
+import org.fptn.vpn.R;
+import org.fptn.vpn.core.common.Constants;
+import org.fptn.vpn.database.AppDatabase;
+import org.fptn.vpn.database.entity.ServerEntity;
+import org.fptn.vpn.database.entity.SniEntity;
+import org.fptn.vpn.enums.BypassCensorshipMethod;
+import org.fptn.vpn.utils.NotificationUtils;
+import org.fptn.vpn.utils.SharedPrefUtils;
+import org.fptn.vpn.views.bypassmethod.BypassMethodsActivity;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import lombok.Getter;
+
+public class SniCheckerService extends Service {
+    private static final String TAG = SniCheckerService.class.getSimpleName();
+
+    public static final String SELECTED_SERVER = "SELECTED_SERVER";
+    public static final String RESET_CHECKED_EXTRA = "RESET_CHECKED";
+    public static final String BYPASS_METHOD = "BYPASS_METHOD";
+
+    public static final String ACTION_START = "SniCheckerService:START";
+    public static final String ACTION_STOP = "SniCheckerService:STOP";
+    public static final String ACTION_BIND = "SniCheckerService:BIND";
+    public static final String SNI_CHECKER_POWER_LOCK = "SniCheckerService::POWER_LOCK";
+
+    public static final int SNI_BATCH_SIZE = 25;
+
+    @Getter
+    private static final MutableLiveData<SniCheckerServiceState> staticServiceState = new MutableLiveData<>(SniCheckerServiceState.INACTIVE);
+
+    @Getter
+    private final MutableLiveData<SniCheckerServiceState> serviceState = new MutableLiveData<>(SniCheckerServiceState.INACTIVE);
+
+    @Getter
+    private final MutableLiveData<String> currentSniInfo = new MutableLiveData<>();
+
+    @Getter
+    private String foundedSni = null;
+
+    @Getter
+    private final MutableLiveData<Pair<Integer, Integer>> currentProgress = new MutableLiveData<>();
+
+    @Getter
+    private final MutableLiveData<ServerEntity> selectedServer = new MutableLiveData<>(ServerEntity.AUTO);
+
+    @Getter
+    private BypassCensorshipMethod bypassCensorshipMethod = BypassCensorshipMethod.SNI_REALITY;
+
+    // Pending Intent for launch byPassMethodActivity when notification tapped
+    private PendingIntent launchActivityPendingIntent;
+
+    // Pending Intent to stop sni checking from notification
+    private PendingIntent stopPendingIntent;
+
+    private final ExecutorService executorService = Executors.newSingleThreadExecutor();
+
+    private final AppDatabase appDatabase = AppDatabase.getInstance(this);
+
+    private PowerManager.WakeLock wakeLock;
+
+    // todo:
+    //  4) not allow run vpn if sni checking in progress.
+
+    /* Just in case we need to bind! */
+    public static void bindService(Context context, ServiceConnection connection) {
+        Intent intent = new Intent(context, SniCheckerService.class);
+        intent.setAction(ACTION_BIND);
+        context.bindService(intent, connection, BIND_AUTO_CREATE);
+    }
+
+    private final IBinder binder = new LocalBinder();
+
+    public class LocalBinder extends Binder {
+        public SniCheckerService getService() {
+            return SniCheckerService.this;
+        }
+    }
+
+    @Override
+    public IBinder onBind(Intent intent) {
+        return binder;
+    }
+    /* JUST in case END */
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+
+        // Configure notification channels
+        NotificationUtils.configureNotificationChannel(this);
+
+        // Pending Intent for launch byPassMethodActivity when notification tapped
+        launchActivityPendingIntent = PendingIntent.getActivity(this, 0,
+                new Intent(this, BypassMethodsActivity.class),
+                PendingIntent.FLAG_IMMUTABLE);
+
+        // Pending Intent to stop sni checking from notification
+        stopPendingIntent = PendingIntent.getService(this, 0,
+                new Intent(this, SniCheckerService.class)
+                        .setAction(SniCheckerService.ACTION_STOP),
+                PendingIntent.FLAG_IMMUTABLE);
+
+
+        serviceState.observeForever(staticServiceState::postValue);
+    }
+
+    public synchronized static void startChecking(Context context,
+                                                  ServerEntity serverEntity,
+                                                  boolean resetChecked,
+                                                  BypassCensorshipMethod bypassCensorshipMethodMutableLiveData) {
+        Intent intent = new Intent(context, SniCheckerService.class);
+        intent.setAction(ACTION_START);
+        intent.putExtra(RESET_CHECKED_EXTRA, resetChecked);
+        intent.putExtra(BYPASS_METHOD, bypassCensorshipMethodMutableLiveData.name());
+        if (serverEntity != null) {
+            intent.putExtra(SELECTED_SERVER, serverEntity.getId());
+            context.startService(intent);
+        } else {
+            Log.e(TAG, "startChecking: no server selected");
+        }
+    }
+
+    public synchronized static void stopChecking(Context context) {
+        Intent intent = new Intent(context, SniCheckerService.class);
+        intent.setAction(ACTION_STOP);
+        context.startService(intent);
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        Log.d(TAG, "onStartCommand: intent: " + intent);
+        if (intent != null) {
+            String intentAction = intent.getAction();
+            Log.d(TAG, "onStartCommand: intentAction: " + intentAction);
+
+            if (ACTION_START.equalsIgnoreCase(intentAction)) {
+                startForegroundWithNotification("Searching the best SNI");
+                Log.d(TAG, "Searching the best SNI");
+
+                // read params from intent
+                bypassCensorshipMethod = BypassCensorshipMethod.valueOf(intent.getStringExtra(BYPASS_METHOD));
+                boolean resetChecked = intent.getBooleanExtra(RESET_CHECKED_EXTRA, false);
+                int serverId = intent.getIntExtra(SELECTED_SERVER, Constants.SELECTED_SERVER_ID_AUTO);
+
+                serviceState.postValue(SniCheckerServiceState.ACTIVE);
+
+                executorService.submit(() -> {
+                    ServerEntity serverEntity = appDatabase.serverDAO().getById(serverId);
+                    if (serverEntity != null) {
+                        SniChecker sniChecker = new SniChecker(serverEntity, bypassCensorshipMethod);
+                        selectedServer.postValue(serverEntity);
+
+                        acquirePowerLock();
+
+                        foundedSni = null;
+
+                        int currentNum = 0;
+                        int allUncheckedCount = appDatabase.sniDAO().countUnchecked();
+                        if (allUncheckedCount == 0 || resetChecked) {
+                            Log.d(TAG, "Reset all SNI");
+                            appDatabase.sniDAO().resetAll();
+                            allUncheckedCount = appDatabase.sniDAO().countUnchecked();
+                        }
+
+                        List<SniEntity> sniEntitiesToCheck = appDatabase.sniDAO().getUnchecked(SNI_BATCH_SIZE);
+                        while (serviceState.getValue() == SniCheckerServiceState.ACTIVE
+                                && !sniEntitiesToCheck.isEmpty()
+                                && foundedSni == null) {
+
+                            List<SniEntity> checkedSniEntities = new ArrayList<>();
+
+                            Iterator<SniEntity> iterator = sniEntitiesToCheck.iterator();
+                            while (serviceState.getValue() == SniCheckerServiceState.ACTIVE
+                                    && iterator.hasNext()
+                                    && foundedSni == null) {
+                                SniEntity currentSniEntity = iterator.next();
+                                currentNum++;
+
+                                // mark current as checked
+                                currentSniEntity.setChecked(true);
+                                checkedSniEntities.add(currentSniEntity);
+
+                                String currentSni = currentSniEntity.getSni();
+                                currentSniInfo.postValue(currentSni);
+
+                                currentProgress.postValue(new Pair<>(currentNum, allUncheckedCount));
+
+                                updateNotificationWithProgress(currentSni, currentNum, allUncheckedCount);
+
+                                // checking current
+                                boolean valid = sniChecker.checkSni(currentSni);
+                                if (valid) {
+                                    Log.d(TAG, "Founded valid SNI: " + currentSni);
+                                    foundedSni = currentSni;
+                                }
+                            }
+
+                            if (!checkedSniEntities.isEmpty()) {
+                                // save progress sni
+                                try {
+                                    Log.d(TAG, "Saving checked to DB");
+                                    appDatabase.sniDAO().insertAll(checkedSniEntities).get();
+                                } catch (ExecutionException | InterruptedException e) {
+                                    Log.e(TAG, "Error occurs on saved checked!", e);
+                                }
+                            }
+
+                            // get next batch
+                            sniEntitiesToCheck = appDatabase.sniDAO().getUnchecked(SNI_BATCH_SIZE);
+                        }
+                    } else {
+                        Log.e(TAG, "Server not found with id: " + serverId);
+                    }
+                    stopCheckingProcess();
+                });
+
+            } else if (ACTION_STOP.equalsIgnoreCase(intentAction)) {
+                stopCheckingProcess();
+            }
+        }
+
+        // if it stops - it stops
+        return START_NOT_STICKY;
+    }
+
+    private void stopCheckingProcess() {
+        // Release wakelock
+        releasePowerLock();
+
+        serviceState.postValue(SniCheckerServiceState.INACTIVE);
+
+        stopForeground(STOP_FOREGROUND_REMOVE);
+
+        if (foundedSni != null) {
+            showResultNotification("Found SNI", "Found working SNI:" + foundedSni);
+
+            //todo: does need add save action to notification?
+            SharedPrefUtils.saveSniHostname(this, foundedSni);
+        } else {
+            showResultNotification("SNI not found!", "Not found working SNI for server: "
+                    + Optional.ofNullable(selectedServer.getValue()).map(ServerEntity::getServerInfo).orElse(""));
+        }
+    }
+
+    private synchronized void acquirePowerLock() {
+        // release previous power lock
+        releasePowerLock();
+        // we need this lock so our service gets not affected by Doze Mode
+        PowerManager powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
+        try {
+            wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, SNI_CHECKER_POWER_LOCK);
+            wakeLock.acquire(5000);
+        } catch (Exception e) {
+            Log.e(TAG, "Can't acquire power lock!", e);
+        }
+    }
+
+    private synchronized void releasePowerLock() {
+        if (wakeLock != null && wakeLock.isHeld()) {
+            try {
+                wakeLock.release();
+            } catch (Exception e) {
+                Log.e(TAG, "Can't release power lock!", e);
+            }
+        }
+    }
+
+    private void startForegroundWithNotification(String title) {
+        Notification notification = createNotificationInProgress(title, "");
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            startForeground(Constants.SNI_CHECKER_NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SYSTEM_EXEMPTED);
+        } else {
+            startForeground(Constants.SNI_CHECKER_NOTIFICATION_ID, notification);
+        }
+    }
+
+    private Notification createNotificationInProgress(String title, String message) {
+        return createNotification(title, message).build();
+    }
+
+    private void updateNotificationWithProgress(String sni, int progress, int max) {
+        NotificationManager notificationManager = (NotificationManager) getSystemService(
+                NOTIFICATION_SERVICE);
+        Notification.Builder builder = createNotification("Checking SNI: " + sni, "Checking " + progress + "/" + max);
+        builder.setProgress(max, progress, false);
+
+        Notification notification = builder.build();
+        notificationManager.notify(Constants.SNI_CHECKER_NOTIFICATION_ID, notification);
+    }
+
+    private Notification.Builder createNotification(String title, String message) {
+        // In Api level 24 an above, there is no icon in design!!!
+        Notification.Action actionStopChecking = new Notification.Action.Builder(null, getString(R.string.stop_sni_checking_button_label), stopPendingIntent)
+                .build();
+        Notification.Builder builder = new Notification.Builder(this, Constants.SNI_CHECKER_NOTIFICATION_CHANNEL_ID)
+                .setSmallIcon(R.drawable.ic_sql_server_24)
+                .setContentTitle(title)
+                .setContentText(message)
+                .setVisibility(Notification.VISIBILITY_PUBLIC) // Show this notification in its entirety on all lockscreens and while screen sharing.
+                .setOnlyAlertOnce(true) // so when data is updated don't make sound and alert in android 8.0+
+                .setAutoCancel(false) // for not remove notification after press it
+                .setOngoing(true) // user can't close notification (works only when screen locked)
+                .addAction(actionStopChecking)
+                .setContentIntent(launchActivityPendingIntent);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            builder.setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_IMMEDIATE); // foreground service notification behavior
+        }
+        return builder;
+    }
+
+    private void showResultNotification(String title, String message) {
+/*        Notification.Action actionSaveFounded = new Notification.Action.Builder(null, getString(R.string.reconnect_action), reconnectPendingIntent)
+                .build();
+        Notification.Action actionContinueChecking = new Notification.Action.Builder(null, getString(R.string.reconnect_action), reconnectPendingIntent)
+                .build();*/
+        Notification notification = new Notification.Builder(this, Constants.SNI_CHECKER_NOTIFICATION_CHANNEL_ID)
+                .setSmallIcon(R.drawable.ic_logo)
+                .setVisibility(Notification.VISIBILITY_PUBLIC)
+                .setContentTitle(title)
+                .setContentText(message)
+                .setAutoCancel(true) // if you tap on notification - opens activity and notification dismissed
+                .setContentIntent(launchActivityPendingIntent)
+                //.addActions(actionSaveFounded, actionContinueChecking)
+                .setActions()
+                .build();
+
+        NotificationManager notificationManager = (NotificationManager) getSystemService(
+                NOTIFICATION_SERVICE);
+        notificationManager.notify(Constants.SNI_CHECKER_NOTIFICATION_ID, notification);
+    }
+
+}

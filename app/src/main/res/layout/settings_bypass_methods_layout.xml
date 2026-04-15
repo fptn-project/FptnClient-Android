@@ -146,6 +146,7 @@
                 android:paddingBottom="0dp">
 
                 <RelativeLayout
+                    android:id="@+id/edit_sni_layout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content">
 
@@ -207,6 +208,204 @@
                     android:text="@string/sni_text_description"
                     android:textColor="@color/gray"
                     android:textSize="12sp" />
+
+                <!-- Auto SNI -->
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingVertical="0dp"
+                    android:paddingStart="14dp"
+                    android:paddingTop="10dp"
+                    android:paddingEnd="14dp">
+
+                    <ImageView
+                        android:id="@+id/sql_server_icon"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:layout_gravity="center"
+                        android:importantForAccessibility="no"
+                        android:paddingStart="0dp"
+                        android:paddingEnd="8dp"
+                        android:src="@drawable/ic_sql_server_24" />
+
+                    <TextView
+                        android:id="@+id/loaded_sni_label"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:layout_toEndOf="@id/sql_server_icon"
+                        android:text="@string/loaded_sni_label"
+                        android:textColor="@color/white"
+                        android:textStyle="normal" />
+
+                    <TextView
+                        android:id="@+id/loaded_sni_count_label"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentTop="true"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:layout_marginEnd="24dp"
+                        android:text="456"
+                        android:textColor="@color/white"
+                        android:textStyle="normal" />
+
+                </RelativeLayout>
+
+                <LinearLayout
+                    android:id="@+id/load_delete_button_group"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginTop="6dp"
+                    android:layout_marginEnd="10dp"
+                    android:orientation="horizontal"
+                    android:padding="8dp">
+
+                    <Button
+                        android:id="@+id/load_sni_button"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:background="@drawable/settings_button_background"
+                        android:text="@string/load_sni_from_file"
+                        android:textAllCaps="false"
+                        android:textColor="@color/primary" />
+
+                    <Space
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="0.1" />
+
+                    <Button
+                        android:id="@+id/delete_or_reset_sni_button"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:background="@drawable/settings_button_background"
+                        android:text="@string/delete_loaded_sni"
+                        android:textAllCaps="false"
+                        android:textColor="@color/primary" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/checking_in_progress_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:orientation="vertical"
+                    android:padding="8dp">
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp">
+
+
+                        <TextView
+                            android:id="@+id/selected_server_label"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_centerVertical="true"
+                            android:layout_marginStart="12dp"
+                            android:text="@string/server_label"
+                            android:textColor="@color/white"
+                            android:textStyle="normal" />
+
+                        <TextView
+                            android:id="@+id/selected_server_text"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentEnd="true"
+                            android:layout_centerVertical="true"
+                            android:layout_marginEnd="24dp"
+                            android:text="@string/server_label"
+                            android:textColor="@color/white"
+                            android:textStyle="normal" />
+                    </RelativeLayout>
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp">
+
+                        <TextView
+                            android:id="@+id/current_sni_label"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_centerVertical="true"
+                            android:layout_marginStart="12dp"
+                            android:text="@string/checking_current_sni"
+                            android:textColor="@color/white"
+                            android:textStyle="normal" />
+
+                        <TextView
+                            android:id="@+id/current_sni_text"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentEnd="true"
+                            android:layout_centerVertical="true"
+                            android:layout_marginEnd="24dp"
+                            android:text="@string/default_sni"
+                            android:textColor="@color/white"
+                            android:textStyle="normal" />
+
+                    </RelativeLayout>
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp">
+
+                        <ProgressBar
+                            android:id="@+id/sni_checking_progress_bar"
+                            style="@android:style/Widget.DeviceDefault.Light.ProgressBar.Horizontal"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_centerVertical="true"
+                            android:layout_marginStart="12dp"
+                            android:layout_marginTop="12dp"
+                            android:layout_marginEnd="80dp"
+                            android:indeterminate="false" />
+
+                        <TextView
+                            android:id="@+id/sni_checking_progress_bar_label"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentEnd="true"
+                            android:layout_centerVertical="true"
+                            android:layout_marginStart="12dp"
+                            android:layout_marginTop="12dp"
+                            android:layout_marginEnd="24dp"
+                            android:text="@string/server_label"
+                            android:textColor="@color/white"
+                            android:textStyle="normal" />
+                    </RelativeLayout>
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginTop="6dp"
+                    android:layout_marginEnd="10dp"
+                    android:orientation="horizontal"
+                    android:padding="8dp">
+
+                    <ToggleButton
+                        android:id="@+id/auto_select_sni_button"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:background="@drawable/auto_select_sni_toggle_back"
+                        android:textAllCaps="false"
+                        android:textColor="@color/auto_select_sni_toggle_text_color"
+                        android:textOff="@string/start_sni_checking_button_label"
+                        android:textOn="@string/stop_sni_checking_button_label" />
+
+                </LinearLayout>
+
             </LinearLayout>
         </LinearLayout>
     </ScrollView>

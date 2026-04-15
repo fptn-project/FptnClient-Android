@@ -130,15 +130,22 @@ dependencies {
     implementation(libs.jackson.databind)
     implementation(libs.material)
     implementation(libs.zxing)
+    implementation(libs.gson)
 
     compileOnly(libs.androidlombock)
 
     annotationProcessor(libs.androidlombock)
     annotationProcessor(libs.androidx.room.compiler)
 
+    testImplementation(libs.assertj.core)
     testImplementation(libs.junit)
 
     androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.room.testing)
+    androidTestImplementation(libs.androidx.rules)
+    androidTestImplementation(libs.androidx.runner)
+    androidTestImplementation(libs.androidx.testing)
+    androidTestImplementation(libs.assertj.core)
 }
 java {
     toolchain {

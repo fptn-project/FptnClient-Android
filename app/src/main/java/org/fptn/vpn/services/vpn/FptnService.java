@@ -41,9 +41,9 @@ import org.fptn.vpn.services.tile.FptnTileService;
 import org.fptn.vpn.utils.NetworkUtils;
 import org.fptn.vpn.utils.NotificationUtils;
 import org.fptn.vpn.utils.SharedPrefUtils;
-import org.fptn.vpn.views.home.HomeActivity;
 import org.fptn.vpn.views.perappvpn.AppInfo;
 import org.fptn.vpn.services.speedtest.SpeedTestUtils;
+import org.fptn.vpn.views.splash.SplashActivity;
 import org.fptn.vpn.vpnclient.exception.ErrorCode;
 import org.fptn.vpn.vpnclient.exception.PVNClientException;
 
@@ -180,7 +180,7 @@ public class FptnService extends VpnService {
 
         // pending intent for open MainActivity on tap
         launchMainActivityPendingIntent = PendingIntent.getActivity(this, 0,
-                new Intent(this, HomeActivity.class),
+                new Intent(this, SplashActivity.class),
                 PendingIntent.FLAG_IMMUTABLE);
 
         // pending intent for disconnect button in connected notification
@@ -560,7 +560,6 @@ public class FptnService extends VpnService {
     }
 
     private void startForegroundWithNotification(String title) {
-        NotificationUtils.configureNotificationChannel(this);
         Notification notification = createNotification(title, "");
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             startForeground(Constants.MAIN_CONNECTED_NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SYSTEM_EXEMPTED);

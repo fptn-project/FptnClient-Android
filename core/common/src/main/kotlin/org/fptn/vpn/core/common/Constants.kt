@@ -1,7 +1,6 @@
 package org.fptn.vpn.core.common
 
 object Constants {
-    const val OBFUSCATION_METHOD_SHARED_PREF_KEY: String = "OBFUSCATION_METHOD_SHARED_PREF_KEY"
     const val QUICK_SETTINGS_TILE_REQUESTED_SHARED_PREF_KEY: String = "QUICK_SETTINGS_TILE_REQUESTED_SHARED_PREF_KEY"
     const val SELECTED_SERVER: String = "fptn.selected.server"
     const val SELECTED_SERVER_ID_AUTO: Int = -1
@@ -20,6 +19,12 @@ object Constants {
     const val ERROR_NOTIFICATION_CHANNEL_VERSION_NUM = 1
     const val ERROR_NOTIFICATION_CHANNEL_GROUP_ID = "fptnvpn-notification-error-group"
     const val ERROR_CONNECTED_NOTIFICATION_ID = 8989
+
+    const val SNI_CHECKER_NOTIFICATION_CHANNEL_ID = "fptnvpn-notification-sni"
+    const val SNI_CHECKER_NOTIFICATION_CHANNEL_VERSION = "fptnvpn-notification-sni-channel-version"
+    const val SNI_CHECKER_NOTIFICATION_CHANNEL_VERSION_NUM = 1
+    const val SNI_CHECKER_NOTIFICATION_CHANNEL_GROUP_ID = "fptnvpn-notification-sni-group"
+    const val SNI_CHECKER_NOTIFICATION_ID = 8999
 
     // Shares preferences constants
     const val CURRENT_SNI_SHARED_PREF_KEY: String = "CURRENT_SNI"

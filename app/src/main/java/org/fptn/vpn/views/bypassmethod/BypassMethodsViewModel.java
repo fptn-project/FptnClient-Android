@@ -1,34 +1,78 @@
 package org.fptn.vpn.views.bypassmethod;
 
 import android.app.Application;
+import android.net.Uri;
+import android.util.Log;
+import android.util.Pair;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.MutableLiveData;
 
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+
 import org.fptn.vpn.R;
+import org.fptn.vpn.database.AppDatabase;
+import org.fptn.vpn.database.entity.ServerEntity;
+import org.fptn.vpn.database.entity.SniEntity;
 import org.fptn.vpn.enums.BypassCensorshipMethod;
+import org.fptn.vpn.services.snichecker.SniCheckerService;
+import org.fptn.vpn.services.snichecker.SniCheckerServiceState;
 import org.fptn.vpn.utils.SharedPrefUtils;
+import org.fptn.vpn.vpnclient.exception.PVNClientException;
+
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import lombok.Getter;
 
 public class BypassMethodsViewModel extends AndroidViewModel {
+    private final String TAG = this.getClass().getSimpleName();
 
     @Getter
     private final MutableLiveData<String> sniMutableLiveData;
-
     @Getter
     private final MutableLiveData<BypassCensorshipMethod> bypassCensorshipMethodMutableLiveData;
+    @Getter
+    private final MutableLiveData<Integer> sniCountLiveData = new MutableLiveData<>(0);
+
+    @Getter
+    private final MutableLiveData<SniCheckerServiceState> serviceState = new MutableLiveData<>(SniCheckerServiceState.INACTIVE);
+
+    @Getter
+    private final MutableLiveData<String> currentCheckingSniInfo = new MutableLiveData<>("");
+
+    @Getter
+    private final MutableLiveData<Pair<Integer, Integer>> currentProgress = new MutableLiveData<>(Pair.create(0, 1));
+
+    @Getter
+    private final MutableLiveData<ServerEntity> selectedServer = new MutableLiveData<>(ServerEntity.AUTO);
+
+    private final AppDatabase appDatabase = AppDatabase.getInstance(getApplication());
+    private final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
     public BypassMethodsViewModel(@NonNull Application application) {
         super(application);
 
         sniMutableLiveData = new MutableLiveData<>(SharedPrefUtils.getSniHostname(application));
         bypassCensorshipMethodMutableLiveData = new MutableLiveData<>(SharedPrefUtils.getBypassCensorshipMethod(application));
+
+        refreshSniCount();
     }
 
     public String getCurrentSni() {
         return sniMutableLiveData.getValue();
+    }
+
+    public void refreshCurrentSni() {
+        sniMutableLiveData.postValue(SharedPrefUtils.getSniHostname(getApplication()));
     }
 
     public void setNewSni(String sni) {
@@ -63,6 +107,145 @@ public class BypassMethodsViewModel extends AndroidViewModel {
                 .toLowerCase();
         if (!cleanedNewSni.isBlank()) {
             setNewSni(newSni);
+        }
+    }
+
+    public void refreshSniCount() {
+        executorService.submit(() -> {
+            int sniCount = appDatabase.sniDAO().count();
+            sniCountLiveData.postValue(sniCount);
+        });
+    }
+
+    public ListenableFuture<List<ServerEntity>> getAllServers() {
+        return appDatabase.serverDAO().getServerListAsync(false);
+    }
+
+    public void deleteAllSni() {
+        executorService.submit(() -> {
+            appDatabase.sniDAO().deleteAll();
+            int sniCount = appDatabase.sniDAO().count();
+            sniCountLiveData.postValue(sniCount);
+        });
+    }
+
+    public void readFileContent(Uri uri) throws PVNClientException {
+        List<SniEntity> sniList = new ArrayList<>();
+        try (InputStream inputStream = getApplication().getContentResolver().openInputStream(uri);
+             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
+            reader.lines().forEach(line -> {
+                        // Trim whitespace and ignore empty or commented lines
+                        String trimmedLine = line.trim();
+                        if (!trimmedLine.isEmpty() && !trimmedLine.startsWith("#")) {
+                            sniList.add(SniEntity.builder()
+                                    .sni(trimmedLine)
+                                    .checked(false)
+                                    .build());
+                        }
+                    }
+            );
+        } catch (Exception e) {
+            Log.e(TAG, "Error reading SNI file", e);
+            throw new PVNClientException("Error: Could not read the file.");
+        }
+
+        if (!sniList.isEmpty()) {
+            ListenableFuture<Void> future = appDatabase.sniDAO().insertAll(sniList);
+            Futures.addCallback(future, new FutureCallback<>() {
+                @Override
+                public void onSuccess(Void result) {
+                    Log.d(TAG, "Successfully inserted " + sniList.size() + " SNIs into the database.");
+                    refreshSniCount();
+                }
+
+                @Override
+                public void onFailure(Throwable t) {
+                    Log.e(TAG, "DB error occurs!", t);
+                }
+            }, executorService);
+
+        } else {
+            Log.d(TAG, "No valid SNIs found in the selected file.");
+            throw new PVNClientException("File is empty or contains no valid SNI entries.");
+        }
+    }
+
+    public void subscribeService(SniCheckerService service) {
+        service.getServiceState().observeForever(state -> {
+            serviceState.postValue(state);
+            if (state == SniCheckerServiceState.ACTIVE) {
+                bypassCensorshipMethodMutableLiveData.postValue(service.getBypassCensorshipMethod());
+            }
+        });
+        service.getSelectedServer().observeForever(selectedServer::postValue);
+        service.getCurrentSniInfo().observeForever(currentCheckingSniInfo::postValue);
+        service.getCurrentProgress().observeForever(currentProgress::postValue);
+    }
+
+    public void unsubscribe() {
+        // todo: check memory leaks and maybe remove observers
+    }
+
+    public void loadDefaultSni() throws PVNClientException {
+        List<SniEntity> sniList = new ArrayList<>();
+
+        // load global
+        try (InputStream inputStream = getApplication().getResources().openRawResource(R.raw.global);
+             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
+            reader.lines().forEach(line -> {
+                        // Trim whitespace and ignore empty or commented lines
+                        String trimmedLine = line.trim();
+                        if (!trimmedLine.isEmpty() && !trimmedLine.startsWith("#")) {
+                            sniList.add(SniEntity.builder()
+                                    .sni(trimmedLine)
+                                    .checked(false)
+                                    .build());
+                        }
+                    }
+            );
+        } catch (Exception e) {
+            Log.e(TAG, "Error reading SNI file", e);
+            throw new PVNClientException("Error: Could not read the file.");
+        }
+
+        // load russia
+        try (InputStream inputStream = getApplication().getResources().openRawResource(R.raw.russia);
+             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
+            reader.lines().forEach(line -> {
+                        // Trim whitespace and ignore empty or commented lines
+                        String trimmedLine = line.trim();
+                        if (!trimmedLine.isEmpty() && !trimmedLine.startsWith("#")) {
+                            sniList.add(SniEntity.builder()
+                                    .sni(trimmedLine)
+                                    .checked(false)
+                                    .build());
+                        }
+                    }
+            );
+        } catch (Exception e) {
+            Log.e(TAG, "Error reading SNI file", e);
+            throw new PVNClientException("Error: Could not read the file.");
+        }
+
+        // save to db
+        if (!sniList.isEmpty()) {
+            ListenableFuture<Void> future = appDatabase.sniDAO().insertAll(sniList);
+            Futures.addCallback(future, new FutureCallback<>() {
+                @Override
+                public void onSuccess(Void result) {
+                    Log.d(TAG, "Successfully inserted " + sniList.size() + " SNIs into the database.");
+                    refreshSniCount();
+                }
+
+                @Override
+                public void onFailure(Throwable t) {
+                    Log.e(TAG, "DB error occurs!", t);
+                }
+            }, executorService);
+
+        } else {
+            Log.d(TAG, "No valid SNIs found in the selected file.");
+            throw new PVNClientException("File is empty or contains no valid SNI entries.");
         }
     }
 }
