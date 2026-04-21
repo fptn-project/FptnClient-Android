@@ -160,6 +160,25 @@ public class WebSocketClientWrapper {
         throw new PVNClientException(ErrorCode.CONNECT_TO_SERVER_ERROR);
     }
 
+    public String getDnsServerIPv6() throws PVNClientException {
+        // todo: fix to IPv6
+        NativeResponse response = nativeHttpsClient.Get(DNS_URL, 15);
+        if (response != null) {
+            if (response.code == 200) {
+                try {
+                    JSONObject jsonResponse = new JSONObject(response.body);
+                    String dnsServer = jsonResponse.getString("dns");
+                    Log.i(getTag(), "DNS " + dnsServer + " retrieval successful.");
+                    return dnsServer;
+                } catch (JSONException e) {
+                    Log.e(getTag(), "Some error occurs on receiving DNS response: " + e);
+                    throw new PVNClientException(ErrorCode.CONNECT_TO_SERVER_ERROR);
+                }
+            }
+        }
+        throw new PVNClientException(ErrorCode.CONNECT_TO_SERVER_ERROR);
+    }
+
     private String getTag() {
         return this.getClass().getCanonicalName();
     }

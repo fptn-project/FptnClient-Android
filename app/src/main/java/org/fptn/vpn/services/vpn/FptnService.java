@@ -46,6 +46,7 @@ import org.fptn.vpn.views.splash.SplashActivity;
 import org.fptn.vpn.vpnclient.exception.ErrorCode;
 import org.fptn.vpn.vpnclient.exception.PVNClientException;
 
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -284,7 +285,8 @@ public class FptnService extends VpnService {
 
                         connect(server, sniHostname);
                     }
-                } catch (ExecutionException | InterruptedException | RuntimeException e) {
+                } catch (ExecutionException | InterruptedException | RuntimeException |
+                         UnknownHostException e) {
                     disconnect(new PVNClientException(e.getMessage()));
                 }
             });
@@ -414,7 +416,7 @@ public class FptnService extends VpnService {
                 .build());
     }
 
-    private void connect(ServerEntity serverEntity, String sniHostname) {
+    private void connect(ServerEntity serverEntity, String sniHostname) throws UnknownHostException {
         // Moving VPNService to foreground to give it higher priority in system
         updateNotificationWithMessage(getString(R.string.connecting_to) + serverEntity.getServerInfo(), "");
 

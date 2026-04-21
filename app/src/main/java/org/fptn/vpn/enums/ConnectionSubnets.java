@@ -12,29 +12,44 @@ import lombok.Getter;
 
 @Getter
 public enum ConnectionSubnets {
-    TUN_ADDRESS("10.10.0.1", 32),
-    TUN_INTERFACE_SUBNET("10.10.0.0", 16),
-    FPTN_SUBNET("172.16.0.0", 12),
-    LOCAL_SUBNET("192.168.0.0", 16),
-    ALL_SUBNET("0.0.0.0", 0),
+    // todo: fix IPv6
+    TUN_ADDRESS("10.10.0.1", 32, "::::", 128),
+    TUN_INTERFACE_SUBNET("10.10.0.0", 16, "::::", 128),
+    FPTN_SUBNET("172.16.0.0", 12, "::::", 128),
+    LOCAL_SUBNET("192.168.0.0", 16, "::::", 128),
+    ALL_SUBNET("0.0.0.0", 0, "::::", 128),
 
-    // todo: rename me!
-    HZ_WHAT_IS_THIS_IP("172.20.0.1", 32);
+    // todo: rename me! STAS WHAT IS THIS ADDRESS?
+    HZ_WHAT_IS_THIS_IP("172.20.0.1", 32, "::::", 128);
 
-    private final String ipAddress;
-    private final int prefix;
+    private final String ipV4Address;
+    private final int v4prefix;
 
-    ConnectionSubnets(String ipAddress, int prefix) {
-        this.ipAddress = ipAddress;
-        this.prefix = prefix;
+    private final String ipV6Address;
+    private final int v6prefix;
+
+    ConnectionSubnets(String ipV4Address, int v4prefix, String ipV6Address, int v6prefix) {
+        this.ipV4Address = ipV4Address;
+        this.v4prefix = v4prefix;
+        this.ipV6Address = ipV6Address;
+        this.v6prefix = v6prefix;
     }
 
     @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
-    public IpPrefix getAsIpPrefix() throws UnknownHostException {
-        return new IpPrefix(InetAddress.getByName(ipAddress), prefix);
+    public IpPrefix getAsIpV4Prefix() throws UnknownHostException {
+        return new IpPrefix(InetAddress.getByName(ipV4Address), v4prefix);
     }
 
-    public String getAsIPWithPrefix() {
-        return ipAddress + "/" + prefix;
+    public String getAsIpV4PrefixAsString() {
+        return ipV4Address + "/" + v4prefix;
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
+    public IpPrefix getAsIpV6Prefix() throws UnknownHostException {
+        return new IpPrefix(InetAddress.getByName(ipV6Address), v6prefix);
+    }
+
+    public String getAsIpV6PrefixAsString() {
+        return ipV6Address + "/" + v6prefix;
     }
 }

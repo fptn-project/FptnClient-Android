@@ -31,7 +31,10 @@ import org.fptn.vpn.vpnclient.exception.PVNClientException;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.Inet4Address;
+import java.net.Inet6Address;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -61,6 +64,8 @@ public class FptnConnection extends Thread {
      * Maximum packet size is constrained by the MTU
      */
     private static final int MAX_PACKET_SIZE = 1500;
+    public static final int IP_V4_PREFIX_LENGTH = 32;
+    public static final int IP_V6_PREFIX_LENGTH = 128;
 
     @Getter
     private final int connectionId;
@@ -112,7 +117,7 @@ public class FptnConnection extends Thread {
                           final String sniHostName,
                           final BypassCensorshipMethod censorshipStrategy,
                           final PerAppVpnMode perAppVpnMode,
-                          final List<AppInfo> appInfos) {
+                          final List<AppInfo> appInfos) throws UnknownHostException {
         this.service = service;
         this.connectionId = connectionId;
         this.serverEntity = serverEntity;
@@ -122,15 +127,18 @@ public class FptnConnection extends Thread {
         this.censorshipStrategy = censorshipStrategy;
         this.perAppVpnMode = perAppVpnMode;
         this.appInfos = appInfos;
+
+        InetAddress inetAddress = InetAddress.getByName(serverEntity.getHost());
         this.webSocketClient = new WebSocketClientWrapper(
                 this.serverEntity,
-                TUN_ADDRESS.getIpAddress(),
+                inetAddress instanceof Inet4Address ? TUN_ADDRESS.getIpV4Address() : TUN_ADDRESS.getIpV6Address(),
                 this::onConnectionOpen,
                 this::onMessageReceived,
                 this::onConnectionFailure,
                 this.sniHostName,
                 this.censorshipStrategy
         );
+
         this.maxReconnectCount = maxReconnectCount;
         this.delayBetweenAttempts = delayBetweenAttempts;
     }
@@ -143,16 +151,13 @@ public class FptnConnection extends Thread {
             sendConnectionStateToService(ConnectionState.CONNECTING);
 
             VpnService.Builder builder = service.new Builder();
-            builder.addAddress(TUN_ADDRESS.getIpAddress(), TUN_ADDRESS.getPrefix());
-            builder.addRoute(HZ_WHAT_IS_THIS_IP.getIpAddress(), HZ_WHAT_IS_THIS_IP.getPrefix());
-            builder.setMtu(MAX_PACKET_SIZE);
-            // enable blocking reading
-            builder.setBlocking(true);
+            builder.setBlocking(true) // enable blocking reading EXTREMELY IMPORTANT
+                    .setSession(serverEntity.getName())
+                    .setConfigureIntent(configureVpnIntent)
+                    .setMtu(MAX_PACKET_SIZE);
 
-            /*
-            From documentation: You can create either an allowed list, or, a disallowed list, but not both
-             */
-            if (perAppVpnMode == PerAppVpnMode.ONLY_ALLOWED){
+            // From documentation: You can create either an allowed list, or, a disallowed list, but not both
+            if (perAppVpnMode == PerAppVpnMode.ONLY_ALLOWED) {
                 for (AppInfo appInfo : appInfos) {
                     String packageName = appInfo.getPackageName();
                     try {
@@ -161,7 +166,7 @@ public class FptnConnection extends Thread {
                         Log.d(TAG, "Package not found: " + packageName);
                     }
                 }
-            } else if (perAppVpnMode == PerAppVpnMode.EXCEPT_DISALLOWED){
+            } else if (perAppVpnMode == PerAppVpnMode.EXCEPT_DISALLOWED) {
                 for (AppInfo appInfo : appInfos) {
                     String packageName = appInfo.getPackageName();
                     try {
@@ -172,36 +177,70 @@ public class FptnConnection extends Thread {
                 }
             }
 
-            final String dnsServer = webSocketClient.getDnsServerIPv4();
-            builder.addDnsServer(dnsServer);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                builder.excludeRoute(new IpPrefix(InetAddress.getByName(serverEntity.getHost()), 32));
-                builder.excludeRoute(TUN_INTERFACE_SUBNET.getAsIpPrefix());
-                builder.excludeRoute(FPTN_SUBNET.getAsIpPrefix());
-                builder.excludeRoute(LOCAL_SUBNET.getAsIpPrefix());
-                builder.addRoute(ALL_SUBNET.getIpAddress(), ALL_SUBNET.getPrefix());
-            } else {
-                IPAddress rootSubnet = new IPAddressString(ALL_SUBNET.getAsIPWithPrefix()).getAddress();
-                List<IPAddress> subnetsToExclude = Stream.of(
-                                serverEntity.getHost() + "/32",
-                                TUN_INTERFACE_SUBNET.getAsIPWithPrefix(),
-                                FPTN_SUBNET.getAsIPWithPrefix(),
-                                LOCAL_SUBNET.getAsIPWithPrefix()
-                        )
-                        .map(sub -> new IPAddressString(sub).getAddress())
-                        .collect(Collectors.toList());
+            InetAddress inetAddress = InetAddress.getByName(serverEntity.getHost());
+            if (inetAddress instanceof Inet4Address) {
+                builder.addDnsServer(webSocketClient.getDnsServerIPv4());
+                builder.addAddress(TUN_ADDRESS.getIpV4Address(), TUN_ADDRESS.getV4prefix());
+                builder.addRoute(HZ_WHAT_IS_THIS_IP.getIpV4Address(), HZ_WHAT_IS_THIS_IP.getV4prefix());
 
-                List<IPAddress> subnetsToInclude = new ArrayList<>();
-                IPUtils.exclude(rootSubnet, subnetsToExclude, subnetsToInclude);
-                for (IPAddress ipAddress : subnetsToInclude) {
-                    String hostIp = ipAddress.getLower().toAddressString().getHostAddress().toString();
-                    Integer networkPrefixLength = ipAddress.getLower().toAddressString().getNetworkPrefixLength();
-                    Log.d(getTag(), "subnetsToInclude.ipAddress: " + hostIp + "/" + networkPrefixLength);
-                    builder.addRoute(hostIp, networkPrefixLength != null ? networkPrefixLength : 32);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    builder.excludeRoute(new IpPrefix(inetAddress, IP_V4_PREFIX_LENGTH));
+                    builder.excludeRoute(TUN_INTERFACE_SUBNET.getAsIpV4Prefix());
+                    builder.excludeRoute(FPTN_SUBNET.getAsIpV4Prefix());
+                    builder.excludeRoute(LOCAL_SUBNET.getAsIpV4Prefix());
+                    builder.addRoute(ALL_SUBNET.getIpV4Address(), ALL_SUBNET.getV4prefix());
+                } else {
+                    IPAddress rootSubnet = new IPAddressString(ALL_SUBNET.getAsIpV4PrefixAsString()).getAddress();
+                    List<IPAddress> subnetsToExclude = Stream.of(
+                                    String.format("%s/%s", serverEntity.getHost(), IP_V4_PREFIX_LENGTH),
+                                    TUN_INTERFACE_SUBNET.getAsIpV4PrefixAsString(),
+                                    FPTN_SUBNET.getAsIpV4PrefixAsString(),
+                                    LOCAL_SUBNET.getAsIpV4PrefixAsString()
+                            )
+                            .map(sub -> new IPAddressString(sub).getAddress())
+                            .collect(Collectors.toList());
+
+                    List<IPAddress> subnetsToInclude = new ArrayList<>();
+                    IPUtils.exclude(rootSubnet, subnetsToExclude, subnetsToInclude);
+                    for (IPAddress ipAddress : subnetsToInclude) {
+                        String hostIp = ipAddress.getLower().toAddressString().getHostAddress().toString();
+                        Integer networkPrefixLength = ipAddress.getLower().toAddressString().getNetworkPrefixLength();
+                        Log.d(getTag(), "subnetsToInclude.ipAddress: " + hostIp + "/" + networkPrefixLength);
+                        builder.addRoute(hostIp, networkPrefixLength != null ? networkPrefixLength : IP_V4_PREFIX_LENGTH);
+                    }
+                }
+            } else if (inetAddress instanceof Inet6Address) {
+                builder.addDnsServer(webSocketClient.getDnsServerIPv6());
+                builder.addAddress(TUN_ADDRESS.getIpV6Address(), TUN_ADDRESS.getV6prefix());
+                builder.addRoute(HZ_WHAT_IS_THIS_IP.getIpV6Address(), HZ_WHAT_IS_THIS_IP.getV6prefix());
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    builder.excludeRoute(new IpPrefix(inetAddress, IP_V6_PREFIX_LENGTH));
+                    builder.excludeRoute(TUN_INTERFACE_SUBNET.getAsIpV6Prefix());
+                    builder.excludeRoute(FPTN_SUBNET.getAsIpV6Prefix());
+                    builder.excludeRoute(LOCAL_SUBNET.getAsIpV6Prefix());
+                    builder.addRoute(ALL_SUBNET.getIpV6Address(), ALL_SUBNET.getV6prefix());
+                } else {
+                    IPAddress rootSubnet = new IPAddressString(ALL_SUBNET.getAsIpV6PrefixAsString()).getAddress();
+                    List<IPAddress> subnetsToExclude = Stream.of(
+                                    String.format("%s/%s", serverEntity.getHost(), IP_V6_PREFIX_LENGTH),
+                                    TUN_INTERFACE_SUBNET.getAsIpV6PrefixAsString(),
+                                    FPTN_SUBNET.getAsIpV6PrefixAsString(),
+                                    LOCAL_SUBNET.getAsIpV6PrefixAsString()
+                            )
+                            .map(sub -> new IPAddressString(sub).getAddress())
+                            .collect(Collectors.toList());
+
+                    List<IPAddress> subnetsToInclude = new ArrayList<>();
+                    IPUtils.exclude(rootSubnet, subnetsToExclude, subnetsToInclude);
+                    for (IPAddress ipAddress : subnetsToInclude) {
+                        String hostIp = ipAddress.getLower().toAddressString().getHostAddress().toString();
+                        Integer networkPrefixLength = ipAddress.getLower().toAddressString().getNetworkPrefixLength();
+                        Log.d(getTag(), "subnetsToInclude.ipAddress: " + hostIp + "/" + networkPrefixLength);
+                        builder.addRoute(hostIp, networkPrefixLength != null ? networkPrefixLength : IP_V6_PREFIX_LENGTH);
+                    }
                 }
             }
-
-            builder.setSession(serverEntity.getName()).setConfigureIntent(configureVpnIntent);
 
             synchronized (service) {
                 vpnInterface = builder.establish();
