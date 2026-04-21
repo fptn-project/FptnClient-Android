@@ -113,7 +113,7 @@ public class SniCheckerService extends Service {
         super.onCreate();
 
         // Configure notification channels
-        NotificationUtils.configureNotificationChannel(this);
+        NotificationUtils.configureNotificationChannels(this);
 
         // Pending Intent for launch byPassMethodActivity when notification tapped
         launchActivityPendingIntent = PendingIntent.getActivity(this, 0,
