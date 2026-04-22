@@ -131,7 +131,8 @@ public class FptnConnection extends Thread {
         InetAddress inetAddress = InetAddress.getByName(serverEntity.getHost());
         this.webSocketClient = new WebSocketClientWrapper(
                 this.serverEntity,
-                inetAddress instanceof Inet4Address ? TUN_ADDRESS.getIpV4Address() : TUN_ADDRESS.getIpV6Address(),
+                TUN_ADDRESS.getIpV4Address(),
+                TUN_ADDRESS.getIpV6Address(),
                 this::onConnectionOpen,
                 this::onMessageReceived,
                 this::onConnectionFailure,

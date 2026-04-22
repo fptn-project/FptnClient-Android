@@ -20,6 +20,7 @@ class WrapperWebsocketClient final {
       std::string server_ip,
       int server_port,
       std::string tun_ipv4,
+      std::string tun_ipv6,
       std::string sni,
       std::string access_token,
       std::string expected_md5_fingerprint,
@@ -55,6 +56,7 @@ class WrapperWebsocketClient final {
   const std::string server_ip_;
   const int server_port_;
   const std::string tun_ipv4_;
+  const std::string tun_ipv6_;
   const std::string sni_;
   const std::string access_token_;
   const std::string expected_md5_fingerprint_;

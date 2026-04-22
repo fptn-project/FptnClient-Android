@@ -20,7 +20,7 @@ public enum ConnectionSubnets {
     ALL_SUBNET("0.0.0.0", 0, "::::", 128),
 
     // todo: rename me! STAS WHAT IS THIS ADDRESS?
-    HZ_WHAT_IS_THIS_IP("172.20.0.1", 32, "::::", 128);
+    HZ_WHAT_IS_THIS_IP("fd00::1", 32, "::::", 126);
 
     private final String ipV4Address;
     private final int v4prefix;

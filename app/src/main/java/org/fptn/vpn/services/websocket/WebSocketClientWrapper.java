@@ -21,7 +21,8 @@ public class WebSocketClientWrapper {
     private static final String LOGIN_URL = "/api/v1/login";
 
     private final ServerEntity serverEntity;
-    private final String tunAddress;
+    private final String tunAddressIPv4;
+    private final String tunAddressIPv6;
     private final OnOpenCallback onOpenCallback;
     private final OnMessageReceivedCallback onMessageReceivedCallback;
     private final OnFailureCallback onFailureCallback;
@@ -35,14 +36,16 @@ public class WebSocketClientWrapper {
     private boolean shutdown = false;
 
     public WebSocketClientWrapper(ServerEntity serverEntity,
-                                  String tunAddress,
+                                  String tunAddressIPv4,
+                                  String tunAddressIPv6,
                                   OnOpenCallback onOpenCallback,
                                   OnMessageReceivedCallback onMessageReceivedCallback,
                                   OnFailureCallback onFailureCallback,
                                   String sniHostName,
                                   BypassCensorshipMethod censorshipStrategy) {
         this.serverEntity = serverEntity;
-        this.tunAddress = tunAddress;
+        this.tunAddressIPv4 = tunAddressIPv4;
+        this.tunAddressIPv6 = tunAddressIPv6;
         this.onOpenCallback = onOpenCallback;
         this.onMessageReceivedCallback = onMessageReceivedCallback;
         this.onFailureCallback = onFailureCallback;
@@ -71,7 +74,8 @@ public class WebSocketClientWrapper {
         nativeWebSocketClient = new NativeWebSocketClientImpl(
                 serverEntity.getHost(),
                 serverEntity.getPort(),
-                tunAddress,
+                tunAddressIPv4,
+                tunAddressIPv6,
                 accessToken,
                 serverEntity.getMd5ServerFingerprint(),
                 onOpenCallback,
