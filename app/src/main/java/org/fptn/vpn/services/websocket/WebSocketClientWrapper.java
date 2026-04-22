@@ -146,42 +146,23 @@ public class WebSocketClientWrapper {
         throw new PVNClientException(ErrorCode.CONNECT_TO_SERVER_ERROR);
     }
 
-    public String getDnsServerIPv4() throws PVNClientException {
+    public DnsServers getDnsServers() throws PVNClientException {
         NativeResponse response = nativeHttpsClient.Get(DNS_URL, 15);
-        if (response != null) {
-            if (response.code == 200) {
-                try {
-                    JSONObject jsonResponse = new JSONObject(response.body);
-                    String dnsServer = jsonResponse.getString("dns");
-                    Log.i(getTag(), "DNS " + dnsServer + " retrieval successful.");
-                    return dnsServer;
-                } catch (JSONException e) {
-                    Log.e(getTag(), "Some error occurs on receiving DNS response: " + e);
-                    throw new PVNClientException(ErrorCode.CONNECT_TO_SERVER_ERROR);
-                }
+        if (response != null && response.code == 200) {
+            try {
+                JSONObject jsonResponse = new JSONObject(response.body);
+                String ipv4 = jsonResponse.getString("dns");
+                String ipv6 = jsonResponse.getString("dns_ipv6");
+                Log.i(getTag(), "DNS_IPv4: " + ipv4 + "  DNS_IPv6: " + ipv6);
+                return new DnsServers(ipv4, ipv6);
+            } catch (JSONException e) {
+                Log.e(getTag(), "Error parsing DNS response: " + e);
+                throw new PVNClientException(ErrorCode.CONNECT_TO_SERVER_ERROR);
             }
         }
         throw new PVNClientException(ErrorCode.CONNECT_TO_SERVER_ERROR);
     }
 
-    public String getDnsServerIPv6() throws PVNClientException {
-        // todo: fix to IPv6
-        NativeResponse response = nativeHttpsClient.Get(DNS_URL, 15);
-        if (response != null) {
-            if (response.code == 200) {
-                try {
-                    JSONObject jsonResponse = new JSONObject(response.body);
-                    String dnsServer = jsonResponse.getString("dns");
-                    Log.i(getTag(), "DNS " + dnsServer + " retrieval successful.");
-                    return dnsServer;
-                } catch (JSONException e) {
-                    Log.e(getTag(), "Some error occurs on receiving DNS response: " + e);
-                    throw new PVNClientException(ErrorCode.CONNECT_TO_SERVER_ERROR);
-                }
-            }
-        }
-        throw new PVNClientException(ErrorCode.CONNECT_TO_SERVER_ERROR);
-    }
 
     private String getTag() {
         return this.getClass().getCanonicalName();

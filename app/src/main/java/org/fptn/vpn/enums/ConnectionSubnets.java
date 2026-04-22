@@ -13,14 +13,11 @@ import lombok.Getter;
 @Getter
 public enum ConnectionSubnets {
     // todo: fix IPv6
-    TUN_ADDRESS("10.10.0.1", 32, "::::", 128),
-    TUN_INTERFACE_SUBNET("10.10.0.0", 16, "::::", 128),
-    FPTN_SUBNET("172.16.0.0", 12, "::::", 128),
+    LOCAL_TUN_ADDRESS("10.10.0.1", 32, "fd00::1", 128),
+    LOCAL_TUN_INTERFACE_SUBNET("10.10.0.0", 16, "fd00:::", 64),
+    FPTN_SERVER_SUBNET("172.16.0.0", 12, "fc00:1::", 64),
     LOCAL_SUBNET("192.168.0.0", 16, "::::", 128),
-    ALL_SUBNET("0.0.0.0", 0, "::::", 128),
-
-    // todo: rename me! STAS WHAT IS THIS ADDRESS?
-    HZ_WHAT_IS_THIS_IP("fd00::1", 32, "::::", 126);
+    ALL_SUBNET("0.0.0.0", 0, "::::", 128);
 
     private final String ipV4Address;
     private final int v4prefix;
@@ -52,4 +49,21 @@ public enum ConnectionSubnets {
     public String getAsIpV6PrefixAsString() {
         return ipV6Address + "/" + v6prefix;
     }
+
+    public String getIpV4Address() {
+        return ipV4Address;
+    }
+
+    public String getIpV6Address() {
+        return ipV6Address;
+    }
+
+    public int getIpV4Prefix() {
+        return v4prefix;
+    }
+
+    public int getIpV6Prefix() {
+        return v6prefix;
+    }
+
 }
