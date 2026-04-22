@@ -113,16 +113,33 @@ Java_org_fptn_vpn_services_websocket_NativeHttpsClientImpl_nativeCreate(
       censorship_strategy = fptn::protocol::https::CensorshipStrategy::kTlsObfuscator;
   } else if (censorship_strategy_name == "SNI-REALITY") {  // deprecated
       censorship_strategy = fptn::protocol::https::CensorshipStrategy::kSniRealityMode;
+  }
+  /* Chrome */
+  else if (censorship_strategy_name == "SNI-REALITY-CHROME-147") {
+      censorship_strategy = fptn::protocol::https::CensorshipStrategy::kSniRealityModeChrome147;
   } else if (censorship_strategy_name == "SNI-REALITY-CHROME-146") {
       censorship_strategy = fptn::protocol::https::CensorshipStrategy::kSniRealityModeChrome146;
-  } else if (censorship_strategy_name == "SNI-REALITY-FIREFOX-149") {
+  } else if (censorship_strategy_name == "SNI-REALITY-CHROME-145") {
+      censorship_strategy = fptn::protocol::https::CensorshipStrategy::kSniRealityModeChrome145;
+  }
+  /* Firefox */
+  else if (censorship_strategy_name == "SNI-REALITY-FIREFOX-149") {
       censorship_strategy = fptn::protocol::https::CensorshipStrategy::kSniRealityModeFirefox149;
-  } else if (censorship_strategy_name == "SNI-REALITY-YANDEX-26") {
+  }
+  /* Yandex */
+  else if (censorship_strategy_name == "SNI-REALITY-YANDEX-26") {
       censorship_strategy = fptn::protocol::https::CensorshipStrategy::kSniRealityModeYandex26;
   } else if (censorship_strategy_name == "SNI-REALITY-YANDEX-25") {
       censorship_strategy = fptn::protocol::https::CensorshipStrategy::kSniRealityModeYandex25;
+  } else if (censorship_strategy_name == "SNI-REALITY-YANDEX-24") {
+      censorship_strategy = fptn::protocol::https::CensorshipStrategy::kSniRealityModeYandex24;
   }
-  
+  /* Safari */
+  else if (censorship_strategy_name == "SNI-REALITY-SAFARI-26") {
+      censorship_strategy = fptn::protocol::https::CensorshipStrategy::kSniRealityModeSafari26;
+  }
+
+
   auto* https_client = new WrapperHttpsClient(env, global_object_ref,
       std::move(host), port, std::move(sni), std::move(md5_fingerprint), censorship_strategy);
   return reinterpret_cast<jlong>(https_client);
