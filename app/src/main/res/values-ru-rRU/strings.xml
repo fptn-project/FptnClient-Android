@@ -166,7 +166,7 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="sni_reality_radio_button_label_chrome_146">Подмена домена (Chrome 146)</string>
     <string name="sni_reality_radio_button_label_chrome_145">Подмена домена (Chrome 145)</string>
 
-    <string name="sni_reality_radio_button_label_firefox_149">Продвинутая подмена домена (Firefox 149)</string>
+    <string name="sni_reality_radio_button_label_firefox_149">Подмена домена (Firefox 149)</string>
 
     <string name="sni_reality_radio_button_label_yandex_26">Подмена домена (Yandex 26)</string>
     <string name="sni_reality_radio_button_label_yandex_25">Подмена домена (Yandex 25)</string>
