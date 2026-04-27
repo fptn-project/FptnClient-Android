@@ -6,27 +6,86 @@ on:
       - '*'
   release:
     types: [published]
+  pull_request:
+    branches:
+      - '**'
 
 jobs:
-  build_android:
-    runs-on: ubuntu22.04_x64
-    environment: RELEASE_ENVIRONMENT
+  code_quality:
+    runs-on: ubuntu-22.04
     steps:
     - name: Checkout code
       uses: actions/checkout@v5
       with:
-        submodules: true
+        submodules: recursive
 
-    - name: Set version environment variables
-      if: github.event_name == 'release'
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+
+    - name: Run ktlintCheck
+      run: ./gradlew ktlintCheck
+
+    - name: Run detektCheck
+      run: ./gradlew detektCheck
+
+    - name: Run checkSortDependencies
+      run: ./gradlew checkSortDependencies
+
+  build_android:
+    runs-on: ubuntu-22.04
+    environment: RELEASE_ENVIRONMENT
+    needs: code_quality
+    if: github.event_name == 'push' || github.event_name == 'release'
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v5
+      with:
+        submodules: recursive
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    - name: Install Python dependencies
       run: |
-        echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
-        echo "RELEASE_VERSION_NAME=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
-    - name: Set dev version environment variables
-      if: github.event_name != 'release'
+        python -m pip install --upgrade pip
+        pip install conan numpy
+
+    - name: Install clang
+      run: sudo apt-get update && sudo apt-get install -y clang
+
+    - name: Setup Conan profile
       run: |
-        echo "RELEASE_VERSION=0.0.0.1" >> $GITHUB_ENV
-        echo "RELEASE_VERSION_NAME=$(date +'%Y-%m-%d__%H-%M-%S')-dev" >> $GITHUB_ENV
+        conan profile detect -f
+        CONAN_HOME=$(conan config home | tr -d '\n')
+        mkdir -p "$CONAN_HOME/profiles"
+        cat > "$CONAN_HOME/profiles/android-studio" << 'EOF'
+        include(default)
+
+        [settings]
+        os=Android
+        os.api_level=28
+        compiler=clang
+        compiler.version=20
+        compiler.libcxx=c++_static
+        compiler.cppstd=17
+
+        [tool_requires]
+        *: android-ndk/r28b
+        EOF
+        echo "Conan profile created at $CONAN_HOME/profiles/android-studio"
+        cat "$CONAN_HOME/profiles/android-studio"
+
+    - name: Create local.properties
+      run: echo "sdk.dir=$ANDROID_HOME" > local.properties
 
     - name: Set environment variables
       run: |
@@ -44,21 +103,32 @@ jobs:
         ANDROID_HOME: ${{ vars.ANDROID_HOME }}
         CMDLINE_TOOLS: ${{ vars.CMDLINE_TOOLS }}
 
-    - name: Create local.properties
-      run: echo "sdk.dir=$ANDROID_HOME" > local.properties
-
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
 
     - name: Print Release Version
       if: github.event_name == 'release'
       run: |
-        echo "Release Version: $RELEASE_VERSION"
+        echo "Release Version: ${{ env.RELEASE_VERSION }}"
+
+    - name: Set version environment variables
+      if: github.event_name == 'release'
+      run: |
+        echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+        echo "RELEASE_VERSION_NAME=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+
+    - name: Set dev version environment variables
+      if: github.event_name != 'release'
+      run: |
+        echo "RELEASE_VERSION=0.0.0.1" >> $GITHUB_ENV
+        echo "RELEASE_VERSION_NAME=$(date +'%Y-%m-%d__%H-%M-%S')-dev" >> $GITHUB_ENV
 
     - name: Build project
       run: ./gradlew assembleDebug
+
     - name: Run tests
       run: ./gradlew test
+
     - name: Build APK and AAB
       if: github.event_name == 'release'
       run: |
@@ -84,12 +154,14 @@ jobs:
       with:
         files: "*.apk"
         repo-token: ${{ secrets.CI_TOKEN }}
+
     - name: Upload AAB to Release
       if: github.event_name == 'release'
       uses: AButler/upload-release-assets@v3.0
       with:
         files: "*.aab"
         repo-token: ${{ secrets.CI_TOKEN }}
+
     - name: Upload Build Artifacts
       if: github.event_name == 'release'
       uses: actions/upload-artifact@v5
