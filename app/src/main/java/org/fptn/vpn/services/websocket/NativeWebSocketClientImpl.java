@@ -109,9 +109,9 @@ public class NativeWebSocketClientImpl {
         return nativeIsStarted(nativeHandle);
     }
 
-    public void send(byte[] data) {
+    public void send(byte[] data, long length) {
         if (nativeHandle != 0L && nativeIsStarted(nativeHandle)) {
-            nativeSend(nativeHandle, data);
+            nativeSend(nativeHandle, data, length);
         }
     }
 
@@ -169,7 +169,7 @@ public class NativeWebSocketClientImpl {
 
     private native boolean nativeStop(long nativeHandle);
 
-    private native boolean nativeSend(long nativeHandle, byte[] data);
+    private native boolean nativeSend(long nativeHandle, byte[] data, long length);
 
     private native boolean nativeIsStarted(long nativeHandle);
 }

@@ -2,6 +2,8 @@ package org.fptn.vpn.services.websocket;
 
 import android.util.Log;
 
+import com.google.gson.Gson;
+
 import org.fptn.vpn.database.entity.ServerEntity;
 import org.fptn.vpn.enums.BypassCensorshipMethod;
 import org.fptn.vpn.services.websocket.callback.OnFailureCallback;
@@ -96,9 +98,11 @@ public class WebSocketClientWrapper {
         }
     }
 
-    public void send(byte[] bytes) {
-        if (nativeWebSocketClient != null && nativeWebSocketClient.isStarted()) {
-            nativeWebSocketClient.send(bytes);
+    public void send(byte[] bytes, long length) {
+        if (nativeWebSocketClient != null
+                && nativeWebSocketClient.isStarted()
+                && length > 0) {
+            nativeWebSocketClient.send(bytes, length);
         } else {
             throw new RuntimeException("nativeWebSocketClient is null or not started");
         }
@@ -110,11 +114,12 @@ public class WebSocketClientWrapper {
     }
 
     private String getAccessToken() throws PVNClientException {
-        String request = String.format("{\"username\": \"%s\", \"password\": \"%s\"}",
+        LoginRequest loginRequest = new LoginRequest(
                 serverEntity.getUsername(),
-                serverEntity.getPassword());
-
-        NativeResponse response = nativeHttpsClient.Post(LOGIN_URL, request, 5);
+                serverEntity.getPassword()
+        );
+        String requestBody = new Gson().toJson(loginRequest);
+        NativeResponse response = nativeHttpsClient.Post(LOGIN_URL, requestBody, 15);
         if (response != null) {
             if (response.code == 200) {
                 try {
@@ -138,7 +143,7 @@ public class WebSocketClientWrapper {
     }
 
     public String getDnsServerIPv4() throws PVNClientException {
-        NativeResponse response = nativeHttpsClient.Get(DNS_URL, 5);
+        NativeResponse response = nativeHttpsClient.Get(DNS_URL, 15);
         if (response != null) {
             if (response.code == 200) {
                 try {

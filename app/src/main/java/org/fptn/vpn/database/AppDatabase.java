@@ -8,10 +8,12 @@ import androidx.room.RoomDatabase;
 
 import org.fptn.vpn.database.dao.AppInfoDAO;
 import org.fptn.vpn.database.dao.ServerDAO;
+import org.fptn.vpn.database.dao.SniDao;
 import org.fptn.vpn.database.entity.AppInfoEntity;
 import org.fptn.vpn.database.entity.ServerEntity;
+import org.fptn.vpn.database.entity.SniEntity;
 
-@Database(entities = {ServerEntity.class, AppInfoEntity.class}, version = 1, exportSchema = false)
+@Database(entities = {ServerEntity.class, AppInfoEntity.class, SniEntity.class}, version = 2, exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
 
     public static final String FPTN_DATABASE = "FptnDatabase";
@@ -19,6 +21,8 @@ public abstract class AppDatabase extends RoomDatabase {
     public abstract ServerDAO serverDAO();
 
     public abstract AppInfoDAO appInfoDAO();
+
+    public abstract SniDao sniDAO();
 
     private static AppDatabase instance;
 

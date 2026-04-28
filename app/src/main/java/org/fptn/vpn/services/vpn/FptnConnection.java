@@ -174,12 +174,6 @@ public class FptnConnection extends Thread {
 
             final String dnsServer = webSocketClient.getDnsServerIPv4();
             builder.addDnsServer(dnsServer);
-//            builder.addDnsServer(InetAddress.getByName("1.1.1.1"));
-//            builder.addDnsServer(InetAddress.getByName("8.8.8.8"));
-//            builder.addDnsServer(InetAddress.getByName("9.9.9.9"));
-//            builder.addDnsServer(InetAddress.getByName("216.146.35.35"));
-//            builder.addDnsServer(InetAddress.getByName("208.67.222.222"));
-
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 builder.excludeRoute(new IpPrefix(InetAddress.getByName(serverEntity.getHost()), 32));
                 builder.excludeRoute(TUN_INTERFACE_SUBNET.getAsIpPrefix());
@@ -242,8 +236,10 @@ public class FptnConnection extends Thread {
                     try {
                         int length = inputStream.read(byteBuffer);
                         if (length > 0) {
+                            // update speed count
                             uploadRate.update(length);
-                            webSocketClient.send(byteBuffer);
+                            // send byteArray with length of new bytes
+                            webSocketClient.send(byteBuffer, length);
                         } else {
                             // if read buffer empty - sleep
                             // I set blocking mode - it looks like no need anymore

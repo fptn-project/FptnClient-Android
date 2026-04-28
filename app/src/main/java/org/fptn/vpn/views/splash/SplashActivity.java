@@ -13,6 +13,9 @@ import com.google.common.util.concurrent.ListenableFuture;
 
 import org.fptn.vpn.R;
 import org.fptn.vpn.database.AppDatabase;
+import org.fptn.vpn.services.snichecker.SniCheckerService;
+import org.fptn.vpn.services.snichecker.SniCheckerServiceState;
+import org.fptn.vpn.views.bypassmethod.BypassMethodsActivity;
 import org.fptn.vpn.views.home.HomeActivity;
 import org.fptn.vpn.views.login.LoginActivity;
 
@@ -34,7 +37,11 @@ public class SplashActivity extends AppCompatActivity {
             public void onSuccess(Integer count) {
                 Intent intent;
                 if (count > 0) {
-                    intent = new Intent(SplashActivity.this, HomeActivity.class);
+                    if (SniCheckerService.getStaticServiceState().getValue() == SniCheckerServiceState.ACTIVE) {
+                        intent = new Intent(SplashActivity.this, BypassMethodsActivity.class);
+                    } else {
+                        intent = new Intent(SplashActivity.this, HomeActivity.class);
+                    }
                 } else {
                     intent = new Intent(SplashActivity.this, LoginActivity.class);
                 }

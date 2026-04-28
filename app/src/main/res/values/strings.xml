@@ -78,6 +78,8 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="notification_channel_name">When connected</string>
     <string name="notification_group_name">Main</string>
     <string name="errors_notification_group_name">Errors</string>
+    <string name="sni_checker_notification_group_name">SNI checker</string>
+
     <string name="disconnect_action">Disconnect</string>
     <string name="reconnect_action">Reconnect</string>
 
@@ -253,4 +255,19 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="only_allowed_radio_button_label_additional_info">Only the apps in the list use the VPN</string>
     <string name="disallowed_apps_radio_button_label">All apps use VPN, except selected</string>
     <string name="disallowed_apps_radio_button_label_additional_info">All apps use VPN, except selected</string>
+
+    <string name="auto_sni_label">Autoselect SNI</string>
+    <string name="sni_features_label">SNI settings</string>
+    <string name="load_sni_from_file">Load SNI from file</string>
+    <string name="delete_loaded_sni">Delete loaded SNI</string>
+    <string name="auto_select_sni">Start autoselect SNI</string>
+    <string name="loaded_sni_label">Loaded to local DB SNI:</string>
+    <string name="select_server_for_autoselect">Select Server for SNI Autoselect</string>
+    <string name="start_sni_checking_button_label">Start SNI checking</string>
+    <string name="stop_sni_checking_button_label">Stop SNI checking</string>
+    <string name="reset_checked_previously_checkbox_label">Reset checked previously?</string>
+    <string name="selected_server">Selected server</string>
+    <string name="checking_current_sni">Cheching SNI:</string>
+    <string name="load_default">Load default</string>
+
 </resources>

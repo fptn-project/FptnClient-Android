@@ -25,6 +25,9 @@ public interface ServerDAO {
     @Query("SELECT * FROM server_table WHERE censured = :censured")
     List<ServerEntity> getServerList(boolean censured);
 
+    @Query("SELECT * FROM server_table WHERE censured = :censured")
+    ListenableFuture<List<ServerEntity>> getServerListAsync(boolean censured);
+
     @Query("UPDATE server_table SET selected = CASE WHEN id = :id THEN 1 ELSE 0 END")
     void setSelected(int id);
 
@@ -43,4 +46,6 @@ public interface ServerDAO {
         insertAll(servers);
     }
 
+    @Query("SELECT * FROM server_table WHERE id = :serverId")
+    ServerEntity getById(int serverId);
 }

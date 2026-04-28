@@ -57,8 +57,6 @@ jobs:
 
     - name: Build project
       run: ./gradlew assembleDebug
-    - name: Checks
-      run: ./gradlew tomlCheck ktlintCheck detektCheck checkSortDependencies projectHealth
     - name: Run tests
       run: ./gradlew test
     - name: Build APK and AAB

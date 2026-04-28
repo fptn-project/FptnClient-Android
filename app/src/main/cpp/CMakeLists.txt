@@ -37,6 +37,7 @@ add_library(
   src/wrappers/wrapper_websocket_client/wrapper_websocket_client.cpp
   src/wrappers/wrapper_https_client/wrapper_https_client.h
   src/wrappers/wrapper_https_client/wrapper_https_client.cpp
+  src/sni_checker.cpp
   src/https_client.cpp
   src/websocket_client.cpp
   src/wrappers/utils/utils.h

@@ -116,6 +116,13 @@
                 android:value="android.service.quicksettings.CATEGORY_CONNECTIVITY" />
         </service>
 
+        <service
+            android:name="org.fptn.vpn.services.snichecker.SniCheckerService"
+            android:exported="false"
+            android:foregroundServiceType="systemExempted"
+            android:stopWithTask="false"
+            tools:ignore="ForegroundServicePermission"> <!--add this to turn off warning-->
+        </service>
     </application>
 
 </manifest>

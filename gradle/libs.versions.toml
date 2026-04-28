@@ -3,15 +3,18 @@ activity = "1.10.1"
 androidGradlePlugin = "8.13.2"
 androidlombock = "1.18.42"
 appcompat = "1.7.1"
+assertjCore = "3.27.6"
 autonomousappsSorting = "0.15"
 autonomousappsUnused = "3.6.1"
 constraintlayout = "2.2.1"
+coreTesting = "2.2.0"
 crashlytics = "3.0.6"
 decoding = "0.1.2"
 detektPlugin = "1.23.8"
 firebaseBom = "34.11.0"
 firebaseCrashlyticsPlugin = "3.0.6"
 googlePlayServices = "4.4.4"
+gson = "2.13.2"
 guava = "33.5.0-jre"
 ipaddress = "5.6.2"
 jacksonDatabind = "2.21.2"
@@ -22,8 +25,8 @@ kotlin = "2.2.21"
 ksp = "2.3.0"
 material = "1.13.0"
 monitor = "1.8.0"
-protobuf = "4.26.1"
 roomRuntime = "2.8.4"
+runner = "1.7.0"
 zxing = "3.5.4"
 
 [libraries]
@@ -37,6 +40,11 @@ androidx-monitor = { group = "androidx.test", name = "monitor", version.ref = "m
 androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "roomRuntime" }
 androidx-room-guava = { module = "androidx.room:room-guava", version.ref = "roomRuntime" }
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "roomRuntime" }
+androidx-room-testing = { module = "androidx.room:room-testing", version.ref = "roomRuntime" }
+androidx-rules = { module = "androidx.test:rules", version.ref = "runner" }
+androidx-runner = { module = "androidx.test:runner", version.ref = "runner" }
+androidx-testing = { module = "androidx.arch.core:core-testing", version.ref = "coreTesting" }
+assertj-core = { module = "org.assertj:assertj-core", version.ref = "assertjCore" }
 decoding = { module = "org.brotli:dec", version.ref = "decoding" }
 detekt = { group = "io.gitlab.arturbosch.detekt", name = "detekt-gradle-plugin", version.ref = "detektPlugin" }
 firebase-analytics = { group = "com.google.firebase", name = "firebase-analytics" }
@@ -44,6 +52,7 @@ firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.r
 firebase-crashlytics-gradle = { group = "com.google.firebase", name = "firebase-crashlytics-gradle", version.ref = "firebaseCrashlyticsPlugin" }
 firebase-crashlytics-ndk = { group = "com.google.firebase", name = "firebase-crashlytics-ndk" }
 google-services = { group = "com.google.gms", name = "google-services", version.ref = "googlePlayServices" }
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 guava = { module = "com.google.guava:guava", version.ref = "guava" }
 ipaddress = { module = "com.github.seancfoley:ipaddress", version.ref = "ipaddress" }
 jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jacksonDatabind" }

@@ -39,11 +39,10 @@ import org.fptn.vpn.enums.NetworkType;
 import org.fptn.vpn.enums.PerAppVpnMode;
 import org.fptn.vpn.services.tile.FptnTileService;
 import org.fptn.vpn.utils.NetworkUtils;
-import org.fptn.vpn.utils.NotificationUtils;
 import org.fptn.vpn.utils.SharedPrefUtils;
-import org.fptn.vpn.views.home.HomeActivity;
 import org.fptn.vpn.views.perappvpn.AppInfo;
 import org.fptn.vpn.services.speedtest.SpeedTestUtils;
+import org.fptn.vpn.views.splash.SplashActivity;
 import org.fptn.vpn.vpnclient.exception.ErrorCode;
 import org.fptn.vpn.vpnclient.exception.PVNClientException;
 
@@ -180,7 +179,7 @@ public class FptnService extends VpnService {
 
         // pending intent for open MainActivity on tap
         launchMainActivityPendingIntent = PendingIntent.getActivity(this, 0,
-                new Intent(this, HomeActivity.class),
+                new Intent(this, SplashActivity.class),
                 PendingIntent.FLAG_IMMUTABLE);
 
         // pending intent for disconnect button in connected notification
@@ -209,29 +208,35 @@ public class FptnService extends VpnService {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        executorService.submit(() -> {
-            try {
-                /* check is internet connection available */
-                if (!NetworkUtils.isOnline(connectivityManager)) {
-                    Log.e(TAG, "onStartCommand: no active internet connections!");
-                    disconnect(new PVNClientException(ErrorCode.NO_ACTIVE_INTERNET_CONNECTIONS));
-                    return;
-                }
+        // if service crashed previously
+        if (intent == null) {
+            Log.w(TAG, "onStartCommand: Intent is null, stopping service.");
+            stopSelf();
+            return START_NOT_STICKY;
+        }
 
-                // dismiss error notification
-                NotificationManager notificationManager = (NotificationManager) getSystemService(
-                        NOTIFICATION_SERVICE);
-                notificationManager.cancel(Constants.ERROR_CONNECTED_NOTIFICATION_ID);
+        boolean isActiveState = serviceStateMutableLiveData.getValue().getConnectionState().isActiveState();
+        if (ACTION_CONNECT.equals(intent.getAction()) && !isActiveState) {
+            startForegroundWithNotification(getString(R.string.connecting));
 
-                String sniHostname = SharedPrefUtils.getSniHostname(getApplicationContext());
-                BypassCensorshipMethod bypassCensorshipMethod = SharedPrefUtils.getBypassCensorshipMethod(this);
+            /* check is internet connection available */
+            if (!NetworkUtils.isOnline(connectivityManager)) {
+                Log.e(TAG, "onStartCommand: no active internet connections!");
+                disconnect(new PVNClientException(ErrorCode.NO_ACTIVE_INTERNET_CONNECTIONS));
+                return START_NOT_STICKY;
+            }
 
-                boolean isActiveState = serviceStateMutableLiveData.getValue().getConnectionState().isActiveState();
-                if (ACTION_DISCONNECT.equals(intent.getAction()) && isActiveState) {
-                    // stop running threads
-                    disconnect();
-                } else if (ACTION_CONNECT.equals(intent.getAction()) && !isActiveState) {
+            executorService.submit(() -> {
+                try {
                     setConnectionState(ConnectionState.CONNECTING, null);
+
+                    // dismiss error notification
+                    NotificationManager notificationManager = (NotificationManager) getSystemService(
+                            NOTIFICATION_SERVICE);
+                    notificationManager.cancel(Constants.ERROR_CONNECTED_NOTIFICATION_ID);
+
+                    String sniHostname = SharedPrefUtils.getSniHostname(getApplicationContext());
+                    BypassCensorshipMethod bypassCensorshipMethod = SharedPrefUtils.getBypassCensorshipMethod(this);
 
                     int serverId = intent.getIntExtra(SELECTED_SERVER, SELECTED_SERVER_ID_AUTO);
 
@@ -257,9 +262,6 @@ public class FptnService extends VpnService {
                         }
                     }
 
-                    // Moving VPNService to foreground to give it higher priority in system
-                    startForegroundWithNotification(getString(R.string.connecting));
-
                     if (serverId == SELECTED_SERVER_ID_AUTO) {
                         try {
                             updateNotificationWithMessage(getString(R.string.connecting_auto), "");
@@ -282,11 +284,15 @@ public class FptnService extends VpnService {
 
                         connect(server, sniHostname);
                     }
+                } catch (ExecutionException | InterruptedException | RuntimeException e) {
+                    disconnect(new PVNClientException(e.getMessage()));
                 }
-            } catch (ExecutionException | InterruptedException | RuntimeException e) {
-                disconnect(new PVNClientException(e.getMessage()));
-            }
-        });
+            });
+
+        } else if (ACTION_DISCONNECT.equals(intent.getAction()) && isActiveState) {
+            // stop running threads
+            disconnect();
+        }
 
         // if it stops - it stops
         return START_NOT_STICKY;
@@ -560,7 +566,6 @@ public class FptnService extends VpnService {
     }
 
     private void startForegroundWithNotification(String title) {
-        NotificationUtils.configureNotificationChannel(this);
         Notification notification = createNotification(title, "");
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             startForeground(Constants.MAIN_CONNECTED_NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SYSTEM_EXEMPTED);

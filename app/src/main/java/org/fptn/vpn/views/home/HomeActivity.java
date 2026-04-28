@@ -36,6 +36,7 @@ import org.fptn.vpn.services.tile.FptnTileService;
 import org.fptn.vpn.utils.CustomSpinner;
 import org.fptn.vpn.utils.PermissionsUtils;
 import org.fptn.vpn.utils.SharedPrefUtils;
+import org.fptn.vpn.utils.ViewUtils;
 import org.fptn.vpn.views.CustomBottomNavigationListener;
 import org.fptn.vpn.views.adapter.ServerEntityAdapter;
 import org.fptn.vpn.services.vpn.FptnService;
@@ -162,7 +163,7 @@ public class HomeActivity extends AppCompatActivity {
                     updateSpinnerSelection();
 
                     // Check activity on foreground
-                    if (getLifecycle().getCurrentState() == Lifecycle.State.RESUMED){
+                    if (getLifecycle().getCurrentState() == Lifecycle.State.RESUMED) {
                         viewModel.startCheckingPing();
                     }
 
@@ -283,12 +284,12 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     private void disconnectedStateUiItems() {
-        hideView(connectionTimeFrame);
-        hideView(serverInfoFrame);
-        hideView(homeSpeedFrame);
-        hideView(permissionWarningFrame);
+        ViewUtils.hideView(connectionTimeFrame);
+        ViewUtils.hideView(serverInfoFrame);
+        ViewUtils.hideView(homeSpeedFrame);
+        ViewUtils.hideView(permissionWarningFrame);
 
-        showView(spinnerServers);
+        ViewUtils.showView(spinnerServers);
 
         if (getLifecycle().getCurrentState() == Lifecycle.State.RESUMED) {
             viewModel.startCheckingPing();
@@ -298,28 +299,16 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     private void connectedStateUiItems() {
-        showView(connectionTimeFrame);
-        showView(serverInfoFrame);
-        showView(homeSpeedFrame);
+        ViewUtils.showView(connectionTimeFrame);
+        ViewUtils.showView(serverInfoFrame);
+        ViewUtils.showView(homeSpeedFrame);
 
         // check is need to show permissions warning
         if (!PermissionsUtils.isAllOptionalPermissionsGranted(this)) {
-            showView(permissionWarningFrame);
+            ViewUtils.showView(permissionWarningFrame);
         }
 
-        hideView(spinnerServers);
-    }
-
-    private void hideView(View view) {
-        if (view != null) {
-            view.setVisibility(View.GONE);
-        }
-    }
-
-    private void showView(View view) {
-        if (view != null) {
-            view.setVisibility(View.VISIBLE);
-        }
+        ViewUtils.hideView(spinnerServers);
     }
 
     public void onClickToStartStop(View v) {
