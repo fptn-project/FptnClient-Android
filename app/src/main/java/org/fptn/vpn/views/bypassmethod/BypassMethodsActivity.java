@@ -49,6 +49,9 @@ import java.util.Optional;
 
 public class BypassMethodsActivity extends AppCompatActivity {
     private final String TAG = this.getClass().getSimpleName();
+
+    private View sniLayout;
+
     private BypassMethodsViewModel viewModel;
     private ActivityResultLauncher<Intent> filePickerLauncher;
     private AlertDialog autoSelectDialog;
