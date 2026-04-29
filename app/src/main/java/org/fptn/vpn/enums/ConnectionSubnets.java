@@ -17,7 +17,7 @@ public enum ConnectionSubnets {
     LOCAL_TUN_INTERFACE_SUBNET("10.10.0.0", 16, "fd00::", 64),
     FPTN_SERVER_SUBNET("172.16.0.0", 12, "fc00:1::", 64),
     LOCAL_SUBNET("192.168.0.0", 16, "::", 128),
-    ALL_SUBNET("0.0.0.0", 0, "::", 128);
+    ALL_SUBNET("0.0.0.0", 0, "::", 0);
 
     public static final int IP_V4_PREFIX_LENGTH = 32;
     public static final int IP_V6_PREFIX_LENGTH = 128;
