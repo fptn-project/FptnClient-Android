@@ -21,7 +21,8 @@ public class WebSocketClientWrapper {
     private static final String LOGIN_URL = "/api/v1/login";
 
     private final ServerEntity serverEntity;
-    private final String tunAddress;
+    private final String tunAddressIPv4;
+    private final String tunAddressIPv6;
     private final OnOpenCallback onOpenCallback;
     private final OnMessageReceivedCallback onMessageReceivedCallback;
     private final OnFailureCallback onFailureCallback;
@@ -35,14 +36,16 @@ public class WebSocketClientWrapper {
     private boolean shutdown = false;
 
     public WebSocketClientWrapper(ServerEntity serverEntity,
-                                  String tunAddress,
+                                  String tunAddressIPv4,
+                                  String tunAddressIPv6,
                                   OnOpenCallback onOpenCallback,
                                   OnMessageReceivedCallback onMessageReceivedCallback,
                                   OnFailureCallback onFailureCallback,
                                   String sniHostName,
                                   BypassCensorshipMethod censorshipStrategy) {
         this.serverEntity = serverEntity;
-        this.tunAddress = tunAddress;
+        this.tunAddressIPv4 = tunAddressIPv4;
+        this.tunAddressIPv6 = tunAddressIPv6;
         this.onOpenCallback = onOpenCallback;
         this.onMessageReceivedCallback = onMessageReceivedCallback;
         this.onFailureCallback = onFailureCallback;
@@ -71,7 +74,8 @@ public class WebSocketClientWrapper {
         nativeWebSocketClient = new NativeWebSocketClientImpl(
                 serverEntity.getHost(),
                 serverEntity.getPort(),
-                tunAddress,
+                tunAddressIPv4,
+                tunAddressIPv6,
                 accessToken,
                 serverEntity.getMd5ServerFingerprint(),
                 onOpenCallback,
@@ -142,23 +146,16 @@ public class WebSocketClientWrapper {
         throw new PVNClientException(ErrorCode.CONNECT_TO_SERVER_ERROR);
     }
 
-    public String getDnsServerIPv4() throws PVNClientException {
+    public DnsServers getDnsServers() throws PVNClientException {
         NativeResponse response = nativeHttpsClient.Get(DNS_URL, 15);
-        if (response != null) {
-            if (response.code == 200) {
-                try {
-                    JSONObject jsonResponse = new JSONObject(response.body);
-                    String dnsServer = jsonResponse.getString("dns");
-                    Log.i(getTag(), "DNS " + dnsServer + " retrieval successful.");
-                    return dnsServer;
-                } catch (JSONException e) {
-                    Log.e(getTag(), "Some error occurs on receiving DNS response: " + e);
-                    throw new PVNClientException(ErrorCode.CONNECT_TO_SERVER_ERROR);
-                }
-            }
+        if (response != null && response.code == 200) {
+            DnsServers dnsServers = new Gson().fromJson(response.body, DnsServers.class);
+            Log.i(getTag(), "DnsServers: " + dnsServers.toString());
+            return dnsServers;
         }
         throw new PVNClientException(ErrorCode.CONNECT_TO_SERVER_ERROR);
     }
+
 
     private String getTag() {
         return this.getClass().getCanonicalName();

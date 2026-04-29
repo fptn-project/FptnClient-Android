@@ -23,6 +23,7 @@ WrapperWebsocketClient::WrapperWebsocketClient(jobject wrapper,
     std::string server_ip,
     int server_port,
     std::string tun_ipv4,
+    std::string tun_ipv6,
     std::string sni,
     std::string access_token,
     std::string expected_md5_fingerprint,
@@ -33,6 +34,7 @@ WrapperWebsocketClient::WrapperWebsocketClient(jobject wrapper,
       server_ip_(std::move(server_ip)),
       server_port_(server_port),
       tun_ipv4_(std::move(tun_ipv4)),
+      tun_ipv6_(std::move(tun_ipv6)),
       sni_(std::move(sni)),
       access_token_(std::move(access_token)),
       expected_md5_fingerprint_(std::move(expected_md5_fingerprint)),
@@ -97,8 +99,7 @@ void WrapperWebsocketClient::Run() {
     try {
       const auto server_ip_addr = fptn::common::network::IPv4Address::Create(server_ip_);
       const auto tun_ipv4_addr = fptn::common::network::IPv4Address::Create(tun_ipv4_);
-      const auto tun_ipv6_addr = fptn::common::network::IPv6Address::Create(
-              FPTN_CLIENT_DEFAULT_ADDRESS_IP6);
+      const auto tun_ipv6_addr = fptn::common::network::IPv6Address::Create(tun_ipv6_);
 
       if (!server_ip_addr.IsValid() || !tun_ipv4_addr.IsValid() || !tun_ipv6_addr.IsValid()) {
         SPDLOG_ERROR(

@@ -8,6 +8,7 @@ import android.util.Log;
 import org.fptn.vpn.enums.NetworkType;
 
 import java.net.Inet4Address;
+import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
@@ -28,7 +29,8 @@ public class NetworkUtils {
                 while (inetAddressEnumeration.hasMoreElements()) {
                     InetAddress inetAddress = inetAddressEnumeration.nextElement();
                     if (!inetAddress.isLoopbackAddress()
-                            && inetAddress instanceof Inet4Address) { //!inetAddress.getHostAddress().contains(":")
+                            && (inetAddress instanceof Inet4Address || inetAddress instanceof Inet6Address)) {
+                        Log.d(TAG, "getCurrentIPAddress(): " + inetAddress.getHostAddress());
                         return inetAddress.getHostAddress();
                     }
                 }

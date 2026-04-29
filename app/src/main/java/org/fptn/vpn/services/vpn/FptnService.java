@@ -39,6 +39,7 @@ import org.fptn.vpn.enums.NetworkType;
 import org.fptn.vpn.enums.PerAppVpnMode;
 import org.fptn.vpn.services.tile.FptnTileService;
 import org.fptn.vpn.utils.NetworkUtils;
+import org.fptn.vpn.utils.NotificationUtils;
 import org.fptn.vpn.utils.SharedPrefUtils;
 import org.fptn.vpn.views.perappvpn.AppInfo;
 import org.fptn.vpn.services.speedtest.SpeedTestUtils;
@@ -46,6 +47,7 @@ import org.fptn.vpn.views.splash.SplashActivity;
 import org.fptn.vpn.vpnclient.exception.ErrorCode;
 import org.fptn.vpn.vpnclient.exception.PVNClientException;
 
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -174,6 +176,9 @@ public class FptnService extends VpnService {
     public void onCreate() {
         Log.i(TAG, "FptnService.onCreate() Thread.Id: " + Thread.currentThread().getId());
 
+        // Configure notification channels
+        NotificationUtils.configureNotificationChannels(this);
+
         // Get database instance (this need context! context may not exist earlier!)
         appDatabase = AppDatabase.getInstance(this);
 
@@ -284,7 +289,8 @@ public class FptnService extends VpnService {
 
                         connect(server, sniHostname);
                     }
-                } catch (ExecutionException | InterruptedException | RuntimeException e) {
+                } catch (ExecutionException | InterruptedException | RuntimeException |
+                         UnknownHostException e) {
                     disconnect(new PVNClientException(e.getMessage()));
                 }
             });
@@ -414,7 +420,7 @@ public class FptnService extends VpnService {
                 .build());
     }
 
-    private void connect(ServerEntity serverEntity, String sniHostname) {
+    private void connect(ServerEntity serverEntity, String sniHostname) throws UnknownHostException {
         // Moving VPNService to foreground to give it higher priority in system
         updateNotificationWithMessage(getString(R.string.connecting_to) + serverEntity.getServerInfo(), "");
 
