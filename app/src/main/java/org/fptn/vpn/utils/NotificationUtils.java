@@ -10,7 +10,7 @@ import org.fptn.vpn.core.common.Constants;
 import org.jetbrains.annotations.NotNull;
 
 public class NotificationUtils {
-    public static void configureNotificationChannel(Context context) {
+    public static void configureNotificationChannels(Context context) {
         NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 
         // add main notification channel
