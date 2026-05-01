@@ -311,9 +311,12 @@ bool WrapperWebsocketClient::Send(std::string pkt) {
   if (!running_) {
     return false;
   }
-
   try {
-    auto ip_packet = fptn::common::network::IPPacket::Parse(std::move(pkt));
+    std::vector<uint8_t> packet_data;
+    packet_data.reserve(pkt.size());
+    std::move(pkt.begin(), pkt.end(), std::back_inserter(packet_data));
+
+    auto ip_packet = fptn::common::network::IPPacket::Parse(std::move(packet_data));
     if (!ip_packet) {
       SPDLOG_ERROR("Failed to parse IP packet in Send");
       return false;

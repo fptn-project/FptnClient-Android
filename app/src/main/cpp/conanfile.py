@@ -23,6 +23,9 @@ class FptnLib(ConanFile):
     def requirements(self):
         self._register_local_recipe("fptn", "fptn", "0.0.0")
 
+    def build_requirements(self):
+        self.test_requires("gtest/1.17.0")
+
     def layout(self):
         cmake_layout(self)
 

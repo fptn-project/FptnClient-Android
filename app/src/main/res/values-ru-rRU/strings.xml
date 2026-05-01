@@ -160,6 +160,18 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="tls_handshake_obfuscation_radio_button_label">Маскировка трафика (обфускация)</string>
     <string name="sni_reality_radio_button_label">Продвинутая подмена домена (SNI + REALITY)</string>
 
+    <string name="sni_reality_radio_button_label_chrome_147">Подмена домена (Chrome 147)</string>
+    <string name="sni_reality_radio_button_label_chrome_146">Подмена домена (Chrome 146)</string>
+    <string name="sni_reality_radio_button_label_chrome_145">Подмена домена (Chrome 145)</string>
+
+    <string name="sni_reality_radio_button_label_firefox_149">Подмена домена (Firefox 149)</string>
+
+    <string name="sni_reality_radio_button_label_yandex_26">Подмена домена (Yandex 26)</string>
+    <string name="sni_reality_radio_button_label_yandex_25">Подмена домена (Yandex 25)</string>
+    <string name="sni_reality_radio_button_label_yandex_24">Подмена домена (Yandex 24)</string>
+
+    <string name="sni_reality_radio_button_label_safari_26">Подмена домена (Safari 26)</string>
+
     <string name="sni_reality_radio_button_label_additional_info">Требуется реальный существующий домен (иначе возможны ошибки)</string>
 
     <string name="per_app_vpn_mode_title">Настройки туннелирования для приложений</string>

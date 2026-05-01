@@ -39,16 +39,40 @@ public class NativeWebSocketClientImpl {
             OnMessageReceivedCallback onMessageReceivedCallback,
             OnFailureCallback onFailureCallback,
             String sniHostName,
-            BypassCensorshipMethod censorship_strategy) throws PVNClientException {
+            BypassCensorshipMethod censorshipStrategy) throws PVNClientException {
         this.onOpenCallback = onOpenCallback;
         this.onMessageReceivedCallback = onMessageReceivedCallback;
         this.onFailureCallback = onFailureCallback;
 
-        String censorship_strategy_name = "SNI";
-        if (censorship_strategy == BypassCensorshipMethod.TLS_OBFUSCATION) {
-            censorship_strategy_name = "OBFUSCATION";
-        } else if (censorship_strategy == BypassCensorshipMethod.SNI_REALITY) {
-            censorship_strategy_name = "SNI-REALITY";
+        String censorshipStrategyName = "SNI-REALITY-YANDEX-25";
+        if (censorshipStrategy == BypassCensorshipMethod.TLS_OBFUSCATION) {
+            censorshipStrategyName = "OBFUSCATION";
+        } else if (censorshipStrategy == BypassCensorshipMethod.SNI_REALITY) {  // deprecated
+            censorshipStrategyName = "SNI-REALITY";
+        }
+        /* Chrome */
+        else if (censorshipStrategy == BypassCensorshipMethod.SNI_REALITY_CHROME_147) {
+            censorshipStrategyName = "SNI-REALITY-CHROME-147";
+        } else if (censorshipStrategy == BypassCensorshipMethod.SNI_REALITY_CHROME_146) {
+            censorshipStrategyName = "SNI-REALITY-CHROME-146";
+        } else if (censorshipStrategy == BypassCensorshipMethod.SNI_REALITY_CHROME_145) {
+            censorshipStrategyName = "SNI-REALITY-CHROME-145";
+        }
+        /* Firefox */
+        else if (censorshipStrategy == BypassCensorshipMethod.SNI_REALITY_FIREFOX_149) {
+            censorshipStrategyName = "SNI-REALITY-FIREFOX-149";
+        }
+        /* Yandex */
+        else if (censorshipStrategy == BypassCensorshipMethod.SNI_REALITY_YANDEX_26) {
+            censorshipStrategyName = "SNI-REALITY-YANDEX-26";
+        } else if (censorshipStrategy == BypassCensorshipMethod.SNI_REALITY_YANDEX_25) {
+            censorshipStrategyName = "SNI-REALITY-YANDEX-25";
+        } else if (censorshipStrategy == BypassCensorshipMethod.SNI_REALITY_YANDEX_24) {
+            censorshipStrategyName = "SNI-REALITY-YANDEX-24";
+        }
+        /* Safari */
+        else if (censorshipStrategy == BypassCensorshipMethod.SNI_REALITY_SAFARI_26) {
+            censorshipStrategyName = "SNI-REALITY-SAFARI-26";
         }
 
         this.nativeHandle = nativeCreate(
@@ -59,7 +83,7 @@ public class NativeWebSocketClientImpl {
                 sniHostName,
                 accessToken,
                 md5ServerFingerprint,
-                censorship_strategy_name
+                censorshipStrategyName
         );
 
         this.serialNum = SERIAL_NUM.getAndIncrement();
