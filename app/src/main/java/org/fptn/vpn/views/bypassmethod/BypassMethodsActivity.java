@@ -13,6 +13,8 @@ import android.os.IBinder;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.ProgressBar;
@@ -37,6 +39,7 @@ import com.google.common.util.concurrent.Futures;
 import org.fptn.vpn.R;
 import org.fptn.vpn.database.entity.ServerEntity;
 import org.fptn.vpn.enums.BypassCensorshipMethod;
+import org.fptn.vpn.enums.SniSpoofingMode;
 import org.fptn.vpn.services.snichecker.SniCheckerService;
 import org.fptn.vpn.services.snichecker.SniCheckerServiceState;
 import org.fptn.vpn.utils.ViewUtils;
@@ -109,6 +112,8 @@ public class BypassMethodsActivity extends AppCompatActivity {
     private void initializeVariable() {
         viewModel = new ViewModelProvider(this).get(BypassMethodsViewModel.class);
 
+        sniLayout = findViewById(R.id.sni_layout);
+
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavBar);
         bottomNavigationView.setSelectedItemId(R.id.menuSettings);
         bottomNavigationView.setOnItemSelectedListener(new CustomBottomNavigationListener(this, R.id.menuSettings));
@@ -116,60 +121,17 @@ public class BypassMethodsActivity extends AppCompatActivity {
         // Setup RadioGroup listener
         RadioGroup protocolRadioGroup = findViewById(R.id.bypass_method_radio_button_group);
         protocolRadioGroup.setOnCheckedChangeListener((group, checkedId) -> {
-            if (checkedId == R.id.obfuscation_radio_button) {
+            if (checkedId == R.id.sni_reality_radio_button) {
+                Log.d(TAG, "Selected SNI spoofing");
+                viewModel.setBypassMethod(BypassCensorshipMethod.SNI_REALITY);
+            } else if (checkedId == R.id.obfuscation_radio_button) {
                 Log.d(TAG, "Selected TLS obfuscation");
                 viewModel.setBypassMethod(BypassCensorshipMethod.TLS_OBFUSCATION);
             }
-            /* Chrome */
-            else if (checkedId == R.id.sni_reality_radio_button_chrome_147) {
-                Log.d(TAG, "Selected SNI Reality Chrome 147");
-                viewModel.setBypassMethod(BypassCensorshipMethod.SNI_REALITY_CHROME_147);
-            } else if (checkedId == R.id.sni_reality_radio_button_chrome_146) {
-                Log.d(TAG, "Selected SNI Reality Chrome 146");
-                viewModel.setBypassMethod(BypassCensorshipMethod.SNI_REALITY_CHROME_146);
-            } else if (checkedId == R.id.sni_reality_radio_button_chrome_145) {
-                Log.d(TAG, "Selected SNI Reality Chrome 145");
-                viewModel.setBypassMethod(BypassCensorshipMethod.SNI_REALITY_CHROME_145);
-            }
-            /* Firefox */
-            else if (checkedId == R.id.sni_reality_radio_button_firefox_149) {
-                Log.d(TAG, "Selected SNI Reality Firefox 149");
-                viewModel.setBypassMethod(BypassCensorshipMethod.SNI_REALITY_FIREFOX_149);
-            }
-            /* Yandex */
-            else if (checkedId == R.id.sni_reality_radio_button_yandex_26) {
-                Log.d(TAG, "Selected SNI Reality Yandex 26");
-                viewModel.setBypassMethod(BypassCensorshipMethod.SNI_REALITY_YANDEX_26);
-            } else if (checkedId == R.id.sni_reality_radio_button_yandex_25) {
-                Log.d(TAG, "Selected SNI Reality Yandex 25");
-                viewModel.setBypassMethod(BypassCensorshipMethod.SNI_REALITY_YANDEX_25);
-            } else if (checkedId == R.id.sni_reality_radio_button_yandex_24) {
-                Log.d(TAG, "Selected SNI Reality Yandex 24");
-                viewModel.setBypassMethod(BypassCensorshipMethod.SNI_REALITY_YANDEX_24);
-            }
-            /* Safari */
-            else if (checkedId == R.id.sni_reality_radio_button_safari_26) {
-                Log.d(TAG, "Selected SNI Reality Safari 26");
-                viewModel.setBypassMethod(BypassCensorshipMethod.SNI_REALITY_SAFARI_26);
-            } else {
-                // default
-                viewModel.setBypassMethod(BypassCensorshipMethod.SNI_REALITY_YANDEX_25);
-            }
         });
 
+        RadioButton sniSpoofingRadioButton = findViewById(R.id.sni_reality_radio_button);
         RadioButton obfuscationRadioButton = findViewById(R.id.obfuscation_radio_button);
-
-        RadioButton sniRealityRadioButtonChrome147 = findViewById(R.id.sni_reality_radio_button_chrome_147);
-        RadioButton sniRealityRadioButtonChrome146 = findViewById(R.id.sni_reality_radio_button_chrome_146);
-        RadioButton sniRealityRadioButtonChrome145 = findViewById(R.id.sni_reality_radio_button_chrome_145);
-
-        RadioButton sniRealityRadioButtonFirefox149 = findViewById(R.id.sni_reality_radio_button_firefox_149);
-
-        RadioButton sniRealityRadioButtonYandex26 = findViewById(R.id.sni_reality_radio_button_yandex_26);
-        RadioButton sniRealityRadioButtonYandex25 = findViewById(R.id.sni_reality_radio_button_yandex_25);
-        RadioButton sniRealityRadioButtonYandex24 = findViewById(R.id.sni_reality_radio_button_yandex_24);
-
-        RadioButton sniRealityRadioButtonSafari26 = findViewById(R.id.sni_reality_radio_button_safari_26);
 
         viewModel.getBypassCensorshipMethodMutableLiveData().observe(this, bypassCensorshipMethod -> {
             switch (bypassCensorshipMethod) {
@@ -177,48 +139,54 @@ public class BypassMethodsActivity extends AppCompatActivity {
                     obfuscationRadioButton.setChecked(true);
                     ViewUtils.hideView(sniLayout);
                     break;
-                case SNI_SPOOFING:  // deprecated
-                case SNI_REALITY:  // deprecated
-                /* Yandex */
-                case SNI_REALITY_YANDEX_25:
-                    sniRealityRadioButtonYandex25.setChecked(true);
+                case SNI_REALITY:
+                    sniSpoofingRadioButton.setChecked(true);
                     ViewUtils.showView(sniLayout);
                     break;
-                case SNI_REALITY_YANDEX_26:
-                    sniRealityRadioButtonYandex26.setChecked(true);
-                    ViewUtils.showView(sniLayout);
-                    break;
-                case SNI_REALITY_YANDEX_24:
-                    sniRealityRadioButtonYandex24.setChecked(true);
-                    ViewUtils.showView(sniLayout);
-                    break;
-                /* Chrome */
-                case SNI_REALITY_CHROME_147:
-                    sniRealityRadioButtonChrome147.setChecked(true);
-                    ViewUtils.showView(sniLayout);
-                    break;
-                case SNI_REALITY_CHROME_146:
-                    sniRealityRadioButtonChrome146.setChecked(true);
-                    ViewUtils.showView(sniLayout);
-                    break;
-                case SNI_REALITY_CHROME_145:
-                    sniRealityRadioButtonChrome145.setChecked(true);
-                    ViewUtils.showView(sniLayout);
-                    break;
-                /* Firefox */
-                case SNI_REALITY_FIREFOX_149:
-                    sniRealityRadioButtonFirefox149.setChecked(true);
-                    ViewUtils.showView(sniLayout);
-                    break;
-                /* Safari */
-                case SNI_REALITY_SAFARI_26:
-                    sniRealityRadioButtonSafari26.setChecked(true);
-                    ViewUtils.showView(sniLayout);
-                    break;
-                default:
-                    sniRealityRadioButtonYandex25.setChecked(true);
-                    ViewUtils.showView(sniLayout);
-                    break;
+            }
+        });
+
+
+        // Inside initializeVariable() method
+        Spinner sniSpoofingModeSpinner = findViewById(R.id.sni_spoofing_mode_spinner);
+        ArrayAdapter<SniSpoofingMode> adapter = new ArrayAdapter<>(
+                this,
+                R.layout.sni_mode_spinner_item,
+                R.id.sni_mode_label,
+                SniSpoofingMode.values()
+        ){
+            @Override
+            public View getView(int position, View convertView, ViewGroup parent) {
+                TextView textView = (TextView) super.getView(position, convertView, parent);
+                textView.setText(getSniSpoofingModeFriendlyName(getItem(position)));
+                return textView;
+            }
+
+            @Override
+            public View getDropDownView(int position, View convertView, ViewGroup parent) {
+                TextView textView = (TextView) super.getDropDownView(position, convertView, parent);
+                textView.setText(getSniSpoofingModeFriendlyName(getItem(position)));
+                return textView;
+            }
+        };
+        sniSpoofingModeSpinner.setAdapter(adapter);
+
+        viewModel.getSniSpoofingModeMutableLiveData().observe(this, mode -> {
+            int position = adapter.getPosition(mode);
+            if (position >= 0) {
+                sniSpoofingModeSpinner.setSelection(position);
+            }
+        });
+
+        sniSpoofingModeSpinner.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(android.widget.AdapterView<?> parent, View view, int position, long id) {
+                SniSpoofingMode selectedMode = (SniSpoofingMode) parent.getItemAtPosition(position);
+                viewModel.setSniSpoofingMode(selectedMode);
+            }
+
+            @Override
+            public void onNothingSelected(android.widget.AdapterView<?> parent) {
             }
         });
 
@@ -457,5 +425,13 @@ public class BypassMethodsActivity extends AppCompatActivity {
             Log.d(TAG, "onEditSNIServer: cancel_button");
         });
         alertDialogBuilder.show();
+    }
+
+    private String getSniSpoofingModeFriendlyName(SniSpoofingMode mode) {
+        if (mode == null) return "";
+        String resourceName = mode.name().toLowerCase()
+                .replace("sni_reality_", "sni_reality_radio_button_label_");
+        int resId = getResources().getIdentifier(resourceName, "string", getPackageName());
+        return resId != 0 ? getString(resId) : mode.toString();
     }
 }

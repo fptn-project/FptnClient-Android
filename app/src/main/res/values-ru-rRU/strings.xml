@@ -156,9 +156,8 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="bypass_methods_title">Методы обхода блокировок</string>
     <string name="bypass_methods_info">Настройка методов обхода блокировок</string>
 
-    <string name="sni_spoofing_radio_button_label">Подмена домена (SNI)</string>
     <string name="tls_handshake_obfuscation_radio_button_label">Маскировка трафика (обфускация)</string>
-    <string name="sni_reality_radio_button_label">Продвинутая подмена домена (SNI + REALITY)</string>
+    <string name="sni_reality_radio_button_label">Подмена домена (SNI + REALITY)</string>
 
     <string name="sni_reality_radio_button_label_chrome_147">Подмена домена (Chrome 147)</string>
     <string name="sni_reality_radio_button_label_chrome_146">Подмена домена (Chrome 146)</string>

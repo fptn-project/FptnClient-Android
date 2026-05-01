@@ -6,6 +6,7 @@ import com.google.gson.Gson;
 
 import org.fptn.vpn.database.entity.ServerEntity;
 import org.fptn.vpn.enums.BypassCensorshipMethod;
+import org.fptn.vpn.enums.SniSpoofingMode;
 import org.fptn.vpn.services.websocket.callback.OnFailureCallback;
 import org.fptn.vpn.services.websocket.callback.OnMessageReceivedCallback;
 import org.fptn.vpn.services.websocket.callback.OnOpenCallback;
@@ -29,6 +30,7 @@ public class WebSocketClientWrapper {
     private final NativeHttpsClientImpl nativeHttpsClient;
     private final String sniHostName;
     private final BypassCensorshipMethod censorshipStrategy;
+    private final SniSpoofingMode sniSpoofingMode;
 
     private NativeWebSocketClientImpl nativeWebSocketClient;
 
@@ -42,7 +44,8 @@ public class WebSocketClientWrapper {
                                   OnMessageReceivedCallback onMessageReceivedCallback,
                                   OnFailureCallback onFailureCallback,
                                   String sniHostName,
-                                  BypassCensorshipMethod censorshipStrategy) {
+                                  BypassCensorshipMethod censorshipStrategy,
+                                  SniSpoofingMode sniSpoofingMode) {
         this.serverEntity = serverEntity;
         this.tunAddressIPv4 = tunAddressIPv4;
         this.tunAddressIPv6 = tunAddressIPv6;
@@ -53,13 +56,15 @@ public class WebSocketClientWrapper {
         // this is SNI spoofing
         this.sniHostName = sniHostName;
         this.censorshipStrategy = censorshipStrategy;
+        this.sniSpoofingMode = sniSpoofingMode;
 
         this.nativeHttpsClient = new NativeHttpsClientImpl(
                 serverEntity.getHost(),
                 serverEntity.getPort(),
                 serverEntity.getMd5ServerFingerprint(),
                 sniHostName,
-                censorshipStrategy
+                censorshipStrategy,
+                sniSpoofingMode
         );
     }
 
@@ -82,7 +87,8 @@ public class WebSocketClientWrapper {
                 onMessageReceivedCallback,
                 onFailureCallback,
                 sniHostName,
-                censorshipStrategy
+                censorshipStrategy,
+                sniSpoofingMode
         );
 
         Log.d(getTag(), "startWebSocket() nativeWebSocketClient.start() Thread.id: " + Thread.currentThread().getId());

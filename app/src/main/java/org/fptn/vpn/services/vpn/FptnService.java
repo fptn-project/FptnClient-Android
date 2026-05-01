@@ -37,6 +37,7 @@ import org.fptn.vpn.enums.BypassCensorshipMethod;
 import org.fptn.vpn.enums.ConnectionState;
 import org.fptn.vpn.enums.NetworkType;
 import org.fptn.vpn.enums.PerAppVpnMode;
+import org.fptn.vpn.enums.SniSpoofingMode;
 import org.fptn.vpn.services.tile.FptnTileService;
 import org.fptn.vpn.utils.NetworkUtils;
 import org.fptn.vpn.utils.NotificationUtils;
@@ -243,6 +244,11 @@ public class FptnService extends VpnService {
                     String sniHostname = SharedPrefUtils.getSniHostname(getApplicationContext());
                     BypassCensorshipMethod bypassCensorshipMethod = SharedPrefUtils.getBypassCensorshipMethod(this);
 
+                    SniSpoofingMode sniSpoofingMode = null;
+                    if (bypassCensorshipMethod == BypassCensorshipMethod.SNI_REALITY){
+                        sniSpoofingMode = SharedPrefUtils.getSniSpoofingMode(this);
+                    }
+
                     int serverId = intent.getIntExtra(SELECTED_SERVER, SELECTED_SERVER_ID_AUTO);
 
                     // Process startService from TileService
@@ -272,7 +278,7 @@ public class FptnService extends VpnService {
                             updateNotificationWithMessage(getString(R.string.connecting_auto), "");
 
                             List<ServerEntity> serverEntities = appDatabase.serverDAO().getServerList(false);
-                            ServerEntity server = SpeedTestUtils.findFastestServer(serverEntities, sniHostname, bypassCensorshipMethod);
+                            ServerEntity server = SpeedTestUtils.findFastestServer(serverEntities, sniHostname, bypassCensorshipMethod, sniSpoofingMode);
                             setSelectedServer(server.getId());
 
                             connect(server, sniHostname);
@@ -451,6 +457,11 @@ public class FptnService extends VpnService {
 
         BypassCensorshipMethod bypassCensorshipMethod = SharedPrefUtils.getBypassCensorshipMethod(this);
 
+        SniSpoofingMode sniSpoofingMode = null;
+        if (bypassCensorshipMethod == BypassCensorshipMethod.SNI_REALITY){
+            sniSpoofingMode = SharedPrefUtils.getSniSpoofingMode(this);
+        }
+
         PerAppVpnMode perAppVpnMode = SharedPrefUtils.getPerAppVPNMode(this);
         List<AppInfo> appInfos = new ArrayList<>();
         if (perAppVpnMode == PerAppVpnMode.ONLY_ALLOWED || perAppVpnMode == PerAppVpnMode.EXCEPT_DISALLOWED) {
@@ -478,6 +489,7 @@ public class FptnService extends VpnService {
                 delayBetweenAttempts,
                 sniHostname,
                 bypassCensorshipMethod,
+                sniSpoofingMode,
                 perAppVpnMode,
                 appInfos
         );

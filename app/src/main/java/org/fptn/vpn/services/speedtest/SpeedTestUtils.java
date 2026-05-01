@@ -4,6 +4,7 @@ import android.util.Log;
 
 import org.fptn.vpn.database.entity.ServerEntity;
 import org.fptn.vpn.enums.BypassCensorshipMethod;
+import org.fptn.vpn.enums.SniSpoofingMode;
 import org.fptn.vpn.vpnclient.exception.ErrorCode;
 import org.fptn.vpn.vpnclient.exception.PVNClientException;
 
@@ -23,7 +24,7 @@ public class SpeedTestUtils {
     private static final long SEARCH_BEST_SERVER_MAX_TIMEOUT = 30L;
     private static final String PREMIUM_KEYWORD = "premium";
 
-    public static ServerEntity findFastestServer(List<ServerEntity> serverEntityList, String sniHostName, BypassCensorshipMethod censorshipStrategy) throws PVNClientException {
+    public static ServerEntity findFastestServer(List<ServerEntity> serverEntityList, String sniHostName, BypassCensorshipMethod censorshipStrategy, SniSpoofingMode sniSpoofingMode) throws PVNClientException {
         Log.d(TAG, "SpeedTestUtils.findFastestServer() start: " + Instant.now() + ", Thread.Id: " + Thread.currentThread().getId());
 
         if (serverEntityList != null && !serverEntityList.isEmpty()) {
@@ -33,7 +34,7 @@ public class SpeedTestUtils {
 
             ExecutorService executor = Executors.newFixedThreadPool(selectedServers.size());
             List<NativeSpeedTestTask> nativeSpeedTestTaskList = selectedServers.stream()
-                    .map(fptnServerDto -> new NativeSpeedTestTask(fptnServerDto, sniHostName, censorshipStrategy))
+                    .map(fptnServerDto -> new NativeSpeedTestTask(fptnServerDto, sniHostName, censorshipStrategy, sniSpoofingMode))
                     .collect(Collectors.toList());
             try {
                 NativeSpeedTestResult bestResult = executor.invokeAny(nativeSpeedTestTaskList, SEARCH_BEST_SERVER_MAX_TIMEOUT, TimeUnit.SECONDS);

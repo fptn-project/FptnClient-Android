@@ -9,7 +9,7 @@
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginBottom="5dp"
+        android:layout_marginBottom="80dp"
         android:fadeScrollbars="false"
         app:layout_constraintBottom_toTopOf="@id/buttons_layout"
         app:layout_constraintEnd_toEndOf="parent"
@@ -39,6 +39,89 @@
                 android:textSize="18sp"
                 android:textStyle="bold" />
 
+            <!--Method bypass censorship-->
+            <LinearLayout
+                android:id="@+id/bypass_method_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="20dp"
+                android:layout_marginEnd="20dp"
+                android:background="@drawable/round_settings_back_white10_20"
+                android:orientation="vertical"
+                android:padding="10dp"
+                android:paddingBottom="0dp">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <ImageView
+                        android:id="@+id/bypass_method_image_view"
+                        android:layout_width="wrap_content"
+                        android:layout_height="32dp"
+                        android:layout_gravity="center"
+                        android:importantForAccessibility="no"
+                        android:paddingStart="4dp"
+                        android:paddingEnd="12dp"
+                        android:src="@drawable/ic_logo_24" />
+
+                    <TextView
+                        android:id="@+id/bypass_method_label"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:layout_toEndOf="@id/bypass_method_image_view"
+                        android:text="@string/bypass_methods_title"
+                        android:textColor="@color/white"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+                </RelativeLayout>
+
+                <RadioGroup
+                    android:id="@+id/bypass_method_radio_button_group"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="12dp">
+
+                    <RadioButton
+                        android:id="@+id/obfuscation_radio_button"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="1dp"
+                        android:layout_marginEnd="12dp"
+                        android:text="@string/tls_handshake_obfuscation_radio_button_label"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <RadioButton
+                        android:id="@+id/sni_reality_radio_button"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/sni_reality_radio_button_label"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="3dp"
+                        android:layout_marginEnd="12dp"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="30dp"
+                            android:layout_marginTop="0dp"
+                            android:text="@string/sni_reality_radio_button_label_additional_info"
+                            android:textColor="@color/gray"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+                </RadioGroup>
+            </LinearLayout>
+
             <!-- SNI settings -->
             <LinearLayout
                 android:id="@+id/sni_layout"
@@ -51,6 +134,63 @@
                 android:orientation="vertical"
                 android:padding="10dp"
                 android:paddingBottom="0dp">
+
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingLeft="10dp"
+                    android:paddingTop="8dp"
+                    android:paddingRight="10dp"
+                    android:paddingBottom="10dp"
+                    android:orientation="vertical">
+                    <!-- SNI Spoofing Mode Selector -->
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingVertical="10dp">
+
+                        <ImageView
+                            android:id="@+id/sni_spoofing_mode_icon"
+                            android:layout_width="wrap_content"
+                            android:layout_height="32dp"
+                            android:layout_gravity="center"
+                            android:importantForAccessibility="no"
+                            android:paddingStart="4dp"
+                            android:paddingEnd="12dp"
+                            android:src="@drawable/ic_logo_24" />
+
+                        <TextView
+                            android:id="@+id/sni_spoofing_mode_label"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_centerVertical="true"
+                            android:layout_toEndOf="@id/sni_spoofing_mode_icon"
+                            android:text="@string/sni_features_label"
+                            android:textColor="@color/white"
+                            android:textStyle="normal" />
+
+                    </RelativeLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                        <Spinner
+                            android:paddingLeft="10dp"
+                            android:paddingTop="8dp"
+                            android:paddingRight="10dp"
+                            android:paddingBottom="10dp"
+                            android:id="@+id/sni_spoofing_mode_spinner"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/round_back_spinner_down"
+                            android:popupBackground="@drawable/spinner_background_up"
+                            android:spinnerMode="dropdown" />
+                    </LinearLayout>
+
+                </LinearLayout>
 
                 <RelativeLayout
                     android:id="@+id/edit_sni_layout"
@@ -313,146 +453,6 @@
 
                 </LinearLayout>
 
-            </LinearLayout>
-
-            <!--Method bypass censorship-->
-            <LinearLayout
-                android:id="@+id/bypass_method_layout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="20dp"
-                android:layout_marginTop="20dp"
-                android:layout_marginEnd="20dp"
-                android:background="@drawable/round_settings_back_white10_20"
-                android:orientation="vertical"
-                android:padding="10dp"
-                android:paddingBottom="0dp">
-
-                <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
-
-                    <ImageView
-                        android:id="@+id/bypass_method_image_view"
-                        android:layout_width="wrap_content"
-                        android:layout_height="32dp"
-                        android:layout_gravity="center"
-                        android:importantForAccessibility="no"
-                        android:paddingStart="4dp"
-                        android:paddingEnd="12dp"
-                        android:src="@drawable/ic_logo_24" />
-
-                    <TextView
-                        android:id="@+id/bypass_method_label"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_centerVertical="true"
-                        android:layout_toEndOf="@id/bypass_method_image_view"
-                        android:text="@string/bypass_methods_title"
-                        android:textColor="@color/white"
-                        android:textSize="16sp"
-                        android:textStyle="bold" />
-                </RelativeLayout>
-
-                <RadioGroup
-                    android:id="@+id/bypass_method_radio_button_group"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:paddingStart="8dp"
-                    android:paddingEnd="12dp">
-
-                    <RadioButton
-                        android:id="@+id/obfuscation_radio_button"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:layout_marginEnd="8dp"
-                        android:text="@string/tls_handshake_obfuscation_radio_button_label"
-                        android:textSize="14sp"
-                        android:textStyle="bold" />
-
-                    <RadioButton
-                        android:id="@+id/sni_reality_radio_button_yandex_26"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:layout_marginEnd="8dp"
-                        android:text="@string/sni_reality_radio_button_label_yandex_26"
-                        android:textSize="14sp"
-                        android:textStyle="bold" />
-
-                    <RadioButton
-                        android:id="@+id/sni_reality_radio_button_yandex_25"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:layout_marginEnd="8dp"
-                        android:text="@string/sni_reality_radio_button_label_yandex_25"
-                        android:textSize="14sp"
-                        android:textStyle="bold" />
-
-                    <RadioButton
-                        android:id="@+id/sni_reality_radio_button_yandex_24"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:layout_marginEnd="8dp"
-                        android:text="@string/sni_reality_radio_button_label_yandex_24"
-                        android:textSize="14sp"
-                        android:textStyle="bold" />
-
-                    <RadioButton
-                        android:id="@+id/sni_reality_radio_button_chrome_147"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:layout_marginEnd="8dp"
-                        android:text="@string/sni_reality_radio_button_label_chrome_147"
-                        android:textSize="14sp"
-                        android:textStyle="bold" />
-
-                    <RadioButton
-                        android:id="@+id/sni_reality_radio_button_chrome_146"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:layout_marginEnd="8dp"
-                        android:text="@string/sni_reality_radio_button_label_chrome_146"
-                        android:textSize="14sp"
-                        android:textStyle="bold" />
-
-                    <RadioButton
-                        android:id="@+id/sni_reality_radio_button_chrome_145"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:layout_marginEnd="8dp"
-                        android:text="@string/sni_reality_radio_button_label_chrome_145"
-                        android:textSize="14sp"
-                        android:textStyle="bold" />
-
-
-                    <RadioButton
-                        android:id="@+id/sni_reality_radio_button_firefox_149"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:layout_marginEnd="8dp"
-                        android:text="@string/sni_reality_radio_button_label_firefox_149"
-                        android:textSize="14sp"
-                        android:textStyle="bold" />
-
-
-                    <RadioButton
-                        android:id="@+id/sni_reality_radio_button_safari_26"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:layout_marginEnd="8dp"
-                        android:text="@string/sni_reality_radio_button_label_safari_26"
-                        android:textSize="14sp"
-                        android:textStyle="bold" />
-                </RadioGroup>
             </LinearLayout>
         </LinearLayout>
     </ScrollView>

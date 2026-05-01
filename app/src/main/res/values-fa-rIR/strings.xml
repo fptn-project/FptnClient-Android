@@ -159,7 +159,6 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="bypass_methods_title">روش‌های دور زدن محدودیت‌ها</string>
     <string name="bypass_methods_info">پیکربندی روش‌های دور زدن فیلترینگ</string>
 
-    <string name="sni_spoofing_radio_button_label">جعل دامنه (SNI)</string>
     <string name="tls_handshake_obfuscation_radio_button_label">مخفی‌سازی ترافیک (Obfuscation)</string>
     <string name="sni_reality_radio_button_label">جعل پیشرفتهٔ دامنه (SNI + REALITY)</string>
 

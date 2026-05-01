@@ -21,6 +21,7 @@ import org.fptn.vpn.enums.BypassCensorshipMethod;
 import org.fptn.vpn.enums.ConnectionState;
 import org.fptn.vpn.enums.NetworkType;
 import org.fptn.vpn.enums.PerAppVpnMode;
+import org.fptn.vpn.enums.SniSpoofingMode;
 import org.fptn.vpn.services.websocket.DnsServers;
 import org.fptn.vpn.services.websocket.WebSocketAlreadyShutdownException;
 import org.fptn.vpn.services.websocket.WebSocketClientWrapper;
@@ -80,6 +81,7 @@ public class FptnConnection extends Thread {
 
     @Getter
     private final AtomicInteger reconnectCount = new AtomicInteger(0);
+    private final SniSpoofingMode sniSpoofingMode;
 
     @Setter
     private PendingIntent configureVpnIntent;
@@ -114,6 +116,7 @@ public class FptnConnection extends Thread {
                           final int delayBetweenAttempts,
                           final String sniHostName,
                           final BypassCensorshipMethod censorshipStrategy,
+                          final SniSpoofingMode sniSpoofingMode,
                           final PerAppVpnMode perAppVpnMode,
                           final List<AppInfo> appInfos) throws UnknownHostException {
         this.service = service;
@@ -123,6 +126,7 @@ public class FptnConnection extends Thread {
         this.currentNetworkType = currentNetworkType;
         this.sniHostName = sniHostName;
         this.censorshipStrategy = censorshipStrategy;
+        this.sniSpoofingMode = sniSpoofingMode;
         this.perAppVpnMode = perAppVpnMode;
         this.appInfos = appInfos;
 
@@ -135,7 +139,8 @@ public class FptnConnection extends Thread {
                 this::onMessageReceived,
                 this::onConnectionFailure,
                 this.sniHostName,
-                this.censorshipStrategy
+                this.censorshipStrategy,
+                this.sniSpoofingMode
         );
 
         this.maxReconnectCount = maxReconnectCount;
