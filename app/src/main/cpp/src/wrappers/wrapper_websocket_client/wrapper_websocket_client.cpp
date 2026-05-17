@@ -22,8 +22,6 @@ namespace fptn::wrapper {
 WrapperWebsocketClient::WrapperWebsocketClient(jobject wrapper,
     std::string server_ip,
     int server_port,
-    std::string tun_ipv4,
-    std::string tun_ipv6,
     std::string sni,
     std::string access_token,
     std::string expected_md5_fingerprint,
@@ -33,8 +31,6 @@ WrapperWebsocketClient::WrapperWebsocketClient(jobject wrapper,
       wrapper_(wrapper),
       server_ip_(std::move(server_ip)),
       server_port_(server_port),
-      tun_ipv4_(std::move(tun_ipv4)),
-      tun_ipv6_(std::move(tun_ipv6)),
       sni_(std::move(sni)),
       access_token_(std::move(access_token)),
       expected_md5_fingerprint_(std::move(expected_md5_fingerprint)),
@@ -98,38 +94,36 @@ void WrapperWebsocketClient::Run() {
   while (running_ && reconnection_attempts_ > 0) {
     try {
       const auto server_ip_addr = fptn::common::network::IPv4Address::Create(server_ip_);
-      const auto tun_ipv4_addr = fptn::common::network::IPv4Address::Create(tun_ipv4_);
-      const auto tun_ipv6_addr = fptn::common::network::IPv6Address::Create(tun_ipv6_);
 
-      if (!server_ip_addr.IsValid() || !tun_ipv4_addr.IsValid() || !tun_ipv6_addr.IsValid()) {
-        SPDLOG_ERROR(
-            "Invalid IP address configuration - server: {}, tun_ipv4: {}, tun_ipv6: {}",
-            server_ip_, tun_ipv4_, FPTN_CLIENT_DEFAULT_ADDRESS_IP6);
+      if (!server_ip_addr.IsValid()) {
+        SPDLOG_ERROR("Invalid IP address configuration - server: {}", server_ip_);
         break;
       }
 
       {
         const std::unique_lock<std::mutex> lock(mutex_);  // mutex
 
-        auto new_ip_pkt_callback = std::bind(
+        const auto new_ip_pkt_callback = std::bind(
             &WrapperWebsocketClient::onIPPacket, this, std::placeholders::_1);
-        auto on_connected_callback =
+        const auto on_connected_callback =
             std::bind(&WrapperWebsocketClient::onConnectedCallback, this);
-
-          client_ = std::make_shared<fptn::protocol::https::WebsocketClient>(
-            server_ip_addr,
-            server_port_,
-            tun_ipv4_addr,
-            tun_ipv6_addr,
-            new_ip_pkt_callback,
-            sni_,
-            access_token_,
-            expected_md5_fingerprint_,
-            censorship_strategy_,
-            on_connected_callback
+        const auto on_ip_assigned_callback =
+            std::bind(&WrapperWebsocketClient::onIpAssignedCallback, this,
+                            std::placeholders::_1, std::placeholders::_2);
+        client_ = std::make_shared<fptn::protocol::https::WebsocketClient>(
+          fptn::protocol::https::WebsocketClient::Config{
+              .server_ip=server_ip_addr,
+              .server_port=server_port_,
+              .sni=sni_,
+              .access_token=access_token_,
+              .expected_md5_fingerprint=expected_md5_fingerprint_,
+              .censorship_strategy=censorship_strategy_,
+              .on_connected_callback=on_connected_callback,
+              .on_ip_assigned_callback=on_ip_assigned_callback,
+              .new_ip_pkt_callback=new_ip_pkt_callback,
+            }
         );
       }
-
       if (running_ && client_) {
         client_->Run();
       }
@@ -307,16 +301,27 @@ void WrapperWebsocketClient::onConnectedCallback() {
   env->DeleteLocalRef(cls);
 }
 
-bool WrapperWebsocketClient::Send(std::string pkt) {
+void WrapperWebsocketClient::onIpAssignedCallback(const fptn::common::network::IPv4Address& ipv4,
+                              const fptn::common::network::IPv6Address& ipv6) {
+  SPDLOG_INFO("onIpAssignedCallback: {}, {}", ipv4.ToString(), ipv6.ToString());
+  ipv4_address_ = ipv4;
+  ipv6_address_ = ipv6;
+}
+
+const fptn::common::network::IPv4Address& WrapperWebsocketClient::IPv4Address() const {
+  return ipv4_address_;
+}
+
+const fptn::common::network::IPv6Address& WrapperWebsocketClient::IPv6Address() const {
+  return ipv6_address_;
+}
+
+bool WrapperWebsocketClient::Send(fptn::common::network::IPPacketData data) {
   if (!running_) {
     return false;
   }
   try {
-    std::vector<uint8_t> packet_data;
-    packet_data.reserve(pkt.size());
-    std::move(pkt.begin(), pkt.end(), std::back_inserter(packet_data));
-
-    auto ip_packet = fptn::common::network::IPPacket::Parse(std::move(packet_data));
+    auto ip_packet = fptn::common::network::IPPacket::Parse(std::move(data));
     if (!ip_packet) {
       SPDLOG_ERROR("Failed to parse IP packet in Send");
       return false;

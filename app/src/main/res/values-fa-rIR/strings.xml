@@ -153,12 +153,12 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="tile_already_added">کاشی تنظیمات سریع قبلاً اضافه شده است</string>
     <string name="tile_added_successfully">کاشی تنظیمات سریع با موفقیت اضافه شد</string>
     <string name="tile_addition_failed">افزودن کاشی تنظیمات سریع ناموفق بود!</string>
-    <string name="reset_selected_server_after_disconnect_label">بازنشانی سرور انتخاب‌شده پس از قطع اتصال؟</string>
 
     <string name="settings_reset_server_on_exception">تنظیم مجدد سرور فقط در صورت بروز خطاهای اتصال</string>
     <string name="bypass_methods_title">روش‌های دور زدن محدودیت‌ها</string>
     <string name="bypass_methods_info">پیکربندی روش‌های دور زدن فیلترینگ</string>
 
+    <string name="sni_radio_button_label">جعل پیشرفتهٔ دامنه</string>
     <string name="tls_handshake_obfuscation_radio_button_label">مخفی‌سازی ترافیک (Obfuscation)</string>
     <string name="sni_reality_radio_button_label">جعل پیشرفتهٔ دامنه (SNI + REALITY)</string>
 

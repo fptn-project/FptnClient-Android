@@ -22,8 +22,6 @@ public class WebSocketClientWrapper {
     private static final String LOGIN_URL = "/api/v1/login";
 
     private final ServerEntity serverEntity;
-    private final String tunAddressIPv4;
-    private final String tunAddressIPv6;
     private final OnOpenCallback onOpenCallback;
     private final OnMessageReceivedCallback onMessageReceivedCallback;
     private final OnFailureCallback onFailureCallback;
@@ -38,8 +36,6 @@ public class WebSocketClientWrapper {
     private boolean shutdown = false;
 
     public WebSocketClientWrapper(ServerEntity serverEntity,
-                                  String tunAddressIPv4,
-                                  String tunAddressIPv6,
                                   OnOpenCallback onOpenCallback,
                                   OnMessageReceivedCallback onMessageReceivedCallback,
                                   OnFailureCallback onFailureCallback,
@@ -47,8 +43,6 @@ public class WebSocketClientWrapper {
                                   BypassCensorshipMethod censorshipStrategy,
                                   SniSpoofingMode sniSpoofingMode) {
         this.serverEntity = serverEntity;
-        this.tunAddressIPv4 = tunAddressIPv4;
-        this.tunAddressIPv6 = tunAddressIPv6;
         this.onOpenCallback = onOpenCallback;
         this.onMessageReceivedCallback = onMessageReceivedCallback;
         this.onFailureCallback = onFailureCallback;
@@ -68,6 +62,14 @@ public class WebSocketClientWrapper {
         );
     }
 
+    public String getIPv4Address() {
+       return this.nativeWebSocketClient.getIPv4Address();
+    }
+
+    public String getIPv6Address() {
+        return this.nativeWebSocketClient.getIPv6Address();
+    }
+
     public synchronized void startWebSocket() throws PVNClientException, WebSocketAlreadyShutdownException {
         if (isShutdown()) {
             throw new WebSocketAlreadyShutdownException();
@@ -79,8 +81,6 @@ public class WebSocketClientWrapper {
         nativeWebSocketClient = new NativeWebSocketClientImpl(
                 serverEntity.getHost(),
                 serverEntity.getPort(),
-                tunAddressIPv4,
-                tunAddressIPv6,
                 accessToken,
                 serverEntity.getMd5ServerFingerprint(),
                 onOpenCallback,

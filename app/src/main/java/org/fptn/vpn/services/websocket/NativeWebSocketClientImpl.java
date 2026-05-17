@@ -32,8 +32,6 @@ public class NativeWebSocketClientImpl {
     public NativeWebSocketClientImpl(
             String host,
             int port,
-            String tunAddressIPv4,
-            String tunAddressIPv6,
             String accessToken,
             String md5ServerFingerprint,
             OnOpenCallback onOpenCallback,
@@ -56,8 +54,6 @@ public class NativeWebSocketClientImpl {
         this.nativeHandle = nativeCreate(
                 host,
                 port,
-                tunAddressIPv4,
-                tunAddressIPv6,
                 sniHostName,
                 accessToken,
                 md5ServerFingerprint,
@@ -135,10 +131,22 @@ public class NativeWebSocketClientImpl {
         }
     }
 
+    public String getIPv4Address() {
+        if (nativeHandle != 0L) {
+            return nativeGetIPv4Address(nativeHandle);
+        }
+        return "";
+    }
+
+    public String getIPv6Address() {
+        if (nativeHandle != 0L) {
+            return nativeGetIPv6Address(nativeHandle);
+        }
+        return "";
+    }
+
     private native long nativeCreate(String server_ip,
                                      int server_port,
-                                     String tun_ipv4,
-                                     String tun_ipv6,
                                      String sni,
                                      String access_token,
                                      String expected_md5_fingerprint,
@@ -153,4 +161,7 @@ public class NativeWebSocketClientImpl {
     private native boolean nativeSend(long nativeHandle, byte[] data, long length);
 
     private native boolean nativeIsStarted(long nativeHandle);
+
+    private native String nativeGetIPv4Address(long nativeHandle);
+    private native String nativeGetIPv6Address(long nativeHandle);
 }

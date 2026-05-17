@@ -9,7 +9,7 @@
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginBottom="80dp"
+        android:layout_marginBottom="10dp"
         android:fadeScrollbars="false"
         app:layout_constraintBottom_toTopOf="@id/buttons_layout"
         app:layout_constraintEnd_toEndOf="parent"

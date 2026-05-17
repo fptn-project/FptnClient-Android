@@ -19,8 +19,6 @@ class WrapperWebsocketClient final {
   explicit WrapperWebsocketClient(jobject wrapper,
       std::string server_ip,
       int server_port,
-      std::string tun_ipv4,
-      std::string tun_ipv6,
       std::string sni,
       std::string access_token,
       std::string expected_md5_fingerprint,
@@ -34,7 +32,10 @@ class WrapperWebsocketClient final {
 
   bool IsStarted();
 
-  bool Send(std::string pkt);
+  bool Send(fptn::common::network::IPPacketData pkt);
+
+  const fptn::common::network::IPv4Address& IPv4Address() const;
+  const fptn::common::network::IPv6Address& IPv6Address() const;
 
  protected:
   void Run();
@@ -42,6 +43,9 @@ class WrapperWebsocketClient final {
   void onIPPacket(fptn::common::network::IPPacketPtr);
 
   void onConnectedCallback();
+
+  void onIpAssignedCallback(const fptn::common::network::IPv4Address& ipv4,
+                            const fptn::common::network::IPv6Address& ipv6);
 
  private:
   const int kMaxReconnectionAttempts_ = 35;
@@ -63,5 +67,8 @@ class WrapperWebsocketClient final {
   const fptn::protocol::https::CensorshipStrategy censorship_strategy_;
 
   fptn::protocol::https::WebsocketClientSPtr client_;
+
+  fptn::common::network::IPv4Address ipv4_address_;
+  fptn::common::network::IPv6Address ipv6_address_;
 };
 }  // namespace fptn::wrapper
