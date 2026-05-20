@@ -200,7 +200,7 @@ public class FptnConnection extends Thread {
         } catch (WebSocketAlreadyShutdownException e) {
             Log.w(getTag(), "The websocket already shutdown", e);
         } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            shutdown();
         } finally {
             shutdown();
         }

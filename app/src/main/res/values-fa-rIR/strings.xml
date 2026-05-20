@@ -191,9 +191,9 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="settings_reset_server_on_disconnect">پس از قطع ارتباط، سرور انتخاب شده را بازنشانی کنید</string>
     <string name="auto_sni_label">انتخاب خودکار SNI</string>
     <string name="sni_features_label">تنظیمات SNI</string>
-    <string name="load_sni_from_file">بارگذاری SNI از فایل</string>
-    <string name="delete_loaded_sni">حذف SNI بارگذاری شده</string>
-    <string name="auto_select_sni">شروع انتخاب خودکار SNI</string>
+    <string name="load_sni_from_file">بارگذاری SNI</string>
+    <string name="delete_loaded_sni">حذف SNI</string>
+    <string name="auto_select_sni">شروع انتخاب خودکار</string>
     <string name="loaded_sni_label">SNI ذخیره شده در دیتابیس محلی:</string>
     <string name="select_server_for_autoselect">انتخاب سرور برای انتخاب خودکار SNI</string>
     <string name="start_sni_checking_button_label">شروع بررسی SNI</string>
@@ -201,6 +201,6 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="reset_checked_previously_checkbox_label">بازنشانی موارد بررسی شده قبلی؟</string>
     <string name="selected_server">سرور انتخاب شده</string>
     <string name="checking_current_sni">در حال بررسی SNI:</string>
-    <string name="load_default">بارگذاری پیش‌فرض</string>
+    <string name="load_default">حذف SNI</string>
 
 </resources>

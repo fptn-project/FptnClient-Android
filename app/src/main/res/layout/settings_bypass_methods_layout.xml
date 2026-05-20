@@ -102,25 +102,40 @@
                         android:text="@string/sni_reality_radio_button_label"
                         android:textSize="14sp"
                         android:textStyle="bold" />
+                </RadioGroup>
+
+
+                <!-- method spinner -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingLeft="10dp"
+                    android:paddingTop="4dp"
+                    android:paddingRight="10dp"
+                    android:paddingBottom="4dp"
+                    android:orientation="vertical">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="3dp"
-                        android:layout_marginEnd="12dp"
                         android:orientation="vertical">
 
-                        <TextView
+                        <Spinner
+                            android:id="@+id/sni_spoofing_mode_spinner"
                             android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="30dp"
-                            android:layout_marginTop="0dp"
-                            android:text="@string/sni_reality_radio_button_label_additional_info"
-                            android:textColor="@color/gray"
-                            android:textSize="12sp" />
+                            android:layout_height="40dp"
+                            android:minHeight="0dp"
+                            android:paddingTop="-8dp"
+                            android:paddingVertical="0dp"
+                            android:paddingHorizontal="8dp"
+                            android:gravity="center_vertical|start"
+                            android:background="@drawable/round_back_spinner_down"
+                            android:popupBackground="@drawable/spinner_background_up"
+                            android:spinnerMode="dropdown" />
                     </LinearLayout>
-                </RadioGroup>
+                </LinearLayout>
             </LinearLayout>
+
 
             <!-- SNI settings -->
             <LinearLayout
@@ -134,63 +149,6 @@
                 android:orientation="vertical"
                 android:padding="10dp"
                 android:paddingBottom="0dp">
-
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:paddingLeft="10dp"
-                    android:paddingTop="8dp"
-                    android:paddingRight="10dp"
-                    android:paddingBottom="10dp"
-                    android:orientation="vertical">
-                    <!-- SNI Spoofing Mode Selector -->
-                    <RelativeLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:paddingVertical="10dp">
-
-                        <ImageView
-                            android:id="@+id/sni_spoofing_mode_icon"
-                            android:layout_width="wrap_content"
-                            android:layout_height="32dp"
-                            android:layout_gravity="center"
-                            android:importantForAccessibility="no"
-                            android:paddingStart="4dp"
-                            android:paddingEnd="12dp"
-                            android:src="@drawable/ic_logo_24" />
-
-                        <TextView
-                            android:id="@+id/sni_spoofing_mode_label"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_centerVertical="true"
-                            android:layout_toEndOf="@id/sni_spoofing_mode_icon"
-                            android:text="@string/sni_features_label"
-                            android:textColor="@color/white"
-                            android:textStyle="normal" />
-
-                    </RelativeLayout>
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical">
-
-                        <Spinner
-                            android:paddingLeft="10dp"
-                            android:paddingTop="8dp"
-                            android:paddingRight="10dp"
-                            android:paddingBottom="10dp"
-                            android:id="@+id/sni_spoofing_mode_spinner"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:background="@drawable/round_back_spinner_down"
-                            android:popupBackground="@drawable/spinner_background_up"
-                            android:spinnerMode="dropdown" />
-                    </LinearLayout>
-
-                </LinearLayout>
 
                 <RelativeLayout
                     android:id="@+id/edit_sni_layout"
@@ -255,6 +213,20 @@
                     android:text="@string/sni_text_description"
                     android:textColor="@color/gray"
                     android:textSize="12sp" />
+            </LinearLayout>
+
+            <!-- SNI AUTOSCAN -->
+            <LinearLayout
+                android:id="@+id/sni_autoscan_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="20dp"
+                android:layout_marginEnd="20dp"
+                android:background="@drawable/round_settings_back_white10_20"
+                android:orientation="vertical"
+                android:padding="10dp"
+                android:paddingBottom="0dp">
 
                 <!-- Auto SNI -->
                 <RelativeLayout
@@ -281,7 +253,30 @@
                         android:layout_height="wrap_content"
                         android:layout_centerVertical="true"
                         android:layout_toEndOf="@id/sql_server_icon"
+                        android:text="@string/auto_sni_label"
+                        android:textColor="@color/white"
+                        android:textStyle="normal" />
+
+                </RelativeLayout>
+
+                <LinearLayout
+                    android:id="@+id/load_sni_info_group"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginTop="6dp"
+                    android:layout_marginEnd="10dp"
+                    android:orientation="horizontal"
+                    android:padding="4dp">
+
+                    <TextView
+                        android:id="@+id/loaded_sni_label_info"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:layout_toEndOf="@id/sql_server_icon"
                         android:text="@string/loaded_sni_label"
+                        android:paddingEnd="5dp"
                         android:textColor="@color/white"
                         android:textStyle="normal" />
 
@@ -296,44 +291,56 @@
                         android:text="456"
                         android:textColor="@color/white"
                         android:textStyle="normal" />
-
-                </RelativeLayout>
-
-                <LinearLayout
-                    android:id="@+id/load_delete_button_group"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="10dp"
-                    android:layout_marginTop="6dp"
-                    android:layout_marginEnd="10dp"
-                    android:orientation="horizontal"
-                    android:padding="8dp">
-
-                    <Button
-                        android:id="@+id/load_sni_button"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:background="@drawable/settings_button_background"
-                        android:text="@string/load_sni_from_file"
-                        android:textAllCaps="false"
-                        android:textColor="@color/primary" />
-
-                    <Space
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="0.1" />
-
-                    <Button
-                        android:id="@+id/delete_or_reset_sni_button"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:background="@drawable/settings_button_background"
-                        android:text="@string/delete_loaded_sni"
-                        android:textAllCaps="false"
-                        android:textColor="@color/primary" />
                 </LinearLayout>
+
+
+<!--                <LinearLayout-->
+<!--                    android:id="@+id/load_delete_button_group"-->
+<!--                    android:layout_width="match_parent"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:layout_marginStart="10dp"-->
+<!--                    android:layout_marginTop="6dp"-->
+<!--                    android:layout_marginEnd="10dp"-->
+<!--                    android:orientation="horizontal"-->
+<!--                    android:padding="4dp">-->
+
+<!--                    <Button-->
+<!--                        android:id="@+id/load_sni_button"-->
+<!--                        android:layout_width="0dp"-->
+<!--                        android:layout_height="32dp"-->
+<!--                        android:layout_weight="1"-->
+<!--                        style="@android:style/Widget.Button"-->
+<!--                        android:minHeight="0dp"-->
+<!--                        android:maxHeight="32dp"-->
+<!--                        android:background="@drawable/round_back_secondary_cancel_100"-->
+<!--                        android:padding="0dp"-->
+<!--                        android:text="@string/load_sni_from_file"-->
+<!--                        android:textAllCaps="false"-->
+<!--                        android:textColor="@color/primary"-->
+<!--                        android:textSize="12sp"-->
+<!--                        android:includeFontPadding="false" />-->
+
+<!--                    <Space-->
+<!--                        android:layout_width="0dp"-->
+<!--                        android:layout_height="match_parent"-->
+<!--                        android:layout_weight="0.1" />-->
+
+<!--                    <Button-->
+<!--                        android:id="@+id/delete_or_reset_sni_button"-->
+<!--                        android:layout_width="0dp"-->
+<!--                        android:layout_height="32dp"-->
+<!--                        android:layout_weight="1"-->
+<!--                        style="@android:style/Widget.Button"-->
+<!--                        android:minHeight="0dp"-->
+<!--                        android:maxHeight="32dp"-->
+<!--                        android:background="@drawable/round_back_secondary_cancel_100"-->
+<!--                        android:padding="0dp"-->
+<!--                        android:text="@string/delete_loaded_sni"-->
+<!--                        android:textAllCaps="false"-->
+<!--                        android:textColor="@color/primary"-->
+<!--                        android:textSize="12sp"-->
+<!--                        android:includeFontPadding="false" />-->
+<!--                </LinearLayout>-->
 
                 <LinearLayout
                     android:id="@+id/checking_in_progress_view"
@@ -445,10 +452,10 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:background="@drawable/auto_select_sni_toggle_back"
+                        android:background="@drawable/round_back_secondary_cancel_100"
                         android:textAllCaps="false"
                         android:textColor="@color/auto_select_sni_toggle_text_color"
-                        android:textOff="@string/start_sni_checking_button_label"
+                        android:textOff="@string/auto_select_sni"
                         android:textOn="@string/stop_sni_checking_button_label" />
 
                 </LinearLayout>

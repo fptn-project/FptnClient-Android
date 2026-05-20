@@ -133,20 +133,6 @@ public class BypassMethodsActivity extends AppCompatActivity {
         RadioButton sniSpoofingRadioButton = findViewById(R.id.sni_reality_radio_button);
         RadioButton obfuscationRadioButton = findViewById(R.id.obfuscation_radio_button);
 
-        viewModel.getBypassCensorshipMethodMutableLiveData().observe(this, bypassCensorshipMethod -> {
-            switch (bypassCensorshipMethod) {
-                case TLS_OBFUSCATION:
-                    obfuscationRadioButton.setChecked(true);
-                    ViewUtils.hideView(sniLayout);
-                    break;
-                case SNI_REALITY:
-                    sniSpoofingRadioButton.setChecked(true);
-                    ViewUtils.showView(sniLayout);
-                    break;
-            }
-        });
-
-
         // Inside initializeVariable() method
         Spinner sniSpoofingModeSpinner = findViewById(R.id.sni_spoofing_mode_spinner);
         ArrayAdapter<SniSpoofingMode> adapter = new ArrayAdapter<>(
@@ -170,6 +156,26 @@ public class BypassMethodsActivity extends AppCompatActivity {
             }
         };
         sniSpoofingModeSpinner.setAdapter(adapter);
+
+        View sniAutoscanLayout = findViewById(R.id.sni_autoscan_layout);
+
+        viewModel.getBypassCensorshipMethodMutableLiveData().observe(this, bypassCensorshipMethod -> {
+            switch (bypassCensorshipMethod) {
+                case TLS_OBFUSCATION:
+                    obfuscationRadioButton.setChecked(true);
+                    ViewUtils.hideView(sniLayout);
+                    ViewUtils.hideView(sniSpoofingModeSpinner);
+                    ViewUtils.hideView(sniAutoscanLayout);
+                    break;
+                case SNI_REALITY:
+                    sniSpoofingRadioButton.setChecked(true);
+                    ViewUtils.showView(sniLayout);
+                    ViewUtils.showView(sniSpoofingModeSpinner);
+                    ViewUtils.showView(sniAutoscanLayout);
+                    break;
+            }
+        });
+
 
         viewModel.getSniSpoofingModeMutableLiveData().observe(this, mode -> {
             int position = adapter.getPosition(mode);
@@ -218,12 +224,16 @@ public class BypassMethodsActivity extends AppCompatActivity {
         // SNI Auto
         TextView sniCountLabel = findViewById(R.id.loaded_sni_count_label);
 
-        Button loadSniButton = findViewById(R.id.load_sni_button);
-        loadSniButton.setOnClickListener(view -> onLoadButtonClicked());
-
-        Button deleteOrResetToDefaultSniButton = findViewById(R.id.delete_or_reset_sni_button);
-        deleteOrResetToDefaultSniButton.setOnClickListener(view -> onDeleteOrResetSniButtonClicked());
-
+        // Remove for temporary
+        // Button loadSniButton = findViewById(R.id.load_sni_button);
+        // loadSniButton.setOnClickListener(view -> onLoadButtonClicked());
+        // Button deleteOrResetToDefaultSniButton = findViewById(R.id.delete_or_reset_sni_button);
+        // deleteOrResetToDefaultSniButton.setOnClickListener(view -> onDeleteOrResetSniButtonClicked());
+        try {
+            viewModel.loadDefaultSni();  // Load default SNI
+        } catch (PVNClientException err) {
+            Log.i(TAG, "Load sni errror: " + err.errorMessage);
+        }
         ToggleButton startStopCheckingSniButton = findViewById(R.id.auto_select_sni_button);
         startStopCheckingSniButton.setOnClickListener(v -> onAutoSelectSniClicked());
 
@@ -248,21 +258,17 @@ public class BypassMethodsActivity extends AppCompatActivity {
 
         View cancelSaveButtonsView = findViewById(R.id.buttons_layout);
         View checkingInProgressView = findViewById(R.id.checking_in_progress_view);
-        View loadDeleteButtonGroup = findViewById(R.id.load_delete_button_group);
 
         // todo: disable navigation bar when sni checking active
         //View settingsMenuItem = findViewById(R.id.menuSettings);
         viewModel.getServiceState().observe(this, serviceState -> {
             if (serviceState == SniCheckerServiceState.ACTIVE) {
-                ViewUtils.hideView(loadDeleteButtonGroup);
                 ViewUtils.hideView(cancelSaveButtonsView);
 
                 ViewUtils.showView(checkingInProgressView);
 
                 startStopCheckingSniButton.setChecked(true);
-                //settingsMenuItem.setEnabled(false);
             } else {
-                ViewUtils.showView(loadDeleteButtonGroup);
                 ViewUtils.showView(cancelSaveButtonsView);
 
                 ViewUtils.hideView(checkingInProgressView);
@@ -280,7 +286,7 @@ public class BypassMethodsActivity extends AppCompatActivity {
                     sniCountLabel.setText(String.valueOf(count));
 
                     boolean isEnabled = count > 0;
-                    deleteOrResetToDefaultSniButton.setText(count > 0 ? R.string.delete_loaded_sni : R.string.load_default);
+                    //deleteOrResetToDefaultSniButton.setText(count > 0 ? R.string.delete_loaded_sni : R.string.load_default);
                     startStopCheckingSniButton.setEnabled(isEnabled);
                 }
         );
