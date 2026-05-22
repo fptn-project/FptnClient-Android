@@ -44,8 +44,10 @@ public class NativeWebSocketClientImpl {
         this.onMessageReceivedCallback = onMessageReceivedCallback;
         this.onFailureCallback = onFailureCallback;
 
-        String censorshipStrategyName = "SNI-REALITY-YANDEX-25";
-        if (censorshipStrategy == BypassCensorshipMethod.TLS_OBFUSCATION) {
+        String censorshipStrategyName = "SNI";
+        if (censorshipStrategy == BypassCensorshipMethod.SNI_REALITY && sniSpoofingMode == SniSpoofingMode.SNI) {
+            censorshipStrategyName = "SNI";
+        } else if (censorshipStrategy == BypassCensorshipMethod.TLS_OBFUSCATION) {
             censorshipStrategyName = "OBFUSCATION";
         } else if (censorshipStrategy == BypassCensorshipMethod.SNI_REALITY) {
             censorshipStrategyName = sniSpoofingMode.toString().replace('_', '-');
@@ -163,5 +165,6 @@ public class NativeWebSocketClientImpl {
     private native boolean nativeIsStarted(long nativeHandle);
 
     private native String nativeGetIPv4Address(long nativeHandle);
+
     private native String nativeGetIPv6Address(long nativeHandle);
 }

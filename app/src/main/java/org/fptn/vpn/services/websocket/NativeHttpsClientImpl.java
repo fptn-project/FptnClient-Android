@@ -20,8 +20,10 @@ public class NativeHttpsClientImpl {
                                  String sni,
                                  BypassCensorshipMethod censorshipStrategy,
                                  SniSpoofingMode sniSpoofingMode) {
-        String censorshipStrategyName = "SNI-REALITY-YANDEX-25";
-        if (censorshipStrategy == BypassCensorshipMethod.TLS_OBFUSCATION) {
+        String censorshipStrategyName = "SNI";
+        if (censorshipStrategy == BypassCensorshipMethod.SNI_REALITY && sniSpoofingMode == SniSpoofingMode.SNI) {
+            censorshipStrategyName = "SNI";
+        } else if (censorshipStrategy == BypassCensorshipMethod.TLS_OBFUSCATION) {
             censorshipStrategyName = "OBFUSCATION";
         } else if (censorshipStrategy == BypassCensorshipMethod.SNI_REALITY) {
             censorshipStrategyName = sniSpoofingMode.toString().replace('_', '-');

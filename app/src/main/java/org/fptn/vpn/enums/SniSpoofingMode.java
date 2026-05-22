@@ -1,6 +1,7 @@
 package org.fptn.vpn.enums;
 
 public enum SniSpoofingMode {
+    SNI,
     /* Chrome */
     SNI_REALITY_CHROME_147,
     SNI_REALITY_CHROME_146,

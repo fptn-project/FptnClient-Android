@@ -83,7 +83,9 @@ Java_org_fptn_vpn_services_websocket_NativeWebSocketClientImpl_nativeCreate(
             env,censorship_strategy_name_param);
   fptn::protocol::https::CensorshipStrategy censorship_strategy =
             fptn::protocol::https::CensorshipStrategy::kSni;
-  if (censorship_strategy_name == "OBFUSCATION") {
+  if (censorship_strategy_name == "SNI") {
+    censorship_strategy = fptn::protocol::https::CensorshipStrategy::kSni;
+  } else if (censorship_strategy_name == "OBFUSCATION") {
     censorship_strategy = fptn::protocol::https::CensorshipStrategy::kTlsObfuscator;
   } else if (censorship_strategy_name == "SNI-REALITY") {  // deprecated
     censorship_strategy = fptn::protocol::https::CensorshipStrategy::kSniRealityMode;
