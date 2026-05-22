@@ -11,7 +11,8 @@ import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.os.Build;
 import android.os.PowerManager;
-import android.util.Log;
+
+import com.elvishew.xlog.XLog;
 
 import androidx.core.content.ContextCompat;
 
@@ -40,7 +41,7 @@ public class PermissionsUtils {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             isGranted = ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED;
         }
-        Log.i(TAG, "checkNotificationPermission: " + isGranted);
+        XLog.tag(TAG).i("checkNotificationPermission: " + isGranted);
         return isGranted;
     }
 
@@ -50,7 +51,7 @@ public class PermissionsUtils {
         if (powerManager != null) {
             isGranted = powerManager.isIgnoringBatteryOptimizations(context.getPackageName());
         }
-        Log.i(TAG, "checkBatteryOptimizationsPermission: " + isGranted);
+        XLog.tag(TAG).i("checkBatteryOptimizationsPermission: " + isGranted);
         return isGranted;
     }
 
@@ -60,7 +61,7 @@ public class PermissionsUtils {
         if (connectivityManager != null) {
             isGranted = connectivityManager.getRestrictBackgroundStatus() == ConnectivityManager.RESTRICT_BACKGROUND_STATUS_DISABLED;
         }
-        Log.i(TAG, "checkBackgroundDataTransferRestrictions: " + isGranted);
+        XLog.tag(TAG).i("checkBackgroundDataTransferRestrictions: " + isGranted);
         return isGranted;
     }
 }

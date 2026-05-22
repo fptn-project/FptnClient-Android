@@ -2,13 +2,13 @@ package org.fptn.vpn.views.bypassmethod;
 
 import android.app.Application;
 import android.net.Uri;
-import android.util.Log;
 import android.util.Pair;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.MutableLiveData;
 
+import com.elvishew.xlog.XLog;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -157,7 +157,7 @@ public class BypassMethodsViewModel extends AndroidViewModel {
                     }
             );
         } catch (Exception e) {
-            Log.e(TAG, "Error reading SNI file", e);
+            XLog.tag(TAG).e("Error reading SNI file", e);
             throw new PVNClientException("Error: Could not read the file.");
         }
 
@@ -166,18 +166,18 @@ public class BypassMethodsViewModel extends AndroidViewModel {
             Futures.addCallback(future, new FutureCallback<>() {
                 @Override
                 public void onSuccess(Void result) {
-                    Log.d(TAG, "Successfully inserted " + sniList.size() + " SNIs into the database.");
+                    XLog.tag(TAG).d("Successfully inserted " + sniList.size() + " SNIs into the database.");
                     refreshSniCount();
                 }
 
                 @Override
                 public void onFailure(Throwable t) {
-                    Log.e(TAG, "DB error occurs!", t);
+                    XLog.tag(TAG).e("DB error occurs!", t);
                 }
             }, executorService);
 
         } else {
-            Log.d(TAG, "No valid SNIs found in the selected file.");
+            XLog.tag(TAG).d("No valid SNIs found in the selected file.");
             throw new PVNClientException("File is empty or contains no valid SNI entries.");
         }
     }
@@ -216,7 +216,7 @@ public class BypassMethodsViewModel extends AndroidViewModel {
                     }
             );
         } catch (Exception e) {
-            Log.e(TAG, "Error reading SNI file", e);
+            XLog.tag(TAG).e("Error reading SNI file", e);
             throw new PVNClientException("Error: Could not read the file.");
         }
 
@@ -235,7 +235,7 @@ public class BypassMethodsViewModel extends AndroidViewModel {
                     }
             );
         } catch (Exception e) {
-            Log.e(TAG, "Error reading SNI file", e);
+            XLog.tag(TAG).e("Error reading SNI file", e);
             throw new PVNClientException("Error: Could not read the file.");
         }
 
@@ -245,18 +245,18 @@ public class BypassMethodsViewModel extends AndroidViewModel {
             Futures.addCallback(future, new FutureCallback<>() {
                 @Override
                 public void onSuccess(Void result) {
-                    Log.d(TAG, "Successfully inserted " + sniList.size() + " SNIs into the database.");
+                    XLog.tag(TAG).d("Successfully inserted " + sniList.size() + " SNIs into the database.");
                     refreshSniCount();
                 }
 
                 @Override
                 public void onFailure(Throwable t) {
-                    Log.e(TAG, "DB error occurs!", t);
+                    XLog.tag(TAG).e("DB error occurs!", t);
                 }
             }, executorService);
 
         } else {
-            Log.d(TAG, "No valid SNIs found in the selected file.");
+            XLog.tag(TAG).d("No valid SNIs found in the selected file.");
             throw new PVNClientException("File is empty or contains no valid SNI entries.");
         }
     }

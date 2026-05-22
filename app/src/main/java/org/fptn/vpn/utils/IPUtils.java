@@ -13,7 +13,7 @@ public class IPUtils {
         Optional<IPAddress> any = subnetsToExclude.stream().filter(subnet -> subnet.equals(rootSubnet)).findAny();
         if (any.isPresent()) {
             // we reach minimum size target subnet
-            //Log.d(IPUtils.class.getSimpleName(), "rootSubnet: " + rootSubnet + " == any: " + any.get());
+            //XLog.d(IPUtils.class.getSimpleName(), "rootSubnet: " + rootSubnet + " == any: " + any.get());
             return;
         }
 
@@ -25,7 +25,7 @@ public class IPUtils {
 
         IPAddress rootSubnetLower = rootSubnet.getLower();
         IPAddress subnetLeft = new IPAddressString(rootSubnetLower.toAddressString().getHostAddress() + "/" + newNetmaskBits).getAddress();
-        //Log.d(IPUtils.class.getSimpleName(), "SubnetLeft: " + subnetLeft + " start from: " + subnetLeft.getLower() + " to: " + subnetLeft.getUpper());
+        //XLog.d(IPUtils.class.getSimpleName(), "SubnetLeft: " + subnetLeft + " start from: " + subnetLeft.getLower() + " to: " + subnetLeft.getUpper());
         Optional<IPAddress> checkLeft = subnetsToExclude.stream().filter(subnetLeft::contains).findFirst();
         if (checkLeft.isPresent()) {
             exclude(subnetLeft, subnetsToExclude, afterExclude, prefix);
@@ -37,7 +37,7 @@ public class IPUtils {
         //System.out.println("subtract: " + subtract);
         if (subtract != null && subtract.length > 0) {
             IPAddress subnetRight = subtract[0];
-            //Log.d(IPUtils.class.getSimpleName(), "SubnetRight: " + subnetRight + " start from: " + subnetRight.getLower() + " to: " + subnetRight.getUpper());
+            //XLog.d(IPUtils.class.getSimpleName(), "SubnetRight: " + subnetRight + " start from: " + subnetRight.getLower() + " to: " + subnetRight.getUpper());
             Optional<IPAddress> checkRight = subnetsToExclude.stream()
                     .filter(subnetRight::contains)
                     .findFirst();

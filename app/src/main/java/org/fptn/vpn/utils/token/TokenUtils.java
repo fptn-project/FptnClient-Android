@@ -1,6 +1,6 @@
 package org.fptn.vpn.utils.token;
 
-import android.util.Log;
+import com.elvishew.xlog.XLog;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -57,7 +57,7 @@ public class TokenUtils {
                 for (ServerFromToken server : servers) {
                     ServerEntity serverEntity = createServerEntity(server, username, password, false);
                     serverDtoList.add(serverEntity);
-                    Log.d(TAG, "Server from token: " + serverEntity.getServerInfo());
+                    XLog.tag(TAG).d("Server from token: " + serverEntity.getServerInfo());
                 }
             }
             // add censured servers
@@ -66,17 +66,17 @@ public class TokenUtils {
                 for (ServerFromToken server : censoredServers) {
                     ServerEntity serverEntity = createServerEntity(server, username, password, true);
                     serverDtoList.add(serverEntity);
-                    Log.d(TAG, "Censured server from token: " + serverEntity.getServerInfo());
+                    XLog.tag(TAG).d("Censured server from token: " + serverEntity.getServerInfo());
                 }
             }
         } catch (IOException e) {
             String errorMessage = "Can't parse FPTNLink!: ";
-            Log.e(TAG, errorMessage, e);
+            XLog.tag(TAG).e(errorMessage, e);
             throw new PVNClientException(ErrorCode.ACCESS_TOKEN_FORMAT_ERROR);
         }
 
         if (serverDtoList.isEmpty()) {
-            Log.e(TAG, "Server list from token is empty!");
+            XLog.tag(TAG).e("Server list from token is empty!");
             throw new PVNClientException(ErrorCode.SERVER_LIST_NULL_OR_EMPTY);
         }
 

@@ -1,6 +1,7 @@
 package org.fptn.vpn.services.websocket;
 
-import android.util.Log;
+
+import com.elvishew.xlog.XLog;
 
 import org.fptn.vpn.enums.BypassCensorshipMethod;
 import org.fptn.vpn.enums.SniSpoofingMode;
@@ -70,14 +71,14 @@ public class NativeWebSocketClientImpl {
     }
 
     public void start() {
-        Log.d(TAG, "NativeWebSocketClientImpl.start() Thread.id: " + Thread.currentThread().getId() + " serialNum: " + serialNum);
+        XLog.tag(TAG).d("NativeWebSocketClientImpl.start() Thread.id: " + Thread.currentThread().getId() + " serialNum: " + serialNum);
         if (!nativeIsStarted(nativeHandle)) {
             nativeRun(nativeHandle);
         }
     }
 
     public void stop() {
-        Log.d(TAG, "NativeWebSocketClientImpl.stop() Thread.id: " + Thread.currentThread().getId() + " serialNum: " + serialNum);
+        XLog.tag(TAG).d("NativeWebSocketClientImpl.stop() Thread.id: " + Thread.currentThread().getId() + " serialNum: " + serialNum);
         if (nativeIsStarted(nativeHandle)) {
             nativeStop(nativeHandle);
         }
@@ -94,7 +95,7 @@ public class NativeWebSocketClientImpl {
     }
 
     public synchronized void release() {
-        Log.d(TAG, "NativeWebSocketClientImpl.release() Thread.id: " + Thread.currentThread().getId() + " serialNum: " + serialNum);
+        XLog.tag(TAG).d("NativeWebSocketClientImpl.release() Thread.id: " + Thread.currentThread().getId() + " serialNum: " + serialNum);
         if (nativeHandle != 0) {
             nativeDestroy(nativeHandle);
             nativeHandle = 0;
@@ -103,7 +104,7 @@ public class NativeWebSocketClientImpl {
 
     @Override
     protected void finalize() throws Throwable {
-        Log.d(TAG, "NativeWebSocketClientImpl.finalize() Thread.id: " + Thread.currentThread().getId() + " serialNum: " + serialNum);
+        XLog.tag(TAG).d("NativeWebSocketClientImpl.finalize() Thread.id: " + Thread.currentThread().getId() + " serialNum: " + serialNum);
         try {
             release();
         } finally {
@@ -112,19 +113,19 @@ public class NativeWebSocketClientImpl {
     }
 
     public void onOpenImpl() {
-        Log.d(TAG, "NativeWebSocketClientImpl.onOpenImpl():start()" + " serialNum: " + serialNum);
+        XLog.tag(TAG).d("NativeWebSocketClientImpl.onOpenImpl():start()" + " serialNum: " + serialNum);
         if (this.onOpenCallback != null) {
             this.onOpenCallback.onOpen();
         }
-        Log.d(TAG, "NativeWebSocketClientImpl.onOpenImpl():end()");
+        XLog.tag(TAG).d("NativeWebSocketClientImpl.onOpenImpl():end()");
     }
 
     public void onFailureImpl() {
-        Log.d(TAG, "NativeWebSocketClientImpl.onFailureImpl():start()" + " serialNum: " + serialNum);
+        XLog.tag(TAG).d("NativeWebSocketClientImpl.onFailureImpl():start()" + " serialNum: " + serialNum);
         if (this.onFailureCallback != null) {
             this.onFailureCallback.onFailure();
         }
-        Log.d(TAG, "NativeWebSocketClientImpl.onFailureImpl():end()");
+        XLog.tag(TAG).d("NativeWebSocketClientImpl.onFailureImpl():end()");
     }
 
     public void onMessageImpl(byte[] msg) {

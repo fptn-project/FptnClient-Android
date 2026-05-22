@@ -10,7 +10,6 @@ import android.os.Bundle;
 import android.provider.Settings;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListAdapter;
@@ -22,12 +21,14 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.elvishew.xlog.XLog;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import org.fptn.vpn.R;
 import org.fptn.vpn.utils.PermissionsUtils;
 import org.fptn.vpn.views.CustomBottomNavigationListener;
 import org.fptn.vpn.views.experimentalsettings.ExperimentalSettingsActivity;
+import org.fptn.vpn.views.log.LogsActivity;
 import org.fptn.vpn.views.splash.SplashActivity;
 import org.fptn.vpn.views.adapter.ServerEntityAdapter;
 import org.fptn.vpn.views.bypassmethod.BypassMethodsActivity;
@@ -77,7 +78,7 @@ public class SettingsActivity extends AppCompatActivity {
             TextView versionTextView = findViewById(R.id.settings_fptn_version);
             versionTextView.setText(version);
         } catch (PackageManager.NameNotFoundException e) {
-            Log.e(TAG, "Can't show app version! ", e);
+            XLog.tag(TAG).e("Can't show app version! ", e);
         }
 
         // about
@@ -118,6 +119,15 @@ public class SettingsActivity extends AppCompatActivity {
         // NEW: Per-app VPN mode layout click listener
         View perAppVPNLayout = findViewById(R.id.per_app_vpn_mode_layout);
         perAppVPNLayout.setOnClickListener(this::perAppVpnMode);
+
+        // Logs viewer
+        View logsViewerLayout = findViewById(R.id.logs_viewer_layout);
+        if (logsViewerLayout != null) {
+            logsViewerLayout.setOnClickListener(v -> {
+                Intent intent = new Intent(SettingsActivity.this, LogsActivity.class);
+                startActivity(intent);
+            });
+        }
     }
 
     @Override
@@ -151,7 +161,7 @@ public class SettingsActivity extends AppCompatActivity {
                     startActivity(intent);
                 })
                 .setNegativeButton(getString(R.string.deny), (dialog, which) -> {
-                    Log.i(TAG, "Battery optimisation permission denied!");
+                    XLog.tag(TAG).i("Battery optimisation permission denied!");
                     permissionBatteryOptimizationButton.setChecked(false);
                 })
                 .show();
@@ -168,7 +178,7 @@ public class SettingsActivity extends AppCompatActivity {
                     startActivity(intent);
                 })
                 .setNegativeButton(getString(R.string.deny), (dialog, which) -> {
-                    Log.i(TAG, "Background data transfer permission denied!");
+                    XLog.tag(TAG).i("Background data transfer permission denied!");
                     permissionBackgroundDataTransferButton.setChecked(false);
                 })
                 .show();

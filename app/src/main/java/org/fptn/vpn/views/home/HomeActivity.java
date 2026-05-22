@@ -14,7 +14,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.provider.Settings;
-import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -27,6 +26,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.ViewModelProvider;
+
+import com.elvishew.xlog.XLog;
 
 import org.fptn.vpn.R;
 import org.fptn.vpn.database.entity.ServerEntity;
@@ -96,7 +97,7 @@ public class HomeActivity extends AppCompatActivity {
         connection = new ServiceConnection() {
             @Override
             public void onServiceConnected(ComponentName name, IBinder service) {
-                Log.i(TAG, "onServiceConnected: " + name);
+                XLog.tag(TAG).i("onServiceConnected: " + name);
                 FptnService.LocalBinder localBinder = (FptnService.LocalBinder) service;
                 viewModel.subscribeService(localBinder.getService());
             }
@@ -108,7 +109,7 @@ public class HomeActivity extends AppCompatActivity {
                         viewModel.unsubscribe();
                     }
                 } catch (Exception e) {
-                    Log.e(TAG, "Error in onServiceDisconnected: " + e.getMessage());
+                    XLog.tag(TAG).e("Error in onServiceDisconnected: " + e.getMessage());
                 }
             }
         };
@@ -124,7 +125,7 @@ public class HomeActivity extends AppCompatActivity {
                 unbindService(connection);
             }
         } catch (Exception e) {
-            Log.e(TAG, "Error unbinding service: " + e.getMessage());
+            XLog.tag(TAG).e("Error unbinding service: " + e.getMessage());
         }
     }
 
@@ -257,7 +258,7 @@ public class HomeActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
 
-        Log.d(TAG, "onPause: ");
+        XLog.tag(TAG).d("onPause: ");
 
         viewModel.stopCheckingPing();
     }
@@ -267,7 +268,7 @@ public class HomeActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
 
-        Log.d(TAG, "onResume: ");
+        XLog.tag(TAG).d("onResume: ");
 
         if (!isFinishing() && !isDestroyed()) {
             bottomNavigationView.setSelectedItemId(R.id.menuHome);
@@ -379,20 +380,20 @@ public class HomeActivity extends AppCompatActivity {
                             this.getMainExecutor(),
                             (resultCode) -> {
                                 if (resultCode == StatusBarManager.TILE_ADD_REQUEST_RESULT_TILE_ALREADY_ADDED) {
-                                    Log.d(TAG, "Tile already added successfully. Nothing to do.");
+                                    XLog.tag(TAG).d("Tile already added successfully. Nothing to do.");
                                     Toast.makeText(this, R.string.tile_already_added, Toast.LENGTH_SHORT)
                                             .show();
                                 } else if (resultCode == StatusBarManager.TILE_ADD_REQUEST_RESULT_TILE_ADDED) {
-                                    Log.d(TAG, "Tile added successfully.");
+                                    XLog.tag(TAG).d("Tile added successfully.");
                                     Toast.makeText(this, R.string.tile_added_successfully, Toast.LENGTH_SHORT)
                                             .show();
                                 } else {
-                                    Log.d(TAG, "User cancel request.");
+                                    XLog.tag(TAG).d("User cancel request.");
                                 }
                             }
                     );
                 } catch (Exception e) {
-                    Log.e(TAG, "Failed to request tile addition", e);
+                    XLog.tag(TAG).e("Failed to request tile addition", e);
                     Toast.makeText(this, R.string.tile_addition_failed, Toast.LENGTH_SHORT)
                             .show();
                 }
@@ -419,9 +420,9 @@ public class HomeActivity extends AppCompatActivity {
             new ActivityResultContracts.StartActivityForResult(),
             activityResult -> {
                 if (activityResult != null && activityResult.getResultCode() == RESULT_OK) {
-                    Log.i(TAG, "Permission granted!");
+                    XLog.tag(TAG).i("Permission granted!");
                 } else {
-                    Log.i(TAG, "Permission disabled!");
+                    XLog.tag(TAG).i("Permission disabled!");
                 }
                 if (requestedPermissions.decrementAndGet() == 0) {
                     startStopButton.callOnClick();
@@ -449,7 +450,7 @@ public class HomeActivity extends AppCompatActivity {
                     }
                 })
                 .setNegativeButton(getString(R.string.deny), (dialog, which) -> {
-                    Log.i(TAG, "Permissions request denied!");
+                    XLog.tag(TAG).i("Permissions request denied!");
                     // it must work without permissions
                     startStopButton.callOnClick();
                 })

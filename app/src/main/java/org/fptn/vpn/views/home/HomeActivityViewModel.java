@@ -5,12 +5,13 @@ import static org.fptn.vpn.utils.ResourcesUtils.getStringResourceByName;
 import android.app.Application;
 import android.content.Context;
 import android.net.ConnectivityManager;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
+
+import com.elvishew.xlog.XLog;
 
 import org.fptn.vpn.R;
 import org.fptn.vpn.database.AppDatabase;
@@ -110,11 +111,11 @@ public class HomeActivityViewModel extends AndroidViewModel {
         if (isPingCheckingActive) return;
         isPingCheckingActive = true;
 
-        Log.d(TAG, "startCheckingPing");
+        XLog.tag(TAG).d("startCheckingPing");
 
         pingExecutorService.submit(() -> {
             while (isPingCheckingActive) {
-                Log.d(TAG, "Checking ping...");
+                XLog.tag(TAG).d("Checking ping...");
                 List<ServerEntity> servers = serverDtoListLiveData.getValue();
                 if (servers == null || servers.isEmpty()) {
                     isPingCheckingActive = false;
@@ -148,7 +149,7 @@ public class HomeActivityViewModel extends AndroidViewModel {
                                         socket.connect(new InetSocketAddress(server.getHost(), server.getPort()), 5000);
                                         server.setPingMs(System.currentTimeMillis() - startTime);
 
-                                        Log.d(TAG, "Ping for host: " + server.getServerInfo() + " ping: " + server.getPingMs() + "ms");
+                                        XLog.tag(TAG).d("Ping for host: " + server.getServerInfo() + " ping: " + server.getPingMs() + "ms");
                                     } catch (IOException e) {
                                         server.setPingMs(-1);
                                     }
@@ -173,7 +174,7 @@ public class HomeActivityViewModel extends AndroidViewModel {
                         }
                     }
                 } else {
-                    Log.d(TAG, "startCheckingPing: no active internet connections!");
+                    XLog.tag(TAG).d("startCheckingPing: no active internet connections!");
                     for (ServerEntity server : servers) {
                         server.setPingMs(-1);
                     }
@@ -200,7 +201,7 @@ public class HomeActivityViewModel extends AndroidViewModel {
         ErrorCode errorCode = exception.errorCode;
         if (errorCode != ErrorCode.UNKNOWN_ERROR) {
             String stringResourceByName = getStringResourceByName(getApplication(), errorCode.getValue());
-            Log.e(TAG, "Error as text: " + stringResourceByName);
+            XLog.tag(TAG).e("Error as text: " + stringResourceByName);
 
             errorTextLiveData.postValue(stringResourceByName);
         } else {
