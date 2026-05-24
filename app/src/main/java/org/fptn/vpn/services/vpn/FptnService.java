@@ -29,6 +29,8 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 
+import com.elvishew.xlog.XLog;
+
 import org.fptn.vpn.R;
 import org.fptn.vpn.core.common.Constants;
 import org.fptn.vpn.database.AppDatabase;
@@ -37,6 +39,7 @@ import org.fptn.vpn.enums.BypassCensorshipMethod;
 import org.fptn.vpn.enums.ConnectionState;
 import org.fptn.vpn.enums.NetworkType;
 import org.fptn.vpn.enums.PerAppVpnMode;
+import org.fptn.vpn.enums.SniSpoofingMode;
 import org.fptn.vpn.services.tile.FptnTileService;
 import org.fptn.vpn.utils.NetworkUtils;
 import org.fptn.vpn.utils.NotificationUtils;
@@ -174,7 +177,7 @@ public class FptnService extends VpnService {
 
     @Override
     public void onCreate() {
-        Log.i(TAG, "FptnService.onCreate() Thread.Id: " + Thread.currentThread().getId());
+        XLog.tag(TAG).i("FptnService.onCreate() Thread.Id: " + Thread.currentThread().getId());
 
         // Configure notification channels
         NotificationUtils.configureNotificationChannels(this);
@@ -215,7 +218,7 @@ public class FptnService extends VpnService {
     public int onStartCommand(Intent intent, int flags, int startId) {
         // if service crashed previously
         if (intent == null) {
-            Log.w(TAG, "onStartCommand: Intent is null, stopping service.");
+            XLog.tag(TAG).w("onStartCommand: Intent is null, stopping service.");
             stopSelf();
             return START_NOT_STICKY;
         }
@@ -226,7 +229,7 @@ public class FptnService extends VpnService {
 
             /* check is internet connection available */
             if (!NetworkUtils.isOnline(connectivityManager)) {
-                Log.e(TAG, "onStartCommand: no active internet connections!");
+                XLog.tag(TAG).e("onStartCommand: no active internet connections!");
                 disconnect(new PVNClientException(ErrorCode.NO_ACTIVE_INTERNET_CONNECTIONS));
                 return START_NOT_STICKY;
             }
@@ -243,25 +246,30 @@ public class FptnService extends VpnService {
                     String sniHostname = SharedPrefUtils.getSniHostname(getApplicationContext());
                     BypassCensorshipMethod bypassCensorshipMethod = SharedPrefUtils.getBypassCensorshipMethod(this);
 
+                    SniSpoofingMode sniSpoofingMode = null;
+                    if (bypassCensorshipMethod == BypassCensorshipMethod.SNI_REALITY){
+                        sniSpoofingMode = SharedPrefUtils.getSniSpoofingMode(this);
+                    }
+
                     int serverId = intent.getIntExtra(SELECTED_SERVER, SELECTED_SERVER_ID_AUTO);
 
                     // Process startService from TileService
                     if (serverId == START_FROM_TILE_AUTO) {
-                        Log.i(TAG, "onStartCommand: start from tileService");
+                        XLog.tag(TAG).i("onStartCommand: start from tileService");
                         // If reset selected server enabled - process like average auto
                         if (SharedPrefUtils.getResetSelectedServerEnabled(this)) {
-                            Log.i(TAG, "onStartCommand: start from tileService. Reset selected server enabled");
+                            XLog.tag(TAG).i("onStartCommand: start from tileService. Reset selected server enabled");
                             serverId = SELECTED_SERVER_ID_AUTO;
                         } else {
                             // But if reset disabled, try to get previously selected server from DB
                             ServerEntity server = getSelectedServer();
                             if (server != null) {
                                 // if found
-                                Log.i(TAG, "onStartCommand: start from tileService. Previously selected server found: " + server);
+                                XLog.tag(TAG).i("onStartCommand: start from tileService. Previously selected server found: " + server);
                                 serverId = server.getId();
                             } else {
                                 // if not found - auto
-                                Log.i(TAG, "onStartCommand: start from tileService. Previously selected server not found: select auto");
+                                XLog.tag(TAG).i("onStartCommand: start from tileService. Previously selected server not found: select auto");
                                 serverId = SELECTED_SERVER_ID_AUTO;
                             }
                         }
@@ -272,18 +280,18 @@ public class FptnService extends VpnService {
                             updateNotificationWithMessage(getString(R.string.connecting_auto), "");
 
                             List<ServerEntity> serverEntities = appDatabase.serverDAO().getServerList(false);
-                            ServerEntity server = SpeedTestUtils.findFastestServer(serverEntities, sniHostname, bypassCensorshipMethod);
+                            ServerEntity server = SpeedTestUtils.findFastestServer(serverEntities, sniHostname, bypassCensorshipMethod, sniSpoofingMode);
                             setSelectedServer(server.getId());
 
                             connect(server, sniHostname);
                         } catch (PVNClientException e) {
                             /* We don't need to connect if all servers are unreachable */
-                            Log.e(TAG, "onStartCommand: findFastestServer error! ", e);
+                            XLog.tag(TAG).e("onStartCommand: findFastestServer error! ", e);
 
                             disconnect(e);
                         }
                     } else {
-                        Log.i(TAG, "onStartCommand: connectToServer with id: " + serverId);
+                        XLog.tag(TAG).i("onStartCommand: connectToServer with id: " + serverId);
                         setSelectedServer(serverId);
                         ServerEntity server = getSelectedServer();
 
@@ -318,7 +326,7 @@ public class FptnService extends VpnService {
 
     @Override
     public void onDestroy() {
-        Log.i(TAG, "onDestroy: ");
+        XLog.tag(TAG).i("onDestroy: ");
 
         disconnect();
 
@@ -346,10 +354,10 @@ public class FptnService extends VpnService {
                         boolean reconnectOnChangeNetworkTypeEnabled = SharedPrefUtils.getReconnectOnChangeNetworkTypeEnabled(FptnService.this);
                         if (reconnectOnChangeNetworkTypeEnabled) {
                             NetworkType activeNetworkType = NetworkUtils.getNetworkType(activeNetworkCapabilities);
-                            Log.d(TAG, "ActiveNetworkType: " + activeNetworkType);
-                            Log.d(TAG, "ConnectionNetworkType: " + currentConnection.getCurrentNetworkType());
+                            XLog.tag(TAG).d("ActiveNetworkType: " + activeNetworkType);
+                            XLog.tag(TAG).d("ConnectionNetworkType: " + currentConnection.getCurrentNetworkType());
                             needReconnectByNetworkType = activeNetworkType != currentConnection.getCurrentNetworkType();
-                            Log.d(TAG, "After check networkType: " + needReconnectByNetworkType);
+                            XLog.tag(TAG).d("After check networkType: " + needReconnectByNetworkType);
                             if (needReconnectByNetworkType) {
                                 currentConnection.setCurrentNetworkType(activeNetworkType);
                             }
@@ -360,14 +368,14 @@ public class FptnService extends VpnService {
                         if (reconnectOnChangeIPEnabled) {
                             String currentIPAddress = NetworkUtils.getCurrentIPAddress();
                             needReconnectByIp = !Objects.equals(currentIPAddress, currentConnection.getCurrentIPAddress());
-                            Log.d(TAG, "After check actual IP: " + needReconnectByIp);
+                            XLog.tag(TAG).d("After check actual IP: " + needReconnectByIp);
                             if (needReconnectByIp) {
                                 currentConnection.setCurrentIPAddress(currentIPAddress);
                             }
                         }
 
                         if (needReconnectByNetworkType || needReconnectByIp) {
-                            Log.d(TAG, "Reconnect initialized");
+                            XLog.tag(TAG).d("Reconnect initialized");
                             currentConnection.onConnectionFailure();
                         }
                     }
@@ -442,7 +450,7 @@ public class FptnService extends VpnService {
                 currentIPAddress = NetworkUtils.getCurrentIPAddress();
             }
         } else {
-            Log.d(TAG, "Reconnect on change network type and IP disabled in settings");
+            XLog.tag(TAG).d("Reconnect on change network type and IP disabled in settings");
         }
         int maxReconnectCount = SharedPrefUtils.getReconnectAttemptsCount(this);
         int delayBetweenAttempts = SharedPrefUtils.getDelayBetweenReconnect(this);
@@ -450,6 +458,11 @@ public class FptnService extends VpnService {
         FptnConnection connection;
 
         BypassCensorshipMethod bypassCensorshipMethod = SharedPrefUtils.getBypassCensorshipMethod(this);
+
+        SniSpoofingMode sniSpoofingMode = null;
+        if (bypassCensorshipMethod == BypassCensorshipMethod.SNI_REALITY){
+            sniSpoofingMode = SharedPrefUtils.getSniSpoofingMode(this);
+        }
 
         PerAppVpnMode perAppVpnMode = SharedPrefUtils.getPerAppVPNMode(this);
         List<AppInfo> appInfos = new ArrayList<>();
@@ -478,6 +491,7 @@ public class FptnService extends VpnService {
                 delayBetweenAttempts,
                 sniHostname,
                 bypassCensorshipMethod,
+                sniSpoofingMode,
                 perAppVpnMode,
                 appInfos
         );
@@ -496,7 +510,7 @@ public class FptnService extends VpnService {
             wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, FPTN_SERVICE_POWER_LOCK);
             wakeLock.acquire(5000);
         } catch (Exception e) {
-            Log.e(TAG, "Can't acquire power lock!", e);
+            XLog.tag(TAG).e("Can't acquire power lock!", e);
         }
     }
 
@@ -505,7 +519,7 @@ public class FptnService extends VpnService {
             try {
                 wakeLock.release();
             } catch (Exception e) {
-                Log.e(TAG, "Can't release power lock!", e);
+                XLog.tag(TAG).e("Can't release power lock!", e);
             }
         }
     }
@@ -557,7 +571,7 @@ public class FptnService extends VpnService {
                     //send to UI activity that state is disconnected.
                     setConnectionState(ConnectionState.DISCONNECTED, exception);
                 } catch (ExecutionException | InterruptedException e) {
-                    Log.e(TAG, "disconnect: can't reset selected server", e);
+                    XLog.tag(TAG).e("disconnect: can't reset selected server", e);
                 }
             });
         }

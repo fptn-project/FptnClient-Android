@@ -1,9 +1,8 @@
 package org.fptn.vpn.services.speedtest;
 
-import android.util.Log;
-
 import org.fptn.vpn.database.entity.ServerEntity;
 import org.fptn.vpn.enums.BypassCensorshipMethod;
+import org.fptn.vpn.enums.SniSpoofingMode;
 import org.fptn.vpn.services.websocket.NativeHttpsClientImpl;
 import org.fptn.vpn.services.websocket.NativeResponse;
 import org.fptn.vpn.vpnclient.exception.PVNClientException;
@@ -22,14 +21,15 @@ public class NativeSpeedTestTask implements Callable<NativeSpeedTestResult> {
     private final ServerEntity serverEntity;
     private final NativeHttpsClientImpl nativeHttpsClient;
 
-    public NativeSpeedTestTask(ServerEntity serverEntity, String sniHost, BypassCensorshipMethod censorshipStrategy) {
+    public NativeSpeedTestTask(ServerEntity serverEntity, String sniHost, BypassCensorshipMethod censorshipStrategy, SniSpoofingMode sniSpoofingMode) {
         this.serverEntity = serverEntity;
         this.nativeHttpsClient = new NativeHttpsClientImpl(
                 serverEntity.getHost(),
                 serverEntity.getPort(),
                 serverEntity.getMd5ServerFingerprint(),
                 sniHost,
-                censorshipStrategy
+                censorshipStrategy,
+                sniSpoofingMode
         );
     }
 

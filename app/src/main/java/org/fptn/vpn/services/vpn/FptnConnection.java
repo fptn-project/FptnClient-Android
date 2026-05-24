@@ -5,7 +5,6 @@ import static org.fptn.vpn.enums.ConnectionSubnets.FPTN_SERVER_SUBNET;
 import static org.fptn.vpn.enums.ConnectionSubnets.IP_V4_PREFIX_LENGTH;
 import static org.fptn.vpn.enums.ConnectionSubnets.IP_V6_PREFIX_LENGTH;
 import static org.fptn.vpn.enums.ConnectionSubnets.LOCAL_SUBNET;
-import static org.fptn.vpn.enums.ConnectionSubnets.LOCAL_TUN_ADDRESS;
 import static org.fptn.vpn.enums.ConnectionSubnets.LOCAL_TUN_INTERFACE_SUBNET;
 
 import android.app.PendingIntent;
@@ -14,13 +13,15 @@ import android.net.IpPrefix;
 import android.net.VpnService;
 import android.os.Build;
 import android.os.ParcelFileDescriptor;
-import android.util.Log;
+
+import com.elvishew.xlog.XLog;
 
 import org.fptn.vpn.database.entity.ServerEntity;
 import org.fptn.vpn.enums.BypassCensorshipMethod;
 import org.fptn.vpn.enums.ConnectionState;
 import org.fptn.vpn.enums.NetworkType;
 import org.fptn.vpn.enums.PerAppVpnMode;
+import org.fptn.vpn.enums.SniSpoofingMode;
 import org.fptn.vpn.services.websocket.DnsServers;
 import org.fptn.vpn.services.websocket.WebSocketAlreadyShutdownException;
 import org.fptn.vpn.services.websocket.WebSocketClientWrapper;
@@ -80,6 +81,7 @@ public class FptnConnection extends Thread {
 
     @Getter
     private final AtomicInteger reconnectCount = new AtomicInteger(0);
+    private final SniSpoofingMode sniSpoofingMode;
 
     @Setter
     private PendingIntent configureVpnIntent;
@@ -114,6 +116,7 @@ public class FptnConnection extends Thread {
                           final int delayBetweenAttempts,
                           final String sniHostName,
                           final BypassCensorshipMethod censorshipStrategy,
+                          final SniSpoofingMode sniSpoofingMode,
                           final PerAppVpnMode perAppVpnMode,
                           final List<AppInfo> appInfos) throws UnknownHostException {
         this.service = service;
@@ -123,19 +126,19 @@ public class FptnConnection extends Thread {
         this.currentNetworkType = currentNetworkType;
         this.sniHostName = sniHostName;
         this.censorshipStrategy = censorshipStrategy;
+        this.sniSpoofingMode = sniSpoofingMode;
         this.perAppVpnMode = perAppVpnMode;
         this.appInfos = appInfos;
 
         InetAddress inetAddress = InetAddress.getByName(serverEntity.getHost());
         this.webSocketClient = new WebSocketClientWrapper(
                 this.serverEntity,
-                LOCAL_TUN_ADDRESS.getIpV4Address(),
-                LOCAL_TUN_ADDRESS.getIpV6Address(),
                 this::onConnectionOpen,
                 this::onMessageReceived,
                 this::onConnectionFailure,
                 this.sniHostName,
-                this.censorshipStrategy
+                this.censorshipStrategy,
+                this.sniSpoofingMode
         );
 
         this.maxReconnectCount = maxReconnectCount;
@@ -144,67 +147,144 @@ public class FptnConnection extends Thread {
 
     @Override
     public void run() {
-        Log.d(getTag(), "CustomVpnConnection.run() Thread.id: " + Thread.currentThread().getId());
+        XLog.tag(TAG).d("CustomVpnConnection.run() Thread.id: " + Thread.currentThread().getId());
         vpnInterface = null;
         try {
             sendConnectionStateToService(ConnectionState.CONNECTING);
+            webSocketClient.startWebSocket();
+            connectionTime = Instant.now();
+            try {
+                scheduler.scheduleWithFixedDelay(() -> {
+                    // Get download and upload speeds
+                    String downloadSpeed = downloadRate.getFormatString();
+                    String uploadSpeed = uploadRate.getFormatString();
+                    long durationInSeconds = (int) Duration.between(connectionTime, Instant.now()).getSeconds();
+
+                    sendSpeedInfoAndDurationToService(downloadSpeed, uploadSpeed, durationInSeconds);
+                }, 1, 1, TimeUnit.SECONDS); // Start after 1 second, repeat every 1 second
+            } catch (RejectedExecutionException e) {
+                XLog.tag(TAG).w("update speed task rejected by scheduler", e);
+            }
+
+            // Read packets
+            while (!currentThread.isInterrupted()) {
+                while (!currentThread.isInterrupted() && vpnInterface == null) {
+                    Thread.sleep(100);
+                }
+                if (currentThread.isInterrupted()) {
+                    break;
+                }
+                XLog.tag(TAG).i("TUN interface is ready, starting packet processing");
+                try (FileInputStream inputStream = new FileInputStream(vpnInterface.getFileDescriptor())) {
+                    byte[] byteBuffer = new byte[MAX_PACKET_SIZE];
+                    while (!currentThread.isInterrupted() && vpnInterface != null && vpnInterface.getFileDescriptor().valid()) {
+                        try {
+                            int length = inputStream.read(byteBuffer);
+                            if (length > 0) {
+                                uploadRate.update(length);
+                                webSocketClient.send(byteBuffer, length);
+                            } else {
+                                Thread.sleep(MIN_SEND_INTERVAL_MS);
+                            }
+                        } catch (Exception e) {
+                            XLog.tag(TAG).d("Error reading data from VPN interface: " + e.getMessage());
+                            break;
+                        }
+                    }
+                } catch (IOException e) {
+                    XLog.tag(TAG).e("VPN interface closed, waiting for new one", e);
+                }
+            }
+        } catch (PVNClientException e) {
+            sendExceptionToService(e);
+        } catch (WebSocketAlreadyShutdownException e) {
+            XLog.tag(TAG).w("The websocket already shutdown", e);
+        } catch (InterruptedException e) {
+            shutdown();
+        } finally {
+            shutdown();
+        }
+    }
+
+    public void shutdown() {
+        if (!currentThread.isInterrupted()) {
+            currentThread.interrupt();
+        }
+        if (vpnInterface != null) {
+            try {
+                vpnInterface.close();
+            } catch (IOException e) {
+                XLog.tag(TAG).d("Unable to close interface", e);
+            }
+        }
+        webSocketClient.shutdown();
+        scheduler.shutdown();
+
+        sendConnectionStateToService(ConnectionState.DISCONNECTED);
+    }
+
+    private void startTun(String assignedIPv4, String assignedIPv6) {
+        try {
+            if (vpnInterface != null) {
+                vpnInterface.close();
+                vpnInterface = null;
+            }
+
+            XLog.tag(TAG).i("Addresses: " + assignedIPv4 + " " + assignedIPv6);
 
             VpnService.Builder builder = service.new Builder();
-            builder.setBlocking(true) // enable blocking reading EXTREMELY IMPORTANT
+            builder.setBlocking(true)
                     .setSession(serverEntity.getName())
                     .setConfigureIntent(configureVpnIntent)
                     .setMtu(MAX_PACKET_SIZE);
 
             // From documentation: You can create either an allowed list, or, a disallowed list, but not both
-            if (perAppVpnMode == PerAppVpnMode.ONLY_ALLOWED) {
+            XLog.tag(TAG).i("PerAppVpnMode: " + perAppVpnMode);
+            XLog.tag(TAG).i("appInfos: " + appInfos);
+            if (perAppVpnMode == PerAppVpnMode.OFF) {
+                builder.addDisallowedApplication(service.getPackageName());
+            } else if (perAppVpnMode == PerAppVpnMode.ONLY_ALLOWED && !appInfos.isEmpty()) {
                 for (AppInfo appInfo : appInfos) {
                     String packageName = appInfo.getPackageName();
                     try {
                         builder.addAllowedApplication(packageName);
                     } catch (PackageManager.NameNotFoundException e) {
-                        Log.d(TAG, "Package not found: " + packageName);
+                        XLog.tag(TAG).w("Package not found: " + packageName);
                     }
                 }
-            } else if (perAppVpnMode == PerAppVpnMode.EXCEPT_DISALLOWED) {
+            } else if (perAppVpnMode == PerAppVpnMode.EXCEPT_DISALLOWED && !appInfos.isEmpty()) {
+                builder.addDisallowedApplication(service.getPackageName());
                 for (AppInfo appInfo : appInfos) {
                     String packageName = appInfo.getPackageName();
                     try {
                         builder.addDisallowedApplication(packageName);
                     } catch (PackageManager.NameNotFoundException e) {
-                        Log.d(TAG, "Package not found: " + packageName);
+                        XLog.tag(TAG).w("Package not found: " + packageName);
                     }
                 }
             }
-            InetAddress inetAddress = InetAddress.getByName(serverEntity.getHost());
 
+            InetAddress inetAddress = InetAddress.getByName(serverEntity.getHost());
             DnsServers dns_server = webSocketClient.getDnsServers();
 
             // IPv4
             builder.addDnsServer(dns_server.getIpv4());
-            builder.addAddress(LOCAL_TUN_ADDRESS.getIpV4Address(), LOCAL_TUN_ADDRESS.getV4prefix());
+            builder.addAddress(assignedIPv4, IP_V4_PREFIX_LENGTH);
             builder.addRoute(dns_server.getIpv4(), IP_V4_PREFIX_LENGTH);
 
             // IPv6
             builder.addDnsServer(dns_server.getIpv6());
-            builder.addAddress(LOCAL_TUN_ADDRESS.getIpV6Address(), LOCAL_TUN_ADDRESS.getV6prefix());
+            builder.addAddress(assignedIPv6, IP_V6_PREFIX_LENGTH);
             builder.addRoute(dns_server.getIpv6(), IP_V6_PREFIX_LENGTH);
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                //if (inetAddress instanceof Inet4Address) {
-                    builder.excludeRoute(new IpPrefix(inetAddress, IP_V4_PREFIX_LENGTH));
-                //} else if (inetAddress instanceof Inet6Address){
-                //    builder.excludeRoute(new IpPrefix(inetAddress, IP_V6_PREFIX_LENGTH)); //todo: add Server IPv6
-                //}
-
+                builder.excludeRoute(new IpPrefix(inetAddress, IP_V4_PREFIX_LENGTH));
                 builder.excludeRoute(LOCAL_TUN_INTERFACE_SUBNET.getAsIpV4Prefix());
                 builder.excludeRoute(LOCAL_TUN_INTERFACE_SUBNET.getAsIpV6Prefix());
-
                 builder.excludeRoute(FPTN_SERVER_SUBNET.getAsIpV4Prefix());
                 builder.excludeRoute(FPTN_SERVER_SUBNET.getAsIpV6Prefix());
-
                 builder.excludeRoute(LOCAL_SUBNET.getAsIpV4Prefix());
                 builder.excludeRoute(LOCAL_SUBNET.getAsIpV6Prefix());
-
                 builder.addRoute(ALL_SUBNET.getIpV4Address(), ALL_SUBNET.getV4prefix());
                 builder.addRoute(ALL_SUBNET.getIpV6Address(), ALL_SUBNET.getV6prefix());
             } else {
@@ -224,14 +304,13 @@ public class FptnConnection extends Thread {
                 for (IPAddress ipAddress : subnetsToIncludeV4) {
                     String hostIp = ipAddress.getLower().toAddressString().getHostAddress().toString();
                     Integer networkPrefixLength = ipAddress.getLower().toAddressString().getNetworkPrefixLength();
-                    Log.d(getTag(), "subnetsToIncludeV4.ipAddress: " + hostIp + "/" + networkPrefixLength);
+                    XLog.tag(TAG).d("subnetsToIncludeV4.ipAddress: " + hostIp + "/" + networkPrefixLength);
                     builder.addRoute(hostIp, networkPrefixLength != null ? networkPrefixLength : IP_V4_PREFIX_LENGTH);
                 }
 
                 // for IPv6
                 IPAddress rootSubnetV6 = new IPAddressString(ALL_SUBNET.getAsIpV4PrefixAsString()).getAddress();
                 List<IPAddress> subnetsToExcludeV6 = Stream.of(
-                                // String.format("%s/%s", serverEntity.getHost(), IP_V6_PREFIX_LENGTH), //todo: add Server IPv6
                                 LOCAL_TUN_INTERFACE_SUBNET.getAsIpV6PrefixAsString(),
                                 FPTN_SERVER_SUBNET.getAsIpV6PrefixAsString(),
                                 LOCAL_SUBNET.getAsIpV6PrefixAsString()
@@ -244,7 +323,7 @@ public class FptnConnection extends Thread {
                 for (IPAddress ipAddress : subnetsToIncludeV6) {
                     String hostIp = ipAddress.getLower().toAddressString().getHostAddress().toString();
                     Integer networkPrefixLength = ipAddress.getLower().toAddressString().getNetworkPrefixLength();
-                    Log.d(getTag(), "subnetsToIncludeV6.ipAddress: " + hostIp + "/" + networkPrefixLength);
+                    XLog.tag(TAG).d("subnetsToIncludeV6.ipAddress: " + hostIp + "/" + networkPrefixLength);
                     builder.addRoute(hostIp, networkPrefixLength != null ? networkPrefixLength : IP_V6_PREFIX_LENGTH);
                 }
             }
@@ -255,83 +334,31 @@ public class FptnConnection extends Thread {
             if (vpnInterface == null) {
                 throw new PVNClientException(ErrorCode.VPN_INTERFACE_ERROR);
             }
-            Log.i(getTag(), "New interface: " + vpnInterface);
+            XLog.tag(TAG).i("New interface: " + vpnInterface);
 
             // Packets received need to be written to this output stream.
             outputStream = new FileOutputStream(vpnInterface.getFileDescriptor());
-            webSocketClient.startWebSocket();
 
-            connectionTime = Instant.now();
-            try {
-                scheduler.scheduleWithFixedDelay(() -> {
-                    // Get download and upload speeds
-                    String downloadSpeed = downloadRate.getFormatString();
-                    String uploadSpeed = uploadRate.getFormatString();
-                    long durationInSeconds = (int) Duration.between(connectionTime, Instant.now()).getSeconds();
-
-                    sendSpeedInfoAndDurationToService(downloadSpeed, uploadSpeed, durationInSeconds);
-                }, 1, 1, TimeUnit.SECONDS); // Start after 1 second, repeat every 1 second
-            } catch (RejectedExecutionException e) {
-                Log.w(getTag(), "update speed task rejected by scheduler", e);
-            }
-
-            // Packets to be sent are queued in this input stream.
-            try (FileInputStream inputStream = new FileInputStream(vpnInterface.getFileDescriptor())) {
-                byte[] byteBuffer = new byte[MAX_PACKET_SIZE];
-                while (!currentThread.isInterrupted() && vpnInterface.getFileDescriptor().valid()) {
-                    try {
-                        int length = inputStream.read(byteBuffer);
-                        if (length > 0) {
-                            // update speed count
-                            uploadRate.update(length);
-                            // send byteArray with length of new bytes
-                            webSocketClient.send(byteBuffer, length);
-                        } else {
-                            // if read buffer empty - sleep
-                            // I set blocking mode - it looks like no need anymore
-                            Log.d(getTag(), "Read zero from vpn interface. Sleep...");
-                            Thread.sleep(MIN_SEND_INTERVAL_MS);
-                        }
-                    } catch (Exception e) {
-                        Log.d(getTag(), "Error reading data from VPN interface: " + e.getMessage());
-                    }
-                }
-            }
-        } catch (PVNClientException e) {
-            sendExceptionToService(e);
-        } catch (IOException ex) {
-            sendExceptionToService(new PVNClientException(ex.getMessage()));
-        } catch (WebSocketAlreadyShutdownException e) {
-            Log.w(getTag(), "The websocket already shutdown", e);
-        } finally {
-            shutdown();
+        } catch (Exception e) {
+            XLog.tag(TAG).e("Failed to start TUN interface", e);
+            sendExceptionToService(new PVNClientException(ErrorCode.VPN_INTERFACE_ERROR));
         }
-    }
-
-    public void shutdown() {
-        if (!currentThread.isInterrupted()) {
-            currentThread.interrupt();
-        }
-        if (vpnInterface != null) {
-            try {
-                vpnInterface.close();
-            } catch (IOException e) {
-                Log.e(getTag(), "Unable to close interface", e);
-            }
-        }
-        webSocketClient.shutdown();
-        scheduler.shutdown();
-
-        sendConnectionStateToService(ConnectionState.DISCONNECTED);
     }
 
     private void onConnectionOpen() {
-        Log.d(getTag(), "onConnectionOpen()");
+        XLog.tag(TAG).d("onConnectionOpen()");
         if (!currentThread.isInterrupted()) {
             sendConnectionStateToService(ConnectionState.CONNECTED);
             cancelReconnectTask();
             reconnectCount.set(0);
         }
+        String assignedIPv4 = webSocketClient.getIPv4Address();
+        String assignedIPv6 = webSocketClient.getIPv6Address();
+        service.getMainExecutor().execute(() -> {
+            XLog.tag(TAG).d("Received from server - IPv4: " + assignedIPv4);
+            XLog.tag(TAG).d("Received from server - IPv6: " + assignedIPv6);
+            this.startTun(assignedIPv4, assignedIPv6);
+        });
     }
 
     private void onMessageReceived(byte[] data) {
@@ -341,21 +368,21 @@ public class FptnConnection extends Thread {
                 outputStream.write(data);
             }
         } catch (Exception e) {
-            Log.w(getTag(), "Exception on writing to TUN interface: " + new String(data));
+            XLog.tag(TAG).w("Exception on writing to TUN interface: " + new String(data));
         }
     }
 
     public void onConnectionFailure() {
-        Log.d(getTag(), "onConnectionFailure() Thread.id: " + Thread.currentThread().getId());
+        XLog.tag(TAG).d("onConnectionFailure() Thread.id: " + Thread.currentThread().getId());
         cancelReconnectTask();
         try {
             onFailureScheduledTask = scheduler.scheduleWithFixedDelay(() -> {
                 int currentCount = reconnectCount.incrementAndGet();
-                Log.i(getTag(), "Reconnect WebSocket... currentCount: " + currentCount);
+                XLog.tag(TAG).i("Reconnect WebSocket... currentCount: " + currentCount);
                 if (!currentThread.isInterrupted() && isTunInterfaceValid(vpnInterface) && currentCount <= maxReconnectCount) {
                     try {
                         sendConnectionStateToService(ConnectionState.RECONNECTING);
-                        Log.d(getTag(), "onConnectionFailure() scheduler task Thread.id: " + Thread.currentThread().getId());
+                        XLog.tag(TAG).d("onConnectionFailure() scheduler task Thread.id: " + Thread.currentThread().getId());
                         webSocketClient.startWebSocket();
                     } catch (PVNClientException e) {
                         if (currentCount == maxReconnectCount) {
@@ -363,7 +390,7 @@ public class FptnConnection extends Thread {
                             onFailureInterrupt();
                         }
                     } catch (WebSocketAlreadyShutdownException e) {
-                        Log.w(getTag(), "The websocket already shutdown", e);
+                        XLog.tag(TAG).w("The websocket already shutdown", e);
                         onFailureInterrupt();
                     }
                 } else {
@@ -371,7 +398,7 @@ public class FptnConnection extends Thread {
                 }
             }, 0L, delayBetweenAttempts, TimeUnit.SECONDS);
         } catch (RejectedExecutionException exception) {
-            Log.w(getTag(), "OnFailure task rejected!", exception);
+            XLog.tag(TAG).w("OnFailure task rejected!", exception);
         }
     }
 
@@ -404,9 +431,5 @@ public class FptnConnection extends Thread {
     private boolean isTunInterfaceValid(ParcelFileDescriptor vpnInterface) {
         return vpnInterface.getFileDescriptor() != null;
     }
-
-    private String getTag() {
-        return this.getClass().getCanonicalName() + "[" + connectionId + "]";
-    }
-
+    
 }

@@ -3,7 +3,8 @@ package org.fptn.vpn.utils;
 import android.net.ConnectivityManager;
 import android.net.NetworkCapabilities;
 import android.net.NetworkRequest;
-import android.util.Log;
+
+import com.elvishew.xlog.XLog;
 
 import org.fptn.vpn.enums.NetworkType;
 
@@ -30,13 +31,13 @@ public class NetworkUtils {
                     InetAddress inetAddress = inetAddressEnumeration.nextElement();
                     if (!inetAddress.isLoopbackAddress()
                             && (inetAddress instanceof Inet4Address || inetAddress instanceof Inet6Address)) {
-                        Log.d(TAG, "getCurrentIPAddress(): " + inetAddress.getHostAddress());
+                        XLog.tag(TAG).d("getCurrentIPAddress(): " + inetAddress.getHostAddress());
                         return inetAddress.getHostAddress();
                     }
                 }
             }
         } catch (SocketException e) {
-            Log.e(TAG, "getCurrentIPAddress() error!", e);
+            XLog.tag(TAG).e("getCurrentIPAddress() error!", e);
         }
 
         return UNKNOWN_IP;

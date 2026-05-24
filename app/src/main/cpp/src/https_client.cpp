@@ -109,7 +109,9 @@ Java_org_fptn_vpn_services_websocket_NativeHttpsClientImpl_nativeCreate(
           env,censorship_strategy_name_param);
   fptn::protocol::https::CensorshipStrategy censorship_strategy =
           fptn::protocol::https::CensorshipStrategy::kSni;
-  if (censorship_strategy_name == "OBFUSCATION") {
+  if (censorship_strategy_name == "SNI") {
+      censorship_strategy = fptn::protocol::https::CensorshipStrategy::kSni;
+  } else if (censorship_strategy_name == "OBFUSCATION") {
       censorship_strategy = fptn::protocol::https::CensorshipStrategy::kTlsObfuscator;
   } else if (censorship_strategy_name == "SNI-REALITY") {  // deprecated
       censorship_strategy = fptn::protocol::https::CensorshipStrategy::kSniRealityMode;
@@ -138,7 +140,6 @@ Java_org_fptn_vpn_services_websocket_NativeHttpsClientImpl_nativeCreate(
   else if (censorship_strategy_name == "SNI-REALITY-SAFARI-26") {
       censorship_strategy = fptn::protocol::https::CensorshipStrategy::kSniRealityModeSafari26;
   }
-
 
   auto* https_client = new WrapperHttpsClient(env, global_object_ref,
       std::move(host), port, std::move(sni), std::move(md5_fingerprint), censorship_strategy);

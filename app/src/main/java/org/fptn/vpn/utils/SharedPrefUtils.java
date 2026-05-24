@@ -7,6 +7,7 @@ import org.fptn.vpn.R;
 import org.fptn.vpn.core.common.Constants;
 import org.fptn.vpn.enums.BypassCensorshipMethod;
 import org.fptn.vpn.enums.PerAppVpnMode;
+import org.fptn.vpn.enums.SniSpoofingMode;
 
 import java.util.Objects;
 
@@ -127,12 +128,29 @@ public class SharedPrefUtils {
                 return value;
             }
         }
-        return BypassCensorshipMethod.SNI_SPOOFING;
+        return BypassCensorshipMethod.SNI_REALITY;
     }
 
     public static void saveBypassCensorshipMethod(Context context, BypassCensorshipMethod method) {
         SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
         sharedPreferences.edit().putString(Constants.BYPASS_CENSORSHIP_METHOD_SHARED_PREF_KEY, method.toString()).apply();
+    }
+
+
+    public static SniSpoofingMode getSniSpoofingMode(Context context) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        String modeName = sharedPreferences.getString(Constants.SNI_SPOOFING_MODE_SHARED_PREF_KEY, null);
+        for (SniSpoofingMode value : SniSpoofingMode.values()) {
+            if (Objects.equals(modeName, value.name())) {
+                return value;
+            }
+        }
+        return SniSpoofingMode.SNI;
+    }
+
+    public static void saveSniSpoofingMode(Context context, SniSpoofingMode mode) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        sharedPreferences.edit().putString(Constants.SNI_SPOOFING_MODE_SHARED_PREF_KEY, mode.toString()).apply();
     }
 
     /* Per-app VPN settings */

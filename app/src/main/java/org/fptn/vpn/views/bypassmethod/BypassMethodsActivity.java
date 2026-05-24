@@ -10,9 +10,10 @@ import android.content.ServiceConnection;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.ProgressBar;
@@ -29,6 +30,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.elvishew.xlog.XLog;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.common.util.concurrent.FutureCallback;
@@ -37,6 +39,7 @@ import com.google.common.util.concurrent.Futures;
 import org.fptn.vpn.R;
 import org.fptn.vpn.database.entity.ServerEntity;
 import org.fptn.vpn.enums.BypassCensorshipMethod;
+import org.fptn.vpn.enums.SniSpoofingMode;
 import org.fptn.vpn.services.snichecker.SniCheckerService;
 import org.fptn.vpn.services.snichecker.SniCheckerServiceState;
 import org.fptn.vpn.utils.ViewUtils;
@@ -65,7 +68,7 @@ public class BypassMethodsActivity extends AppCompatActivity {
         connection = new ServiceConnection() {
             @Override
             public void onServiceConnected(ComponentName name, IBinder service) {
-                Log.i(TAG, "onServiceConnected: " + name);
+                XLog.tag(TAG).i("onServiceConnected: " + name);
                 SniCheckerService.LocalBinder localBinder = (SniCheckerService.LocalBinder) service;
                 viewModel.subscribeService(localBinder.getService());
             }
@@ -77,7 +80,7 @@ public class BypassMethodsActivity extends AppCompatActivity {
                         viewModel.unsubscribe();
                     }
                 } catch (Exception e) {
-                    Log.e(TAG, "Error in onServiceDisconnected: " + e.getMessage());
+                    XLog.tag(TAG).e("Error in onServiceDisconnected: " + e.getMessage());
                 }
             }
         };
@@ -93,7 +96,7 @@ public class BypassMethodsActivity extends AppCompatActivity {
                 unbindService(connection);
             }
         } catch (Exception e) {
-            Log.e(TAG, "Error unbinding service: " + e.getMessage());
+            XLog.tag(TAG).e("Error unbinding service: " + e.getMessage());
         }
     }
 
@@ -109,6 +112,8 @@ public class BypassMethodsActivity extends AppCompatActivity {
     private void initializeVariable() {
         viewModel = new ViewModelProvider(this).get(BypassMethodsViewModel.class);
 
+        sniLayout = findViewById(R.id.sni_layout);
+
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavBar);
         bottomNavigationView.setSelectedItemId(R.id.menuSettings);
         bottomNavigationView.setOnItemSelectedListener(new CustomBottomNavigationListener(this, R.id.menuSettings));
@@ -116,109 +121,78 @@ public class BypassMethodsActivity extends AppCompatActivity {
         // Setup RadioGroup listener
         RadioGroup protocolRadioGroup = findViewById(R.id.bypass_method_radio_button_group);
         protocolRadioGroup.setOnCheckedChangeListener((group, checkedId) -> {
-            if (checkedId == R.id.obfuscation_radio_button) {
-                Log.d(TAG, "Selected TLS obfuscation");
+            if (checkedId == R.id.sni_reality_radio_button) {
+                XLog.tag(TAG).d("Selected SNI spoofing");
+                viewModel.setBypassMethod(BypassCensorshipMethod.SNI_REALITY);
+            } else if (checkedId == R.id.obfuscation_radio_button) {
+                XLog.tag(TAG).d("Selected TLS obfuscation");
                 viewModel.setBypassMethod(BypassCensorshipMethod.TLS_OBFUSCATION);
-            }
-            /* Chrome */
-            else if (checkedId == R.id.sni_reality_radio_button_chrome_147) {
-                Log.d(TAG, "Selected SNI Reality Chrome 147");
-                viewModel.setBypassMethod(BypassCensorshipMethod.SNI_REALITY_CHROME_147);
-            } else if (checkedId == R.id.sni_reality_radio_button_chrome_146) {
-                Log.d(TAG, "Selected SNI Reality Chrome 146");
-                viewModel.setBypassMethod(BypassCensorshipMethod.SNI_REALITY_CHROME_146);
-            } else if (checkedId == R.id.sni_reality_radio_button_chrome_145) {
-                Log.d(TAG, "Selected SNI Reality Chrome 145");
-                viewModel.setBypassMethod(BypassCensorshipMethod.SNI_REALITY_CHROME_145);
-            }
-            /* Firefox */
-            else if (checkedId == R.id.sni_reality_radio_button_firefox_149) {
-                Log.d(TAG, "Selected SNI Reality Firefox 149");
-                viewModel.setBypassMethod(BypassCensorshipMethod.SNI_REALITY_FIREFOX_149);
-            }
-            /* Yandex */
-            else if (checkedId == R.id.sni_reality_radio_button_yandex_26) {
-                Log.d(TAG, "Selected SNI Reality Yandex 26");
-                viewModel.setBypassMethod(BypassCensorshipMethod.SNI_REALITY_YANDEX_26);
-            } else if (checkedId == R.id.sni_reality_radio_button_yandex_25) {
-                Log.d(TAG, "Selected SNI Reality Yandex 25");
-                viewModel.setBypassMethod(BypassCensorshipMethod.SNI_REALITY_YANDEX_25);
-            } else if (checkedId == R.id.sni_reality_radio_button_yandex_24) {
-                Log.d(TAG, "Selected SNI Reality Yandex 24");
-                viewModel.setBypassMethod(BypassCensorshipMethod.SNI_REALITY_YANDEX_24);
-            }
-            /* Safari */
-            else if (checkedId == R.id.sni_reality_radio_button_safari_26) {
-                Log.d(TAG, "Selected SNI Reality Safari 26");
-                viewModel.setBypassMethod(BypassCensorshipMethod.SNI_REALITY_SAFARI_26);
-            } else {
-                // default
-                viewModel.setBypassMethod(BypassCensorshipMethod.SNI_REALITY_YANDEX_25);
             }
         });
 
+        RadioButton sniSpoofingRadioButton = findViewById(R.id.sni_reality_radio_button);
         RadioButton obfuscationRadioButton = findViewById(R.id.obfuscation_radio_button);
 
-        RadioButton sniRealityRadioButtonChrome147 = findViewById(R.id.sni_reality_radio_button_chrome_147);
-        RadioButton sniRealityRadioButtonChrome146 = findViewById(R.id.sni_reality_radio_button_chrome_146);
-        RadioButton sniRealityRadioButtonChrome145 = findViewById(R.id.sni_reality_radio_button_chrome_145);
+        // Inside initializeVariable() method
+        Spinner sniSpoofingModeSpinner = findViewById(R.id.sni_spoofing_mode_spinner);
+        ArrayAdapter<SniSpoofingMode> adapter = new ArrayAdapter<>(
+                this,
+                R.layout.sni_mode_spinner_item,
+                R.id.sni_mode_label,
+                SniSpoofingMode.values()
+        ) {
+            @Override
+            public View getView(int position, View convertView, ViewGroup parent) {
+                TextView textView = (TextView) super.getView(position, convertView, parent);
+                textView.setText(getSniSpoofingModeFriendlyName(getItem(position)));
+                return textView;
+            }
 
-        RadioButton sniRealityRadioButtonFirefox149 = findViewById(R.id.sni_reality_radio_button_firefox_149);
+            @Override
+            public View getDropDownView(int position, View convertView, ViewGroup parent) {
+                TextView textView = (TextView) super.getDropDownView(position, convertView, parent);
+                textView.setText(getSniSpoofingModeFriendlyName(getItem(position)));
+                return textView;
+            }
+        };
+        sniSpoofingModeSpinner.setAdapter(adapter);
 
-        RadioButton sniRealityRadioButtonYandex26 = findViewById(R.id.sni_reality_radio_button_yandex_26);
-        RadioButton sniRealityRadioButtonYandex25 = findViewById(R.id.sni_reality_radio_button_yandex_25);
-        RadioButton sniRealityRadioButtonYandex24 = findViewById(R.id.sni_reality_radio_button_yandex_24);
-
-        RadioButton sniRealityRadioButtonSafari26 = findViewById(R.id.sni_reality_radio_button_safari_26);
+        View sniAutoscanLayout = findViewById(R.id.sni_autoscan_layout);
 
         viewModel.getBypassCensorshipMethodMutableLiveData().observe(this, bypassCensorshipMethod -> {
             switch (bypassCensorshipMethod) {
                 case TLS_OBFUSCATION:
                     obfuscationRadioButton.setChecked(true);
                     ViewUtils.hideView(sniLayout);
+                    ViewUtils.hideView(sniSpoofingModeSpinner);
+                    ViewUtils.hideView(sniAutoscanLayout);
                     break;
-                case SNI_SPOOFING:  // deprecated
-                case SNI_REALITY:  // deprecated
-                /* Yandex */
-                case SNI_REALITY_YANDEX_25:
-                    sniRealityRadioButtonYandex25.setChecked(true);
+                case SNI_REALITY:
+                    sniSpoofingRadioButton.setChecked(true);
                     ViewUtils.showView(sniLayout);
+                    ViewUtils.showView(sniSpoofingModeSpinner);
+                    ViewUtils.showView(sniAutoscanLayout);
                     break;
-                case SNI_REALITY_YANDEX_26:
-                    sniRealityRadioButtonYandex26.setChecked(true);
-                    ViewUtils.showView(sniLayout);
-                    break;
-                case SNI_REALITY_YANDEX_24:
-                    sniRealityRadioButtonYandex24.setChecked(true);
-                    ViewUtils.showView(sniLayout);
-                    break;
-                /* Chrome */
-                case SNI_REALITY_CHROME_147:
-                    sniRealityRadioButtonChrome147.setChecked(true);
-                    ViewUtils.showView(sniLayout);
-                    break;
-                case SNI_REALITY_CHROME_146:
-                    sniRealityRadioButtonChrome146.setChecked(true);
-                    ViewUtils.showView(sniLayout);
-                    break;
-                case SNI_REALITY_CHROME_145:
-                    sniRealityRadioButtonChrome145.setChecked(true);
-                    ViewUtils.showView(sniLayout);
-                    break;
-                /* Firefox */
-                case SNI_REALITY_FIREFOX_149:
-                    sniRealityRadioButtonFirefox149.setChecked(true);
-                    ViewUtils.showView(sniLayout);
-                    break;
-                /* Safari */
-                case SNI_REALITY_SAFARI_26:
-                    sniRealityRadioButtonSafari26.setChecked(true);
-                    ViewUtils.showView(sniLayout);
-                    break;
-                default:
-                    sniRealityRadioButtonYandex25.setChecked(true);
-                    ViewUtils.showView(sniLayout);
-                    break;
+            }
+        });
+
+
+        viewModel.getSniSpoofingModeMutableLiveData().observe(this, mode -> {
+            int position = adapter.getPosition(mode);
+            if (position >= 0) {
+                sniSpoofingModeSpinner.setSelection(position);
+            }
+        });
+
+        sniSpoofingModeSpinner.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(android.widget.AdapterView<?> parent, View view, int position, long id) {
+                SniSpoofingMode selectedMode = (SniSpoofingMode) parent.getItemAtPosition(position);
+                viewModel.setSniSpoofingMode(selectedMode);
+            }
+
+            @Override
+            public void onNothingSelected(android.widget.AdapterView<?> parent) {
             }
         });
 
@@ -233,14 +207,14 @@ public class BypassMethodsActivity extends AppCompatActivity {
         // Save and Cancel buttons
         Button cancelButton = findViewById(R.id.cancel_button);
         cancelButton.setOnClickListener(v -> {
-            Log.d(TAG, "Cancel button clicked");
+            XLog.tag(TAG).d("Cancel button clicked");
 
             finish();
         });
 
         Button saveButton = findViewById(R.id.save_button);
         saveButton.setOnClickListener(v -> {
-            Log.d(TAG, "Save button clicked");
+            XLog.tag(TAG).d("Save button clicked");
 
             viewModel.saveBypassMethod();
 
@@ -250,12 +224,16 @@ public class BypassMethodsActivity extends AppCompatActivity {
         // SNI Auto
         TextView sniCountLabel = findViewById(R.id.loaded_sni_count_label);
 
-        Button loadSniButton = findViewById(R.id.load_sni_button);
-        loadSniButton.setOnClickListener(view -> onLoadButtonClicked());
-
-        Button deleteOrResetToDefaultSniButton = findViewById(R.id.delete_or_reset_sni_button);
-        deleteOrResetToDefaultSniButton.setOnClickListener(view -> onDeleteOrResetSniButtonClicked());
-
+        // Remove for temporary
+        // Button loadSniButton = findViewById(R.id.load_sni_button);
+        // loadSniButton.setOnClickListener(view -> onLoadButtonClicked());
+        // Button deleteOrResetToDefaultSniButton = findViewById(R.id.delete_or_reset_sni_button);
+        // deleteOrResetToDefaultSniButton.setOnClickListener(view -> onDeleteOrResetSniButtonClicked());
+        try {
+            viewModel.loadDefaultSni();  // Load default SNI
+        } catch (PVNClientException err) {
+            XLog.tag(TAG).i("Load sni errror: " + err.errorMessage);
+        }
         ToggleButton startStopCheckingSniButton = findViewById(R.id.auto_select_sni_button);
         startStopCheckingSniButton.setOnClickListener(v -> onAutoSelectSniClicked());
 
@@ -280,21 +258,17 @@ public class BypassMethodsActivity extends AppCompatActivity {
 
         View cancelSaveButtonsView = findViewById(R.id.buttons_layout);
         View checkingInProgressView = findViewById(R.id.checking_in_progress_view);
-        View loadDeleteButtonGroup = findViewById(R.id.load_delete_button_group);
 
         // todo: disable navigation bar when sni checking active
         //View settingsMenuItem = findViewById(R.id.menuSettings);
         viewModel.getServiceState().observe(this, serviceState -> {
             if (serviceState == SniCheckerServiceState.ACTIVE) {
-                ViewUtils.hideView(loadDeleteButtonGroup);
                 ViewUtils.hideView(cancelSaveButtonsView);
 
                 ViewUtils.showView(checkingInProgressView);
 
                 startStopCheckingSniButton.setChecked(true);
-                //settingsMenuItem.setEnabled(false);
             } else {
-                ViewUtils.showView(loadDeleteButtonGroup);
                 ViewUtils.showView(cancelSaveButtonsView);
 
                 ViewUtils.hideView(checkingInProgressView);
@@ -312,7 +286,7 @@ public class BypassMethodsActivity extends AppCompatActivity {
                     sniCountLabel.setText(String.valueOf(count));
 
                     boolean isEnabled = count > 0;
-                    deleteOrResetToDefaultSniButton.setText(count > 0 ? R.string.delete_loaded_sni : R.string.load_default);
+                    //deleteOrResetToDefaultSniButton.setText(count > 0 ? R.string.delete_loaded_sni : R.string.load_default);
                     startStopCheckingSniButton.setEnabled(isEnabled);
                 }
         );
@@ -326,7 +300,7 @@ public class BypassMethodsActivity extends AppCompatActivity {
                         Intent data = result.getData();
                         if (data != null && data.getData() != null) {
                             Uri uri = data.getData();
-                            Log.d(TAG, "File selected: " + uri.getPath());
+                            XLog.tag(TAG).d("File selected: " + uri.getPath());
                             try {
                                 viewModel.readFileContent(uri);
                             } catch (PVNClientException e) {
@@ -334,7 +308,7 @@ public class BypassMethodsActivity extends AppCompatActivity {
                             }
                         }
                     } else {
-                        Log.d(TAG, "File selection cancelled.");
+                        XLog.tag(TAG).d("File selection cancelled.");
                     }
                 });
     }
@@ -349,7 +323,7 @@ public class BypassMethodsActivity extends AppCompatActivity {
 
                 @Override
                 public void onFailure(Throwable t) {
-                    Log.e(TAG, "Fail to load servers.", t);
+                    XLog.tag(TAG).e("Fail to load servers.", t);
                 }
             }, getMainExecutor());
         } else {
@@ -385,7 +359,7 @@ public class BypassMethodsActivity extends AppCompatActivity {
         autoSelectDialog = builder.create();
 
         buttonCancel.setOnClickListener(v -> {
-            Log.d(TAG, "Auto-select dialog cancelled.");
+            XLog.tag(TAG).d("Auto-select dialog cancelled.");
 
             ToggleButton startStopCheckingSniButton = findViewById(R.id.auto_select_sni_button);
             startStopCheckingSniButton.setChecked(false);
@@ -398,7 +372,7 @@ public class BypassMethodsActivity extends AppCompatActivity {
             int selectedPosition = serverSpinner.getSelectedItemPosition();
             ServerEntity selectedServer = serverEntities.get(selectedPosition);
 
-            Log.d(TAG, "Starting SNI auto-select for server: " + selectedServer.getServerInfo());
+            XLog.tag(TAG).d("Starting SNI auto-select for server: " + selectedServer.getServerInfo());
             SniCheckerService.startChecking(this, selectedServer, resetCheckedCheckbox.isChecked(),
                     viewModel.getBypassCensorshipMethodMutableLiveData().getValue());
 
@@ -444,18 +418,41 @@ public class BypassMethodsActivity extends AppCompatActivity {
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
         alertDialogBuilder.setView(inflated);
         alertDialogBuilder.setPositiveButton(R.string.save_button, (dialog, which) -> {
-            Log.d(TAG, "onEditSNIServer: save_button");
+            XLog.tag(TAG).d("onEditSNIServer: save_button");
             Optional.ofNullable(sniEditText.getText())
                     .map(Object::toString)
                     .ifPresent(viewModel::validateAndSetSni);
         });
         alertDialogBuilder.setNeutralButton(getString(R.string.reset_default_button), (dialog, which) -> {
-            Log.d(TAG, "onEditSNIServer: reset_default_button");
+            XLog.tag(TAG).d("onEditSNIServer: reset_default_button");
             viewModel.resetToDefault();
         });
         alertDialogBuilder.setNegativeButton(getString(R.string.cancel_button), (dialog, which) -> {
-            Log.d(TAG, "onEditSNIServer: cancel_button");
+            XLog.tag(TAG).d("onEditSNIServer: cancel_button");
         });
         alertDialogBuilder.show();
+    }
+
+    private String getSniSpoofingModeFriendlyName(SniSpoofingMode mode) {
+        return switch (mode) {
+            case SNI -> getString(R.string.sni);
+            case SNI_REALITY_CHROME_147 ->
+                    getString(R.string.sni_reality_radio_button_label_chrome_147);
+            case SNI_REALITY_CHROME_146 ->
+                    getString(R.string.sni_reality_radio_button_label_chrome_146);
+            case SNI_REALITY_CHROME_145 ->
+                    getString(R.string.sni_reality_radio_button_label_chrome_145);
+            case SNI_REALITY_FIREFOX_149 ->
+                    getString(R.string.sni_reality_radio_button_label_firefox_149);
+            case SNI_REALITY_YANDEX_26 ->
+                    getString(R.string.sni_reality_radio_button_label_yandex_26);
+            case SNI_REALITY_YANDEX_25 ->
+                    getString(R.string.sni_reality_radio_button_label_yandex_25);
+            case SNI_REALITY_YANDEX_24 ->
+                    getString(R.string.sni_reality_radio_button_label_yandex_24);
+            case SNI_REALITY_SAFARI_26 ->
+                    getString(R.string.sni_reality_radio_button_label_safari_26);
+            default -> mode.toString();
+        };
     }
 }

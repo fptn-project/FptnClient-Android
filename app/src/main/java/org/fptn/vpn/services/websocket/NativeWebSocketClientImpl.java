@@ -1,8 +1,10 @@
 package org.fptn.vpn.services.websocket;
 
-import android.util.Log;
+
+import com.elvishew.xlog.XLog;
 
 import org.fptn.vpn.enums.BypassCensorshipMethod;
+import org.fptn.vpn.enums.SniSpoofingMode;
 import org.fptn.vpn.services.websocket.callback.OnFailureCallback;
 import org.fptn.vpn.services.websocket.callback.OnMessageReceivedCallback;
 import org.fptn.vpn.services.websocket.callback.OnOpenCallback;
@@ -31,55 +33,30 @@ public class NativeWebSocketClientImpl {
     public NativeWebSocketClientImpl(
             String host,
             int port,
-            String tunAddressIPv4,
-            String tunAddressIPv6,
             String accessToken,
             String md5ServerFingerprint,
             OnOpenCallback onOpenCallback,
             OnMessageReceivedCallback onMessageReceivedCallback,
             OnFailureCallback onFailureCallback,
             String sniHostName,
-            BypassCensorshipMethod censorshipStrategy) throws PVNClientException {
+            BypassCensorshipMethod censorshipStrategy,
+            SniSpoofingMode sniSpoofingMode) throws PVNClientException {
         this.onOpenCallback = onOpenCallback;
         this.onMessageReceivedCallback = onMessageReceivedCallback;
         this.onFailureCallback = onFailureCallback;
 
-        String censorshipStrategyName = "SNI-REALITY-YANDEX-25";
-        if (censorshipStrategy == BypassCensorshipMethod.TLS_OBFUSCATION) {
+        String censorshipStrategyName = "SNI";
+        if (censorshipStrategy == BypassCensorshipMethod.SNI_REALITY && sniSpoofingMode == SniSpoofingMode.SNI) {
+            censorshipStrategyName = "SNI";
+        } else if (censorshipStrategy == BypassCensorshipMethod.TLS_OBFUSCATION) {
             censorshipStrategyName = "OBFUSCATION";
-        } else if (censorshipStrategy == BypassCensorshipMethod.SNI_REALITY) {  // deprecated
-            censorshipStrategyName = "SNI-REALITY";
-        }
-        /* Chrome */
-        else if (censorshipStrategy == BypassCensorshipMethod.SNI_REALITY_CHROME_147) {
-            censorshipStrategyName = "SNI-REALITY-CHROME-147";
-        } else if (censorshipStrategy == BypassCensorshipMethod.SNI_REALITY_CHROME_146) {
-            censorshipStrategyName = "SNI-REALITY-CHROME-146";
-        } else if (censorshipStrategy == BypassCensorshipMethod.SNI_REALITY_CHROME_145) {
-            censorshipStrategyName = "SNI-REALITY-CHROME-145";
-        }
-        /* Firefox */
-        else if (censorshipStrategy == BypassCensorshipMethod.SNI_REALITY_FIREFOX_149) {
-            censorshipStrategyName = "SNI-REALITY-FIREFOX-149";
-        }
-        /* Yandex */
-        else if (censorshipStrategy == BypassCensorshipMethod.SNI_REALITY_YANDEX_26) {
-            censorshipStrategyName = "SNI-REALITY-YANDEX-26";
-        } else if (censorshipStrategy == BypassCensorshipMethod.SNI_REALITY_YANDEX_25) {
-            censorshipStrategyName = "SNI-REALITY-YANDEX-25";
-        } else if (censorshipStrategy == BypassCensorshipMethod.SNI_REALITY_YANDEX_24) {
-            censorshipStrategyName = "SNI-REALITY-YANDEX-24";
-        }
-        /* Safari */
-        else if (censorshipStrategy == BypassCensorshipMethod.SNI_REALITY_SAFARI_26) {
-            censorshipStrategyName = "SNI-REALITY-SAFARI-26";
+        } else if (censorshipStrategy == BypassCensorshipMethod.SNI_REALITY) {
+            censorshipStrategyName = sniSpoofingMode.toString().replace('_', '-');
         }
 
         this.nativeHandle = nativeCreate(
                 host,
                 port,
-                tunAddressIPv4,
-                tunAddressIPv6,
                 sniHostName,
                 accessToken,
                 md5ServerFingerprint,
@@ -94,14 +71,14 @@ public class NativeWebSocketClientImpl {
     }
 
     public void start() {
-        Log.d(TAG, "NativeWebSocketClientImpl.start() Thread.id: " + Thread.currentThread().getId() + " serialNum: " + serialNum);
+        XLog.tag(TAG).d("NativeWebSocketClientImpl.start() Thread.id: " + Thread.currentThread().getId() + " serialNum: " + serialNum);
         if (!nativeIsStarted(nativeHandle)) {
             nativeRun(nativeHandle);
         }
     }
 
     public void stop() {
-        Log.d(TAG, "NativeWebSocketClientImpl.stop() Thread.id: " + Thread.currentThread().getId() + " serialNum: " + serialNum);
+        XLog.tag(TAG).d("NativeWebSocketClientImpl.stop() Thread.id: " + Thread.currentThread().getId() + " serialNum: " + serialNum);
         if (nativeIsStarted(nativeHandle)) {
             nativeStop(nativeHandle);
         }
@@ -118,7 +95,7 @@ public class NativeWebSocketClientImpl {
     }
 
     public synchronized void release() {
-        Log.d(TAG, "NativeWebSocketClientImpl.release() Thread.id: " + Thread.currentThread().getId() + " serialNum: " + serialNum);
+        XLog.tag(TAG).d("NativeWebSocketClientImpl.release() Thread.id: " + Thread.currentThread().getId() + " serialNum: " + serialNum);
         if (nativeHandle != 0) {
             nativeDestroy(nativeHandle);
             nativeHandle = 0;
@@ -127,7 +104,7 @@ public class NativeWebSocketClientImpl {
 
     @Override
     protected void finalize() throws Throwable {
-        Log.d(TAG, "NativeWebSocketClientImpl.finalize() Thread.id: " + Thread.currentThread().getId() + " serialNum: " + serialNum);
+        XLog.tag(TAG).d("NativeWebSocketClientImpl.finalize() Thread.id: " + Thread.currentThread().getId() + " serialNum: " + serialNum);
         try {
             release();
         } finally {
@@ -136,19 +113,19 @@ public class NativeWebSocketClientImpl {
     }
 
     public void onOpenImpl() {
-        Log.d(TAG, "NativeWebSocketClientImpl.onOpenImpl():start()" + " serialNum: " + serialNum);
+        XLog.tag(TAG).d("NativeWebSocketClientImpl.onOpenImpl():start()" + " serialNum: " + serialNum);
         if (this.onOpenCallback != null) {
             this.onOpenCallback.onOpen();
         }
-        Log.d(TAG, "NativeWebSocketClientImpl.onOpenImpl():end()");
+        XLog.tag(TAG).d("NativeWebSocketClientImpl.onOpenImpl():end()");
     }
 
     public void onFailureImpl() {
-        Log.d(TAG, "NativeWebSocketClientImpl.onFailureImpl():start()" + " serialNum: " + serialNum);
+        XLog.tag(TAG).d("NativeWebSocketClientImpl.onFailureImpl():start()" + " serialNum: " + serialNum);
         if (this.onFailureCallback != null) {
             this.onFailureCallback.onFailure();
         }
-        Log.d(TAG, "NativeWebSocketClientImpl.onFailureImpl():end()");
+        XLog.tag(TAG).d("NativeWebSocketClientImpl.onFailureImpl():end()");
     }
 
     public void onMessageImpl(byte[] msg) {
@@ -157,10 +134,22 @@ public class NativeWebSocketClientImpl {
         }
     }
 
+    public String getIPv4Address() {
+        if (nativeHandle != 0L) {
+            return nativeGetIPv4Address(nativeHandle);
+        }
+        return "";
+    }
+
+    public String getIPv6Address() {
+        if (nativeHandle != 0L) {
+            return nativeGetIPv6Address(nativeHandle);
+        }
+        return "";
+    }
+
     private native long nativeCreate(String server_ip,
                                      int server_port,
-                                     String tun_ipv4,
-                                     String tun_ipv6,
                                      String sni,
                                      String access_token,
                                      String expected_md5_fingerprint,
@@ -175,4 +164,8 @@ public class NativeWebSocketClientImpl {
     private native boolean nativeSend(long nativeHandle, byte[] data, long length);
 
     private native boolean nativeIsStarted(long nativeHandle);
+
+    private native String nativeGetIPv4Address(long nativeHandle);
+
+    private native String nativeGetIPv6Address(long nativeHandle);
 }

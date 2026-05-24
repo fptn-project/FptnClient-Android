@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
@@ -21,6 +20,7 @@ import org.fptn.vpn.R;
 import org.fptn.vpn.views.CustomBottomNavigationListener;
 import org.fptn.vpn.views.settings.SettingsActivity;
 
+import com.elvishew.xlog.XLog;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -99,7 +99,7 @@ public class UpdateTokenActivity extends AppCompatActivity {
 
                 @Override
                 public void onFailure(Throwable t) {
-                    Log.e(TAG, "Error occurs: " + t.getMessage(), t);
+                    XLog.tag(TAG).e("Error occurs: " + t.getMessage(), t);
                     Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_SHORT).show();
 
                     viewModel.getErrorTextLiveData().postValue(t.getMessage());
@@ -107,7 +107,7 @@ public class UpdateTokenActivity extends AppCompatActivity {
 
             }, getMainExecutor());
         } catch (Exception e) {
-            Log.e(TAG, "Token invalid: ", e);
+            XLog.tag(TAG).e("Token invalid: ", e);
             Toast.makeText(getApplicationContext(), R.string.token_saving_failed, Toast.LENGTH_SHORT).show();
 
             viewModel.getErrorTextLiveData().postValue(getString(R.string.token_saving_failed));

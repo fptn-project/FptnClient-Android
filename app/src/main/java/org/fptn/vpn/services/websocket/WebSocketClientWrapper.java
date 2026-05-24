@@ -1,11 +1,11 @@
 package org.fptn.vpn.services.websocket;
 
-import android.util.Log;
-
+import com.elvishew.xlog.XLog;
 import com.google.gson.Gson;
 
 import org.fptn.vpn.database.entity.ServerEntity;
 import org.fptn.vpn.enums.BypassCensorshipMethod;
+import org.fptn.vpn.enums.SniSpoofingMode;
 import org.fptn.vpn.services.websocket.callback.OnFailureCallback;
 import org.fptn.vpn.services.websocket.callback.OnMessageReceivedCallback;
 import org.fptn.vpn.services.websocket.callback.OnOpenCallback;
@@ -21,14 +21,13 @@ public class WebSocketClientWrapper {
     private static final String LOGIN_URL = "/api/v1/login";
 
     private final ServerEntity serverEntity;
-    private final String tunAddressIPv4;
-    private final String tunAddressIPv6;
     private final OnOpenCallback onOpenCallback;
     private final OnMessageReceivedCallback onMessageReceivedCallback;
     private final OnFailureCallback onFailureCallback;
     private final NativeHttpsClientImpl nativeHttpsClient;
     private final String sniHostName;
     private final BypassCensorshipMethod censorshipStrategy;
+    private final SniSpoofingMode sniSpoofingMode;
 
     private NativeWebSocketClientImpl nativeWebSocketClient;
 
@@ -36,16 +35,13 @@ public class WebSocketClientWrapper {
     private boolean shutdown = false;
 
     public WebSocketClientWrapper(ServerEntity serverEntity,
-                                  String tunAddressIPv4,
-                                  String tunAddressIPv6,
                                   OnOpenCallback onOpenCallback,
                                   OnMessageReceivedCallback onMessageReceivedCallback,
                                   OnFailureCallback onFailureCallback,
                                   String sniHostName,
-                                  BypassCensorshipMethod censorshipStrategy) {
+                                  BypassCensorshipMethod censorshipStrategy,
+                                  SniSpoofingMode sniSpoofingMode) {
         this.serverEntity = serverEntity;
-        this.tunAddressIPv4 = tunAddressIPv4;
-        this.tunAddressIPv6 = tunAddressIPv6;
         this.onOpenCallback = onOpenCallback;
         this.onMessageReceivedCallback = onMessageReceivedCallback;
         this.onFailureCallback = onFailureCallback;
@@ -53,14 +49,24 @@ public class WebSocketClientWrapper {
         // this is SNI spoofing
         this.sniHostName = sniHostName;
         this.censorshipStrategy = censorshipStrategy;
+        this.sniSpoofingMode = sniSpoofingMode;
 
         this.nativeHttpsClient = new NativeHttpsClientImpl(
                 serverEntity.getHost(),
                 serverEntity.getPort(),
                 serverEntity.getMd5ServerFingerprint(),
                 sniHostName,
-                censorshipStrategy
+                censorshipStrategy,
+                sniSpoofingMode
         );
+    }
+
+    public String getIPv4Address() {
+       return this.nativeWebSocketClient.getIPv4Address();
+    }
+
+    public String getIPv6Address() {
+        return this.nativeWebSocketClient.getIPv6Address();
     }
 
     public synchronized void startWebSocket() throws PVNClientException, WebSocketAlreadyShutdownException {
@@ -74,29 +80,28 @@ public class WebSocketClientWrapper {
         nativeWebSocketClient = new NativeWebSocketClientImpl(
                 serverEntity.getHost(),
                 serverEntity.getPort(),
-                tunAddressIPv4,
-                tunAddressIPv6,
                 accessToken,
                 serverEntity.getMd5ServerFingerprint(),
                 onOpenCallback,
                 onMessageReceivedCallback,
                 onFailureCallback,
                 sniHostName,
-                censorshipStrategy
+                censorshipStrategy,
+                sniSpoofingMode
         );
 
-        Log.d(getTag(), "startWebSocket() nativeWebSocketClient.start() Thread.id: " + Thread.currentThread().getId());
+        XLog.d(getTag(), "startWebSocket() nativeWebSocketClient.start() Thread.id: " + Thread.currentThread().getId());
         nativeWebSocketClient.start();
     }
 
     public synchronized void stopWebSocket() {
-        Log.d(getTag(), "stopWebSocket()");
+        XLog.d(getTag(), "stopWebSocket()");
         if (nativeWebSocketClient != null) {
             if (nativeWebSocketClient.isStarted()) {
-                Log.d(getTag(), "stopWebSocket() nativeWebSocketClient.stop() Thread.id: " + Thread.currentThread().getId());
+                XLog.d(getTag(), "stopWebSocket() nativeWebSocketClient.stop() Thread.id: " + Thread.currentThread().getId());
                 nativeWebSocketClient.stop();
             }
-            Log.d(getTag(), "stopWebSocket() nativeWebSocketClient.release() Thread.id: " + Thread.currentThread().getId());
+            XLog.d(getTag(), "stopWebSocket() nativeWebSocketClient.release() Thread.id: " + Thread.currentThread().getId());
             nativeWebSocketClient.release();
             nativeWebSocketClient = null;
         }
@@ -129,17 +134,17 @@ public class WebSocketClientWrapper {
                 try {
                     JSONObject jsonResponse = new JSONObject(response.body);
                     String accessToken = jsonResponse.getString("access_token");
-                    Log.i(getTag(), "Getting accessToken successful.");
+                    XLog.i(getTag(), "Getting accessToken successful.");
                     return accessToken;
                 } catch (JSONException e) {
-                    Log.e(getTag(), "Some error occurs on parsing accessToken response: " + e);
+                    XLog.e(getTag(), "Some error occurs on parsing accessToken response: " + e);
                     throw new PVNClientException(ErrorCode.CONNECT_TO_SERVER_ERROR);
                 }
             } else if (response.code == 401) {
-                Log.e(getTag(), "Server return unsuccess response: " + response.errorMessage);
+                XLog.e(getTag(), "Server return unsuccess response: " + response.errorMessage);
                 throw new PVNClientException(ErrorCode.ACCESS_TOKEN_ERROR);
             } else {
-                Log.e(getTag(), "Server return unsuccess response!");
+                XLog.e(getTag(), "Server return unsuccess response!");
                 throw new PVNClientException(ErrorCode.CONNECT_TO_SERVER_ERROR);
             }
         }
@@ -150,7 +155,7 @@ public class WebSocketClientWrapper {
         NativeResponse response = nativeHttpsClient.Get(DNS_URL, 15);
         if (response != null && response.code == 200) {
             DnsServers dnsServers = new Gson().fromJson(response.body, DnsServers.class);
-            Log.i(getTag(), "DnsServers: " + dnsServers.toString());
+            XLog.i(getTag(), "DnsServers: " + dnsServers.toString());
             return dnsServers;
         }
         throw new PVNClientException(ErrorCode.CONNECT_TO_SERVER_ERROR);

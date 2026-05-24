@@ -1,9 +1,10 @@
 package org.fptn.vpn.services.speedtest;
 
-import android.util.Log;
+import com.elvishew.xlog.XLog;
 
 import org.fptn.vpn.database.entity.ServerEntity;
 import org.fptn.vpn.enums.BypassCensorshipMethod;
+import org.fptn.vpn.enums.SniSpoofingMode;
 import org.fptn.vpn.vpnclient.exception.ErrorCode;
 import org.fptn.vpn.vpnclient.exception.PVNClientException;
 
@@ -23,23 +24,23 @@ public class SpeedTestUtils {
     private static final long SEARCH_BEST_SERVER_MAX_TIMEOUT = 30L;
     private static final String PREMIUM_KEYWORD = "premium";
 
-    public static ServerEntity findFastestServer(List<ServerEntity> serverEntityList, String sniHostName, BypassCensorshipMethod censorshipStrategy) throws PVNClientException {
-        Log.d(TAG, "SpeedTestUtils.findFastestServer() start: " + Instant.now() + ", Thread.Id: " + Thread.currentThread().getId());
+    public static ServerEntity findFastestServer(List<ServerEntity> serverEntityList, String sniHostName, BypassCensorshipMethod censorshipStrategy, SniSpoofingMode sniSpoofingMode) throws PVNClientException {
+        XLog.tag(TAG).d("SpeedTestUtils.findFastestServer() start: " + Instant.now() + ", Thread.Id: " + Thread.currentThread().getId());
 
         if (serverEntityList != null && !serverEntityList.isEmpty()) {
             List<ServerEntity> selectedServers = selectServersForTesting(serverEntityList);
-            Log.d(TAG, "SpeedTestUtils.findFastestServer() testing " + selectedServers.size() +
+            XLog.tag(TAG).d("SpeedTestUtils.findFastestServer() testing " + selectedServers.size() +
                     " out of " + serverEntityList.size() + " servers");
 
             ExecutorService executor = Executors.newFixedThreadPool(selectedServers.size());
             List<NativeSpeedTestTask> nativeSpeedTestTaskList = selectedServers.stream()
-                    .map(fptnServerDto -> new NativeSpeedTestTask(fptnServerDto, sniHostName, censorshipStrategy))
+                    .map(fptnServerDto -> new NativeSpeedTestTask(fptnServerDto, sniHostName, censorshipStrategy, sniSpoofingMode))
                     .collect(Collectors.toList());
             try {
                 NativeSpeedTestResult bestResult = executor.invokeAny(nativeSpeedTestTaskList, SEARCH_BEST_SERVER_MAX_TIMEOUT, TimeUnit.SECONDS);
-                Log.d(TAG, "SpeedTestUtils.findFastestServer() bestServer: " + bestResult.getServerEntity().getServerInfo() +
+                XLog.tag(TAG).d("SpeedTestUtils.findFastestServer() bestServer: " + bestResult.getServerEntity().getServerInfo() +
                         " with response time: " + bestResult.getDurationsMillis() + " ms");
-                Log.d(TAG, "SpeedTestUtils.findFastestServer() end: " + Instant.now());
+                XLog.tag(TAG).d("SpeedTestUtils.findFastestServer() end: " + Instant.now());
                 return bestResult.getServerEntity();
             } catch (InterruptedException e) {
                 throw new PVNClientException(ErrorCode.FIND_FASTEST_SERVER_TIMEOUT);
@@ -69,7 +70,7 @@ public class SpeedTestUtils {
             }
         }
 
-        Log.d(TAG, "Found " + premiumServers.size() + " premium servers and " +
+        XLog.tag(TAG).d("Found " + premiumServers.size() + " premium servers and " +
                 regularServers.size() + " regular servers");
 
         List<ServerEntity> selectedServers = new ArrayList<>(premiumServers);
@@ -85,7 +86,7 @@ public class SpeedTestUtils {
                 selectedServers.addAll(regularServers.subList(0, regularCountToAdd));
             }
         }
-        Log.d(TAG, "Selected " + selectedServers.size() + " servers for testing: " +
+        XLog.tag(TAG).d("Selected " + selectedServers.size() + " servers for testing: " +
                 selectedServers.size() + " total (" + premiumServers.size() + " premium + " +
                 (selectedServers.size() - premiumServers.size()) + " regular)");
         return selectedServers;

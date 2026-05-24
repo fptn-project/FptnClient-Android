@@ -7,10 +7,11 @@ import android.os.Build;
 import android.provider.Settings;
 import android.service.quicksettings.Tile;
 import android.service.quicksettings.TileService;
-import android.util.Log;
 
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
+
+import com.elvishew.xlog.XLog;
 
 import org.fptn.vpn.R;
 import org.fptn.vpn.enums.ConnectionState;
@@ -31,7 +32,7 @@ public class FptnTileService extends TileService {
     public void onCreate() {
         super.onCreate();
 
-        Log.i(TAG, "FptnTileService.onCreate()");
+        XLog.tag(TAG).i("FptnTileService.onCreate()");
         serviceStateObserver = connectionState -> updateTile();
         serviceStateMutableLiveData.observeForever(serviceStateObserver);
     }
@@ -40,7 +41,7 @@ public class FptnTileService extends TileService {
     public void onDestroy() {
         super.onDestroy();
 
-        Log.i(TAG, "FptnTileService.onDestroy()");
+        XLog.tag(TAG).i("FptnTileService.onDestroy()");
         if (serviceStateObserver != null) {
             serviceStateMutableLiveData.removeObserver(serviceStateObserver);
             serviceStateObserver = null;
@@ -49,7 +50,7 @@ public class FptnTileService extends TileService {
 
     @Override
     public void onClick() {
-        Log.i(TAG, "FptnTileService.onClick()");
+        XLog.tag(TAG).i("FptnTileService.onClick()");
 
         ConnectionState connectionState = serviceStateMutableLiveData.getValue();
         if (connectionState != null && connectionState.isActiveState()) {
@@ -85,12 +86,12 @@ public class FptnTileService extends TileService {
 
     @Override
     public void onStartListening() {
-        Log.i(TAG, "FptnTileService.onStartListening()");
+        XLog.tag(TAG).i("FptnTileService.onStartListening()");
         updateTile();
     }
 
     private void updateTile() {
-        Log.d(TAG, "updateTile()");
+        XLog.tag(TAG).d("updateTile()");
         Tile tile = getQsTile();
         if (tile != null) {
             // Update tile state

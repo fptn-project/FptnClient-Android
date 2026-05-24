@@ -226,9 +226,10 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="bypass_methods_title">Bypass blocking methods</string>
     <string name="bypass_methods_info">Configure bypass blocking methods</string>
 
-    <string name="sni_spoofing_radio_button_label">Domain spoofing (SNI)</string>
+    <string name="sni">Domain spoofing (Default)</string>
+    <string name="sni_radio_button_label">Domain spoofing</string>
     <string name="tls_handshake_obfuscation_radio_button_label">Traffic masking (obfuscation)</string>
-    <string name="sni_reality_radio_button_label">Advanced domain spoofing (SNI + REALITY)</string>
+    <string name="sni_reality_radio_button_label">Domain spoofing (SNI + REALITY)</string>
 
     <string name="sni_reality_radio_button_label_chrome_147">Domain spoofing (Chrome 147)</string>
     <string name="sni_reality_radio_button_label_chrome_146">Domain spoofing (Chrome 146)</string>
@@ -258,10 +259,10 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
 
     <string name="auto_sni_label">Autoselect SNI</string>
     <string name="sni_features_label">SNI settings</string>
-    <string name="load_sni_from_file">Load SNI from file</string>
-    <string name="delete_loaded_sni">Delete loaded SNI</string>
-    <string name="auto_select_sni">Start autoselect SNI</string>
-    <string name="loaded_sni_label">Loaded to local DB SNI:</string>
+    <string name="load_sni_from_file">Load SNI</string>
+    <string name="delete_loaded_sni">Delete SNI</string>
+    <string name="auto_select_sni">Start autoselect</string>
+    <string name="loaded_sni_label">Loaded SNI:</string>
     <string name="select_server_for_autoselect">Select Server for SNI Autoselect</string>
     <string name="start_sni_checking_button_label">Start SNI checking</string>
     <string name="stop_sni_checking_button_label">Stop SNI checking</string>
@@ -269,5 +270,9 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="selected_server">Selected server</string>
     <string name="checking_current_sni">Cheching SNI:</string>
     <string name="load_default">Load default</string>
+    <string name="logs">Logs</string>
+    <string name="logs_copied">Logs copied to clipboard</string>
+    <string name="logs_empty">No logs to copy</string>
+    <string name="view_and_copy_application_logs">View application operation logs</string>
 
 </resources>

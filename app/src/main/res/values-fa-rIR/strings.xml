@@ -153,13 +153,13 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="tile_already_added">کاشی تنظیمات سریع قبلاً اضافه شده است</string>
     <string name="tile_added_successfully">کاشی تنظیمات سریع با موفقیت اضافه شد</string>
     <string name="tile_addition_failed">افزودن کاشی تنظیمات سریع ناموفق بود!</string>
-    <string name="reset_selected_server_after_disconnect_label">بازنشانی سرور انتخاب‌شده پس از قطع اتصال؟</string>
 
     <string name="settings_reset_server_on_exception">تنظیم مجدد سرور فقط در صورت بروز خطاهای اتصال</string>
     <string name="bypass_methods_title">روش‌های دور زدن محدودیت‌ها</string>
     <string name="bypass_methods_info">پیکربندی روش‌های دور زدن فیلترینگ</string>
 
-    <string name="sni_spoofing_radio_button_label">جعل دامنه (SNI)</string>
+    <string name="sni">جایگزینی دامنه (پیش‌فرض)</string>
+    <string name="sni_radio_button_label">جعل پیشرفتهٔ دامنه</string>
     <string name="tls_handshake_obfuscation_radio_button_label">مخفی‌سازی ترافیک (Obfuscation)</string>
     <string name="sni_reality_radio_button_label">جعل پیشرفتهٔ دامنه (SNI + REALITY)</string>
 
@@ -192,9 +192,9 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="settings_reset_server_on_disconnect">پس از قطع ارتباط، سرور انتخاب شده را بازنشانی کنید</string>
     <string name="auto_sni_label">انتخاب خودکار SNI</string>
     <string name="sni_features_label">تنظیمات SNI</string>
-    <string name="load_sni_from_file">بارگذاری SNI از فایل</string>
-    <string name="delete_loaded_sni">حذف SNI بارگذاری شده</string>
-    <string name="auto_select_sni">شروع انتخاب خودکار SNI</string>
+    <string name="load_sni_from_file">بارگذاری SNI</string>
+    <string name="delete_loaded_sni">حذف SNI</string>
+    <string name="auto_select_sni">شروع انتخاب خودکار</string>
     <string name="loaded_sni_label">SNI ذخیره شده در دیتابیس محلی:</string>
     <string name="select_server_for_autoselect">انتخاب سرور برای انتخاب خودکار SNI</string>
     <string name="start_sni_checking_button_label">شروع بررسی SNI</string>
@@ -202,6 +202,10 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="reset_checked_previously_checkbox_label">بازنشانی موارد بررسی شده قبلی؟</string>
     <string name="selected_server">سرور انتخاب شده</string>
     <string name="checking_current_sni">در حال بررسی SNI:</string>
-    <string name="load_default">بارگذاری پیش‌فرض</string>
+    <string name="load_default">حذف SNI</string>
+    <string name="logs">گزارش‌ها</string>
+    <string name="logs_copied">گزارش‌ها در کلیپ‌بورد کپی شد</string>
+    <string name="logs_empty">گزارشی برای کپی وجود ندارد</string>
+    <string name="view_and_copy_application_logs">مشاهده گزارش‌های عملکرد برنامه</string>
 
 </resources>

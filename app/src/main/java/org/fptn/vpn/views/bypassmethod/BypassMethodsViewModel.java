@@ -2,13 +2,13 @@ package org.fptn.vpn.views.bypassmethod;
 
 import android.app.Application;
 import android.net.Uri;
-import android.util.Log;
 import android.util.Pair;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.MutableLiveData;
 
+import com.elvishew.xlog.XLog;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -18,6 +18,7 @@ import org.fptn.vpn.database.AppDatabase;
 import org.fptn.vpn.database.entity.ServerEntity;
 import org.fptn.vpn.database.entity.SniEntity;
 import org.fptn.vpn.enums.BypassCensorshipMethod;
+import org.fptn.vpn.enums.SniSpoofingMode;
 import org.fptn.vpn.services.snichecker.SniCheckerService;
 import org.fptn.vpn.services.snichecker.SniCheckerServiceState;
 import org.fptn.vpn.utils.SharedPrefUtils;
@@ -55,6 +56,9 @@ public class BypassMethodsViewModel extends AndroidViewModel {
     @Getter
     private final MutableLiveData<ServerEntity> selectedServer = new MutableLiveData<>(ServerEntity.AUTO);
 
+    @Getter
+    private final MutableLiveData<SniSpoofingMode> sniSpoofingModeMutableLiveData;
+
     private final AppDatabase appDatabase = AppDatabase.getInstance(getApplication());
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
@@ -63,6 +67,7 @@ public class BypassMethodsViewModel extends AndroidViewModel {
 
         sniMutableLiveData = new MutableLiveData<>(SharedPrefUtils.getSniHostname(application));
         bypassCensorshipMethodMutableLiveData = new MutableLiveData<>(SharedPrefUtils.getBypassCensorshipMethod(application));
+        sniSpoofingModeMutableLiveData = new MutableLiveData<>(SharedPrefUtils.getSniSpoofingMode(application));
 
         refreshSniCount();
     }
@@ -88,10 +93,17 @@ public class BypassMethodsViewModel extends AndroidViewModel {
         bypassCensorshipMethodMutableLiveData.postValue(bypassMethod);
     }
 
+    public void setSniSpoofingMode(SniSpoofingMode sniSpoofingMode) {
+        sniSpoofingModeMutableLiveData.postValue(sniSpoofingMode);
+    }
+
     public void saveBypassMethod() {
         BypassCensorshipMethod bypassCensorshipMethod = bypassCensorshipMethodMutableLiveData.getValue();
         if (bypassCensorshipMethod != null) {
             SharedPrefUtils.saveBypassCensorshipMethod(getApplication(), bypassCensorshipMethod);
+            if (bypassCensorshipMethod == BypassCensorshipMethod.SNI_REALITY) {
+                SharedPrefUtils.saveSniSpoofingMode(getApplication(), sniSpoofingModeMutableLiveData.getValue());
+            }
         }
     }
 
@@ -145,7 +157,7 @@ public class BypassMethodsViewModel extends AndroidViewModel {
                     }
             );
         } catch (Exception e) {
-            Log.e(TAG, "Error reading SNI file", e);
+            XLog.tag(TAG).e("Error reading SNI file", e);
             throw new PVNClientException("Error: Could not read the file.");
         }
 
@@ -154,18 +166,18 @@ public class BypassMethodsViewModel extends AndroidViewModel {
             Futures.addCallback(future, new FutureCallback<>() {
                 @Override
                 public void onSuccess(Void result) {
-                    Log.d(TAG, "Successfully inserted " + sniList.size() + " SNIs into the database.");
+                    XLog.tag(TAG).d("Successfully inserted " + sniList.size() + " SNIs into the database.");
                     refreshSniCount();
                 }
 
                 @Override
                 public void onFailure(Throwable t) {
-                    Log.e(TAG, "DB error occurs!", t);
+                    XLog.tag(TAG).e("DB error occurs!", t);
                 }
             }, executorService);
 
         } else {
-            Log.d(TAG, "No valid SNIs found in the selected file.");
+            XLog.tag(TAG).d("No valid SNIs found in the selected file.");
             throw new PVNClientException("File is empty or contains no valid SNI entries.");
         }
     }
@@ -204,7 +216,7 @@ public class BypassMethodsViewModel extends AndroidViewModel {
                     }
             );
         } catch (Exception e) {
-            Log.e(TAG, "Error reading SNI file", e);
+            XLog.tag(TAG).e("Error reading SNI file", e);
             throw new PVNClientException("Error: Could not read the file.");
         }
 
@@ -223,7 +235,7 @@ public class BypassMethodsViewModel extends AndroidViewModel {
                     }
             );
         } catch (Exception e) {
-            Log.e(TAG, "Error reading SNI file", e);
+            XLog.tag(TAG).e("Error reading SNI file", e);
             throw new PVNClientException("Error: Could not read the file.");
         }
 
@@ -233,18 +245,18 @@ public class BypassMethodsViewModel extends AndroidViewModel {
             Futures.addCallback(future, new FutureCallback<>() {
                 @Override
                 public void onSuccess(Void result) {
-                    Log.d(TAG, "Successfully inserted " + sniList.size() + " SNIs into the database.");
+                    XLog.tag(TAG).d("Successfully inserted " + sniList.size() + " SNIs into the database.");
                     refreshSniCount();
                 }
 
                 @Override
                 public void onFailure(Throwable t) {
-                    Log.e(TAG, "DB error occurs!", t);
+                    XLog.tag(TAG).e("DB error occurs!", t);
                 }
             }, executorService);
 
         } else {
-            Log.d(TAG, "No valid SNIs found in the selected file.");
+            XLog.tag(TAG).d("No valid SNIs found in the selected file.");
             throw new PVNClientException("File is empty or contains no valid SNI entries.");
         }
     }

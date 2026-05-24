@@ -12,10 +12,11 @@ import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.PowerManager;
-import android.util.Log;
 import android.util.Pair;
 
 import androidx.lifecycle.MutableLiveData;
+
+import com.elvishew.xlog.XLog;
 
 import org.fptn.vpn.R;
 import org.fptn.vpn.core.common.Constants;
@@ -142,7 +143,7 @@ public class SniCheckerService extends Service {
             intent.putExtra(SELECTED_SERVER, serverEntity.getId());
             context.startService(intent);
         } else {
-            Log.e(TAG, "startChecking: no server selected");
+            XLog.tag(TAG).e("startChecking: no server selected");
         }
     }
 
@@ -154,14 +155,14 @@ public class SniCheckerService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.d(TAG, "onStartCommand: intent: " + intent);
+        XLog.tag(TAG).d("onStartCommand: intent: " + intent);
         if (intent != null) {
             String intentAction = intent.getAction();
-            Log.d(TAG, "onStartCommand: intentAction: " + intentAction);
+            XLog.tag(TAG).d("onStartCommand: intentAction: " + intentAction);
 
             if (ACTION_START.equalsIgnoreCase(intentAction)) {
                 startForegroundWithNotification("Searching the best SNI");
-                Log.d(TAG, "Searching the best SNI");
+                XLog.tag(TAG).d("Searching the best SNI");
 
                 // read params from intent
                 bypassCensorshipMethod = BypassCensorshipMethod.valueOf(intent.getStringExtra(BYPASS_METHOD));
@@ -183,7 +184,7 @@ public class SniCheckerService extends Service {
                         int currentNum = 0;
                         int allUncheckedCount = appDatabase.sniDAO().countUnchecked();
                         if (allUncheckedCount == 0 || resetChecked) {
-                            Log.d(TAG, "Reset all SNI");
+                            XLog.tag(TAG).d("Reset all SNI");
                             appDatabase.sniDAO().resetAll();
                             allUncheckedCount = appDatabase.sniDAO().countUnchecked();
                         }
@@ -216,7 +217,7 @@ public class SniCheckerService extends Service {
                                 // checking current
                                 boolean valid = sniChecker.checkSni(currentSni);
                                 if (valid) {
-                                    Log.d(TAG, "Founded valid SNI: " + currentSni);
+                                    XLog.tag(TAG).d("Founded valid SNI: " + currentSni);
                                     foundedSni = currentSni;
                                 }
                             }
@@ -224,10 +225,10 @@ public class SniCheckerService extends Service {
                             if (!checkedSniEntities.isEmpty()) {
                                 // save progress sni
                                 try {
-                                    Log.d(TAG, "Saving checked to DB");
+                                    XLog.tag(TAG).d("Saving checked to DB");
                                     appDatabase.sniDAO().insertAll(checkedSniEntities).get();
                                 } catch (ExecutionException | InterruptedException e) {
-                                    Log.e(TAG, "Error occurs on saved checked!", e);
+                                    XLog.tag(TAG).e("Error occurs on saved checked!", e);
                                 }
                             }
 
@@ -235,7 +236,7 @@ public class SniCheckerService extends Service {
                             sniEntitiesToCheck = appDatabase.sniDAO().getUnchecked(SNI_BATCH_SIZE);
                         }
                     } else {
-                        Log.e(TAG, "Server not found with id: " + serverId);
+                        XLog.tag(TAG).e("Server not found with id: " + serverId);
                     }
                     stopCheckingProcess();
                 });
@@ -277,7 +278,7 @@ public class SniCheckerService extends Service {
             wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, SNI_CHECKER_POWER_LOCK);
             wakeLock.acquire(5000);
         } catch (Exception e) {
-            Log.e(TAG, "Can't acquire power lock!", e);
+            XLog.tag(TAG).e("Can't acquire power lock!", e);
         }
     }
 
@@ -286,7 +287,7 @@ public class SniCheckerService extends Service {
             try {
                 wakeLock.release();
             } catch (Exception e) {
-                Log.e(TAG, "Can't release power lock!", e);
+                XLog.tag(TAG).e("Can't release power lock!", e);
             }
         }
     }

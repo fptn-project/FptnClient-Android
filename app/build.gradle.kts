@@ -131,6 +131,7 @@ dependencies {
     implementation(libs.material)
     implementation(libs.zxing)
     implementation(libs.gson)
+    implementation(libs.xlog)
 
     compileOnly(libs.androidlombock)
 
