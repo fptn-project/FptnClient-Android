@@ -226,6 +226,7 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="bypass_methods_title">Bypass blocking methods</string>
     <string name="bypass_methods_info">Configure bypass blocking methods</string>
 
+    <string name="sni">Domain spoofing (Default)</string>
     <string name="sni_radio_button_label">Domain spoofing</string>
     <string name="tls_handshake_obfuscation_radio_button_label">Traffic masking (obfuscation)</string>
     <string name="sni_reality_radio_button_label">Domain spoofing (SNI + REALITY)</string>

@@ -140,7 +140,7 @@ public class BypassMethodsActivity extends AppCompatActivity {
                 R.layout.sni_mode_spinner_item,
                 R.id.sni_mode_label,
                 SniSpoofingMode.values()
-        ){
+        ) {
             @Override
             public View getView(int position, View convertView, ViewGroup parent) {
                 TextView textView = (TextView) super.getView(position, convertView, parent);
@@ -434,10 +434,25 @@ public class BypassMethodsActivity extends AppCompatActivity {
     }
 
     private String getSniSpoofingModeFriendlyName(SniSpoofingMode mode) {
-        if (mode == null) return "";
-        String resourceName = mode.name().toLowerCase()
-                .replace("sni_reality_", "sni_reality_radio_button_label_");
-        int resId = getResources().getIdentifier(resourceName, "string", getPackageName());
-        return resId != 0 ? getString(resId) : mode.toString();
+        return switch (mode) {
+            case SNI -> getString(R.string.sni);
+            case SNI_REALITY_CHROME_147 ->
+                    getString(R.string.sni_reality_radio_button_label_chrome_147);
+            case SNI_REALITY_CHROME_146 ->
+                    getString(R.string.sni_reality_radio_button_label_chrome_146);
+            case SNI_REALITY_CHROME_145 ->
+                    getString(R.string.sni_reality_radio_button_label_chrome_145);
+            case SNI_REALITY_FIREFOX_149 ->
+                    getString(R.string.sni_reality_radio_button_label_firefox_149);
+            case SNI_REALITY_YANDEX_26 ->
+                    getString(R.string.sni_reality_radio_button_label_yandex_26);
+            case SNI_REALITY_YANDEX_25 ->
+                    getString(R.string.sni_reality_radio_button_label_yandex_25);
+            case SNI_REALITY_YANDEX_24 ->
+                    getString(R.string.sni_reality_radio_button_label_yandex_24);
+            case SNI_REALITY_SAFARI_26 ->
+                    getString(R.string.sni_reality_radio_button_label_safari_26);
+            default -> mode.toString();
+        };
     }
 }
