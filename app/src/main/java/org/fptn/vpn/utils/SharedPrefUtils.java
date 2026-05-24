@@ -145,7 +145,7 @@ public class SharedPrefUtils {
                 return value;
             }
         }
-        return SniSpoofingMode.SNI_REALITY_YANDEX_25;
+        return SniSpoofingMode.SNI;
     }
 
     public static void saveSniSpoofingMode(Context context, SniSpoofingMode mode) {
