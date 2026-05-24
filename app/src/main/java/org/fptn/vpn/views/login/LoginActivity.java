@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.WindowManager;
 import android.widget.Button;
@@ -18,6 +17,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.elvishew.xlog.XLog;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -88,13 +88,13 @@ public class LoginActivity extends AppCompatActivity {
 
                 @Override
                 public void onFailure(Throwable t) {
-                    Log.e(TAG, "Error occurs: " + t.getMessage(), t);
+                    XLog.tag(TAG).e("Error occurs: " + t.getMessage(), t);
                     Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_SHORT).show();
                     viewModel.getErrorTextLiveData().postValue(t.getMessage());
                 }
             }, getMainExecutor());
         } catch (Exception e) {
-            Log.e(TAG, "Token invalid: ", e);
+            XLog.tag(TAG).e("Token invalid: ", e);
             Toast.makeText(getApplicationContext(), R.string.token_saving_failed, Toast.LENGTH_SHORT).show();
             viewModel.getErrorTextLiveData().postValue(getString(R.string.token_saving_failed));
         }

@@ -1,6 +1,6 @@
 package org.fptn.vpn.services.snichecker;
 
-import android.util.Log;
+import com.elvishew.xlog.XLog;
 
 import org.fptn.vpn.database.entity.ServerEntity;
 import org.fptn.vpn.enums.BypassCensorshipMethod;
@@ -28,10 +28,10 @@ public class SniChecker {
     }
 
     public boolean checkSni(String sni) {
-        Log.d(TAG, "checkSni: " + sni);
+        XLog.tag(TAG).d("checkSni: " + sni);
 
         if (nativeHandle == 0) {
-            Log.e(TAG, "Native handle is null");
+            XLog.tag(TAG).e("Native handle is null");
             return false;
         }
         return nativeCheckSni(nativeHandle, sni);

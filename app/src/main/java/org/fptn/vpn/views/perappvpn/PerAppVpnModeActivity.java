@@ -4,7 +4,6 @@ import static org.fptn.vpn.utils.ViewUtils.hideView;
 import static org.fptn.vpn.utils.ViewUtils.showView;
 
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ProgressBar;
@@ -16,6 +15,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.elvishew.xlog.XLog;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import org.fptn.vpn.R;
@@ -51,13 +51,13 @@ public class PerAppVpnModeActivity extends AppCompatActivity {
         RadioGroup protocolRadioGroup = findViewById(R.id.per_app_vpn_mode_radio_button_group);
         protocolRadioGroup.setOnCheckedChangeListener((group, checkedId) -> {
             if (checkedId == R.id.all_app_mode_radio_button) {
-                Log.d(TAG, "Selected per-app-VPN mode off");
+                XLog.tag(TAG).d("Selected per-app-VPN mode off");
                 viewModel.setPerAppVpnMode(PerAppVpnMode.OFF);
             } else if (checkedId == R.id.allowed_apps_mode_radio_button) {
-                Log.d(TAG, "Selected per-app-VPN mode only allowed");
+                XLog.tag(TAG).d("Selected per-app-VPN mode only allowed");
                 viewModel.setPerAppVpnMode(PerAppVpnMode.ONLY_ALLOWED);
             } else if (checkedId == R.id.disallowed_apps_mode_radio_button) {
-                Log.d(TAG, "Selected per-app-VPN mode except disallowed");
+                XLog.tag(TAG).d("Selected per-app-VPN mode except disallowed");
                 viewModel.setPerAppVpnMode(PerAppVpnMode.EXCEPT_DISALLOWED);
             }
         });
@@ -111,13 +111,13 @@ public class PerAppVpnModeActivity extends AppCompatActivity {
         // Save and Cancel buttons
         Button cancelButton = findViewById(R.id.cancel_button);
         cancelButton.setOnClickListener(v -> {
-            Log.d(TAG, "Cancel button clicked");
+            XLog.tag(TAG).d("Cancel button clicked");
             finish();
         });
 
         Button saveButton = findViewById(R.id.save_button);
         saveButton.setOnClickListener(v -> {
-            Log.d(TAG, "Save button clicked");
+            XLog.tag(TAG).d("Save button clicked");
 
             viewModel.saveAllSettings();
 

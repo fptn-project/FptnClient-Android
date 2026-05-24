@@ -5,7 +5,6 @@ import static org.fptn.vpn.enums.ConnectionSubnets.FPTN_SERVER_SUBNET;
 import static org.fptn.vpn.enums.ConnectionSubnets.IP_V4_PREFIX_LENGTH;
 import static org.fptn.vpn.enums.ConnectionSubnets.IP_V6_PREFIX_LENGTH;
 import static org.fptn.vpn.enums.ConnectionSubnets.LOCAL_SUBNET;
-import static org.fptn.vpn.enums.ConnectionSubnets.LOCAL_TUN_ADDRESS;
 import static org.fptn.vpn.enums.ConnectionSubnets.LOCAL_TUN_INTERFACE_SUBNET;
 
 import android.app.PendingIntent;
@@ -14,7 +13,8 @@ import android.net.IpPrefix;
 import android.net.VpnService;
 import android.os.Build;
 import android.os.ParcelFileDescriptor;
-import android.util.Log;
+
+import com.elvishew.xlog.XLog;
 
 import org.fptn.vpn.database.entity.ServerEntity;
 import org.fptn.vpn.enums.BypassCensorshipMethod;
@@ -147,7 +147,7 @@ public class FptnConnection extends Thread {
 
     @Override
     public void run() {
-        Log.d(getTag(), "CustomVpnConnection.run() Thread.id: " + Thread.currentThread().getId());
+        XLog.tag(TAG).d("CustomVpnConnection.run() Thread.id: " + Thread.currentThread().getId());
         vpnInterface = null;
         try {
             sendConnectionStateToService(ConnectionState.CONNECTING);
@@ -163,7 +163,7 @@ public class FptnConnection extends Thread {
                     sendSpeedInfoAndDurationToService(downloadSpeed, uploadSpeed, durationInSeconds);
                 }, 1, 1, TimeUnit.SECONDS); // Start after 1 second, repeat every 1 second
             } catch (RejectedExecutionException e) {
-                Log.w(getTag(), "update speed task rejected by scheduler", e);
+                XLog.tag(TAG).w("update speed task rejected by scheduler", e);
             }
 
             // Read packets
@@ -174,7 +174,7 @@ public class FptnConnection extends Thread {
                 if (currentThread.isInterrupted()) {
                     break;
                 }
-                Log.i(getTag(), "TUN interface is ready, starting packet processing");
+                XLog.tag(TAG).i("TUN interface is ready, starting packet processing");
                 try (FileInputStream inputStream = new FileInputStream(vpnInterface.getFileDescriptor())) {
                     byte[] byteBuffer = new byte[MAX_PACKET_SIZE];
                     while (!currentThread.isInterrupted() && vpnInterface != null && vpnInterface.getFileDescriptor().valid()) {
@@ -187,18 +187,18 @@ public class FptnConnection extends Thread {
                                 Thread.sleep(MIN_SEND_INTERVAL_MS);
                             }
                         } catch (Exception e) {
-                            Log.d(getTag(), "Error reading data from VPN interface: " + e.getMessage());
+                            XLog.tag(TAG).d("Error reading data from VPN interface: " + e.getMessage());
                             break;
                         }
                     }
                 } catch (IOException e) {
-                    Log.e(getTag(), "VPN interface closed, waiting for new one", e);
+                    XLog.tag(TAG).e("VPN interface closed, waiting for new one", e);
                 }
             }
         } catch (PVNClientException e) {
             sendExceptionToService(e);
         } catch (WebSocketAlreadyShutdownException e) {
-            Log.w(getTag(), "The websocket already shutdown", e);
+            XLog.tag(TAG).w("The websocket already shutdown", e);
         } catch (InterruptedException e) {
             shutdown();
         } finally {
@@ -214,7 +214,7 @@ public class FptnConnection extends Thread {
             try {
                 vpnInterface.close();
             } catch (IOException e) {
-                Log.e(getTag(), "Unable to close interface", e);
+                XLog.tag(TAG).d("Unable to close interface", e);
             }
         }
         webSocketClient.shutdown();
@@ -230,6 +230,8 @@ public class FptnConnection extends Thread {
                 vpnInterface = null;
             }
 
+            XLog.tag(TAG).i("Addresses: " + assignedIPv4 + " " + assignedIPv6);
+
             VpnService.Builder builder = service.new Builder();
             builder.setBlocking(true)
                     .setSession(serverEntity.getName())
@@ -237,22 +239,27 @@ public class FptnConnection extends Thread {
                     .setMtu(MAX_PACKET_SIZE);
 
             // From documentation: You can create either an allowed list, or, a disallowed list, but not both
-            if (perAppVpnMode == PerAppVpnMode.ONLY_ALLOWED) {
+            XLog.tag(TAG).i("PerAppVpnMode: " + perAppVpnMode);
+            XLog.tag(TAG).i("appInfos: " + appInfos);
+            if (perAppVpnMode == PerAppVpnMode.OFF) {
+                builder.addDisallowedApplication(service.getPackageName());
+            } else if (perAppVpnMode == PerAppVpnMode.ONLY_ALLOWED && !appInfos.isEmpty()) {
                 for (AppInfo appInfo : appInfos) {
                     String packageName = appInfo.getPackageName();
                     try {
                         builder.addAllowedApplication(packageName);
                     } catch (PackageManager.NameNotFoundException e) {
-                        Log.d(TAG, "Package not found: " + packageName);
+                        XLog.tag(TAG).w("Package not found: " + packageName);
                     }
                 }
-            } else if (perAppVpnMode == PerAppVpnMode.EXCEPT_DISALLOWED) {
+            } else if (perAppVpnMode == PerAppVpnMode.EXCEPT_DISALLOWED && !appInfos.isEmpty()) {
+                builder.addDisallowedApplication(service.getPackageName());
                 for (AppInfo appInfo : appInfos) {
                     String packageName = appInfo.getPackageName();
                     try {
                         builder.addDisallowedApplication(packageName);
                     } catch (PackageManager.NameNotFoundException e) {
-                        Log.d(TAG, "Package not found: " + packageName);
+                        XLog.tag(TAG).w("Package not found: " + packageName);
                     }
                 }
             }
@@ -297,7 +304,7 @@ public class FptnConnection extends Thread {
                 for (IPAddress ipAddress : subnetsToIncludeV4) {
                     String hostIp = ipAddress.getLower().toAddressString().getHostAddress().toString();
                     Integer networkPrefixLength = ipAddress.getLower().toAddressString().getNetworkPrefixLength();
-                    Log.d(getTag(), "subnetsToIncludeV4.ipAddress: " + hostIp + "/" + networkPrefixLength);
+                    XLog.tag(TAG).d("subnetsToIncludeV4.ipAddress: " + hostIp + "/" + networkPrefixLength);
                     builder.addRoute(hostIp, networkPrefixLength != null ? networkPrefixLength : IP_V4_PREFIX_LENGTH);
                 }
 
@@ -316,7 +323,7 @@ public class FptnConnection extends Thread {
                 for (IPAddress ipAddress : subnetsToIncludeV6) {
                     String hostIp = ipAddress.getLower().toAddressString().getHostAddress().toString();
                     Integer networkPrefixLength = ipAddress.getLower().toAddressString().getNetworkPrefixLength();
-                    Log.d(getTag(), "subnetsToIncludeV6.ipAddress: " + hostIp + "/" + networkPrefixLength);
+                    XLog.tag(TAG).d("subnetsToIncludeV6.ipAddress: " + hostIp + "/" + networkPrefixLength);
                     builder.addRoute(hostIp, networkPrefixLength != null ? networkPrefixLength : IP_V6_PREFIX_LENGTH);
                 }
             }
@@ -327,32 +334,31 @@ public class FptnConnection extends Thread {
             if (vpnInterface == null) {
                 throw new PVNClientException(ErrorCode.VPN_INTERFACE_ERROR);
             }
-            Log.i(getTag(), "New interface: " + vpnInterface);
+            XLog.tag(TAG).i("New interface: " + vpnInterface);
 
             // Packets received need to be written to this output stream.
             outputStream = new FileOutputStream(vpnInterface.getFileDescriptor());
 
         } catch (Exception e) {
-            Log.e(getTag(), "Failed to start TUN interface", e);
+            XLog.tag(TAG).e("Failed to start TUN interface", e);
             sendExceptionToService(new PVNClientException(ErrorCode.VPN_INTERFACE_ERROR));
         }
     }
 
     private void onConnectionOpen() {
-        Log.d(getTag(), "onConnectionOpen()");
+        XLog.tag(TAG).d("onConnectionOpen()");
         if (!currentThread.isInterrupted()) {
             sendConnectionStateToService(ConnectionState.CONNECTED);
             cancelReconnectTask();
             reconnectCount.set(0);
         }
-
         String assignedIPv4 = webSocketClient.getIPv4Address();
         String assignedIPv6 = webSocketClient.getIPv6Address();
-
-        Log.d(getTag(), "Received from server - IPv4: " + assignedIPv4);
-        Log.d(getTag(), "Received from server - IPv6: " + assignedIPv6);
-
-        this.startTun(assignedIPv4, assignedIPv6);
+        service.getMainExecutor().execute(() -> {
+            XLog.tag(TAG).d("Received from server - IPv4: " + assignedIPv4);
+            XLog.tag(TAG).d("Received from server - IPv6: " + assignedIPv6);
+            this.startTun(assignedIPv4, assignedIPv6);
+        });
     }
 
     private void onMessageReceived(byte[] data) {
@@ -362,21 +368,21 @@ public class FptnConnection extends Thread {
                 outputStream.write(data);
             }
         } catch (Exception e) {
-            Log.w(getTag(), "Exception on writing to TUN interface: " + new String(data));
+            XLog.tag(TAG).w("Exception on writing to TUN interface: " + new String(data));
         }
     }
 
     public void onConnectionFailure() {
-        Log.d(getTag(), "onConnectionFailure() Thread.id: " + Thread.currentThread().getId());
+        XLog.tag(TAG).d("onConnectionFailure() Thread.id: " + Thread.currentThread().getId());
         cancelReconnectTask();
         try {
             onFailureScheduledTask = scheduler.scheduleWithFixedDelay(() -> {
                 int currentCount = reconnectCount.incrementAndGet();
-                Log.i(getTag(), "Reconnect WebSocket... currentCount: " + currentCount);
+                XLog.tag(TAG).i("Reconnect WebSocket... currentCount: " + currentCount);
                 if (!currentThread.isInterrupted() && isTunInterfaceValid(vpnInterface) && currentCount <= maxReconnectCount) {
                     try {
                         sendConnectionStateToService(ConnectionState.RECONNECTING);
-                        Log.d(getTag(), "onConnectionFailure() scheduler task Thread.id: " + Thread.currentThread().getId());
+                        XLog.tag(TAG).d("onConnectionFailure() scheduler task Thread.id: " + Thread.currentThread().getId());
                         webSocketClient.startWebSocket();
                     } catch (PVNClientException e) {
                         if (currentCount == maxReconnectCount) {
@@ -384,7 +390,7 @@ public class FptnConnection extends Thread {
                             onFailureInterrupt();
                         }
                     } catch (WebSocketAlreadyShutdownException e) {
-                        Log.w(getTag(), "The websocket already shutdown", e);
+                        XLog.tag(TAG).w("The websocket already shutdown", e);
                         onFailureInterrupt();
                     }
                 } else {
@@ -392,7 +398,7 @@ public class FptnConnection extends Thread {
                 }
             }, 0L, delayBetweenAttempts, TimeUnit.SECONDS);
         } catch (RejectedExecutionException exception) {
-            Log.w(getTag(), "OnFailure task rejected!", exception);
+            XLog.tag(TAG).w("OnFailure task rejected!", exception);
         }
     }
 
@@ -425,9 +431,5 @@ public class FptnConnection extends Thread {
     private boolean isTunInterfaceValid(ParcelFileDescriptor vpnInterface) {
         return vpnInterface.getFileDescriptor() != null;
     }
-
-    private String getTag() {
-        return this.getClass().getCanonicalName() + "[" + connectionId + "]";
-    }
-
+    
 }

@@ -1,6 +1,6 @@
 package org.fptn.vpn.services.websocket;
 
-import android.util.Log;
+import com.elvishew.xlog.XLog;
 
 import org.fptn.vpn.enums.BypassCensorshipMethod;
 import org.fptn.vpn.enums.SniSpoofingMode;
@@ -47,7 +47,7 @@ public class NativeHttpsClientImpl {
     }
 
     public synchronized void release() {
-        Log.d(TAG, "NativeHttpsClientImpl.release()");
+        XLog.tag(TAG).d("NativeHttpsClientImpl.release()");
         if (nativeHandle != 0) {
             nativeDestroy(nativeHandle);
             nativeHandle = 0;
@@ -62,7 +62,7 @@ public class NativeHttpsClientImpl {
 
     @Override
     protected void finalize() throws Throwable {
-        Log.d(TAG, "NativeHttpsClientImpl.finalize()");
+        XLog.tag(TAG).d("NativeHttpsClientImpl.finalize()");
         try {
             release();
         } finally {
