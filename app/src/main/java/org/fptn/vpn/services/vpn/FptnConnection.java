@@ -241,7 +241,9 @@ public class FptnConnection extends Thread {
             // From documentation: You can create either an allowed list, or, a disallowed list, but not both
             XLog.tag(TAG).i("PerAppVpnMode: " + perAppVpnMode);
             XLog.tag(TAG).i("appInfos: " + appInfos);
-            if (perAppVpnMode == PerAppVpnMode.ONLY_ALLOWED && !appInfos.isEmpty()) {
+            if (perAppVpnMode == PerAppVpnMode.OFF) {
+                builder.addDisallowedApplication(service.getPackageName());
+            } else if (perAppVpnMode == PerAppVpnMode.ONLY_ALLOWED && !appInfos.isEmpty()) {
                 for (AppInfo appInfo : appInfos) {
                     String packageName = appInfo.getPackageName();
                     try {
@@ -251,6 +253,7 @@ public class FptnConnection extends Thread {
                     }
                 }
             } else if (perAppVpnMode == PerAppVpnMode.EXCEPT_DISALLOWED && !appInfos.isEmpty()) {
+                builder.addDisallowedApplication(service.getPackageName());
                 for (AppInfo appInfo : appInfos) {
                     String packageName = appInfo.getPackageName();
                     try {
@@ -349,14 +352,13 @@ public class FptnConnection extends Thread {
             cancelReconnectTask();
             reconnectCount.set(0);
         }
-
         String assignedIPv4 = webSocketClient.getIPv4Address();
         String assignedIPv6 = webSocketClient.getIPv6Address();
-
-        XLog.tag(TAG).d("Received from server - IPv4: " + assignedIPv4);
-        XLog.tag(TAG).d("Received from server - IPv6: " + assignedIPv6);
-
-        this.startTun(assignedIPv4, assignedIPv6);
+        service.getMainExecutor().execute(() -> {
+            XLog.tag(TAG).d("Received from server - IPv4: " + assignedIPv4);
+            XLog.tag(TAG).d("Received from server - IPv6: " + assignedIPv6);
+            this.startTun(assignedIPv4, assignedIPv6);
+        });
     }
 
     private void onMessageReceived(byte[] data) {
