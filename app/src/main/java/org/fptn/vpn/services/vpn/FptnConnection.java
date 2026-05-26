@@ -60,11 +60,11 @@ public class FptnConnection extends Thread {
     /**
      * Minimum interval between sends
      */
-    public static final long MIN_SEND_INTERVAL_MS = 5;
+    public static final long MIN_SEND_INTERVAL_MS = 2;
     /**
      * Maximum packet size is constrained by the MTU
      */
-    private static final int MAX_PACKET_SIZE = 1500;
+    private static final int MAX_PACKET_SIZE = 1420;
 
     @Getter
     private final int connectionId;
@@ -168,31 +168,35 @@ public class FptnConnection extends Thread {
 
             // Read packets
             while (!currentThread.isInterrupted()) {
-                while (!currentThread.isInterrupted() && vpnInterface == null) {
-                    Thread.sleep(100);
-                }
-                if (currentThread.isInterrupted()) {
-                    break;
-                }
-                XLog.tag(TAG).i("TUN interface is ready, starting packet processing");
-                try (FileInputStream inputStream = new FileInputStream(vpnInterface.getFileDescriptor())) {
-                    byte[] byteBuffer = new byte[MAX_PACKET_SIZE];
-                    while (!currentThread.isInterrupted() && vpnInterface != null && vpnInterface.getFileDescriptor().valid()) {
-                        try {
-                            int length = inputStream.read(byteBuffer);
-                            if (length > 0) {
-                                uploadRate.update(length);
-                                webSocketClient.send(byteBuffer, length);
-                            } else {
-                                Thread.sleep(MIN_SEND_INTERVAL_MS);
-                            }
-                        } catch (Exception e) {
-                            XLog.tag(TAG).d("Error reading data from VPN interface: " + e.getMessage());
-                            break;
-                        }
+                try {
+                    while (!currentThread.isInterrupted() && vpnInterface == null) {
+                        Thread.sleep(100);
                     }
-                } catch (IOException e) {
-                    XLog.tag(TAG).e("VPN interface closed, waiting for new one", e);
+                    if (currentThread.isInterrupted()) {
+                        break;
+                    }
+                    XLog.tag(TAG).i("TUN interface is ready, starting packet processing");
+                    try (FileInputStream inputStream = new FileInputStream(vpnInterface.getFileDescriptor())) {
+                        byte[] byteBuffer = new byte[MAX_PACKET_SIZE];
+                        while (!currentThread.isInterrupted() && vpnInterface != null && vpnInterface.getFileDescriptor().valid()) {
+                            try {
+                                int length = inputStream.read(byteBuffer);
+                                if (length > 0) {
+                                    uploadRate.update(length);
+                                    webSocketClient.send(byteBuffer, length);
+                                } else {
+                                    Thread.sleep(MIN_SEND_INTERVAL_MS);
+                                }
+                            } catch (Exception e) {
+                                XLog.tag(TAG).d("Error reading data from VPN interface: " + e.getMessage());
+                                break;
+                            }
+                        }
+                    } catch (IOException e) {
+                        XLog.tag(TAG).e("VPN interface closed, waiting for new one", e);
+                    }
+                } catch (NullPointerException e) {
+                    XLog.tag(TAG).e("NullPointerException");
                 }
             }
         } catch (PVNClientException e) {
@@ -431,5 +435,5 @@ public class FptnConnection extends Thread {
     private boolean isTunInterfaceValid(ParcelFileDescriptor vpnInterface) {
         return vpnInterface.getFileDescriptor() != null;
     }
-    
+
 }
