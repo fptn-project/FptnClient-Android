@@ -3,6 +3,7 @@ package org.fptn.vpn.services.tile;
 import android.app.PendingIntent;
 import android.content.Intent;
 import android.graphics.drawable.Icon;
+import android.net.VpnService;
 import android.os.Build;
 import android.provider.Settings;
 import android.service.quicksettings.Tile;
@@ -50,38 +51,61 @@ public class FptnTileService extends TileService {
 
     @Override
     public void onClick() {
-        XLog.tag(TAG).i("FptnTileService.onClick()");
 
-        ConnectionState connectionState = serviceStateMutableLiveData.getValue();
-        if (connectionState != null && connectionState.isActiveState()) {
-            FptnService.startToDisconnect(this);
-        } else {
-            // Check notification enabled
-            if (!PermissionsUtils.checkNotificationEnabled(this)) {
-                // And if not - open main activity
-                Intent intent = new Intent();
-                intent.setAction(Settings.ACTION_APP_NOTIFICATION_SETTINGS);
-                intent.putExtra(Settings.EXTRA_APP_PACKAGE, getPackageName());
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        unlockAndRun(() -> {
+            XLog.tag(TAG).i("FptnTileService.onClick()");
+            ConnectionState connectionState = serviceStateMutableLiveData.getValue();
+            if (connectionState != null && connectionState.isActiveState()) {
+                FptnService.startToDisconnect(this);
+            } else {
+                // Check notification enabled
+                if (!PermissionsUtils.checkNotificationEnabled(this)) {
+                    // And if not - open main activity
+                    Intent intent = new Intent();
+                    intent.setAction(Settings.ACTION_APP_NOTIFICATION_SETTINGS);
+                    intent.putExtra(Settings.EXTRA_APP_PACKAGE, getPackageName());
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
-                PendingIntent pendingIntent = PendingIntent.getActivity(
-                        this,
-                        0,
-                        intent,
-                        PendingIntent.FLAG_IMMUTABLE
-                );
+                    PendingIntent pendingIntent = PendingIntent.getActivity(
+                            this,
+                            0,
+                            intent,
+                            PendingIntent.FLAG_IMMUTABLE
+                    );
 
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-                    startActivityAndCollapse(pendingIntent);
-                } else {
-                    startActivityAndCollapse(intent);
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                        startActivityAndCollapse(pendingIntent);
+                    } else {
+                        startActivityAndCollapse(intent);
+                    }
+
+                    return;
                 }
 
-                return;
-            }
+                Intent vpnIntent = VpnService.prepare(this);
+                if (vpnIntent != null) {
+                    XLog.tag(TAG).w("onClick: VPN permission not granted, opening app");
+                    Intent launchIntent = getPackageManager().getLaunchIntentForPackage(getPackageName());
+                    if (launchIntent != null) {
+                        launchIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        PendingIntent pendingIntent = PendingIntent.getActivity(
+                                this, 0, launchIntent, PendingIntent.FLAG_IMMUTABLE);
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                            startActivityAndCollapse(pendingIntent);
+                        } else {
+                            startActivityAndCollapse(launchIntent);
+                        }
+                    }
+                    return;
+                }
 
-            FptnService.startToConnect(this);
-        }
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                    FptnService.startToConnectFromTile(this);
+                } else {
+                    FptnService.startToConnect(this);
+                }
+            }
+        });
     }
 
     @Override

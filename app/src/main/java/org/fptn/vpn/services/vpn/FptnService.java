@@ -169,6 +169,14 @@ public class FptnService extends VpnService {
         }
     }
 
+    @androidx.annotation.RequiresApi(api = Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
+    public synchronized static void startToConnectFromTile(android.service.quicksettings.TileService tileService) {
+        Intent intent = new Intent(tileService, FptnService.class);
+        intent.setAction(ACTION_CONNECT);
+        intent.putExtra(SELECTED_SERVER, START_FROM_TILE_AUTO);
+        tileService.startForegroundService(intent);
+    }
+
     public synchronized static void startToDisconnect(Context context) {
         Intent intent = new Intent(context, FptnService.class);
         intent.setAction(ACTION_DISCONNECT);
