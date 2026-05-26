@@ -20,6 +20,7 @@ import org.fptn.vpn.database.entity.SniEntity;
 import org.fptn.vpn.enums.BypassCensorshipMethod;
 import org.fptn.vpn.enums.SniSpoofingMode;
 import org.fptn.vpn.services.snichecker.SniCheckerService;
+import org.fptn.vpn.views.home.HomeActivityViewModel;
 import org.fptn.vpn.services.snichecker.SniCheckerServiceState;
 import org.fptn.vpn.utils.SharedPrefUtils;
 import org.fptn.vpn.vpnclient.exception.PVNClientException;
@@ -133,6 +134,10 @@ public class BypassMethodsViewModel extends AndroidViewModel {
     }
 
     public ListenableFuture<List<ServerEntity>> getAllServers() {
+        List<ServerEntity> cached = HomeActivityViewModel.lastPingedServers;
+        if (cached != null && !cached.isEmpty()) {
+            return Futures.immediateFuture(cached);
+        }
         return appDatabase.serverDAO().getServerListAsync(false);
     }
 
