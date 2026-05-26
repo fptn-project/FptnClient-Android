@@ -18,17 +18,13 @@ class NativeSniChecker {
       int port,
       const std::string& md5_fingerprint,
       const std::string& censorship_strategy)
-      : host_(host), port_(port), md5_fingerprint_(md5_fingerprint) {
-    fptn::protocol::https::CensorshipStrategy strategy =
-        fptn::protocol::https::CensorshipStrategy::kSni;
-
+      : host_(host), port_(port), md5_fingerprint_(md5_fingerprint),
+        strategy_(fptn::protocol::https::CensorshipStrategy::kSni) {
     if (censorship_strategy == "OBFUSCATION") {
-      strategy = fptn::protocol::https::CensorshipStrategy::kTlsObfuscator;
+      strategy_ = fptn::protocol::https::CensorshipStrategy::kTlsObfuscator;
     } else if (censorship_strategy == "SNI-REALITY") {
-      strategy = fptn::protocol::https::CensorshipStrategy::kSniRealityMode;
+      strategy_ = fptn::protocol::https::CensorshipStrategy::kSniRealityMode;
     }
-    client_ = std::make_unique<fptn::protocol::https::ApiClient>(
-        host_, port_, strategy);
     SPDLOG_INFO("NativeSniChecker created for {}:{}", host, port);
   }
 
@@ -40,7 +36,7 @@ class NativeSniChecker {
       SPDLOG_INFO("Step 1/2: Testing handshake for SNI: {}", sni);
 
       fptn::protocol::https::ApiClient client(host_, port_, sni,
-          md5_fingerprint_, fptn::protocol::https::CensorshipStrategy::kSni);
+          md5_fingerprint_, strategy_);
 
       const auto handshake_start = std::chrono::steady_clock::now();
       const bool handshake_success = client.TestHandshake(10);
@@ -64,7 +60,7 @@ class NativeSniChecker {
       auto download_start = std::chrono::steady_clock::now();
 
       fptn::protocol::https::ApiClient download_client(host_, port_, sni,
-          md5_fingerprint_, fptn::protocol::https::CensorshipStrategy::kSni);
+          md5_fingerprint_, strategy_);
 
       const auto response = download_client.Get("/api/v1/test/file.bin", 15);
 
@@ -100,8 +96,7 @@ class NativeSniChecker {
   const std::string host_;
   const int port_;
   const std::string md5_fingerprint_;
-
-  std::unique_ptr<fptn::protocol::https::ApiClient> client_;
+  fptn::protocol::https::CensorshipStrategy strategy_;
 };
 
 extern "C" {

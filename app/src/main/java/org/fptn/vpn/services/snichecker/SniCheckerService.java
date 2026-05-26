@@ -65,6 +65,9 @@ public class SniCheckerService extends Service {
     private String foundedSni = null;
 
     @Getter
+    private final MutableLiveData<String> foundedSniLiveData = new MutableLiveData<>();
+
+    @Getter
     private final MutableLiveData<Pair<Integer, Integer>> currentProgress = new MutableLiveData<>();
 
     @Getter
@@ -254,19 +257,22 @@ public class SniCheckerService extends Service {
         // Release wakelock
         releasePowerLock();
 
-        serviceState.postValue(SniCheckerServiceState.INACTIVE);
-
-        stopForeground(STOP_FOREGROUND_REMOVE);
-
         if (foundedSni != null) {
-            showResultNotification("Found SNI", "Found working SNI:" + foundedSni);
-
             //todo: does need add save action to notification?
             SharedPrefUtils.saveSniHostname(this, foundedSni);
+
+            foundedSniLiveData.postValue(foundedSni);
+
+            showResultNotification(getString(R.string.sni_found_title), getString(R.string.sni_found_message) + foundedSni);
         } else {
+            showResultNotification(getString(R.string.sni_not_found_title), getString(R.string.sni_not_found_message));
+
             showResultNotification("SNI not found!", "Not found working SNI for server: "
                     + Optional.ofNullable(selectedServer.getValue()).map(ServerEntity::getServerInfo).orElse(""));
         }
+        serviceState.postValue(SniCheckerServiceState.INACTIVE);
+
+        stopForeground(STOP_FOREGROUND_REMOVE);
     }
 
     private synchronized void acquirePowerLock() {

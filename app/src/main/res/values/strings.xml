@@ -275,4 +275,9 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="logs_empty">No logs to copy</string>
     <string name="view_and_copy_application_logs">View application operation logs</string>
 
+    <string name="sni_found_title">SNI found</string>
+    <string name="sni_found_message">Found working SNI: </string>
+    <string name="sni_not_found_title">SNI not found</string>
+    <string name="sni_not_found_message">No working SNI found for server: </string>
+
 </resources>

@@ -66,6 +66,7 @@ public class HomeActivityViewModel extends AndroidViewModel {
     private final Observer<FptnServiceState> serviceStateObserver;
 
     // for pingers
+    public static volatile List<ServerEntity> lastPingedServers = null;
     private final ConnectivityManager connectivityManager;
     private final ExecutorService pingExecutorService = Executors.newSingleThreadExecutor();
     private volatile boolean isPingCheckingActive = false;
@@ -163,6 +164,7 @@ public class HomeActivityViewModel extends AndroidViewModel {
                         }
 
                         // Update the UI with new ping values
+                        lastPingedServers = servers;
                         serverDtoListLiveData.postValue(servers);
 
                         // Wait before take nest batch
