@@ -59,6 +59,9 @@ public class BypassMethodsViewModel extends AndroidViewModel {
     @Getter
     private final MutableLiveData<SniSpoofingMode> sniSpoofingModeMutableLiveData;
 
+    @Getter
+    private final MutableLiveData<String> foundedSniEvent = new MutableLiveData<>();
+
     private final AppDatabase appDatabase = AppDatabase.getInstance(getApplication());
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
@@ -192,6 +195,12 @@ public class BypassMethodsViewModel extends AndroidViewModel {
         service.getSelectedServer().observeForever(selectedServer::postValue);
         service.getCurrentSniInfo().observeForever(currentCheckingSniInfo::postValue);
         service.getCurrentProgress().observeForever(currentProgress::postValue);
+
+        service.getFoundedSniLiveData().observeForever(sni -> {
+            if (sni != null) {
+                foundedSniEvent.postValue(sni);
+            }
+        });
     }
 
     public void unsubscribe() {

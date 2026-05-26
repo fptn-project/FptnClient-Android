@@ -35,7 +35,7 @@ public interface SniDao {
     @Query("SELECT COUNT(*) FROM sni_table where checked = 0")
     int countUnchecked();
 
-    @Query("SELECT * FROM sni_table where checked = 0 limit :limit")
+    @Query("SELECT * FROM sni_table where checked = 0 ORDER BY RANDOM() limit :limit")
     List<SniEntity> getUnchecked(int limit);
 
     @Query("UPDATE sni_table SET checked = 0")

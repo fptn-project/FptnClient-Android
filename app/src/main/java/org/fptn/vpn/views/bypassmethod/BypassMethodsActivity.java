@@ -311,6 +311,12 @@ public class BypassMethodsActivity extends AppCompatActivity {
                         XLog.tag(TAG).d("File selection cancelled.");
                     }
                 });
+
+        viewModel.getFoundedSniEvent().observe(this, sni -> {
+            if (sni != null) {
+                Toast.makeText(this, "Found SNI: " + sni, Toast.LENGTH_LONG).show();
+            }
+        });
     }
 
     private void onAutoSelectSniClicked() {

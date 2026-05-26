@@ -206,4 +206,9 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="logs_empty">Нет логов для копирования</string>
     <string name="view_and_copy_application_logs">Просмотр логов работы приложения</string>
 
+    <string name="sni_found_title">SNI найден</string>
+    <string name="sni_found_message">Найден рабочий SNI: </string>
+    <string name="sni_not_found_title">SNI не найден</string>
+    <string name="sni_not_found_message">Рабочий SNI не найден для сервера: </string>
+
 </resources>
