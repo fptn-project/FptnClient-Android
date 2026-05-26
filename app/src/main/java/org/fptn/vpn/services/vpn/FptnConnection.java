@@ -313,7 +313,8 @@ public class FptnConnection extends Thread {
                 }
 
                 // for IPv6
-                IPAddress rootSubnetV6 = new IPAddressString(ALL_SUBNET.getAsIpV4PrefixAsString()).getAddress();
+                IPAddress rootSubnetV6 = new IPAddressString(ALL_SUBNET.getAsIpV6PrefixAsString()).getAddress();
+                XLog.tag(TAG).i("rootSubnetV6: " + rootSubnetV6);
                 List<IPAddress> subnetsToExcludeV6 = Stream.of(
                                 LOCAL_TUN_INTERFACE_SUBNET.getAsIpV6PrefixAsString(),
                                 FPTN_SERVER_SUBNET.getAsIpV6PrefixAsString(),
