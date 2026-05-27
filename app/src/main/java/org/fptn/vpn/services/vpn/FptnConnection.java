@@ -227,7 +227,7 @@ public class FptnConnection extends Thread {
         sendConnectionStateToService(ConnectionState.DISCONNECTED);
     }
 
-    private void startTun(String assignedIPv4, String assignedIPv6) {
+    private void startTun(String assignedIPv4, String assignedIPv6, DnsServers dns_server) {
         try {
             if (vpnInterface != null) {
                 vpnInterface.close();
@@ -235,6 +235,7 @@ public class FptnConnection extends Thread {
             }
 
             XLog.tag(TAG).i("Addresses: " + assignedIPv4 + " " + assignedIPv6);
+            InetAddress inetAddress = InetAddress.getByName(serverEntity.getHost());
 
             VpnService.Builder builder = service.new Builder();
             builder.setBlocking(true)
@@ -267,9 +268,6 @@ public class FptnConnection extends Thread {
                     }
                 }
             }
-
-            InetAddress inetAddress = InetAddress.getByName(serverEntity.getHost());
-            DnsServers dns_server = webSocketClient.getDnsServers();
 
             // IPv4
             builder.addDnsServer(dns_server.getIpv4());
@@ -359,10 +357,17 @@ public class FptnConnection extends Thread {
         }
         String assignedIPv4 = webSocketClient.getIPv4Address();
         String assignedIPv6 = webSocketClient.getIPv6Address();
+        DnsServers dnsServers;
+        try {
+            dnsServers = webSocketClient.getDnsServers();
+        } catch (PVNClientException e) {
+            sendExceptionToService(e);
+            return;
+        }
         service.getMainExecutor().execute(() -> {
             XLog.tag(TAG).d("Received from server - IPv4: " + assignedIPv4);
             XLog.tag(TAG).d("Received from server - IPv6: " + assignedIPv6);
-            this.startTun(assignedIPv4, assignedIPv6);
+            this.startTun(assignedIPv4, assignedIPv6, dnsServers);
         });
     }
 
