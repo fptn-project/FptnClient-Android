@@ -62,7 +62,7 @@ public class WebSocketClientWrapper {
     }
 
     public String getIPv4Address() {
-       return this.nativeWebSocketClient.getIPv4Address();
+        return this.nativeWebSocketClient.getIPv4Address();
     }
 
     public String getIPv6Address() {
@@ -128,35 +128,52 @@ public class WebSocketClientWrapper {
                 serverEntity.getPassword()
         );
         String requestBody = new Gson().toJson(loginRequest);
-        NativeResponse response = nativeHttpsClient.Post(LOGIN_URL, requestBody, 15);
-        if (response != null) {
-            if (response.code == 200) {
-                try {
-                    JSONObject jsonResponse = new JSONObject(response.body);
-                    String accessToken = jsonResponse.getString("access_token");
-                    XLog.i(getTag(), "Getting accessToken successful.");
-                    return accessToken;
-                } catch (JSONException e) {
-                    XLog.e(getTag(), "Some error occurs on parsing accessToken response: " + e);
-                    throw new PVNClientException(ErrorCode.CONNECT_TO_SERVER_ERROR);
+
+        int maxAttempts = 5;
+        for (int attempt = 1; attempt <= maxAttempts; attempt++) {
+            NativeResponse response = nativeHttpsClient.Post(LOGIN_URL, requestBody, 5);
+            if (response != null) {
+                if (response.code == 200) {
+                    try {
+                        JSONObject jsonResponse = new JSONObject(response.body);
+                        String accessToken = jsonResponse.getString("access_token");
+                        XLog.i(getTag(), "Getting accessToken successful.");
+                        return accessToken;
+                    } catch (JSONException e) {
+                        XLog.e(getTag(), "Some error occurs on parsing accessToken response: " + e);
+                    }
+                } else if (response.code == 401) {
+                    XLog.e(getTag(), "Server return unsuccess response: " + response.errorMessage);
+                    throw new PVNClientException(ErrorCode.ACCESS_TOKEN_ERROR);
                 }
-            } else if (response.code == 401) {
-                XLog.e(getTag(), "Server return unsuccess response: " + response.errorMessage);
-                throw new PVNClientException(ErrorCode.ACCESS_TOKEN_ERROR);
-            } else {
-                XLog.e(getTag(), "Server return unsuccess response!");
-                throw new PVNClientException(ErrorCode.CONNECT_TO_SERVER_ERROR);
+            }
+            XLog.w(getTag(), "getAccessToken attempt " + attempt + " failed");
+            if (attempt < maxAttempts) {
+                try {
+                    Thread.sleep(300);
+                } catch (InterruptedException ignored) {
+                }
             }
         }
         throw new PVNClientException(ErrorCode.CONNECT_TO_SERVER_ERROR);
     }
 
     public DnsServers getDnsServers() throws PVNClientException {
-        NativeResponse response = nativeHttpsClient.Get(DNS_URL, 15);
-        if (response != null && response.code == 200) {
-            DnsServers dnsServers = new Gson().fromJson(response.body, DnsServers.class);
-            XLog.i(getTag(), "DnsServers: " + dnsServers.toString());
-            return dnsServers;
+        int maxAttempts = 5;
+        for (int attempt = 1; attempt <= maxAttempts; attempt++) {
+            NativeResponse response = nativeHttpsClient.Get(DNS_URL, 5);
+            if (response != null && response.code == 200) {
+                DnsServers dnsServers = new Gson().fromJson(response.body, DnsServers.class);
+                XLog.i(getTag(), "DnsServers: " + dnsServers.toString());
+                return dnsServers;
+            }
+            XLog.w(getTag(), "getDnsServers attempt " + attempt + " failed");
+            if (attempt < maxAttempts) {
+                try {
+                    Thread.sleep(300);
+                } catch (InterruptedException ignored) {
+                }
+            }
         }
         throw new PVNClientException(ErrorCode.CONNECT_TO_SERVER_ERROR);
     }

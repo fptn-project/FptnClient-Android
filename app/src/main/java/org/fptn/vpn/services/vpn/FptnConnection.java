@@ -235,6 +235,8 @@ public class FptnConnection extends Thread {
             }
 
             XLog.tag(TAG).i("Addresses: " + assignedIPv4 + " " + assignedIPv6);
+            InetAddress inetAddress = InetAddress.getByName(serverEntity.getHost());
+            DnsServers dns_server = webSocketClient.getDnsServers();
 
             VpnService.Builder builder = service.new Builder();
             builder.setBlocking(true)
@@ -267,9 +269,6 @@ public class FptnConnection extends Thread {
                     }
                 }
             }
-
-            InetAddress inetAddress = InetAddress.getByName(serverEntity.getHost());
-            DnsServers dns_server = webSocketClient.getDnsServers();
 
             // IPv4
             builder.addDnsServer(dns_server.getIpv4());
