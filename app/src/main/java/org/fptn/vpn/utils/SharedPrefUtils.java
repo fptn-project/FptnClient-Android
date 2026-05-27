@@ -170,4 +170,15 @@ public class SharedPrefUtils {
         sharedPreferences.edit().putString(Constants.PER_APP_VPN_MODE_SHARED_PREF_KEY, perAppVPNMode.toString()).apply();
     }
 
+    /* Xiaomi/HyperOS optimization */
+    public static boolean getXiaomiOptimizationEnabled(Context context) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        return sharedPreferences.getBoolean(Constants.XIAOMI_OPTIMIZATION_ENABLED_SHARED_PREF_KEY, false);
+    }
+
+    public static void saveXiaomiOptimizationEnabled(Context context, boolean enabled) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        sharedPreferences.edit().putBoolean(Constants.XIAOMI_OPTIMIZATION_ENABLED_SHARED_PREF_KEY, enabled).apply();
+    }
+
 }

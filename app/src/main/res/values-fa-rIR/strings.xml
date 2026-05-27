@@ -138,6 +138,8 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
 
     <string name="sponsors_text">با تشکر از حامیان ما</string>
     <string name="experimental_features_label">تنظیمات آزمایشی</string>
+    <string name="xiaomi_optimization_title">بهینه‌سازی Xiaomi/HyperOS</string>
+    <string name="xiaomi_optimization_description">مخفی کردن هشدار مجوز هنگام اتصال VPN (برای دستگاه‌های شیائومی با HyperOS)</string>
     <string name="experimental_features_info">برای جلوگیری از اختلال در عملکرد اصلی، قابلیت‌های آزمایشی را فعال یا غیرفعال کنید.</string>
     <string name="reconnect_on_change">اتصال مجدد در صورت تغییر:</string>
     <string name="reconnect_on_change_network_type">نوع شبکه</string>

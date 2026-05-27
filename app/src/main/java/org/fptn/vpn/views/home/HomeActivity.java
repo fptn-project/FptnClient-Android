@@ -305,7 +305,8 @@ public class HomeActivity extends AppCompatActivity {
         ViewUtils.showView(homeSpeedFrame);
 
         // check is need to show permissions warning
-        if (!PermissionsUtils.isAllOptionalPermissionsGranted(this)) {
+        boolean xiaomiOptimizationEnabled = SharedPrefUtils.getXiaomiOptimizationEnabled(this);
+        if (!xiaomiOptimizationEnabled && !PermissionsUtils.isAllOptionalPermissionsGranted(this)) {
             ViewUtils.showView(permissionWarningFrame);
         }
 

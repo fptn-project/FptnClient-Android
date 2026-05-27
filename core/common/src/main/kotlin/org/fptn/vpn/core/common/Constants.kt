@@ -41,4 +41,7 @@ object Constants {
 
     const val SNI_SPOOFING_MODE_SHARED_PREF_KEY: String = "SNI_SPOOFING_MODE_SHARED_PREF_KEY"
     const val PER_APP_VPN_MODE_SHARED_PREF_KEY: String = "PER_APP_VPN_MODE_SHARED_PREF_KEY"
+    
+    // Xiaomi/HyperOS optimization
+    const val XIAOMI_OPTIMIZATION_ENABLED_SHARED_PREF_KEY: String = "XIAOMI_OPTIMIZATION_ENABLED"
 }
