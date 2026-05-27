@@ -32,6 +32,7 @@ public class ExperimentalSettingsActivity extends AppCompatActivity {
     private SeekBar seekBarDelayBetween;
     private SwitchCompat resetServerAfterDisconnectSwitch;
     private SwitchCompat resetServerAfterDisconnectOnException;
+    private SwitchCompat xiaomiOptimizationSwitch;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -117,6 +118,10 @@ public class ExperimentalSettingsActivity extends AppCompatActivity {
         resetServerAfterDisconnectSwitch.setOnCheckedChangeListener(
                 (buttonView, isChecked) -> updateExceptionVisibility(isChecked));
 
+        // Xiaomi/HyperOS optimization
+        xiaomiOptimizationSwitch = findViewById(R.id.xiaomi_optimization_switch);
+        xiaomiOptimizationSwitch.setChecked(SharedPrefUtils.getXiaomiOptimizationEnabled(this));
+
 
         // Save and Cancel buttons
         Button cancelButton = findViewById(R.id.cancel_button);
@@ -201,6 +206,7 @@ public class ExperimentalSettingsActivity extends AppCompatActivity {
         SharedPrefUtils.saveReconnectOnChangeIPEnabled(this, switchIPAddress.isChecked());
         SharedPrefUtils.saveResetSelectedServerEnabled(this, resetServerAfterDisconnectSwitch.isChecked());
         SharedPrefUtils.saveResetSelectedServerOnExceptionEnabled(this, resetServerAfterDisconnectOnException.isChecked());
+        SharedPrefUtils.saveXiaomiOptimizationEnabled(this, xiaomiOptimizationSwitch.isChecked());
 
         int attemptsCountProgress = seekBarAttemptsCount.getProgress();
         if (attemptsCountProgress == 3) {

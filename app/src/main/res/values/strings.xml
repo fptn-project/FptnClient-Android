@@ -211,6 +211,8 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
         ]]>
     </string>
     <string name="experimental_features_label">Experimental features</string>
+    <string name="xiaomi_optimization_title">Xiaomi/HyperOS Optimization</string>
+    <string name="xiaomi_optimization_description">Hide permission warning when VPN is connected (for Xiaomi devices with HyperOS)</string>
     <string name="experimental_features_info">Enable or disable experimental features to prevent disruption of core functionality.</string>
     <string name="reconnect_on_change">Reconnect on changing:</string>
     <string name="reconnect_on_change_network_type">of network type</string>

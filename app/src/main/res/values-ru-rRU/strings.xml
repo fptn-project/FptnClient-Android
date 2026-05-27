@@ -136,6 +136,8 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
 
     <string name="sponsors_text">Спасибо нашим спонсорам</string>
     <string name="experimental_features_label">Экспериментальные настройки</string>
+    <string name="xiaomi_optimization_title">Оптимизация Xiaomi/HyperOS</string>
+    <string name="xiaomi_optimization_description">Скрывать предупреждение о разрешениях при подключенном VPN (для устройств Xiaomi с HyperOS)</string>
     <string name="experimental_features_info">Включите или отключите экспериментальные функции для предотвращения нарушения основной функциональности.</string>
     <string name="reconnect_on_change">Переподключение при изменении:</string>
     <string name="reconnect_on_change_network_type">типа сети</string>
