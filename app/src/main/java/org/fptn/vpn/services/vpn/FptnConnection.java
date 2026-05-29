@@ -385,6 +385,7 @@ public class FptnConnection extends Thread {
     public void onConnectionFailure() {
         XLog.tag(TAG).d("onConnectionFailure() Thread.id: " + Thread.currentThread().getId());
         cancelReconnectTask();
+        reconnectCount.set(0);
         try {
             onFailureScheduledTask = scheduler.scheduleWithFixedDelay(() -> {
                 int currentCount = reconnectCount.incrementAndGet();
@@ -439,7 +440,7 @@ public class FptnConnection extends Thread {
     }
 
     private boolean isTunInterfaceValid(ParcelFileDescriptor vpnInterface) {
-        return vpnInterface.getFileDescriptor() != null;
+        return vpnInterface != null && vpnInterface.getFileDescriptor() != null && vpnInterface.getFileDescriptor().valid();
     }
 
 }
