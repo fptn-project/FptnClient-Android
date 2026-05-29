@@ -172,7 +172,7 @@ public class HomeActivityViewModel extends AndroidViewModel {
                                         socket.connect(new InetSocketAddress(server.getHost(), server.getPort()), 5000);
                                         server.setPingMs(System.currentTimeMillis() - startTime);
 
-                                        XLog.tag(TAG).d("Ping for host: " + server.getServerInfo() + " ping: " + server.getPingMs() + "ms");
+                                        XLog.tag(TAG).i("Ping for host: " + server.getServerInfo() + " ping: " + server.getPingMs() + "ms");
                                     } catch (IOException e) {
                                         server.setPingMs(-1);
                                     }
@@ -217,6 +217,17 @@ public class HomeActivityViewModel extends AndroidViewModel {
             serverList.add(ServerEntity.AUTO);
             serverList.addAll(appDatabase.serverDAO().getServerList());
 
+            // copy previous pings
+            if (lastPingedServers != null) {
+                for (ServerEntity loaded : serverList) {
+                    for (ServerEntity pinged : lastPingedServers) {
+                        if (loaded.getHost().equals(pinged.getHost()) && loaded.getPort() == pinged.getPort()) {
+                            loaded.setPingMs(pinged.getPingMs());
+                            break;
+                        }
+                    }
+                }
+            }
             serverDtoListLiveData.postValue(serverList);
         });
     }
