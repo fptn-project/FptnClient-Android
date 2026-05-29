@@ -72,6 +72,8 @@ public class HomeActivityViewModel extends AndroidViewModel {
     private volatile boolean isPingCheckingActive = false;
     public static final int PING_DELAY_MILLIS = 1000;
     public static final int BATCH_SIZE = 8;
+    private static final long PING_CYCLE_INTERVAL_MILLIS = 5 * 60 * 1000L;
+    private volatile long lastPingCycleTime = 0L;
 
     public HomeActivityViewModel(@NonNull Application application) {
         super(application);
@@ -116,19 +118,39 @@ public class HomeActivityViewModel extends AndroidViewModel {
 
         pingExecutorService.submit(() -> {
             while (isPingCheckingActive) {
-                XLog.tag(TAG).d("Checking ping...");
                 List<ServerEntity> servers = serverDtoListLiveData.getValue();
                 if (servers == null || servers.isEmpty()) {
-                    isPingCheckingActive = false;
-                    break;
+                    try {
+                        Thread.sleep(PING_DELAY_MILLIS);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        isPingCheckingActive = false;
+                    }
+                    continue;
                 }
+
+                long now = System.currentTimeMillis();
+                if (lastPingCycleTime != 0 && now - lastPingCycleTime < PING_CYCLE_INTERVAL_MILLIS) {
+                    try {
+                        Thread.sleep(PING_DELAY_MILLIS);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        isPingCheckingActive = false;
+                    }
+                    continue;
+                }
+                lastPingCycleTime = now;
+
+                XLog.tag(TAG).d("Checking ping...");
 
                 // Check is internet connection available
                 if (NetworkUtils.isOnline(connectivityManager)) {
                     // Filter out AUTO and create a working list to avoid concurrent modification issues
                     List<ServerEntity> targets = new ArrayList<>();
                     for (ServerEntity s : servers) {
-                        if (s != ServerEntity.AUTO) targets.add(s);
+                        if (s != ServerEntity.AUTO) {
+                            targets.add(s);
+                        }
                     }
 
                     // Process in batches
