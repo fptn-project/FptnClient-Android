@@ -403,7 +403,11 @@ public class FptnService extends VpnService {
 
     private void switchState(ConnectionState connectionState, int reconnectCount) {
         switch (connectionState) {
-            case DISCONNECTED -> disconnect();
+            case DISCONNECTED -> {
+                if (activeConnection.get() != null) {
+                    disconnect();
+                }
+            }
             case CONNECTING -> setConnectionState(ConnectionState.CONNECTING, null);
             case CONNECTED -> {
                 String title_connected_to = getString(R.string.connected_to) + getActionConnectServerInfo();

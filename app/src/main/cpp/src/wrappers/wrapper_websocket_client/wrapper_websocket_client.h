@@ -7,6 +7,7 @@ Distributed under the MIT License (https://opensource.org/licenses/MIT)
 
 #pragma once
 
+#include <chrono>
 #include <jni.h>
 
 #define FPTN_IP_ADDRESS_WITHOUT_PCAP
@@ -48,12 +49,13 @@ class WrapperWebsocketClient final {
                             const fptn::common::network::IPv6Address& ipv6);
 
  private:
-  const int kMaxReconnectionAttempts_ = 15;
+  const int kMaxReconnectionAttempts_ = 5;
 
   std::thread th_;
   mutable std::mutex mutex_;
   mutable std::atomic<bool> running_;
   mutable std::atomic<int> reconnection_attempts_;
+  std::chrono::steady_clock::time_point window_start_time_;
 
   const jobject wrapper_;
 

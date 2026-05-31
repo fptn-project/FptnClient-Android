@@ -61,6 +61,10 @@ public class WebSocketClientWrapper {
         );
     }
 
+    public boolean isStarted() {
+        return nativeWebSocketClient != null && nativeWebSocketClient.isStarted();
+    }
+
     public String getIPv4Address() {
         return this.nativeWebSocketClient.getIPv4Address();
     }
@@ -98,10 +102,10 @@ public class WebSocketClientWrapper {
         XLog.d(getTag(), "stopWebSocket()");
         if (nativeWebSocketClient != null) {
             if (nativeWebSocketClient.isStarted()) {
-                XLog.d(getTag(), "stopWebSocket() nativeWebSocketClient.stop() Thread.id: " + Thread.currentThread().getId());
+                XLog.i(getTag(), "stopWebSocket() nativeWebSocketClient.stop() Thread.id: " + Thread.currentThread().getId());
                 nativeWebSocketClient.stop();
             }
-            XLog.d(getTag(), "stopWebSocket() nativeWebSocketClient.release() Thread.id: " + Thread.currentThread().getId());
+            XLog.i(getTag(), "stopWebSocket() nativeWebSocketClient.release() Thread.id: " + Thread.currentThread().getId());
             nativeWebSocketClient.release();
             nativeWebSocketClient = null;
         }
@@ -129,25 +133,25 @@ public class WebSocketClientWrapper {
         );
         String requestBody = new Gson().toJson(loginRequest);
 
-        int maxAttempts = 5;
+        int maxAttempts = 3;
         for (int attempt = 1; attempt <= maxAttempts; attempt++) {
-            NativeResponse response = nativeHttpsClient.Post(LOGIN_URL, requestBody, 3);
+            NativeResponse response = nativeHttpsClient.Post(LOGIN_URL, requestBody, 5);
             if (response != null) {
                 if (response.code == 200) {
                     try {
                         JSONObject jsonResponse = new JSONObject(response.body);
                         String accessToken = jsonResponse.getString("access_token");
-                        XLog.i(getTag(), "Getting accessToken successful.");
+                        XLog.tag(getTag()).i("Getting accessToken successful.");
                         return accessToken;
                     } catch (JSONException e) {
-                        XLog.e(getTag(), "Some error occurs on parsing accessToken response: " + e);
+                        XLog.tag(getTag()).e("Some error occurs on parsing accessToken response: " + e);
                     }
                 } else if (response.code == 401) {
-                    XLog.e(getTag(), "Server return unsuccess response: " + response.errorMessage);
+                    XLog.tag(getTag()).e("Server return unsuccess response: " + response.errorMessage);
                     throw new PVNClientException(ErrorCode.ACCESS_TOKEN_ERROR);
                 }
             }
-            XLog.w(getTag(), "getAccessToken attempt " + attempt + " failed");
+            XLog.tag(getTag()).w("getAccessToken attempt " + attempt + " failed");
             if (attempt < maxAttempts) {
                 try {
                     Thread.sleep(300);
@@ -159,15 +163,15 @@ public class WebSocketClientWrapper {
     }
 
     public DnsServers getDnsServers() throws PVNClientException {
-        int maxAttempts = 5;
+        int maxAttempts = 3;
         for (int attempt = 1; attempt <= maxAttempts; attempt++) {
-            NativeResponse response = nativeHttpsClient.Get(DNS_URL, 3);
+            NativeResponse response = nativeHttpsClient.Get(DNS_URL, 5);
             if (response != null && response.code == 200) {
                 DnsServers dnsServers = new Gson().fromJson(response.body, DnsServers.class);
-                XLog.i(getTag(), "DnsServers: " + dnsServers.toString());
+                XLog.tag(getTag()).i("DnsServers: " + dnsServers.toString());
                 return dnsServers;
             }
-            XLog.w(getTag(), "getDnsServers attempt " + attempt + " failed");
+            XLog.tag(getTag()).w("getDnsServers attempt " + attempt + " failed");
             if (attempt < maxAttempts) {
                 try {
                     Thread.sleep(300);

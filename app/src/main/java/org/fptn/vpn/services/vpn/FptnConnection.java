@@ -91,6 +91,7 @@ public class FptnConnection extends Thread {
     @Getter
     private Instant connectionTime;
     private ScheduledFuture<?> onFailureScheduledTask;
+    private DnsServers cachedDnsServers;
 
     @Getter
     @Setter
@@ -195,6 +196,7 @@ public class FptnConnection extends Thread {
                     } catch (IOException e) {
                         XLog.tag(TAG).e("VPN interface closed, waiting for new one", e);
                     }
+                    Thread.sleep(100);
                 } catch (NullPointerException e) {
                     XLog.tag(TAG).e("NullPointerException");
                 }
@@ -358,11 +360,17 @@ public class FptnConnection extends Thread {
         String assignedIPv4 = webSocketClient.getIPv4Address();
         String assignedIPv6 = webSocketClient.getIPv6Address();
         DnsServers dnsServers;
-        try {
-            dnsServers = webSocketClient.getDnsServers();
-        } catch (PVNClientException e) {
-            sendExceptionToService(e);
-            return;
+        if (cachedDnsServers != null) {
+            XLog.tag(TAG).i("Using cached DNS servers: " + cachedDnsServers);
+            dnsServers = cachedDnsServers;
+        } else {
+            try {
+                dnsServers = webSocketClient.getDnsServers();
+                cachedDnsServers = dnsServers;
+            } catch (PVNClientException e) {
+                service.getMainExecutor().execute(() -> sendExceptionToService(e));
+                return;
+            }
         }
         service.getMainExecutor().execute(() -> {
             XLog.tag(TAG).d("Received from server - IPv4: " + assignedIPv4);
@@ -390,13 +398,24 @@ public class FptnConnection extends Thread {
             onFailureScheduledTask = scheduler.scheduleWithFixedDelay(() -> {
                 int currentCount = reconnectCount.incrementAndGet();
                 XLog.tag(TAG).i("Reconnect WebSocket... currentCount: " + currentCount);
+                if (webSocketClient.isStarted()) {
+                    XLog.tag(TAG).i("WebSocket already reconnected by C++, cancelling Java reconnect");
+                    if (onFailureScheduledTask != null) {
+                        onFailureScheduledTask.cancel(false);
+                        onFailureScheduledTask = null;
+                    }
+                    return;
+                }
                 if (!currentThread.isInterrupted() && isTunInterfaceValid(vpnInterface) && currentCount <= maxReconnectCount) {
                     try {
                         sendConnectionStateToService(ConnectionState.RECONNECTING);
                         XLog.tag(TAG).d("onConnectionFailure() scheduler task Thread.id: " + Thread.currentThread().getId());
                         webSocketClient.startWebSocket();
+                        if (onFailureScheduledTask != null && !onFailureScheduledTask.isCancelled()) {
+                            onFailureScheduledTask.cancel(false);
+                        }
                     } catch (PVNClientException e) {
-                        if (currentCount == maxReconnectCount) {
+                        if (e.errorCode == ErrorCode.ACCESS_TOKEN_ERROR || currentCount == maxReconnectCount) {
                             sendExceptionToService(e);
                             onFailureInterrupt();
                         }
@@ -405,6 +424,7 @@ public class FptnConnection extends Thread {
                         onFailureInterrupt();
                     }
                 } else {
+                    sendExceptionToService(new PVNClientException(ErrorCode.RECONNECTING_FAILED));
                     onFailureInterrupt();
                 }
             }, 0L, delayBetweenAttempts, TimeUnit.SECONDS);
