@@ -409,9 +409,9 @@ public class FptnConnection extends Thread {
                 }
                 if (!isServerPortOpen()) {
                     int waitCount = portWaitCount.incrementAndGet();
-                    XLog.tag(TAG).i("Server port not open yet, waiting... tick: " + waitCount + "/10");
-                    sendConnectionStateToService(ConnectionState.RECONNECTING);
-                    if (waitCount >= 10) {
+                    XLog.tag(TAG).i("Server port not open yet, attempt: " + waitCount + "/" + maxReconnectCount);
+                    sendConnectionStateToService(ConnectionState.RECONNECTING, waitCount);
+                    if (waitCount >= maxReconnectCount) {
                         sendExceptionToService(new PVNClientException(ErrorCode.RECONNECTING_FAILED));
                         onFailureInterrupt();
                     }
@@ -422,7 +422,7 @@ public class FptnConnection extends Thread {
                 XLog.tag(TAG).i("Reconnect WebSocket... currentCount: " + currentCount);
                 if (!currentThread.isInterrupted() && isTunInterfaceValid(vpnInterface) && currentCount <= maxReconnectCount) {
                     try {
-                        sendConnectionStateToService(ConnectionState.RECONNECTING);
+                        sendConnectionStateToService(ConnectionState.RECONNECTING, currentCount);
                         XLog.tag(TAG).d("onConnectionFailure() scheduler task Thread.id: " + Thread.currentThread().getId());
                         webSocketClient.startWebSocket();
                         if (onFailureScheduledTask != null && !onFailureScheduledTask.isCancelled()) {
@@ -474,6 +474,10 @@ public class FptnConnection extends Thread {
 
     private void sendConnectionStateToService(ConnectionState connectionState) {
         service.updateConnectionState(connectionState, reconnectCount.get());
+    }
+
+    private void sendConnectionStateToService(ConnectionState connectionState, int count) {
+        service.updateConnectionState(connectionState, count);
     }
 
     private boolean isServerPortOpen() {
