@@ -80,7 +80,7 @@ public class SharedPrefUtils {
 
     public static int getReconnectAttemptsCount(Context context) {
         SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
-        return sharedPreferences.getInt(Constants.RECONNECT_ATTEMPTS_COUNT_SHARED_PREF_KEY, 5);
+        return sharedPreferences.getInt(Constants.RECONNECT_ATTEMPTS_COUNT_SHARED_PREF_KEY, 20);
     }
 
     public static void saveReconnectAttemptsCount(Context context, int count) {

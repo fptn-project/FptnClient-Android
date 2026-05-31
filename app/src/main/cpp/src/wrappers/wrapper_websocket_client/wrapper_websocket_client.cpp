@@ -53,6 +53,9 @@ bool WrapperWebsocketClient::Start() {
 
 bool WrapperWebsocketClient::Stop() {
   if (!running_) {
+    if (th_.joinable()) {
+      th_.join();
+    }
     return true;
   }
   {
@@ -89,7 +92,7 @@ void WrapperWebsocketClient::Run() {
 
   // Current count of reconnection attempts
   reconnection_attempts_ = kMaxReconnectionAttempts_;
-  auto window_start_time = std::chrono::steady_clock::now();
+  window_start_time_ = std::chrono::steady_clock::now();
 
   while (running_ && reconnection_attempts_ > 0) {
     try {
@@ -139,13 +142,13 @@ void WrapperWebsocketClient::Run() {
 
     // Calculate time since last window start
     const auto current_time = std::chrono::steady_clock::now();
-    const auto elapsed = current_time - window_start_time;
+    const auto elapsed = current_time - window_start_time_;
 
     // Reconnection attempt counting logic
     if (elapsed >= kReconnectionWindow) {
       // Reset counter if we're past the time window
       reconnection_attempts_ = kMaxReconnectionAttempts_;
-      window_start_time = current_time;
+      window_start_time_ = current_time;
     } else {
       // Decrement counter if within time window
       --reconnection_attempts_;
@@ -166,6 +169,7 @@ void WrapperWebsocketClient::Run() {
   if (running_ && reconnection_attempts_ == 0) {
     SPDLOG_ERROR("Failed to establish connection after {} attempts",
         kMaxReconnectionAttempts_);
+    running_ = false;
 
     JNIEnv* env = getJniEnv();
     if (!env) {
@@ -274,6 +278,9 @@ void WrapperWebsocketClient::onConnectedCallback() {
     SPDLOG_WARN("onConnectedCallback called but client is not running");
     return;
   }
+
+  reconnection_attempts_ = kMaxReconnectionAttempts_;
+  window_start_time_ = std::chrono::steady_clock::now();
 
   JNIEnv* env = getJniEnv();
   if (!env) {
