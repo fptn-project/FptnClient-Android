@@ -420,7 +420,7 @@ public class FptnConnection extends Thread {
                 portWaitCount.set(0);
                 int currentCount = reconnectCount.incrementAndGet();
                 XLog.tag(TAG).i("Reconnect WebSocket... currentCount: " + currentCount);
-                if (!currentThread.isInterrupted() && isTunInterfaceValid(vpnInterface) && currentCount <= maxReconnectCount) {
+                if (!currentThread.isInterrupted() && (vpnInterface == null || isTunInterfaceValid(vpnInterface)) && currentCount <= maxReconnectCount) {
                     try {
                         sendConnectionStateToService(ConnectionState.RECONNECTING, currentCount);
                         XLog.tag(TAG).d("onConnectionFailure() scheduler task Thread.id: " + Thread.currentThread().getId());
