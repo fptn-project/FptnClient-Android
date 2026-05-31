@@ -35,6 +35,8 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.net.UnknownHostException;
 import java.time.Duration;
 import java.time.Instant;
@@ -394,10 +396,9 @@ public class FptnConnection extends Thread {
         XLog.tag(TAG).d("onConnectionFailure() Thread.id: " + Thread.currentThread().getId());
         cancelReconnectTask();
         reconnectCount.set(0);
+        final AtomicInteger portWaitCount = new AtomicInteger(0);
         try {
             onFailureScheduledTask = scheduler.scheduleWithFixedDelay(() -> {
-                int currentCount = reconnectCount.incrementAndGet();
-                XLog.tag(TAG).i("Reconnect WebSocket... currentCount: " + currentCount);
                 if (webSocketClient.isStarted()) {
                     XLog.tag(TAG).i("WebSocket already reconnected by C++, cancelling Java reconnect");
                     if (onFailureScheduledTask != null) {
@@ -406,6 +407,19 @@ public class FptnConnection extends Thread {
                     }
                     return;
                 }
+                if (!isServerPortOpen()) {
+                    int waitCount = portWaitCount.incrementAndGet();
+                    XLog.tag(TAG).i("Server port not open yet, waiting... tick: " + waitCount + "/10");
+                    sendConnectionStateToService(ConnectionState.RECONNECTING);
+                    if (waitCount >= 10) {
+                        sendExceptionToService(new PVNClientException(ErrorCode.RECONNECTING_FAILED));
+                        onFailureInterrupt();
+                    }
+                    return;
+                }
+                portWaitCount.set(0);
+                int currentCount = reconnectCount.incrementAndGet();
+                XLog.tag(TAG).i("Reconnect WebSocket... currentCount: " + currentCount);
                 if (!currentThread.isInterrupted() && isTunInterfaceValid(vpnInterface) && currentCount <= maxReconnectCount) {
                     try {
                         sendConnectionStateToService(ConnectionState.RECONNECTING);
@@ -415,6 +429,9 @@ public class FptnConnection extends Thread {
                             onFailureScheduledTask.cancel(false);
                         }
                     } catch (PVNClientException e) {
+                        if (e.errorCode == ErrorCode.ACCESS_TOKEN_ERROR) {
+                            webSocketClient.invalidateAccessToken();
+                        }
                         if (e.errorCode == ErrorCode.ACCESS_TOKEN_ERROR || currentCount == maxReconnectCount) {
                             sendExceptionToService(e);
                             onFailureInterrupt();
@@ -457,6 +474,18 @@ public class FptnConnection extends Thread {
 
     private void sendConnectionStateToService(ConnectionState connectionState) {
         service.updateConnectionState(connectionState, reconnectCount.get());
+    }
+
+    private boolean isServerPortOpen() {
+        try {
+            Socket socket = new Socket();
+            service.protect(socket);
+            socket.connect(new InetSocketAddress(serverEntity.getHost(), serverEntity.getPort()), 300);
+            socket.close();
+            return true;
+        } catch (IOException e) {
+            return false;
+        }
     }
 
     private boolean isTunInterfaceValid(ParcelFileDescriptor vpnInterface) {

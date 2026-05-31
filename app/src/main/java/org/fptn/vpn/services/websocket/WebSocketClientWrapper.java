@@ -30,6 +30,7 @@ public class WebSocketClientWrapper {
     private final SniSpoofingMode sniSpoofingMode;
 
     private NativeWebSocketClientImpl nativeWebSocketClient;
+    private String cachedAccessToken = null;
 
     @Getter
     private boolean shutdown = false;
@@ -79,12 +80,16 @@ public class WebSocketClientWrapper {
         }
         stopWebSocket();
 
-        String accessToken = getAccessToken(); // maybe move to constructor if it not changed between connections?
+        if (cachedAccessToken == null) {
+            cachedAccessToken = getAccessToken();
+        } else {
+            XLog.d(getTag(), "startWebSocket() using cached access token");
+        }
 
         nativeWebSocketClient = new NativeWebSocketClientImpl(
                 serverEntity.getHost(),
                 serverEntity.getPort(),
-                accessToken,
+                cachedAccessToken,
                 serverEntity.getMd5ServerFingerprint(),
                 onOpenCallback,
                 onMessageReceivedCallback,
@@ -124,6 +129,10 @@ public class WebSocketClientWrapper {
     public synchronized void shutdown() {
         stopWebSocket();
         shutdown = true;
+    }
+
+    public void invalidateAccessToken() {
+        cachedAccessToken = null;
     }
 
     private String getAccessToken() throws PVNClientException {
