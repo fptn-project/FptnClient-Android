@@ -25,12 +25,11 @@ public class SpeedTestUtils {
     private static final String PREMIUM_KEYWORD = "premium";
 
     public static ServerEntity findFastestServer(List<ServerEntity> serverEntityList, String sniHostName, BypassCensorshipMethod censorshipStrategy, SniSpoofingMode sniSpoofingMode) throws PVNClientException {
-        XLog.tag(TAG).d("SpeedTestUtils.findFastestServer() start: " + Instant.now() + ", Thread.Id: " + Thread.currentThread().getId());
+        XLog.tag(TAG).i("Speed test started [candidates=%d]", serverEntityList != null ? serverEntityList.size() : 0);
 
         if (serverEntityList != null && !serverEntityList.isEmpty()) {
             List<ServerEntity> selectedServers = selectServersForTesting(serverEntityList);
-            XLog.tag(TAG).d("SpeedTestUtils.findFastestServer() testing " + selectedServers.size() +
-                    " out of " + serverEntityList.size() + " servers");
+            XLog.tag(TAG).d("Testing %d/%d servers", selectedServers.size(), serverEntityList.size());
 
             ExecutorService executor = Executors.newFixedThreadPool(selectedServers.size());
             List<NativeSpeedTestTask> nativeSpeedTestTaskList = selectedServers.stream()
@@ -38,9 +37,8 @@ public class SpeedTestUtils {
                     .collect(Collectors.toList());
             try {
                 NativeSpeedTestResult bestResult = executor.invokeAny(nativeSpeedTestTaskList, SEARCH_BEST_SERVER_MAX_TIMEOUT, TimeUnit.SECONDS);
-                XLog.tag(TAG).d("SpeedTestUtils.findFastestServer() bestServer: " + bestResult.getServerEntity().getServerInfo() +
-                        " with response time: " + bestResult.getDurationsMillis() + " ms");
-                XLog.tag(TAG).d("SpeedTestUtils.findFastestServer() end: " + Instant.now());
+                XLog.tag(TAG).i("Fastest server found [server=%s, latency=%dms]", bestResult.getServerEntity().getServerInfo(), bestResult.getDurationsMillis());
+                XLog.tag(TAG).d("Speed test completed");
                 return bestResult.getServerEntity();
             } catch (InterruptedException e) {
                 throw new PVNClientException(ErrorCode.FIND_FASTEST_SERVER_TIMEOUT);
@@ -70,8 +68,7 @@ public class SpeedTestUtils {
             }
         }
 
-        XLog.tag(TAG).d("Found " + premiumServers.size() + " premium servers and " +
-                regularServers.size() + " regular servers");
+        XLog.tag(TAG).d("Server classification [premium=%d, regular=%d]", premiumServers.size(), regularServers.size());
 
         List<ServerEntity> selectedServers = new ArrayList<>(premiumServers);
         if (!regularServers.isEmpty()) {
@@ -86,9 +83,7 @@ public class SpeedTestUtils {
                 selectedServers.addAll(regularServers.subList(0, regularCountToAdd));
             }
         }
-        XLog.tag(TAG).d("Selected " + selectedServers.size() + " servers for testing: " +
-                selectedServers.size() + " total (" + premiumServers.size() + " premium + " +
-                (selectedServers.size() - premiumServers.size()) + " regular)");
+        XLog.tag(TAG).d("Selected %d servers for testing [premium=%d, regular=%d]", selectedServers.size(), premiumServers.size(), selectedServers.size() - premiumServers.size());
         return selectedServers;
     }
 }

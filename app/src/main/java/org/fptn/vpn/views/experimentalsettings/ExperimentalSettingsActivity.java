@@ -121,7 +121,7 @@ public class ExperimentalSettingsActivity extends AppCompatActivity {
         // Save and Cancel buttons
         Button cancelButton = findViewById(R.id.cancel_button);
         cancelButton.setOnClickListener(v -> {
-            XLog.tag(TAG).d("Cancel button clicked");
+            XLog.tag(TAG).i("Experimental settings cancelled");
             finish();
         });
 
@@ -153,7 +153,7 @@ public class ExperimentalSettingsActivity extends AppCompatActivity {
                     resultCode -> handleTileRequestResult(resultCode, buttonRequestTile)
             );
         } catch (Exception e) {
-            XLog.tag(TAG).e("Failed to request tile addition", e);
+            XLog.tag(TAG).e("Failed to request quick settings tile addition: %s", e.getMessage());
             Toast.makeText(this, R.string.tile_addition_failed, Toast.LENGTH_SHORT).show();
             buttonRequestTile.setEnabled(true);
         }
@@ -165,25 +165,25 @@ public class ExperimentalSettingsActivity extends AppCompatActivity {
 
         switch (resultCode) {
             case StatusBarManager.TILE_ADD_REQUEST_RESULT_TILE_ALREADY_ADDED:
-                XLog.tag(TAG).d("Tile already added successfully.");
+                XLog.tag(TAG).i("Quick settings tile already present");
                 Toast.makeText(this, R.string.tile_already_added, Toast.LENGTH_SHORT).show();
                 button.setBackgroundResource(R.drawable.round_back_secondary_cancel_100);
                 shouldKeepDisabled = true;
                 break;
 
             case StatusBarManager.TILE_ADD_REQUEST_RESULT_TILE_ADDED:
-                XLog.tag(TAG).d("Tile added successfully.");
+                XLog.tag(TAG).i("Quick settings tile added successfully");
                 Toast.makeText(this, R.string.tile_added_successfully, Toast.LENGTH_SHORT).show();
                 shouldKeepDisabled = true;
                 break;
 
             case StatusBarManager.TILE_ADD_REQUEST_RESULT_TILE_NOT_ADDED:
-                XLog.tag(TAG).d("User cancelled the request or it failed.");
+                XLog.tag(TAG).w("Quick settings tile request was declined");
                 button.setEnabled(true);
                 break;
 
             default:
-                XLog.tag(TAG).d("Unknown result code: " + resultCode);
+                XLog.tag(TAG).w("Quick settings tile request returned unexpected result [code=%d]", resultCode);
                 button.setEnabled(true);
                 break;
         }
@@ -195,7 +195,7 @@ public class ExperimentalSettingsActivity extends AppCompatActivity {
     }
 
     private void saveAndFinish() {
-        XLog.tag(TAG).d("Save button clicked");
+        XLog.tag(TAG).i("Experimental settings saved [watchNetwork=%b, watchIP=%b, attempts=%d, delay=%ds]", switchNetworkType.isChecked(), switchIPAddress.isChecked(), seekBarAttemptsCount.getProgress(), seekBarDelayBetween.getProgress() + 1);
 
         SharedPrefUtils.saveReconnectOnChangeNetworkTypeEnabled(this, switchNetworkType.isChecked());
         SharedPrefUtils.saveReconnectOnChangeIPEnabled(this, switchIPAddress.isChecked());

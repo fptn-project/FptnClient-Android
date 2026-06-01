@@ -33,7 +33,7 @@ public class FptnTileService extends TileService {
     public void onCreate() {
         super.onCreate();
 
-        XLog.tag(TAG).i("FptnTileService.onCreate()");
+        XLog.tag(TAG).i("Tile service created");
         serviceStateObserver = connectionState -> updateTile();
         serviceStateMutableLiveData.observeForever(serviceStateObserver);
     }
@@ -42,7 +42,7 @@ public class FptnTileService extends TileService {
     public void onDestroy() {
         super.onDestroy();
 
-        XLog.tag(TAG).i("FptnTileService.onDestroy()");
+        XLog.tag(TAG).i("Tile service destroyed");
         if (serviceStateObserver != null) {
             serviceStateMutableLiveData.removeObserver(serviceStateObserver);
             serviceStateObserver = null;
@@ -53,7 +53,7 @@ public class FptnTileService extends TileService {
     public void onClick() {
 
         unlockAndRun(() -> {
-            XLog.tag(TAG).i("FptnTileService.onClick()");
+            XLog.tag(TAG).i("Tile clicked [state=%s]", serviceStateMutableLiveData.getValue());
             ConnectionState connectionState = serviceStateMutableLiveData.getValue();
             if (connectionState != null && connectionState.isActiveState()) {
                 FptnService.startToDisconnect(this);
@@ -84,7 +84,7 @@ public class FptnTileService extends TileService {
 
                 Intent vpnIntent = VpnService.prepare(this);
                 if (vpnIntent != null) {
-                    XLog.tag(TAG).w("onClick: VPN permission not granted, opening app");
+                    XLog.tag(TAG).w("VPN permission not granted — launching app for user confirmation");
                     Intent launchIntent = getPackageManager().getLaunchIntentForPackage(getPackageName());
                     if (launchIntent != null) {
                         launchIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -110,12 +110,12 @@ public class FptnTileService extends TileService {
 
     @Override
     public void onStartListening() {
-        XLog.tag(TAG).i("FptnTileService.onStartListening()");
+        XLog.tag(TAG).i("Tile panel opened [state=%s]", serviceStateMutableLiveData.getValue());
         updateTile();
     }
 
     private void updateTile() {
-        XLog.tag(TAG).d("updateTile()");
+        XLog.tag(TAG).d("Updating tile [state=%s]", serviceStateMutableLiveData.getValue());
         Tile tile = getQsTile();
         if (tile != null) {
             // Update tile state

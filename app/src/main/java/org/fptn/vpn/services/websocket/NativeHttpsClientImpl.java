@@ -47,7 +47,7 @@ public class NativeHttpsClientImpl {
     }
 
     public synchronized void release() {
-        XLog.tag(TAG).d("NativeHttpsClientImpl.release()");
+        XLog.tag(TAG).d("release() [handle=%d]", nativeHandle);
         if (nativeHandle != 0) {
             nativeDestroy(nativeHandle);
             nativeHandle = 0;
@@ -62,7 +62,7 @@ public class NativeHttpsClientImpl {
 
     @Override
     protected void finalize() throws Throwable {
-        XLog.tag(TAG).d("NativeHttpsClientImpl.finalize()");
+        XLog.tag(TAG).d("finalize() GC triggered");
         try {
             release();
         } finally {

@@ -71,14 +71,14 @@ public class NativeWebSocketClientImpl {
     }
 
     public void start() {
-        XLog.tag(TAG).d("NativeWebSocketClientImpl.start() Thread.id: " + Thread.currentThread().getId() + " serialNum: " + serialNum);
+        XLog.tag(TAG).d("start() [serial=%d, thread=%d]", serialNum, Thread.currentThread().getId());
         if (!nativeIsStarted(nativeHandle)) {
             nativeRun(nativeHandle);
         }
     }
 
     public void stop() {
-        XLog.tag(TAG).d("NativeWebSocketClientImpl.stop() Thread.id: " + Thread.currentThread().getId() + " serialNum: " + serialNum);
+        XLog.tag(TAG).d("stop() [serial=%d, thread=%d]", serialNum, Thread.currentThread().getId());
         if (nativeIsStarted(nativeHandle)) {
             nativeStop(nativeHandle);
         }
@@ -95,7 +95,7 @@ public class NativeWebSocketClientImpl {
     }
 
     public synchronized void release() {
-        XLog.tag(TAG).d("NativeWebSocketClientImpl.release() Thread.id: " + Thread.currentThread().getId() + " serialNum: " + serialNum);
+        XLog.tag(TAG).d("release() [serial=%d, thread=%d]", serialNum, Thread.currentThread().getId());
         if (nativeHandle != 0) {
             nativeDestroy(nativeHandle);
             nativeHandle = 0;
@@ -104,7 +104,7 @@ public class NativeWebSocketClientImpl {
 
     @Override
     protected void finalize() throws Throwable {
-        XLog.tag(TAG).d("NativeWebSocketClientImpl.finalize() Thread.id: " + Thread.currentThread().getId() + " serialNum: " + serialNum);
+        XLog.tag(TAG).d("finalize() [serial=%d, thread=%d]", serialNum, Thread.currentThread().getId());
         try {
             release();
         } finally {
@@ -113,19 +113,19 @@ public class NativeWebSocketClientImpl {
     }
 
     public void onOpenImpl() {
-        XLog.tag(TAG).d("NativeWebSocketClientImpl.onOpenImpl():start()" + " serialNum: " + serialNum);
+        XLog.tag(TAG).i("WebSocket opened — dispatching onOpen [serial=%d]", serialNum);
         if (this.onOpenCallback != null) {
             this.onOpenCallback.onOpen();
         }
-        XLog.tag(TAG).d("NativeWebSocketClientImpl.onOpenImpl():end()");
+        XLog.tag(TAG).d("onOpenImpl completed [serial=%d]", serialNum);
     }
 
     public void onFailureImpl() {
-        XLog.tag(TAG).d("NativeWebSocketClientImpl.onFailureImpl():start()" + " serialNum: " + serialNum);
+        XLog.tag(TAG).w("WebSocket failure — dispatching onFailure [serial=%d]", serialNum);
         if (this.onFailureCallback != null) {
             this.onFailureCallback.onFailure();
         }
-        XLog.tag(TAG).d("NativeWebSocketClientImpl.onFailureImpl():end()");
+        XLog.tag(TAG).d("onFailureImpl completed [serial=%d]", serialNum);
     }
 
     public void onMessageImpl(byte[] msg) {

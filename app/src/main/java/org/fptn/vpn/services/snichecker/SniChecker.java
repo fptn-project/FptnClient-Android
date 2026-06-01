@@ -28,10 +28,10 @@ public class SniChecker {
     }
 
     public boolean checkSni(String sni) {
-        XLog.tag(TAG).d("checkSni: " + sni);
+        XLog.tag(TAG).d("Checking SNI [sni=%s]", sni);
 
         if (nativeHandle == 0) {
-            XLog.tag(TAG).e("Native handle is null");
+            XLog.tag(TAG).e("Cannot check SNI — native handle is null [sni=%s]", sni);
             return false;
         }
         return nativeCheckSni(nativeHandle, sni);

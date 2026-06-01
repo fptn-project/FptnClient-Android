@@ -146,7 +146,7 @@ public class SniCheckerService extends Service {
             intent.putExtra(SELECTED_SERVER, serverEntity.getId());
             context.startService(intent);
         } else {
-            XLog.tag(TAG).e("startChecking: no server selected");
+            XLog.tag(TAG).e("Cannot start SNI check — no server selected");
         }
     }
 
@@ -158,14 +158,13 @@ public class SniCheckerService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        XLog.tag(TAG).d("onStartCommand: intent: " + intent);
+        XLog.tag(TAG).d("onStartCommand [action=%s]", intent != null ? intent.getAction() : "null");
         if (intent != null) {
             String intentAction = intent.getAction();
-            XLog.tag(TAG).d("onStartCommand: intentAction: " + intentAction);
 
             if (ACTION_START.equalsIgnoreCase(intentAction)) {
                 startForegroundWithNotification("Searching the best SNI");
-                XLog.tag(TAG).d("Searching the best SNI");
+                XLog.tag(TAG).i("SNI check started");
 
                 // read params from intent
                 bypassCensorshipMethod = BypassCensorshipMethod.valueOf(intent.getStringExtra(BYPASS_METHOD));
@@ -187,7 +186,7 @@ public class SniCheckerService extends Service {
                         int currentNum = 0;
                         int allUncheckedCount = appDatabase.sniDAO().countUnchecked();
                         if (allUncheckedCount == 0 || resetChecked) {
-                            XLog.tag(TAG).d("Reset all SNI");
+                            XLog.tag(TAG).i("Resetting SNI check state [reset=%b, unchecked=%d]", resetChecked, allUncheckedCount);
                             appDatabase.sniDAO().resetAll();
                             allUncheckedCount = appDatabase.sniDAO().countUnchecked();
                         }
@@ -220,7 +219,7 @@ public class SniCheckerService extends Service {
                                 // checking current
                                 boolean valid = sniChecker.checkSni(currentSni);
                                 if (valid) {
-                                    XLog.tag(TAG).d("Founded valid SNI: " + currentSni);
+                                    XLog.tag(TAG).i("Found valid SNI [sni=%s, checked=%d/%d]", currentSni, currentNum, allUncheckedCount);
                                     foundedSni = currentSni;
                                 }
                             }
@@ -228,10 +227,10 @@ public class SniCheckerService extends Service {
                             if (!checkedSniEntities.isEmpty()) {
                                 // save progress sni
                                 try {
-                                    XLog.tag(TAG).d("Saving checked to DB");
+                                    XLog.tag(TAG).d("Saving batch to DB [count=%d]", checkedSniEntities.size());
                                     appDatabase.sniDAO().insertAll(checkedSniEntities).get();
                                 } catch (ExecutionException | InterruptedException e) {
-                                    XLog.tag(TAG).e("Error occurs on saved checked!", e);
+                                    XLog.tag(TAG).e("Failed to save SNI batch to DB: %s", e.getMessage());
                                 }
                             }
 
@@ -239,7 +238,7 @@ public class SniCheckerService extends Service {
                             sniEntitiesToCheck = appDatabase.sniDAO().getUnchecked(SNI_BATCH_SIZE);
                         }
                     } else {
-                        XLog.tag(TAG).e("Server not found with id: " + serverId);
+                        XLog.tag(TAG).e("Server not found [id=%d] — aborting SNI check", serverId);
                     }
                     stopCheckingProcess();
                 });
@@ -284,7 +283,7 @@ public class SniCheckerService extends Service {
             wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, SNI_CHECKER_POWER_LOCK);
             wakeLock.acquire(5000);
         } catch (Exception e) {
-            XLog.tag(TAG).e("Can't acquire power lock!", e);
+            XLog.tag(TAG).e("Failed to acquire WakeLock: %s", e.getMessage());
         }
     }
 
@@ -293,7 +292,7 @@ public class SniCheckerService extends Service {
             try {
                 wakeLock.release();
             } catch (Exception e) {
-                XLog.tag(TAG).e("Can't release power lock!", e);
+                XLog.tag(TAG).e("Failed to release WakeLock: %s", e.getMessage());
             }
         }
     }

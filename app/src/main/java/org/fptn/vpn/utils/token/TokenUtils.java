@@ -57,7 +57,7 @@ public class TokenUtils {
                 for (ServerFromToken server : servers) {
                     ServerEntity serverEntity = createServerEntity(server, username, password, false);
                     serverDtoList.add(serverEntity);
-                    XLog.tag(TAG).d("Server from token: " + serverEntity.getServerInfo());
+                    XLog.tag(TAG).d("Server parsed from token [server=%s]", serverEntity.getServerInfo());
                 }
             }
             // add censured servers
@@ -66,17 +66,16 @@ public class TokenUtils {
                 for (ServerFromToken server : censoredServers) {
                     ServerEntity serverEntity = createServerEntity(server, username, password, true);
                     serverDtoList.add(serverEntity);
-                    XLog.tag(TAG).d("Censured server from token: " + serverEntity.getServerInfo());
+                    XLog.tag(TAG).d("Censored server parsed from token [server=%s]", serverEntity.getServerInfo());
                 }
             }
         } catch (IOException e) {
-            String errorMessage = "Can't parse FPTNLink!: ";
-            XLog.tag(TAG).e(errorMessage, e);
+            XLog.tag(TAG).e("Failed to decode/parse FPTN token: %s", e.getMessage());
             throw new PVNClientException(ErrorCode.ACCESS_TOKEN_FORMAT_ERROR);
         }
 
         if (serverDtoList.isEmpty()) {
-            XLog.tag(TAG).e("Server list from token is empty!");
+            XLog.tag(TAG).e("Token parsed but no servers found — token may be invalid or expired");
             throw new PVNClientException(ErrorCode.SERVER_LIST_NULL_OR_EMPTY);
         }
 

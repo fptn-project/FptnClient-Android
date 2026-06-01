@@ -83,7 +83,7 @@ public class WebSocketClientWrapper {
         if (cachedAccessToken == null) {
             cachedAccessToken = getAccessToken();
         } else {
-            XLog.d(getTag(), "startWebSocket() using cached access token");
+            XLog.d(getTag(), "Re-using cached access token (skipping login)");
         }
 
         nativeWebSocketClient = new NativeWebSocketClientImpl(
@@ -99,18 +99,18 @@ public class WebSocketClientWrapper {
                 sniSpoofingMode
         );
 
-        XLog.d(getTag(), "startWebSocket() nativeWebSocketClient.start() Thread.id: " + Thread.currentThread().getId());
+        XLog.d(getTag(), "WebSocket start dispatched [thread=" + Thread.currentThread().getId() + "]");
         nativeWebSocketClient.start();
     }
 
     public synchronized void stopWebSocket() {
-        XLog.d(getTag(), "stopWebSocket()");
+        XLog.d(getTag(), "stopWebSocket called [thread=" + Thread.currentThread().getId() + "]");
         if (nativeWebSocketClient != null) {
             if (nativeWebSocketClient.isStarted()) {
-                XLog.i(getTag(), "stopWebSocket() nativeWebSocketClient.stop() Thread.id: " + Thread.currentThread().getId());
+                XLog.i(getTag(), "Stopping active WebSocket [thread=" + Thread.currentThread().getId() + "]");
                 nativeWebSocketClient.stop();
             }
-            XLog.i(getTag(), "stopWebSocket() nativeWebSocketClient.release() Thread.id: " + Thread.currentThread().getId());
+            XLog.i(getTag(), "Releasing WebSocket resources [thread=" + Thread.currentThread().getId() + "]");
             nativeWebSocketClient.release();
             nativeWebSocketClient = null;
         }
@@ -150,17 +150,17 @@ public class WebSocketClientWrapper {
                     try {
                         JSONObject jsonResponse = new JSONObject(response.body);
                         String accessToken = jsonResponse.getString("access_token");
-                        XLog.tag(getTag()).i("Getting accessToken successful.");
+                        XLog.tag(getTag()).i("Access token acquired successfully [attempt=%d]", attempt);
                         return accessToken;
                     } catch (JSONException e) {
-                        XLog.tag(getTag()).e("Some error occurs on parsing accessToken response: " + e);
+                        XLog.tag(getTag()).e("Failed to parse access token response: %s", e.getMessage());
                     }
                 } else if (response.code == 401) {
-                    XLog.tag(getTag()).e("Server return unsuccess response: " + response.errorMessage);
+                    XLog.tag(getTag()).e("Authentication rejected by server [code=401, error=%s]", response.errorMessage);
                     throw new PVNClientException(ErrorCode.ACCESS_TOKEN_ERROR);
                 }
             }
-            XLog.tag(getTag()).w("getAccessToken attempt " + attempt + " failed");
+            XLog.tag(getTag()).w("Access token request failed [attempt=%d/%d]", attempt, maxAttempts);
             if (attempt < maxAttempts) {
                 try {
                     Thread.sleep(300);
@@ -177,10 +177,10 @@ public class WebSocketClientWrapper {
             NativeResponse response = nativeHttpsClient.Get(DNS_URL, 5);
             if (response != null && response.code == 200) {
                 DnsServers dnsServers = new Gson().fromJson(response.body, DnsServers.class);
-                XLog.tag(getTag()).i("DnsServers: " + dnsServers.toString());
+                XLog.tag(getTag()).i("DNS servers received: %s", dnsServers.toString());
                 return dnsServers;
             }
-            XLog.tag(getTag()).w("getDnsServers attempt " + attempt + " failed");
+            XLog.tag(getTag()).w("DNS server request failed [attempt=%d/%d]", attempt, maxAttempts);
             if (attempt < maxAttempts) {
                 try {
                     Thread.sleep(300);
