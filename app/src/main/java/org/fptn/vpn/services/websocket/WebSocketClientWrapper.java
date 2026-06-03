@@ -142,9 +142,9 @@ public class WebSocketClientWrapper {
         );
         String requestBody = new Gson().toJson(loginRequest);
 
-        int maxAttempts = 3;
+        int maxAttempts = 5;
         for (int attempt = 1; attempt <= maxAttempts; attempt++) {
-            NativeResponse response = nativeHttpsClient.Post(LOGIN_URL, requestBody, 5);
+            NativeResponse response = nativeHttpsClient.Post(LOGIN_URL, requestBody, 6);
             if (response != null) {
                 if (response.code == 200) {
                     try {
@@ -172,9 +172,9 @@ public class WebSocketClientWrapper {
     }
 
     public DnsServers getDnsServers() throws PVNClientException {
-        int maxAttempts = 3;
+        int maxAttempts = 5;
         for (int attempt = 1; attempt <= maxAttempts; attempt++) {
-            NativeResponse response = nativeHttpsClient.Get(DNS_URL, 5);
+            NativeResponse response = nativeHttpsClient.Get(DNS_URL, 6);
             if (response != null && response.code == 200) {
                 DnsServers dnsServers = new Gson().fromJson(response.body, DnsServers.class);
                 XLog.tag(getTag()).i("DNS servers received: %s", dnsServers.toString());

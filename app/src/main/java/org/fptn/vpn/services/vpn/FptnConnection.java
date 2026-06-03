@@ -87,8 +87,11 @@ public class FptnConnection extends Thread {
 
     @Setter
     private PendingIntent configureVpnIntent;
-    private ParcelFileDescriptor vpnInterface;
-    private FileOutputStream outputStream;
+    // volatile: the TUN read loop runs on the connection thread while startTun() runs on the
+    // main thread. Without volatile, the connection thread may cache a stale reference and
+    // spin forever on the closed old fd instead of waiting for the new one.
+    private volatile ParcelFileDescriptor vpnInterface;
+    private volatile FileOutputStream outputStream;
 
     @Getter
     private Instant connectionTime;
@@ -191,8 +194,11 @@ public class FptnConnection extends Thread {
                                     Thread.sleep(MIN_SEND_INTERVAL_MS);
                                 }
                             } catch (Exception e) {
-                                XLog.tag(TAG).w("[id=%d] TUN read error [wsStarted=%b]: %s",
-                                connectionId, webSocketClient.isStarted(), e.getMessage());
+                                // Expected during TUN rebuild: startTun() closes the old fd on the
+                                // main thread while we are blocked in read() here. With vpnInterface
+                                // now volatile the outer loop will correctly wait for the new fd.
+                                XLog.tag(TAG).d("[id=%d] TUN fd closed during reconnect [wsStarted=%b]: %s",
+                                        connectionId, webSocketClient.isStarted(), e.getMessage());
                                 break;
                             }
                         }
@@ -221,6 +227,13 @@ public class FptnConnection extends Thread {
         if (!currentThread.isInterrupted()) {
             currentThread.interrupt();
         }
+        if (outputStream != null) {
+            try {
+                outputStream.close();
+            } catch (IOException e) {
+                XLog.tag(TAG).d("Unable to close output stream", e);
+            }
+        }
         if (vpnInterface != null) {
             try {
                 vpnInterface.close();
@@ -232,6 +245,22 @@ public class FptnConnection extends Thread {
         scheduler.shutdown();
 
         sendConnectionStateToService(ConnectionState.DISCONNECTED);
+    }
+
+    /**
+     * Called when the physical network changes (WiFi ↔ Cellular).
+     * Unlike onConnectionFailure(), this method unconditionally stops the current WebSocket
+     * before triggering a reconnect so that:
+     * 1. The new WebSocket is established on the new physical network.
+     * 2. onConnectionOpen() fires, which rebuilds the TUN with the new server-assigned IP.
+     *    (The server assigns a fresh IP on every connect, so a stale TUN would silently
+     *    black-hole traffic even though the UI shows "CONNECTED".)
+     */
+    public void onNetworkChanged() {
+        XLog.tag(TAG).i("[id=%d] Network changed — forcing clean reconnect [wsStarted=%b]",
+                connectionId, webSocketClient.isStarted());
+        webSocketClient.stopWebSocket();
+        onConnectionFailure();
     }
 
     private void startTun(String assignedIPv4, String assignedIPv6, DnsServers dns_server) {
@@ -398,7 +427,7 @@ public class FptnConnection extends Thread {
                 isTunInterfaceValid(vpnInterface),
                 onFailureScheduledTask != null && !onFailureScheduledTask.isCancelled());
         cancelReconnectTask();
-        reconnectCount.set(0);
+        webSocketClient.stopWebSocket();
         final AtomicInteger portWaitCount = new AtomicInteger(0);
         try {
             onFailureScheduledTask = scheduler.scheduleWithFixedDelay(() -> {
@@ -410,18 +439,7 @@ public class FptnConnection extends Thread {
                     }
                     return;
                 }
-                if (!isServerPortOpen()) {
-                    int waitCount = portWaitCount.incrementAndGet();
-                    XLog.tag(TAG).w("[id=%d] Server port unreachable [attempt %d/%d]",
-                            connectionId, waitCount, maxReconnectCount);
-                    sendConnectionStateToService(ConnectionState.RECONNECTING, waitCount);
-                    if (waitCount >= maxReconnectCount) {
-                        sendExceptionToService(new PVNClientException(ErrorCode.RECONNECTING_FAILED));
-                        onFailureInterrupt();
-                    }
-                    return;
-                }
-                portWaitCount.set(0);
+
                 int currentCount = reconnectCount.incrementAndGet();
                 XLog.tag(TAG).i("[id=%d] Reconnecting [attempt %d/%d]", connectionId, currentCount, maxReconnectCount);
                 if (!currentThread.isInterrupted() && (vpnInterface == null || isTunInterfaceValid(vpnInterface)) && currentCount <= maxReconnectCount) {
@@ -483,18 +501,6 @@ public class FptnConnection extends Thread {
 
     private void sendConnectionStateToService(ConnectionState connectionState, int count) {
         service.updateConnectionState(connectionState, count);
-    }
-
-    private boolean isServerPortOpen() {
-        try {
-            Socket socket = new Socket();
-            service.protect(socket);
-            socket.connect(new InetSocketAddress(serverEntity.getHost(), serverEntity.getPort()), 300);
-            socket.close();
-            return true;
-        } catch (IOException e) {
-            return false;
-        }
     }
 
     private boolean isTunInterfaceValid(ParcelFileDescriptor vpnInterface) {

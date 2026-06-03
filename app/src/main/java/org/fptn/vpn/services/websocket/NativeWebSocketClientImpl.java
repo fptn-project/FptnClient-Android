@@ -11,9 +11,27 @@ import org.fptn.vpn.services.websocket.callback.OnOpenCallback;
 import org.fptn.vpn.vpnclient.exception.ErrorCode;
 import org.fptn.vpn.vpnclient.exception.PVNClientException;
 
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class NativeWebSocketClientImpl {
+
+    /**
+     * Single background thread used to dispatch the onFailure callback off the native
+     * C++ worker thread.  The C++ Run() thread calls onFailureImpl() via JNI; if we
+     * invoked onFailureCallback.onFailure() synchronously here, the reconnect chain
+     * would call stopWebSocket() → nativeDestroy() → WrapperWebsocketClient::Stop()
+     * → th_.join() from within th_ itself → EDEADLK (thread::join on self).
+     * Dispatching asynchronously lets the C++ thread exit Run() cleanly before
+     * anything tries to destroy or join it.
+     */
+    private static final Executor FAILURE_DISPATCH_EXECUTOR =
+            Executors.newSingleThreadExecutor(r -> {
+                Thread t = new Thread(r, "fptn-failure-dispatch");
+                t.setDaemon(true);
+                return t;
+            });
     private static final String TAG = NativeWebSocketClientImpl.class.getName();
 
     static {
@@ -123,9 +141,10 @@ public class NativeWebSocketClientImpl {
     public void onFailureImpl() {
         XLog.tag(TAG).w("WebSocket failure — dispatching onFailure [serial=%d]", serialNum);
         if (this.onFailureCallback != null) {
-            this.onFailureCallback.onFailure();
+            final OnFailureCallback cb = this.onFailureCallback;
+            FAILURE_DISPATCH_EXECUTOR.execute(cb::onFailure);
         }
-        XLog.tag(TAG).d("onFailureImpl completed [serial=%d]", serialNum);
+        XLog.tag(TAG).d("onFailureImpl scheduled [serial=%d]", serialNum);
     }
 
     public void onMessageImpl(byte[] msg) {
