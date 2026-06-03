@@ -26,6 +26,8 @@ import org.fptn.vpn.utils.SharedPrefUtils;
 public class ExperimentalSettingsActivity extends AppCompatActivity {
     private final String TAG = this.getClass().getSimpleName();
 
+    private static final int[] ATTEMPTS_COUNT_VALUES = {5, 15, 35, Integer.MAX_VALUE};
+
     private SwitchCompat switchNetworkType;
     private SwitchCompat switchIPAddress;
     private SeekBar seekBarAttemptsCount;
@@ -55,22 +57,25 @@ public class ExperimentalSettingsActivity extends AppCompatActivity {
         seekBarAttemptsCount.setOnSeekBarChangeListener(new SimpleSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                if (progress == 3) {
+                int value = ATTEMPTS_COUNT_VALUES[progress];
+                if (value == Integer.MAX_VALUE) {
                     textViewAttemptsCount.setText("∞");
                 } else {
                     String format = getString(R.string.reconnect_attempts_text);
-                    textViewAttemptsCount.setText(String.format(format, progress * 5));
+                    textViewAttemptsCount.setText(String.format(format, value));
                 }
             }
         });
 
-        seekBarAttemptsCount.setProgress(0);
         int reconnectAttemptsCount = SharedPrefUtils.getReconnectAttemptsCount(this);
-        if (reconnectAttemptsCount == Integer.MAX_VALUE) {
-            seekBarAttemptsCount.setProgress(3);
-        } else {
-            seekBarAttemptsCount.setProgress(reconnectAttemptsCount / 5);
+        int progressToSet = 2; // default to 35
+        for (int i = 0; i < ATTEMPTS_COUNT_VALUES.length; i++) {
+            if (ATTEMPTS_COUNT_VALUES[i] >= reconnectAttemptsCount) {
+                progressToSet = i;
+                break;
+            }
         }
+        seekBarAttemptsCount.setProgress(progressToSet);
 
         // Reconnects delay between in seconds
         seekBarDelayBetween = findViewById(R.id.seekBarDelayBetween);
@@ -203,11 +208,7 @@ public class ExperimentalSettingsActivity extends AppCompatActivity {
         SharedPrefUtils.saveResetSelectedServerOnExceptionEnabled(this, resetServerAfterDisconnectOnException.isChecked());
 
         int attemptsCountProgress = seekBarAttemptsCount.getProgress();
-        if (attemptsCountProgress == 3) {
-            SharedPrefUtils.saveReconnectAttemptsCount(this, Integer.MAX_VALUE);
-        } else {
-            SharedPrefUtils.saveReconnectAttemptsCount(this, attemptsCountProgress * 5);
-        }
+        SharedPrefUtils.saveReconnectAttemptsCount(this, ATTEMPTS_COUNT_VALUES[attemptsCountProgress]);
 
         int delayBetweenProgress = seekBarDelayBetween.getProgress();
         SharedPrefUtils.saveDelayBetweenReconnect(this, delayBetweenProgress + 1);
