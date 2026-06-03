@@ -13,7 +13,6 @@ import lombok.Getter;
 
 @Getter
 public enum ConnectionSubnets {
-    LOCAL_TUN_ADDRESS("10.10.0.1", 32, "fd00::1", 128),
     LOCAL_TUN_INTERFACE_SUBNET("10.10.0.0", 16, "fd00::", 64),
     FPTN_SERVER_SUBNET("172.16.0.0", 12, "fc00:1::", 64),
     LOCAL_SUBNET("192.168.0.0", 16, "fe80::", 10),

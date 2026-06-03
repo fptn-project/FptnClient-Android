@@ -35,9 +35,6 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.Socket;
-import java.net.UnknownHostException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -124,7 +121,7 @@ public class FptnConnection extends Thread {
                           final BypassCensorshipMethod censorshipStrategy,
                           final SniSpoofingMode sniSpoofingMode,
                           final PerAppVpnMode perAppVpnMode,
-                          final List<AppInfo> appInfos) throws UnknownHostException {
+                          final List<AppInfo> appInfos) {
         this.service = service;
         this.connectionId = connectionId;
         this.serverEntity = serverEntity;
@@ -136,7 +133,6 @@ public class FptnConnection extends Thread {
         this.perAppVpnMode = perAppVpnMode;
         this.appInfos = appInfos;
 
-        InetAddress inetAddress = InetAddress.getByName(serverEntity.getHost());
         this.webSocketClient = new WebSocketClientWrapper(
                 this.serverEntity,
                 this::onConnectionOpen,
@@ -273,7 +269,7 @@ public class FptnConnection extends Thread {
             XLog.tag(TAG).i("[id=%d] Starting TUN [ipv4=%s, ipv6=%s, dns4=%s, dns6=%s, perAppMode=%s]",
                     connectionId, assignedIPv4, assignedIPv6,
                     dns_server.getIpv4(), dns_server.getIpv6(), perAppVpnMode);
-            InetAddress inetAddress = InetAddress.getByName(serverEntity.getHost());
+            InetAddress serverInetAddress = InetAddress.getByName(serverEntity.getHost());
 
             VpnService.Builder builder = service.new Builder();
             builder.setBlocking(true)
@@ -281,7 +277,7 @@ public class FptnConnection extends Thread {
                     .setConfigureIntent(configureVpnIntent)
                     .setMtu(MAX_PACKET_SIZE);
             if (perAppVpnMode == PerAppVpnMode.OFF) {
-                builder.addDisallowedApplication(service.getPackageName());
+                builder.addDisallowedApplication(service.getPackageName()); // todo: something wrong with routings
             } else if (perAppVpnMode == PerAppVpnMode.ONLY_ALLOWED && !appInfos.isEmpty()) {
                 for (AppInfo appInfo : appInfos) {
                     String packageName = appInfo.getPackageName();
@@ -314,7 +310,7 @@ public class FptnConnection extends Thread {
             builder.addRoute(dns_server.getIpv6(), IP_V6_PREFIX_LENGTH);
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                builder.excludeRoute(new IpPrefix(inetAddress, IP_V4_PREFIX_LENGTH));
+                builder.excludeRoute(new IpPrefix(serverInetAddress, IP_V4_PREFIX_LENGTH));
                 builder.excludeRoute(LOCAL_TUN_INTERFACE_SUBNET.getAsIpV4Prefix());
                 builder.excludeRoute(LOCAL_TUN_INTERFACE_SUBNET.getAsIpV6Prefix());
                 builder.excludeRoute(FPTN_SERVER_SUBNET.getAsIpV4Prefix());
@@ -428,7 +424,6 @@ public class FptnConnection extends Thread {
                 onFailureScheduledTask != null && !onFailureScheduledTask.isCancelled());
         cancelReconnectTask();
         webSocketClient.stopWebSocket();
-        final AtomicInteger portWaitCount = new AtomicInteger(0);
         try {
             onFailureScheduledTask = scheduler.scheduleWithFixedDelay(() -> {
                 if (webSocketClient.isStarted()) {

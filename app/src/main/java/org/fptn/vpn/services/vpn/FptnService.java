@@ -23,7 +23,6 @@ import android.os.Build;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.service.quicksettings.TileService;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.MutableLiveData;
@@ -379,7 +378,7 @@ public class FptnService extends VpnService {
                         }
 
                         if (needReconnectByNetworkType || needReconnectByIp) {
-                            currentConnection.onConnectionFailure();
+                            currentConnection.onNetworkChanged();
                         }
                     }
                 }
