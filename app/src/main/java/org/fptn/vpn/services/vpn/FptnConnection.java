@@ -249,8 +249,8 @@ public class FptnConnection extends Thread {
      * before triggering a reconnect so that:
      * 1. The new WebSocket is established on the new physical network.
      * 2. onConnectionOpen() fires, which rebuilds the TUN with the new server-assigned IP.
-     *    (The server assigns a fresh IP on every connect, so a stale TUN would silently
-     *    black-hole traffic even though the UI shows "CONNECTED".)
+     * (The server assigns a fresh IP on every connect, so a stale TUN would silently
+     * black-hole traffic even though the UI shows "CONNECTED".)
      */
     public void onNetworkChanged() {
         XLog.tag(TAG).i("[id=%d] Network changed — forcing clean reconnect [wsStarted=%b]",
@@ -401,7 +401,15 @@ public class FptnConnection extends Thread {
                 return;
             }
         }
-        service.getMainExecutor().execute(() -> this.startTun(assignedIPv4, assignedIPv6, dnsServers));
+
+        // Check if this is a reconnect (TUN already exists)
+        boolean isReconnect = reconnectCount.get() > 0 && vpnInterface != null;
+        if (isReconnect) {
+            XLog.tag(TAG).i("[id=%d] Reconnect detected - recreating TUN interface", connectionId);
+            service.getMainExecutor().execute(() -> recreateTun(assignedIPv4, assignedIPv6, dnsServers));
+        } else {
+            service.getMainExecutor().execute(() -> this.startTun(assignedIPv4, assignedIPv6, dnsServers));
+        }
     }
 
     private void onMessageReceived(byte[] data) {
@@ -422,6 +430,26 @@ public class FptnConnection extends Thread {
                 webSocketClient.isStarted(),
                 isTunInterfaceValid(vpnInterface),
                 onFailureScheduledTask != null && !onFailureScheduledTask.isCancelled());
+
+        // Close TUN interface immediately on connection failure
+        if (vpnInterface != null && isTunInterfaceValid(vpnInterface)) {
+            XLog.tag(TAG).i("[id=%d] Closing TUN interface due to connection failure", connectionId);
+            if (outputStream != null) {
+                try {
+                    outputStream.close();
+                } catch (IOException e) {
+                    XLog.tag(TAG).w("[id=%d] Error closing output stream: %s", connectionId, e.getMessage());
+                }
+                outputStream = null;
+            }
+            try {
+                vpnInterface.close();
+            } catch (IOException e) {
+                XLog.tag(TAG).w("[id=%d] Error closing TUN interface: %s", connectionId, e.getMessage());
+            }
+            vpnInterface = null;
+        }
+
         cancelReconnectTask();
         webSocketClient.stopWebSocket();
         try {
@@ -468,6 +496,40 @@ public class FptnConnection extends Thread {
         }
     }
 
+    private void recreateTun(String assignedIPv4, String assignedIPv6, DnsServers dnsServers) {
+        XLog.tag(TAG).i("[id=%d] Recreating TUN interface", connectionId);
+
+        // Close old TUN interface
+        if (outputStream != null) {
+            try {
+                outputStream.close();
+            } catch (IOException e) {
+                XLog.tag(TAG).w("[id=%d] Error closing output stream: %s", connectionId, e.getMessage());
+            }
+            outputStream = null;
+        }
+
+        if (vpnInterface != null) {
+            try {
+                vpnInterface.close();
+            } catch (IOException e) {
+                XLog.tag(TAG).w("[id=%d] Error closing TUN interface: %s", connectionId, e.getMessage());
+            }
+            vpnInterface = null;
+        }
+
+        // Small delay to ensure OS releases resources
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            XLog.tag(TAG).w("[id=%d] Interrupted while waiting before TUN recreation", connectionId);
+        }
+
+        // Create fresh TUN
+        startTun(assignedIPv4, assignedIPv6, dnsServers);
+    }
+
     private void onFailureInterrupt() {
         if (!currentThread.isInterrupted()) {
             currentThread.interrupt();
@@ -501,5 +563,4 @@ public class FptnConnection extends Thread {
     private boolean isTunInterfaceValid(ParcelFileDescriptor vpnInterface) {
         return vpnInterface != null && vpnInterface.getFileDescriptor() != null && vpnInterface.getFileDescriptor().valid();
     }
-
 }

@@ -49,7 +49,7 @@ class WrapperWebsocketClient final {
                             const fptn::common::network::IPv6Address& ipv6);
 
  private:
-  const int kMaxReconnectionAttempts_ = 15;
+  const int kMaxReconnectionAttempts_ = 3;
 
   std::thread th_;
   mutable std::mutex mutex_;
