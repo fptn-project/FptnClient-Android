@@ -114,7 +114,7 @@ public class HomeActivityViewModel extends AndroidViewModel {
         if (isPingCheckingActive) return;
         isPingCheckingActive = true;
 
-        XLog.tag(TAG).d("startCheckingPing");
+        XLog.tag(TAG).i("Ping check loop started");
 
         pingExecutorService.submit(() -> {
             while (isPingCheckingActive) {
@@ -141,7 +141,7 @@ public class HomeActivityViewModel extends AndroidViewModel {
                 }
                 lastPingCycleTime = now;
 
-                XLog.tag(TAG).d("Checking ping...");
+                XLog.tag(TAG).d("Ping cycle triggered [servers=%d]", servers.size());
 
                 // Check is internet connection available
                 if (NetworkUtils.isOnline(connectivityManager)) {
@@ -172,7 +172,7 @@ public class HomeActivityViewModel extends AndroidViewModel {
                                         socket.connect(new InetSocketAddress(server.getHost(), server.getPort()), 5000);
                                         server.setPingMs(System.currentTimeMillis() - startTime);
 
-                                        XLog.tag(TAG).i("Ping for host: " + server.getServerInfo() + " ping: " + server.getPingMs() + "ms");
+                                        XLog.tag(TAG).d("Ping result [server=%s, ms=%d]", server.getServerInfo(), server.getPingMs());
                                     } catch (IOException e) {
                                         server.setPingMs(-1);
                                     }
@@ -198,7 +198,7 @@ public class HomeActivityViewModel extends AndroidViewModel {
                         }
                     }
                 } else {
-                    XLog.tag(TAG).d("startCheckingPing: no active internet connections!");
+                    XLog.tag(TAG).w("No active internet connection — skipping ping cycle");
                     for (ServerEntity server : servers) {
                         server.setPingMs(-1);
                     }
@@ -236,7 +236,7 @@ public class HomeActivityViewModel extends AndroidViewModel {
         ErrorCode errorCode = exception.errorCode;
         if (errorCode != ErrorCode.UNKNOWN_ERROR) {
             String stringResourceByName = getStringResourceByName(getApplication(), errorCode.getValue());
-            XLog.tag(TAG).e("Error as text: " + stringResourceByName);
+            XLog.tag(TAG).e("VPN error [code=%s]: %s", errorCode, stringResourceByName);
 
             errorTextLiveData.postValue(stringResourceByName);
         } else {

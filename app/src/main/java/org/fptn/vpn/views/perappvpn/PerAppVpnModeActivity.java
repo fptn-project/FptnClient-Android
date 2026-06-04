@@ -51,13 +51,13 @@ public class PerAppVpnModeActivity extends AppCompatActivity {
         RadioGroup protocolRadioGroup = findViewById(R.id.per_app_vpn_mode_radio_button_group);
         protocolRadioGroup.setOnCheckedChangeListener((group, checkedId) -> {
             if (checkedId == R.id.all_app_mode_radio_button) {
-                XLog.tag(TAG).d("Selected per-app-VPN mode off");
+                XLog.tag(TAG).i("Per-app VPN mode changed [mode=OFF]");
                 viewModel.setPerAppVpnMode(PerAppVpnMode.OFF);
             } else if (checkedId == R.id.allowed_apps_mode_radio_button) {
-                XLog.tag(TAG).d("Selected per-app-VPN mode only allowed");
+                XLog.tag(TAG).i("Per-app VPN mode changed [mode=ONLY_ALLOWED]");
                 viewModel.setPerAppVpnMode(PerAppVpnMode.ONLY_ALLOWED);
             } else if (checkedId == R.id.disallowed_apps_mode_radio_button) {
-                XLog.tag(TAG).d("Selected per-app-VPN mode except disallowed");
+                XLog.tag(TAG).i("Per-app VPN mode changed [mode=EXCEPT_DISALLOWED]");
                 viewModel.setPerAppVpnMode(PerAppVpnMode.EXCEPT_DISALLOWED);
             }
         });
@@ -111,13 +111,13 @@ public class PerAppVpnModeActivity extends AppCompatActivity {
         // Save and Cancel buttons
         Button cancelButton = findViewById(R.id.cancel_button);
         cancelButton.setOnClickListener(v -> {
-            XLog.tag(TAG).d("Cancel button clicked");
+            XLog.tag(TAG).i("Per-app VPN mode changes cancelled");
             finish();
         });
 
         Button saveButton = findViewById(R.id.save_button);
         saveButton.setOnClickListener(v -> {
-            XLog.tag(TAG).d("Save button clicked");
+            XLog.tag(TAG).i("Per-app VPN mode saved [mode=%s]", viewModel.getPerAppVpnModeMutableLiveData().getValue());
 
             viewModel.saveAllSettings();
 

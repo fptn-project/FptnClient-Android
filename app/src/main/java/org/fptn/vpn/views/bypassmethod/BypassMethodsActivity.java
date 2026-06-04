@@ -68,7 +68,7 @@ public class BypassMethodsActivity extends AppCompatActivity {
         connection = new ServiceConnection() {
             @Override
             public void onServiceConnected(ComponentName name, IBinder service) {
-                XLog.tag(TAG).i("onServiceConnected: " + name);
+                XLog.tag(TAG).i("SNI checker service connected [component=%s]", name.getShortClassName());
                 SniCheckerService.LocalBinder localBinder = (SniCheckerService.LocalBinder) service;
                 viewModel.subscribeService(localBinder.getService());
             }
@@ -80,7 +80,7 @@ public class BypassMethodsActivity extends AppCompatActivity {
                         viewModel.unsubscribe();
                     }
                 } catch (Exception e) {
-                    XLog.tag(TAG).e("Error in onServiceDisconnected: " + e.getMessage());
+                    XLog.tag(TAG).e("Error handling SNI checker service disconnect: %s", e.getMessage());
                 }
             }
         };
@@ -96,7 +96,7 @@ public class BypassMethodsActivity extends AppCompatActivity {
                 unbindService(connection);
             }
         } catch (Exception e) {
-            XLog.tag(TAG).e("Error unbinding service: " + e.getMessage());
+            XLog.tag(TAG).e("Error unbinding SNI checker service: %s", e.getMessage());
         }
     }
 
@@ -122,10 +122,10 @@ public class BypassMethodsActivity extends AppCompatActivity {
         RadioGroup protocolRadioGroup = findViewById(R.id.bypass_method_radio_button_group);
         protocolRadioGroup.setOnCheckedChangeListener((group, checkedId) -> {
             if (checkedId == R.id.sni_reality_radio_button) {
-                XLog.tag(TAG).d("Selected SNI spoofing");
+                XLog.tag(TAG).i("Bypass method selected [method=SNI_REALITY]");
                 viewModel.setBypassMethod(BypassCensorshipMethod.SNI_REALITY);
             } else if (checkedId == R.id.obfuscation_radio_button) {
-                XLog.tag(TAG).d("Selected TLS obfuscation");
+                XLog.tag(TAG).i("Bypass method selected [method=TLS_OBFUSCATION]");
                 viewModel.setBypassMethod(BypassCensorshipMethod.TLS_OBFUSCATION);
             }
         });
@@ -207,14 +207,14 @@ public class BypassMethodsActivity extends AppCompatActivity {
         // Save and Cancel buttons
         Button cancelButton = findViewById(R.id.cancel_button);
         cancelButton.setOnClickListener(v -> {
-            XLog.tag(TAG).d("Cancel button clicked");
+            XLog.tag(TAG).i("Bypass settings cancelled");
 
             finish();
         });
 
         Button saveButton = findViewById(R.id.save_button);
         saveButton.setOnClickListener(v -> {
-            XLog.tag(TAG).d("Save button clicked");
+            XLog.tag(TAG).i("Bypass settings saved [method=%s]", viewModel.getBypassCensorshipMethodMutableLiveData().getValue());
 
             viewModel.saveBypassMethod();
 
@@ -232,7 +232,7 @@ public class BypassMethodsActivity extends AppCompatActivity {
         try {
             viewModel.loadDefaultSni();  // Load default SNI
         } catch (PVNClientException err) {
-            XLog.tag(TAG).i("Load sni errror: " + err.errorMessage);
+            XLog.tag(TAG).w("Failed to load default SNI list: %s", err.errorMessage);
         }
         ToggleButton startStopCheckingSniButton = findViewById(R.id.auto_select_sni_button);
         startStopCheckingSniButton.setOnClickListener(v -> onAutoSelectSniClicked());
@@ -300,7 +300,7 @@ public class BypassMethodsActivity extends AppCompatActivity {
                         Intent data = result.getData();
                         if (data != null && data.getData() != null) {
                             Uri uri = data.getData();
-                            XLog.tag(TAG).d("File selected: " + uri.getPath());
+                            XLog.tag(TAG).i("SNI file selected [path=%s]", uri.getPath());
                             try {
                                 viewModel.readFileContent(uri);
                             } catch (PVNClientException e) {
@@ -308,7 +308,7 @@ public class BypassMethodsActivity extends AppCompatActivity {
                             }
                         }
                     } else {
-                        XLog.tag(TAG).d("File selection cancelled.");
+                        XLog.tag(TAG).i("SNI file selection cancelled");
                     }
                 });
 
@@ -329,7 +329,7 @@ public class BypassMethodsActivity extends AppCompatActivity {
 
                 @Override
                 public void onFailure(Throwable t) {
-                    XLog.tag(TAG).e("Fail to load servers.", t);
+                    XLog.tag(TAG).e("Failed to load server list for SNI auto-select: %s", t.getMessage());
                 }
             }, getMainExecutor());
         } else {
@@ -365,7 +365,7 @@ public class BypassMethodsActivity extends AppCompatActivity {
         autoSelectDialog = builder.create();
 
         buttonCancel.setOnClickListener(v -> {
-            XLog.tag(TAG).d("Auto-select dialog cancelled.");
+            XLog.tag(TAG).i("SNI auto-select cancelled by user");
 
             ToggleButton startStopCheckingSniButton = findViewById(R.id.auto_select_sni_button);
             startStopCheckingSniButton.setChecked(false);
@@ -378,7 +378,7 @@ public class BypassMethodsActivity extends AppCompatActivity {
             int selectedPosition = serverSpinner.getSelectedItemPosition();
             ServerEntity selectedServer = serverEntities.get(selectedPosition);
 
-            XLog.tag(TAG).d("Starting SNI auto-select for server: " + selectedServer.getServerInfo());
+            XLog.tag(TAG).i("Starting SNI auto-select [server=%s, resetChecked=%b]", selectedServer.getServerInfo(), resetCheckedCheckbox.isChecked());
             SniCheckerService.startChecking(this, selectedServer, resetCheckedCheckbox.isChecked(),
                     viewModel.getBypassCensorshipMethodMutableLiveData().getValue());
 
@@ -424,17 +424,17 @@ public class BypassMethodsActivity extends AppCompatActivity {
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
         alertDialogBuilder.setView(inflated);
         alertDialogBuilder.setPositiveButton(R.string.save_button, (dialog, which) -> {
-            XLog.tag(TAG).d("onEditSNIServer: save_button");
+            XLog.tag(TAG).i("SNI edit saved [sni=%s]", sniEditText.getText());
             Optional.ofNullable(sniEditText.getText())
                     .map(Object::toString)
                     .ifPresent(viewModel::validateAndSetSni);
         });
         alertDialogBuilder.setNeutralButton(getString(R.string.reset_default_button), (dialog, which) -> {
-            XLog.tag(TAG).d("onEditSNIServer: reset_default_button");
+            XLog.tag(TAG).i("SNI reset to default");
             viewModel.resetToDefault();
         });
         alertDialogBuilder.setNegativeButton(getString(R.string.cancel_button), (dialog, which) -> {
-            XLog.tag(TAG).d("onEditSNIServer: cancel_button");
+            XLog.tag(TAG).i("SNI edit cancelled");
         });
         alertDialogBuilder.show();
     }

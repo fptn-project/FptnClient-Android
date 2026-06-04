@@ -1,7 +1,5 @@
 package org.fptn.vpn.utils;
 
-import android.util.Log;
-
 import java.util.List;
 import java.util.Optional;
 

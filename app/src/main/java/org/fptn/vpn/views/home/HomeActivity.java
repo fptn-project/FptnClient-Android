@@ -97,7 +97,7 @@ public class HomeActivity extends AppCompatActivity {
         connection = new ServiceConnection() {
             @Override
             public void onServiceConnected(ComponentName name, IBinder service) {
-                XLog.tag(TAG).i("onServiceConnected: " + name);
+                XLog.tag(TAG).i("VPN service connected [component=%s]", name.getShortClassName());
                 FptnService.LocalBinder localBinder = (FptnService.LocalBinder) service;
                 viewModel.subscribeService(localBinder.getService());
             }
@@ -109,7 +109,7 @@ public class HomeActivity extends AppCompatActivity {
                         viewModel.unsubscribe();
                     }
                 } catch (Exception e) {
-                    XLog.tag(TAG).e("Error in onServiceDisconnected: " + e.getMessage());
+                    XLog.tag(TAG).e("Error handling VPN service disconnect: %s", e.getMessage());
                 }
             }
         };
@@ -125,7 +125,7 @@ public class HomeActivity extends AppCompatActivity {
                 unbindService(connection);
             }
         } catch (Exception e) {
-            XLog.tag(TAG).e("Error unbinding service: " + e.getMessage());
+            XLog.tag(TAG).e("Error unbinding VPN service: %s", e.getMessage());
         }
     }
 
@@ -258,7 +258,7 @@ public class HomeActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
 
-        XLog.tag(TAG).d("onPause: ");
+        XLog.tag(TAG).d("Activity paused — ping checks suspended");
 
         viewModel.stopCheckingPing();
     }
@@ -268,7 +268,7 @@ public class HomeActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
 
-        XLog.tag(TAG).d("onResume: ");
+        XLog.tag(TAG).d("Activity resumed");
 
         if (!isFinishing() && !isDestroyed()) {
             bottomNavigationView.setSelectedItemId(R.id.menuHome);
@@ -380,20 +380,20 @@ public class HomeActivity extends AppCompatActivity {
                             this.getMainExecutor(),
                             (resultCode) -> {
                                 if (resultCode == StatusBarManager.TILE_ADD_REQUEST_RESULT_TILE_ALREADY_ADDED) {
-                                    XLog.tag(TAG).d("Tile already added successfully. Nothing to do.");
+                                    XLog.tag(TAG).i("Quick settings tile already present — no action needed");
                                     Toast.makeText(this, R.string.tile_already_added, Toast.LENGTH_SHORT)
                                             .show();
                                 } else if (resultCode == StatusBarManager.TILE_ADD_REQUEST_RESULT_TILE_ADDED) {
-                                    XLog.tag(TAG).d("Tile added successfully.");
+                                    XLog.tag(TAG).i("Quick settings tile added successfully");
                                     Toast.makeText(this, R.string.tile_added_successfully, Toast.LENGTH_SHORT)
                                             .show();
                                 } else {
-                                    XLog.tag(TAG).d("User cancel request.");
+                                    XLog.tag(TAG).i("User declined quick settings tile prompt [resultCode=%d]", resultCode);
                                 }
                             }
                     );
                 } catch (Exception e) {
-                    XLog.tag(TAG).e("Failed to request tile addition", e);
+                    XLog.tag(TAG).e("Failed to request quick settings tile addition: %s", e.getMessage());
                     Toast.makeText(this, R.string.tile_addition_failed, Toast.LENGTH_SHORT)
                             .show();
                 }
@@ -420,9 +420,9 @@ public class HomeActivity extends AppCompatActivity {
             new ActivityResultContracts.StartActivityForResult(),
             activityResult -> {
                 if (activityResult != null && activityResult.getResultCode() == RESULT_OK) {
-                    XLog.tag(TAG).i("Permission granted!");
+                    XLog.tag(TAG).i("System permission granted via Settings");
                 } else {
-                    XLog.tag(TAG).i("Permission disabled!");
+                    XLog.tag(TAG).w("System permission denied via Settings");
                 }
                 if (requestedPermissions.decrementAndGet() == 0) {
                     startStopButton.callOnClick();
@@ -450,7 +450,7 @@ public class HomeActivity extends AppCompatActivity {
                     }
                 })
                 .setNegativeButton(getString(R.string.deny), (dialog, which) -> {
-                    XLog.tag(TAG).i("Permissions request denied!");
+                    XLog.tag(TAG).w("Optional permissions denied by user — continuing without them");
                     // it must work without permissions
                     startStopButton.callOnClick();
                 })

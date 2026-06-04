@@ -52,10 +52,23 @@ bool WrapperWebsocketClient::Start() {
 }
 
 bool WrapperWebsocketClient::Stop() {
-  if (!running_) {
-    if (th_.joinable()) {
+  // Helper: join th_ only when called from a different thread.
+  // Calling th_.join() from th_ itself raises EDEADLK (pthread_join on self).
+  // This can happen when the JNI failure callback triggers the reconnect chain
+  // which calls Stop() from within the C++ worker thread.
+  auto safe_join = [this]() {
+    if (!th_.joinable()) return;
+    if (std::this_thread::get_id() == th_.get_id()) {
+      // We are th_ — cannot join ourselves.  Detach so the handle is released;
+      // the thread will exit naturally once Run() returns.
+      th_.detach();
+    } else {
       th_.join();
     }
+  };
+
+  if (!running_) {
+    safe_join();
     return true;
   }
   {
@@ -74,21 +87,19 @@ bool WrapperWebsocketClient::Stop() {
     }
   }
 
-  if (th_.joinable()) {
-    th_.join();
-  }
+  safe_join();
   return true;
 }
 
 bool WrapperWebsocketClient::IsStarted() {
-  return client_ && running_;
+  return client_ && running_ && client_->IsStarted();
 }
 
 void WrapperWebsocketClient::Run() {
   // Time window for counting attempts (1 minute)
   constexpr auto kReconnectionWindow = std::chrono::seconds(60);
   // Delay between reconnection attempts
-  constexpr auto kReconnectionDelay = std::chrono::milliseconds(500);
+  constexpr auto kReconnectionDelay = std::chrono::milliseconds(200);
 
   // Current count of reconnection attempts
   reconnection_attempts_ = kMaxReconnectionAttempts_;

@@ -11,9 +11,27 @@ import org.fptn.vpn.services.websocket.callback.OnOpenCallback;
 import org.fptn.vpn.vpnclient.exception.ErrorCode;
 import org.fptn.vpn.vpnclient.exception.PVNClientException;
 
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class NativeWebSocketClientImpl {
+
+    /**
+     * Single background thread used to dispatch the onFailure callback off the native
+     * C++ worker thread.  The C++ Run() thread calls onFailureImpl() via JNI; if we
+     * invoked onFailureCallback.onFailure() synchronously here, the reconnect chain
+     * would call stopWebSocket() → nativeDestroy() → WrapperWebsocketClient::Stop()
+     * → th_.join() from within th_ itself → EDEADLK (thread::join on self).
+     * Dispatching asynchronously lets the C++ thread exit Run() cleanly before
+     * anything tries to destroy or join it.
+     */
+    private static final Executor FAILURE_DISPATCH_EXECUTOR =
+            Executors.newSingleThreadExecutor(r -> {
+                Thread t = new Thread(r, "fptn-failure-dispatch");
+                t.setDaemon(true);
+                return t;
+            });
     private static final String TAG = NativeWebSocketClientImpl.class.getName();
 
     static {
@@ -71,14 +89,14 @@ public class NativeWebSocketClientImpl {
     }
 
     public void start() {
-        XLog.tag(TAG).d("NativeWebSocketClientImpl.start() Thread.id: " + Thread.currentThread().getId() + " serialNum: " + serialNum);
+        XLog.tag(TAG).d("start() [serial=%d, thread=%d]", serialNum, Thread.currentThread().getId());
         if (!nativeIsStarted(nativeHandle)) {
             nativeRun(nativeHandle);
         }
     }
 
     public void stop() {
-        XLog.tag(TAG).d("NativeWebSocketClientImpl.stop() Thread.id: " + Thread.currentThread().getId() + " serialNum: " + serialNum);
+        XLog.tag(TAG).d("stop() [serial=%d, thread=%d]", serialNum, Thread.currentThread().getId());
         if (nativeIsStarted(nativeHandle)) {
             nativeStop(nativeHandle);
         }
@@ -95,7 +113,7 @@ public class NativeWebSocketClientImpl {
     }
 
     public synchronized void release() {
-        XLog.tag(TAG).d("NativeWebSocketClientImpl.release() Thread.id: " + Thread.currentThread().getId() + " serialNum: " + serialNum);
+        XLog.tag(TAG).d("release() [serial=%d, thread=%d]", serialNum, Thread.currentThread().getId());
         if (nativeHandle != 0) {
             nativeDestroy(nativeHandle);
             nativeHandle = 0;
@@ -104,7 +122,7 @@ public class NativeWebSocketClientImpl {
 
     @Override
     protected void finalize() throws Throwable {
-        XLog.tag(TAG).d("NativeWebSocketClientImpl.finalize() Thread.id: " + Thread.currentThread().getId() + " serialNum: " + serialNum);
+        XLog.tag(TAG).d("finalize() [serial=%d, thread=%d]", serialNum, Thread.currentThread().getId());
         try {
             release();
         } finally {
@@ -113,19 +131,20 @@ public class NativeWebSocketClientImpl {
     }
 
     public void onOpenImpl() {
-        XLog.tag(TAG).d("NativeWebSocketClientImpl.onOpenImpl():start()" + " serialNum: " + serialNum);
+        XLog.tag(TAG).i("WebSocket opened — dispatching onOpen [serial=%d]", serialNum);
         if (this.onOpenCallback != null) {
             this.onOpenCallback.onOpen();
         }
-        XLog.tag(TAG).d("NativeWebSocketClientImpl.onOpenImpl():end()");
+        XLog.tag(TAG).d("onOpenImpl completed [serial=%d]", serialNum);
     }
 
     public void onFailureImpl() {
-        XLog.tag(TAG).d("NativeWebSocketClientImpl.onFailureImpl():start()" + " serialNum: " + serialNum);
+        XLog.tag(TAG).w("WebSocket failure — dispatching onFailure [serial=%d]", serialNum);
         if (this.onFailureCallback != null) {
-            this.onFailureCallback.onFailure();
+            final OnFailureCallback cb = this.onFailureCallback;
+            FAILURE_DISPATCH_EXECUTOR.execute(cb::onFailure);
         }
-        XLog.tag(TAG).d("NativeWebSocketClientImpl.onFailureImpl():end()");
+        XLog.tag(TAG).d("onFailureImpl scheduled [serial=%d]", serialNum);
     }
 
     public void onMessageImpl(byte[] msg) {

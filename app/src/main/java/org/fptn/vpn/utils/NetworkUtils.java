@@ -31,13 +31,13 @@ public class NetworkUtils {
                     InetAddress inetAddress = inetAddressEnumeration.nextElement();
                     if (!inetAddress.isLoopbackAddress()
                             && (inetAddress instanceof Inet4Address || inetAddress instanceof Inet6Address)) {
-                        XLog.tag(TAG).d("getCurrentIPAddress(): " + inetAddress.getHostAddress());
+                        XLog.tag(TAG).d("Current IP address [ip=%s, iface=%s]", inetAddress.getHostAddress(), networkInterface.getName());
                         return inetAddress.getHostAddress();
                     }
                 }
             }
         } catch (SocketException e) {
-            XLog.tag(TAG).e("getCurrentIPAddress() error!", e);
+            XLog.tag(TAG).e("Failed to resolve local IP address: %s", e.getMessage());
         }
 
         return UNKNOWN_IP;

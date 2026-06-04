@@ -165,7 +165,7 @@ public class BypassMethodsViewModel extends AndroidViewModel {
                     }
             );
         } catch (Exception e) {
-            XLog.tag(TAG).e("Error reading SNI file", e);
+            XLog.tag(TAG).e("Failed to read SNI file: %s", e.getMessage());
             throw new PVNClientException("Error: Could not read the file.");
         }
 
@@ -174,18 +174,18 @@ public class BypassMethodsViewModel extends AndroidViewModel {
             Futures.addCallback(future, new FutureCallback<>() {
                 @Override
                 public void onSuccess(Void result) {
-                    XLog.tag(TAG).d("Successfully inserted " + sniList.size() + " SNIs into the database.");
+                    XLog.tag(TAG).i("SNI entries inserted to DB [count=%d]", sniList.size());
                     refreshSniCount();
                 }
 
                 @Override
                 public void onFailure(Throwable t) {
-                    XLog.tag(TAG).e("DB error occurs!", t);
+                    XLog.tag(TAG).e("Failed to insert SNI entries to DB: %s", t.getMessage());
                 }
             }, executorService);
 
         } else {
-            XLog.tag(TAG).d("No valid SNIs found in the selected file.");
+            XLog.tag(TAG).w("No valid SNI entries found in file — aborting insert");
             throw new PVNClientException("File is empty or contains no valid SNI entries.");
         }
     }
@@ -230,7 +230,7 @@ public class BypassMethodsViewModel extends AndroidViewModel {
                     }
             );
         } catch (Exception e) {
-            XLog.tag(TAG).e("Error reading SNI file", e);
+            XLog.tag(TAG).e("Failed to read global SNI file: %s", e.getMessage());
             throw new PVNClientException("Error: Could not read the file.");
         }
 
@@ -249,7 +249,7 @@ public class BypassMethodsViewModel extends AndroidViewModel {
                     }
             );
         } catch (Exception e) {
-            XLog.tag(TAG).e("Error reading SNI file", e);
+            XLog.tag(TAG).e("Failed to read Russia SNI file: %s", e.getMessage());
             throw new PVNClientException("Error: Could not read the file.");
         }
 
@@ -259,18 +259,18 @@ public class BypassMethodsViewModel extends AndroidViewModel {
             Futures.addCallback(future, new FutureCallback<>() {
                 @Override
                 public void onSuccess(Void result) {
-                    XLog.tag(TAG).d("Successfully inserted " + sniList.size() + " SNIs into the database.");
+                    XLog.tag(TAG).i("Default SNI entries inserted to DB [count=%d]", sniList.size());
                     refreshSniCount();
                 }
 
                 @Override
                 public void onFailure(Throwable t) {
-                    XLog.tag(TAG).e("DB error occurs!", t);
+                    XLog.tag(TAG).e("Failed to insert default SNI entries to DB: %s", t.getMessage());
                 }
             }, executorService);
 
         } else {
-            XLog.tag(TAG).d("No valid SNIs found in the selected file.");
+            XLog.tag(TAG).w("No valid SNI entries in default files — aborting insert");
             throw new PVNClientException("File is empty or contains no valid SNI entries.");
         }
     }

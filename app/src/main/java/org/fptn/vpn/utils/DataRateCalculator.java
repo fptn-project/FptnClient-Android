@@ -37,6 +37,10 @@ public class DataRateCalculator {
     public long getRateForSecond() {
         lock.lock();
         try {
+            long elapsed = System.currentTimeMillis() - lastUpdateTime;
+            if (elapsed >= intervalMillis) {
+                return 0;
+            }
             if (intervalMillis > 0) {
                 return rate / (1000 / intervalMillis);
             }

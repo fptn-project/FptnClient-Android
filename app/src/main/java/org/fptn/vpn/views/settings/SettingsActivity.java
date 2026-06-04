@@ -78,7 +78,7 @@ public class SettingsActivity extends AppCompatActivity {
             TextView versionTextView = findViewById(R.id.settings_fptn_version);
             versionTextView.setText(version);
         } catch (PackageManager.NameNotFoundException e) {
-            XLog.tag(TAG).e("Can't show app version! ", e);
+            XLog.tag(TAG).e("Failed to read app version: %s", e.getMessage());
         }
 
         // about
@@ -161,7 +161,7 @@ public class SettingsActivity extends AppCompatActivity {
                     startActivity(intent);
                 })
                 .setNegativeButton(getString(R.string.deny), (dialog, which) -> {
-                    XLog.tag(TAG).i("Battery optimisation permission denied!");
+                    XLog.tag(TAG).w("Battery optimization exemption denied by user");
                     permissionBatteryOptimizationButton.setChecked(false);
                 })
                 .show();
@@ -178,7 +178,7 @@ public class SettingsActivity extends AppCompatActivity {
                     startActivity(intent);
                 })
                 .setNegativeButton(getString(R.string.deny), (dialog, which) -> {
-                    XLog.tag(TAG).i("Background data transfer permission denied!");
+                    XLog.tag(TAG).w("Background data transfer permission denied by user");
                     permissionBackgroundDataTransferButton.setChecked(false);
                 })
                 .show();

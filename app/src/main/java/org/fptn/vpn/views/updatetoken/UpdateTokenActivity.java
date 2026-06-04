@@ -99,7 +99,7 @@ public class UpdateTokenActivity extends AppCompatActivity {
 
                 @Override
                 public void onFailure(Throwable t) {
-                    XLog.tag(TAG).e("Error occurs: " + t.getMessage(), t);
+                    XLog.tag(TAG).e("Token update failed: %s", t.getMessage());
                     Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_SHORT).show();
 
                     viewModel.getErrorTextLiveData().postValue(t.getMessage());
@@ -107,7 +107,7 @@ public class UpdateTokenActivity extends AppCompatActivity {
 
             }, getMainExecutor());
         } catch (Exception e) {
-            XLog.tag(TAG).e("Token invalid: ", e);
+            XLog.tag(TAG).e("Token parsing failed: %s", e.getMessage());
             Toast.makeText(getApplicationContext(), R.string.token_saving_failed, Toast.LENGTH_SHORT).show();
 
             viewModel.getErrorTextLiveData().postValue(getString(R.string.token_saving_failed));

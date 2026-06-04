@@ -70,7 +70,7 @@ public class SharedPrefUtils {
 
     public static boolean getReconnectOnChangeIPEnabled(Context context) {
         SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
-        return sharedPreferences.getBoolean(Constants.RECONNECT_ON_CHANGE_IP_ENABLED_SHARED_PREF_KEY, false);
+        return sharedPreferences.getBoolean(Constants.RECONNECT_ON_CHANGE_IP_ENABLED_SHARED_PREF_KEY, true);
     }
 
     public static void saveReconnectOnChangeIPEnabled(Context context, boolean enabled) {
@@ -80,7 +80,7 @@ public class SharedPrefUtils {
 
     public static int getReconnectAttemptsCount(Context context) {
         SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
-        return sharedPreferences.getInt(Constants.RECONNECT_ATTEMPTS_COUNT_SHARED_PREF_KEY, 20);
+        return sharedPreferences.getInt(Constants.RECONNECT_ATTEMPTS_COUNT_SHARED_PREF_KEY, 35);
     }
 
     public static void saveReconnectAttemptsCount(Context context, int count) {
@@ -91,7 +91,7 @@ public class SharedPrefUtils {
 
     public static int getDelayBetweenReconnect(Context context) {
         SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
-        return sharedPreferences.getInt(Constants.RECONNECT_DELAY_BETWEEN_SHARED_PREF_KEY, 2);
+        return sharedPreferences.getInt(Constants.RECONNECT_DELAY_BETWEEN_SHARED_PREF_KEY, 1);
     }
 
     public static void saveDelayBetweenReconnect(Context context, int delayInSeconds) {
