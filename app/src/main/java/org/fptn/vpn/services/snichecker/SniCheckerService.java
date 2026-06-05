@@ -84,7 +84,7 @@ public class SniCheckerService extends Service {
 
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
-    private final AppDatabase appDatabase = AppDatabase.getInstance(this);
+    private final AppDatabase appDatabase = AppDatabase.getInstance(getApplication());
 
     private PowerManager.WakeLock wakeLock;
 
