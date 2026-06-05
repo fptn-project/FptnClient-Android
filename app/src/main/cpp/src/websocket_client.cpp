@@ -66,6 +66,8 @@ Java_org_fptn_vpn_services_websocket_NativeWebSocketClientImpl_nativeCreate(
     jobject thiz,
     jstring server_ip_param,
     jint server_port_param,
+    jstring tun_ipv4_param,
+    jstring tun_ipv6_param,
     jstring sni_param,
     jstring access_token_param,
     jstring expected_md5_fingerprint_param,
@@ -74,6 +76,8 @@ Java_org_fptn_vpn_services_websocket_NativeWebSocketClientImpl_nativeCreate(
 
   auto server_ip = fptn::wrapper::ConvertToCString(env, server_ip_param);
   int server_port = server_port_param;
+  auto tun_ipv4 = fptn::wrapper::ConvertToCString(env, tun_ipv4_param);
+  auto tun_ipv6 = fptn::wrapper::ConvertToCString(env, tun_ipv6_param);
   auto sni = fptn::wrapper::ConvertToCString(env, sni_param);
   auto access_token = fptn::wrapper::ConvertToCString(env, access_token_param);
   auto expected_md5_fingerprint =
@@ -116,9 +120,17 @@ Java_org_fptn_vpn_services_websocket_NativeWebSocketClientImpl_nativeCreate(
   }
 
   jobject global_object_ref = env->NewWeakGlobalRef(thiz);
-  auto* websocket_client = new WrapperWebsocketClient(global_object_ref,
-      std::move(server_ip), server_port, std::move(sni),
-      std::move(access_token), std::move(expected_md5_fingerprint), censorship_strategy);
+  auto* websocket_client = new WrapperWebsocketClient(
+      global_object_ref,
+      std::move(server_ip),
+      server_port,
+      std::move(tun_ipv4),
+      std::move(tun_ipv6),
+      std::move(sni),
+      std::move(access_token),
+      std::move(expected_md5_fingerprint),
+      censorship_strategy
+  );
 
   auto jobj_client = reinterpret_cast<jlong>(websocket_client);
 

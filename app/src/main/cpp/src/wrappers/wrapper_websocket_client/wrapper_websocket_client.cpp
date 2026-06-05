@@ -22,6 +22,8 @@ namespace fptn::wrapper {
 WrapperWebsocketClient::WrapperWebsocketClient(jobject wrapper,
     std::string server_ip,
     int server_port,
+    std::string tun_ipv4,
+    std::string tun_ipv6,
     std::string sni,
     std::string access_token,
     std::string expected_md5_fingerprint,
@@ -32,6 +34,8 @@ WrapperWebsocketClient::WrapperWebsocketClient(jobject wrapper,
       server_ip_(std::move(server_ip)),
       server_port_(server_port),
       sni_(std::move(sni)),
+      tun_ipv4_(tun_ipv4),
+      tun_ipv6_(tun_ipv6),
       access_token_(std::move(access_token)),
       expected_md5_fingerprint_(std::move(expected_md5_fingerprint)),
       censorship_strategy_(censorship_strategy)
@@ -40,7 +44,7 @@ WrapperWebsocketClient::WrapperWebsocketClient(jobject wrapper,
 WrapperWebsocketClient::~WrapperWebsocketClient() { Stop(); }
 
 bool WrapperWebsocketClient::Start() {
-  std::unique_lock<std::mutex> lock(mutex_);
+  const std::unique_lock<std::mutex> lock(mutex_);
 
   if (running_) {
     return false;  // Already running
@@ -57,7 +61,9 @@ bool WrapperWebsocketClient::Stop() {
   // This can happen when the JNI failure callback triggers the reconnect chain
   // which calls Stop() from within the C++ worker thread.
   auto safe_join = [this]() {
-    if (!th_.joinable()) return;
+    if (!th_.joinable()) {
+        return;
+    }
     if (std::this_thread::get_id() == th_.get_id()) {
       // We are th_ — cannot join ourselves.  Detach so the handle is released;
       // the thread will exit naturally once Run() returns.
@@ -128,12 +134,13 @@ void WrapperWebsocketClient::Run() {
           fptn::protocol::https::WebsocketClient::Config{
               .server_ip=server_ip_addr,
               .server_port=server_port_,
+              .tun_interface_address_ipv4=fptn::common::network::IPv4Address(tun_ipv4_),
+              .tun_interface_address_ipv6=fptn::common::network::IPv6Address(tun_ipv6_),
               .sni=sni_,
               .access_token=access_token_,
               .expected_md5_fingerprint=expected_md5_fingerprint_,
               .censorship_strategy=censorship_strategy_,
               .on_connected_callback=on_connected_callback,
-              .on_ip_assigned_callback=on_ip_assigned_callback,
               .new_ip_pkt_callback=new_ip_pkt_callback,
             }
         );
@@ -226,11 +233,10 @@ void WrapperWebsocketClient::onIPPacket(
   jclass cls = nullptr;
 
   try {
-    const auto* raw_packet = packet->GetRawPacket();
-    const void* data = static_cast<const void*>(raw_packet->getRawData());
-    const auto len = raw_packet->getRawDataLen();
+    const auto& data = packet->Data();
+    const auto len = data.size();
 
-    if (!len || data == nullptr) {
+    if (!len || data.empty()) {
       SPDLOG_ERROR("Serialized packet is empty");
       return;
     }
@@ -242,7 +248,7 @@ void WrapperWebsocketClient::onIPPacket(
     }
 
     env->SetByteArrayRegion(
-        jpacket, 0, len, reinterpret_cast<const jbyte*>(data));
+        jpacket, 0, len, reinterpret_cast<const jbyte*>(data.data()));
     if (env->ExceptionCheck()) {
       SPDLOG_ERROR("JNI Exception in SetByteArrayRegion");
       env->ExceptionDescribe();
