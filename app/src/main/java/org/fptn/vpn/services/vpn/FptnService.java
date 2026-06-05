@@ -522,7 +522,7 @@ public class FptnService extends VpnService {
         PowerManager powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
         try {
             wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, FPTN_SERVICE_POWER_LOCK);
-            wakeLock.acquire();
+            wakeLock.acquire(5000);
         } catch (Exception e) {
             XLog.tag(TAG).e("Can't acquire power lock!", e);
         }
