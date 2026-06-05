@@ -397,7 +397,7 @@ public class FptnConnection extends Thread {
                 cachedDnsServers = dnsServers;
             } catch (PVNClientException e) {
                 XLog.tag(TAG).e("[id=%d] Failed to fetch DNS servers: %s", connectionId, e.getMessage());
-                service.getMainExecutor().execute(() -> sendExceptionToService(e));
+                service.getExecutorService().submit(() -> sendExceptionToService(e));
                 return;
             }
         }
@@ -406,9 +406,9 @@ public class FptnConnection extends Thread {
         boolean isReconnect = reconnectCount.get() > 0 && vpnInterface != null;
         if (isReconnect) {
             XLog.tag(TAG).i("[id=%d] Reconnect detected - recreating TUN interface", connectionId);
-            service.getMainExecutor().execute(() -> recreateTun(assignedIPv4, assignedIPv6, dnsServers));
+            service.getExecutorService().submit(() -> recreateTun(assignedIPv4, assignedIPv6, dnsServers));
         } else {
-            service.getMainExecutor().execute(() -> this.startTun(assignedIPv4, assignedIPv6, dnsServers));
+            service.getExecutorService().submit(() -> this.startTun(assignedIPv4, assignedIPv6, dnsServers));
         }
     }
 

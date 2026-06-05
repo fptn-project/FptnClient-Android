@@ -93,6 +93,7 @@ public class FptnService extends VpnService {
     @Getter
     private final MutableLiveData<Triple<String, String, Long>> speedAndDurationMutableLiveData = new MutableLiveData<>();
 
+    @Getter
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
     private PowerManager.WakeLock wakeLock;
 
