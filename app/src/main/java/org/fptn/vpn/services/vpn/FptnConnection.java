@@ -372,19 +372,16 @@ public class FptnConnection extends Thread {
                 cachedDnsServers = dnsServers;
             } catch (PVNClientException e) {
                 XLog.tag(TAG).e("[id=%d] Failed to fetch DNS servers: %s", connectionId, e.getMessage());
-                service.getExecutorService().submit(() -> sendExceptionToService(e));
+                sendExceptionToService(e);
+                if (!currentThread.isInterrupted()) {
+                    currentThread.interrupt();
+                }
                 return;
             }
         }
 
-        // Check if this is a reconnect (TUN already exists)
-        boolean isReconnect = reconnectCount.get() > 0 && isTunInterfaceValid(vpnInterface);
-        if (isReconnect) {
-            XLog.tag(TAG).i("[id=%d] Reconnect detected - recreating TUN interface", connectionId);
-            service.getExecutorService().submit(() -> recreateTun(assignedIPv4, assignedIPv6, dnsServers));
-        } else {
-            service.getExecutorService().submit(() -> this.startTun(assignedIPv4, assignedIPv6, dnsServers));
-        }
+        XLog.tag(TAG).i("[id=%d] Creating TUN interface", connectionId);
+        startTun(assignedIPv4, assignedIPv6, dnsServers);
     }
 
     private void onMessageReceived(byte[] data) {
@@ -458,24 +455,6 @@ public class FptnConnection extends Thread {
         }
     }
 
-    private void recreateTun(String assignedIPv4, String assignedIPv6, DnsServers dnsServers) {
-        XLog.tag(TAG).i("[id=%d] Recreating TUN interface", connectionId);
-
-        // Close old TUN interface
-        closeVpnInterface();
-
-        // Small delay to ensure OS releases resources
-        try {
-            Thread.sleep(100);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            XLog.tag(TAG).w("[id=%d] Interrupted while waiting before TUN recreation", connectionId);
-        }
-
-        // Create fresh TUN
-        startTun(assignedIPv4, assignedIPv6, dnsServers);
-    }
-
     private void closeVpnInterface() {
         if (outputStream != null) {
             try {
@@ -492,6 +471,16 @@ public class FptnConnection extends Thread {
                 XLog.tag(TAG).w("[id=%d] Error closing TUN interface: %s", connectionId, e.getMessage());
             }
             vpnInterface = null;
+        }
+
+        // Small delay to ensure OS releases resources
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            if (!currentThread.isInterrupted()) {
+                currentThread.interrupt();
+            }
+            XLog.tag(TAG).w("[id=%d] Interrupted while waiting before TUN close", connectionId);
         }
     }
 
