@@ -1,6 +1,7 @@
 package org.fptn.vpn.services.vpn;
 
 import static org.fptn.vpn.enums.ConnectionSubnets.ALL_SUBNET;
+import static org.fptn.vpn.enums.ConnectionSubnets.TUN_ADDRESS;
 import static org.fptn.vpn.enums.ConnectionSubnets.FPTN_SERVER_SUBNET;
 import static org.fptn.vpn.enums.ConnectionSubnets.IP_V4_PREFIX_LENGTH;
 import static org.fptn.vpn.enums.ConnectionSubnets.IP_V6_PREFIX_LENGTH;
@@ -127,6 +128,8 @@ public class FptnConnection extends Thread {
 
         this.webSocketClient = new WebSocketClientWrapper(
                 this.serverEntity,
+                TUN_ADDRESS.getIpV4Address(),
+                TUN_ADDRESS.getIpV6Address(),
                 this::onConnectionOpen,
                 this::onMessageReceived,
                 this::onConnectionFailure,
@@ -232,12 +235,12 @@ public class FptnConnection extends Thread {
         onConnectionFailure();
     }
 
-    private void startTun(String assignedIPv4, String assignedIPv6, DnsServers dns_server) {
+    private void startTun(DnsServers dns_server) {
         try {
             closeVpnInterface();
 
             XLog.tag(TAG).i("[id=%d] Starting TUN [ipv4=%s, ipv6=%s, dns4=%s, dns6=%s, perAppMode=%s]",
-                    connectionId, assignedIPv4, assignedIPv6,
+                    connectionId, TUN_ADDRESS.getIpV4Address(), TUN_ADDRESS.getIpV6Address(),
                     dns_server.getIpv4(), dns_server.getIpv6(), perAppVpnMode);
             InetAddress serverInetAddress = InetAddress.getByName(serverEntity.getHost());
 
@@ -271,12 +274,12 @@ public class FptnConnection extends Thread {
 
             // IPv4
             builder.addDnsServer(dns_server.getIpv4());
-            builder.addAddress(assignedIPv4, IP_V4_PREFIX_LENGTH);
+            builder.addAddress(TUN_ADDRESS.getIpV4Address(), IP_V4_PREFIX_LENGTH);
             builder.addRoute(dns_server.getIpv4(), IP_V4_PREFIX_LENGTH);
 
             // IPv6
             builder.addDnsServer(dns_server.getIpv6());
-            builder.addAddress(assignedIPv6, IP_V6_PREFIX_LENGTH);
+            builder.addAddress(TUN_ADDRESS.getIpV6Address(), IP_V6_PREFIX_LENGTH);
             builder.addRoute(dns_server.getIpv6(), IP_V6_PREFIX_LENGTH);
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -381,7 +384,7 @@ public class FptnConnection extends Thread {
         }
 
         XLog.tag(TAG).i("[id=%d] Creating TUN interface", connectionId);
-        startTun(assignedIPv4, assignedIPv6, dnsServers);
+        startTun(dnsServers);
     }
 
     private void onMessageReceived(byte[] data) {
