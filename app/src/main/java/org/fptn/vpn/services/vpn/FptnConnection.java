@@ -157,8 +157,9 @@ public class FptnConnection extends Thread {
             VpnService.Builder builder = service.new Builder();
             builder.setMtu(MAX_PACKET_SIZE);
             builder.setBlocking(true);
-
-            if (perAppVpnMode == PerAppVpnMode.ONLY_ALLOWED) {
+            if (perAppVpnMode == PerAppVpnMode.OFF) {
+                builder.addDisallowedApplication(service.getPackageName()); // todo: something wrong with routings
+            } else if (perAppVpnMode == PerAppVpnMode.ONLY_ALLOWED) {
                 for (AppInfo appInfo : appInfos) {
                     String packageName = appInfo.getPackageName();
                     try {
@@ -290,7 +291,7 @@ public class FptnConnection extends Thread {
             }
         } catch (PVNClientException e) {
             sendExceptionToService(e);
-        } catch (IOException ex) {
+        } catch (IOException | PackageManager.NameNotFoundException ex) {
             sendExceptionToService(new PVNClientException(ex.getMessage()));
         } catch (WebSocketAlreadyShutdownException e) {
             Log.w(getTag(), "The websocket already shutdown", e);
@@ -338,6 +339,7 @@ public class FptnConnection extends Thread {
     public void onConnectionFailure() {
         Log.d(getTag(), "onConnectionFailure() Thread.id: " + Thread.currentThread().getId());
         cancelReconnectTask();
+        webSocketClient.stopWebSocket();
         try {
             onFailureScheduledTask = scheduler.scheduleWithFixedDelay(() -> {
                 if (webSocketClient.isStarted()) {
@@ -368,7 +370,7 @@ public class FptnConnection extends Thread {
                     sendExceptionToService(new PVNClientException(ErrorCode.RECONNECTING_FAILED));
                     onFailureInterrupt();
                 }
-            }, 0L, delayBetweenAttempts, TimeUnit.SECONDS);
+            }, delayBetweenAttempts, delayBetweenAttempts, TimeUnit.SECONDS);
         } catch (RejectedExecutionException exception) {
             Log.w(getTag(), "OnFailure task rejected!", exception);
         }
