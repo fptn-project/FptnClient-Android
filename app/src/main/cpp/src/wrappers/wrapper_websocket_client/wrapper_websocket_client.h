@@ -20,6 +20,8 @@ class WrapperWebsocketClient final {
   explicit WrapperWebsocketClient(jobject wrapper,
       std::string server_ip,
       int server_port,
+      std::string tun_ipv4,
+      std::string tun_ipv6,
       std::string sni,
       std::string access_token,
       std::string expected_md5_fingerprint,

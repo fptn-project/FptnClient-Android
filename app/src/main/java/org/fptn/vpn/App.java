@@ -1,6 +1,7 @@
 package org.fptn.vpn;
 
 import android.app.Application;
+
 import com.elvishew.xlog.LogConfiguration;
 import com.elvishew.xlog.LogLevel;
 import com.elvishew.xlog.XLog;
@@ -37,7 +38,7 @@ public class App extends Application {
         FilePrinter filePrinter = new FilePrinter.Builder(logPath)
                 .fileNameGenerator(new DateFileNameGenerator())
                 .backupStrategy(new FileSizeBackupStrategy2(1 * 1024 * 1024, 10))
-                .cleanStrategy(new FileLastModifiedCleanStrategy(7 * 24 * 60 * 60 * 1000L))
+                .cleanStrategy(new FileLastModifiedCleanStrategy(60 * 60 * 1000L))
                 .flattener(flattener)
                 .build();
         XLog.init(config, filePrinter, new AndroidPrinter());
