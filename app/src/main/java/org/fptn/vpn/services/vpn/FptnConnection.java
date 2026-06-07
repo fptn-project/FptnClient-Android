@@ -185,10 +185,6 @@ public class FptnConnection extends Thread {
             sendExceptionToService(e);
         } catch (IOException ex) {
             XLog.tag(TAG).w("[id=" + connectionId + "] TUN interface closed: " + ex.getMessage());
-            if (ex.getMessage() != null) {
-                PVNClientException pvnClientException = new PVNClientException(ex.getMessage());
-                sendExceptionToService(pvnClientException);
-            }
         } catch (WebSocketAlreadyShutdownException e) {
             XLog.tag(TAG).w("The websocket already shutdown", e);
         } catch (InterruptedException e) {
