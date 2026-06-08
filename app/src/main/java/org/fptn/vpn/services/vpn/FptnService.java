@@ -305,7 +305,7 @@ public class FptnService extends VpnService {
 
         } else if (ACTION_DISCONNECT.equals(intent.getAction()) && isActiveState) {
             XLog.tag(TAG).i("User-initiated disconnect");
-            disconnect();
+            executorService.submit(() -> disconnect());
         } else if (ACTION_CONNECT.equals(intent.getAction())) {
             XLog.tag(TAG).w("Ignoring CONNECT — already in state [%s]", currentState);
         } else if (ACTION_DISCONNECT.equals(intent.getAction())) {
@@ -474,7 +474,7 @@ public class FptnService extends VpnService {
         BypassCensorshipMethod bypassCensorshipMethod = SharedPrefUtils.getBypassCensorshipMethod(this);
 
         SniSpoofingMode sniSpoofingMode = null;
-        if (bypassCensorshipMethod == BypassCensorshipMethod.SNI_REALITY){
+        if (bypassCensorshipMethod == BypassCensorshipMethod.SNI_REALITY) {
             sniSpoofingMode = SharedPrefUtils.getSniSpoofingMode(this);
         }
 
