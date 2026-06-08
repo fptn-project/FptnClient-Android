@@ -114,7 +114,8 @@ public class FptnConnection extends Thread {
                           final BypassCensorshipMethod censorshipStrategy,
                           final SniSpoofingMode sniSpoofingMode,
                           final PerAppVpnMode perAppVpnMode,
-                          final List<AppInfo> appInfos) {
+                          final List<AppInfo> appInfos,
+                          final String preFetchedToken) {
         this.service = service;
         this.connectionId = connectionId;
         this.serverEntity = serverEntity;
@@ -133,7 +134,8 @@ public class FptnConnection extends Thread {
                 this::onConnectionFailure,
                 sniHostName,
                 censorshipStrategy,
-                sniSpoofingMode
+                sniSpoofingMode,
+                preFetchedToken
         );
     }
 

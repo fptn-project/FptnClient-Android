@@ -61,6 +61,40 @@ public class SpeedTestUtils {
         return null;
     }
 
+    public static SpeedTestResult findServerByLogin(List<ServerEntity> serverEntityList, String sniHostName, BypassCensorshipMethod censorshipStrategy, SniSpoofingMode sniSpoofingMode) throws PVNClientException {
+        XLog.tag(TAG).i("Login-based server selection started [candidates=%d]", serverEntityList != null ? serverEntityList.size() : 0);
+
+        if (serverEntityList != null && !serverEntityList.isEmpty()) {
+            List<ServerEntity> selectedServers = selectServersForTesting(serverEntityList);
+            XLog.tag(TAG).d("Testing %d/%d servers via login", selectedServers.size(), serverEntityList.size());
+
+            ExecutorService executor = Executors.newFixedThreadPool(selectedServers.size());
+            List<NativeLoginTask> tasks = selectedServers.stream()
+                    .map(server -> new NativeLoginTask(server, sniHostName, censorshipStrategy, sniSpoofingMode))
+                    .collect(Collectors.toList());
+            try {
+                SpeedTestResult result = executor.invokeAny(tasks, SEARCH_BEST_SERVER_MAX_TIMEOUT, TimeUnit.SECONDS);
+                XLog.tag(TAG).i("Fastest server found via login [server=%s]", result.getServerEntity().getServerInfo());
+                return result;
+            } catch (InterruptedException e) {
+                // EXTERNAL STOP: The thread was interrupted from the outside
+                XLog.tag(TAG).w("Speed test was externally cancelled");
+                Thread.currentThread().interrupt(); // Restore interrupted status
+            } catch (TimeoutException e) {
+                // TIMEOUT: The timer expired before any server responded
+                XLog.tag(TAG).e("Speed test timed out after %d seconds", SEARCH_BEST_SERVER_MAX_TIMEOUT);
+                throw new PVNClientException(ErrorCode.FIND_FASTEST_SERVER_TIMEOUT);
+            } catch (ExecutionException e) {
+                // FAILURE: Tasks failed or crashed
+                XLog.tag(TAG).e("Speed test execution failed: %s", e.getMessage());
+                throw new PVNClientException(ErrorCode.ALL_SERVERS_UNREACHABLE);
+            } finally {
+                executor.shutdownNow();
+            }
+        }
+        throw new PVNClientException(ErrorCode.SERVER_LIST_NULL_OR_EMPTY);
+    }
+
     private static List<ServerEntity> selectServersForTesting(List<ServerEntity> servers) {
         if (servers.size() <= 1) {
             return servers;
@@ -83,15 +117,8 @@ public class SpeedTestUtils {
         List<ServerEntity> selectedServers = new ArrayList<>(premiumServers);
         if (!regularServers.isEmpty()) {
             Collections.shuffle(regularServers);
-            int totalServersCount = servers.size();
-            int regularCountToAdd = Math.max(0, (int) Math.ceil(totalServersCount * 0.3) - premiumServers.size());
-            regularCountToAdd = Math.min(regularCountToAdd, regularServers.size());
-            if (regularCountToAdd <= 0 && !regularServers.isEmpty()) {
-                regularCountToAdd = 1;
-            }
-            if (regularCountToAdd > 0) {
-                selectedServers.addAll(regularServers.subList(0, regularCountToAdd));
-            }
+            int regularCountToAdd = (int) Math.ceil(regularServers.size() * 0.5);
+            selectedServers.addAll(regularServers.subList(0, regularCountToAdd));
         }
         XLog.tag(TAG).d("Selected %d servers for testing [premium=%d, regular=%d]", selectedServers.size(), premiumServers.size(), selectedServers.size() - premiumServers.size());
         return selectedServers;

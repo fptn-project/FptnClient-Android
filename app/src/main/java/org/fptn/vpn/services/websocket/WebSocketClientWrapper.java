@@ -47,7 +47,8 @@ public class WebSocketClientWrapper {
                                   OnFailureCallback onFailureCallback,
                                   String sniHostName,
                                   BypassCensorshipMethod censorshipStrategy,
-                                  SniSpoofingMode sniSpoofingMode) {
+                                  SniSpoofingMode sniSpoofingMode,
+                                  String preFetchedToken) {
         this.serverEntity = serverEntity;
         this.tunAddressIPv4 = tunAddressIPv4;
         this.tunAddressIPv6 = tunAddressIPv6;
@@ -59,6 +60,8 @@ public class WebSocketClientWrapper {
         this.sniHostName = sniHostName;
         this.censorshipStrategy = censorshipStrategy;
         this.sniSpoofingMode = sniSpoofingMode;
+
+        this.cachedAccessToken = preFetchedToken;
 
         this.nativeHttpsClient = new NativeHttpsClientImpl(
                 serverEntity.getHost(),
