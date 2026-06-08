@@ -33,6 +33,9 @@ public class PerAppVpnModeViewModel extends AndroidViewModel {
 
     private final AppDatabase appDatabase = AppDatabase.getInstance(getApplication());
 
+    private List<AppInfo> allLoadedApps = new ArrayList<>();
+    private boolean showSystemApps = false;
+
     public PerAppVpnModeViewModel(@NonNull Application application) {
         super(application);
 
@@ -43,6 +46,14 @@ public class PerAppVpnModeViewModel extends AndroidViewModel {
 
     public void setPerAppVpnMode(PerAppVpnMode perAppVpnMode) {
         perAppVpnModeMutableLiveData.postValue(perAppVpnMode);
+    }
+
+    public void setShowSystemApps(boolean show) {
+        showSystemApps = show;
+        List<AppInfo> filtered = allLoadedApps.stream()
+                .filter(app -> showSystemApps || !app.isSystemApp())
+                .collect(Collectors.toList());
+        appListMutableLiveData.postValue(filtered);
     }
 
     public void loadInstalledApps(PackageManager pm) {
@@ -65,17 +76,20 @@ public class PerAppVpnModeViewModel extends AndroidViewModel {
             String thisAppPackageName = getApplication().getPackageName();
 
             for (ApplicationInfo appInfo : packages) {
-                if (pm.getLaunchIntentForPackage(appInfo.packageName) != null && !thisAppPackageName.equalsIgnoreCase(appInfo.packageName)) {
-                    AppInfo app = savedAppsMap.getOrDefault(appInfo.packageName, AppInfo.builder().packageName(appInfo.packageName).build());
-                    app.setIcon(appInfo.loadIcon(pm));
-                    app.setLabel(appInfo.loadLabel(pm).toString());
+                if (thisAppPackageName.equalsIgnoreCase(appInfo.packageName)) continue;
 
-                    apps.add(app);
-                }
+                AppInfo app = savedAppsMap.getOrDefault(appInfo.packageName, AppInfo.builder().packageName(appInfo.packageName).build());
+                app.setIcon(appInfo.loadIcon(pm));
+                app.setLabel(appInfo.loadLabel(pm).toString());
+                app.setSystemApp(pm.getLaunchIntentForPackage(appInfo.packageName) == null);
+
+                apps.add(app);
             }
 
             Collections.sort(apps, (a, b) -> a.getLabel().compareToIgnoreCase(b.getLabel()));
-            appListMutableLiveData.postValue(apps);
+            allLoadedApps = apps;
+            List<AppInfo> filtered = apps.stream().filter(app -> !app.isSystemApp()).collect(Collectors.toList());
+            appListMutableLiveData.postValue(filtered);
         }).start();
     }
 
