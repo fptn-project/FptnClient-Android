@@ -285,7 +285,8 @@ public class FptnService extends VpnService {
                             XLog.tag(TAG).i("Auto-selecting fastest server via login");
                             updateNotificationWithMessage(getString(R.string.connecting_auto), "");
                             List<ServerEntity> serverEntities = appDatabase.serverDAO().getServerList(false);
-                            ServerEntity server = SpeedTestUtils.findFastestServer(serverEntities, sniHostname, bypassCensorshipMethod, sniSpoofingMode);
+                            NativeLoginResult loginResult = SpeedTestUtils.findServerByLogin(serverEntities, sniHostname, bypassCensorshipMethod, sniSpoofingMode);
+                            ServerEntity server = loginResult.getServerEntity();
                             if (server == null && Thread.currentThread().isInterrupted()) {
                                 // Must never happen - just to process interruption
                                 return;

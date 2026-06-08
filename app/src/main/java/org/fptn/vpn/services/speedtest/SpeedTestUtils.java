@@ -8,6 +8,7 @@ import org.fptn.vpn.enums.SniSpoofingMode;
 import org.fptn.vpn.vpnclient.exception.ErrorCode;
 import org.fptn.vpn.vpnclient.exception.PVNClientException;
 
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -77,11 +78,19 @@ public class SpeedTestUtils {
                 XLog.tag(TAG).i("Fastest server found via login [server=%s]", result.getServerEntity().getServerInfo());
                 return result;
             } catch (InterruptedException e) {
+                // EXTERNAL STOP: The thread was interrupted from the outside
+                XLog.tag(TAG).w("Speed test was externally cancelled");
+                Thread.currentThread().interrupt(); // Restore interrupted status
+            } catch (TimeoutException e) {
+                // TIMEOUT: The timer expired before any server responded
+                XLog.tag(TAG).e("Speed test timed out after %d seconds", SEARCH_BEST_SERVER_MAX_TIMEOUT);
                 throw new PVNClientException(ErrorCode.FIND_FASTEST_SERVER_TIMEOUT);
-            } catch (ExecutionException | TimeoutException e) {
+            } catch (ExecutionException e) {
+                // FAILURE: Tasks failed or crashed
+                XLog.tag(TAG).e("Speed test execution failed: %s", e.getMessage());
                 throw new PVNClientException(ErrorCode.ALL_SERVERS_UNREACHABLE);
             } finally {
-                executor.shutdown();
+                executor.shutdownNow();
             }
         }
         throw new PVNClientException(ErrorCode.SERVER_LIST_NULL_OR_EMPTY);
