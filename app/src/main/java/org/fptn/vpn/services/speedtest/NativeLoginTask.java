@@ -12,7 +12,7 @@ import org.json.JSONObject;
 
 import java.util.concurrent.Callable;
 
-public class NativeLoginTask implements Callable<NativeLoginResult> {
+public class NativeLoginTask implements Callable<SpeedTestResult> {
     private static final String LOGIN_URL = "/api/v1/login";
     private static final int TIMEOUT = 10;
 
@@ -32,13 +32,13 @@ public class NativeLoginTask implements Callable<NativeLoginResult> {
     }
 
     @Override
-    public NativeLoginResult call() throws Exception {
+    public SpeedTestResult call() throws Exception {
         String requestBody = new Gson().toJson(new LoginRequest(serverEntity.getUsername(), serverEntity.getPassword()));
         NativeResponse response = nativeHttpsClient.Post(LOGIN_URL, requestBody, TIMEOUT);
         if (response != null && response.code == 200) {
             JSONObject json = new JSONObject(response.body);
             String accessToken = json.getString("access_token");
-            return new NativeLoginResult(serverEntity, accessToken);
+            return new SpeedTestResult(serverEntity, accessToken);
         }
         throw new Exception("Login failed for " + serverEntity.getHost() + " [code=" + (response != null ? response.code : -1) + "]");
     }

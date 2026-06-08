@@ -8,7 +8,6 @@ import org.fptn.vpn.enums.SniSpoofingMode;
 import org.fptn.vpn.vpnclient.exception.ErrorCode;
 import org.fptn.vpn.vpnclient.exception.PVNClientException;
 
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -62,7 +61,7 @@ public class SpeedTestUtils {
         return null;
     }
 
-    public static NativeLoginResult findServerByLogin(List<ServerEntity> serverEntityList, String sniHostName, BypassCensorshipMethod censorshipStrategy, SniSpoofingMode sniSpoofingMode) throws PVNClientException {
+    public static SpeedTestResult findServerByLogin(List<ServerEntity> serverEntityList, String sniHostName, BypassCensorshipMethod censorshipStrategy, SniSpoofingMode sniSpoofingMode) throws PVNClientException {
         XLog.tag(TAG).i("Login-based server selection started [candidates=%d]", serverEntityList != null ? serverEntityList.size() : 0);
 
         if (serverEntityList != null && !serverEntityList.isEmpty()) {
@@ -74,7 +73,7 @@ public class SpeedTestUtils {
                     .map(server -> new NativeLoginTask(server, sniHostName, censorshipStrategy, sniSpoofingMode))
                     .collect(Collectors.toList());
             try {
-                NativeLoginResult result = executor.invokeAny(tasks, SEARCH_BEST_SERVER_MAX_TIMEOUT, TimeUnit.SECONDS);
+                SpeedTestResult result = executor.invokeAny(tasks, SEARCH_BEST_SERVER_MAX_TIMEOUT, TimeUnit.SECONDS);
                 XLog.tag(TAG).i("Fastest server found via login [server=%s]", result.getServerEntity().getServerInfo());
                 return result;
             } catch (InterruptedException e) {

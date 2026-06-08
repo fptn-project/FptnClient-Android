@@ -44,7 +44,7 @@ import org.fptn.vpn.utils.NetworkUtils;
 import org.fptn.vpn.utils.NotificationUtils;
 import org.fptn.vpn.utils.SharedPrefUtils;
 import org.fptn.vpn.views.perappvpn.AppInfo;
-import org.fptn.vpn.services.speedtest.NativeLoginResult;
+import org.fptn.vpn.services.speedtest.SpeedTestResult;
 import org.fptn.vpn.services.speedtest.SpeedTestUtils;
 import org.fptn.vpn.views.splash.SplashActivity;
 import org.fptn.vpn.vpnclient.exception.ErrorCode;
@@ -285,7 +285,7 @@ public class FptnService extends VpnService {
                             XLog.tag(TAG).i("Auto-selecting fastest server via login");
                             updateNotificationWithMessage(getString(R.string.connecting_auto), "");
                             List<ServerEntity> serverEntities = appDatabase.serverDAO().getServerList(false);
-                            NativeLoginResult loginResult = SpeedTestUtils.findServerByLogin(serverEntities, sniHostname, bypassCensorshipMethod, sniSpoofingMode);
+                            SpeedTestResult loginResult = SpeedTestUtils.findServerByLogin(serverEntities, sniHostname, bypassCensorshipMethod, sniSpoofingMode);
                             ServerEntity server = loginResult.getServerEntity();
                             if (server == null && Thread.currentThread().isInterrupted()) {
                                 // Must never happen - just to process interruption

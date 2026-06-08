@@ -7,7 +7,7 @@ import lombok.Value;
 
 @Value
 @AllArgsConstructor
-public class NativeLoginResult {
+public class SpeedTestResult {
     ServerEntity serverEntity;
     String accessToken;
 }
