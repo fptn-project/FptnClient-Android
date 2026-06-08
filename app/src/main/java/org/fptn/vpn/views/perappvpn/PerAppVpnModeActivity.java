@@ -4,13 +4,17 @@ import static org.fptn.vpn.utils.ViewUtils.hideView;
 import static org.fptn.vpn.utils.ViewUtils.showView;
 
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SwitchCompat;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -29,6 +33,7 @@ public class PerAppVpnModeActivity extends AppCompatActivity {
 
     private View selectAppsListLayout;
     private RecyclerView appListRecyclerView;
+    private EditText searchAppsEditText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,6 +51,22 @@ public class PerAppVpnModeActivity extends AppCompatActivity {
         bottomNavigationView.setOnItemSelectedListener(new CustomBottomNavigationListener(this, R.id.menuSettings));
 
         selectAppsListLayout = findViewById(R.id.select_apps_list_layout);
+
+        searchAppsEditText = findViewById(R.id.search_apps_edit_text);
+        searchAppsEditText.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
+            @Override
+            public void afterTextChanged(Editable s) {
+                if (appListRecyclerView.getAdapter() instanceof AppInfoListAdapter adapter) {
+                    adapter.filter(s.toString());
+                }
+            }
+        });
+
+        SwitchCompat showSystemAppsSwitch = findViewById(R.id.show_system_apps_switch);
+        showSystemAppsSwitch.setOnCheckedChangeListener((btn, isChecked) ->
+                viewModel.setShowSystemApps(isChecked));
 
         // Setup RadioGroup listener
         RadioGroup protocolRadioGroup = findViewById(R.id.per_app_vpn_mode_radio_button_group);
@@ -100,6 +121,8 @@ public class PerAppVpnModeActivity extends AppCompatActivity {
 
         viewModel.getAppListMutableLiveData().observe(this, apps -> {
             AppInfoListAdapter adapter = new AppInfoListAdapter(apps, viewModel.getPerAppVpnModeMutableLiveData().getValue());
+            String query = searchAppsEditText.getText().toString();
+            if (!query.isEmpty()) adapter.filter(query);
             appListRecyclerView.setAdapter(adapter);
 
             hideView(progressBar);

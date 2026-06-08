@@ -15,4 +15,5 @@ public class AppInfo {
     private Drawable icon;
     private boolean allowed;
     private boolean disallowed;
+    private boolean systemApp;
 }
