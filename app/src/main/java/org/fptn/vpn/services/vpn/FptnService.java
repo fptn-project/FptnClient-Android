@@ -44,6 +44,7 @@ import org.fptn.vpn.utils.NetworkUtils;
 import org.fptn.vpn.utils.NotificationUtils;
 import org.fptn.vpn.utils.SharedPrefUtils;
 import org.fptn.vpn.views.perappvpn.AppInfo;
+import org.fptn.vpn.services.speedtest.NativeLoginResult;
 import org.fptn.vpn.services.speedtest.SpeedTestUtils;
 import org.fptn.vpn.views.splash.SplashActivity;
 import org.fptn.vpn.vpnclient.exception.ErrorCode;
@@ -281,7 +282,7 @@ public class FptnService extends VpnService {
 
                     if (serverId == SELECTED_SERVER_ID_AUTO) {
                         try {
-                            XLog.tag(TAG).i("Auto-selecting fastest server");
+                            XLog.tag(TAG).i("Auto-selecting fastest server via login");
                             updateNotificationWithMessage(getString(R.string.connecting_auto), "");
                             List<ServerEntity> serverEntities = appDatabase.serverDAO().getServerList(false);
                             ServerEntity server = SpeedTestUtils.findFastestServer(serverEntities, sniHostname, bypassCensorshipMethod, sniSpoofingMode);
@@ -291,7 +292,7 @@ public class FptnService extends VpnService {
                             }
                             XLog.tag(TAG).i("Auto-selected server [id=%d, name=%s]", server.getId(), server.getName());
                             setSelectedServer(server.getId());
-                            connect(server, sniHostname);
+                            connect(server, sniHostname, loginResult.getAccessToken());
                         } catch (PVNClientException e) {
                             XLog.tag(TAG).e("Auto-select failed — all servers unreachable: %s", e.getMessage());
                             disconnect(e);
@@ -300,7 +301,7 @@ public class FptnService extends VpnService {
                         XLog.tag(TAG).i("Connecting to server [id=%d]", serverId);
                         setSelectedServer(serverId);
                         ServerEntity server = getSelectedServer();
-                        connect(server, sniHostname);
+                        connect(server, sniHostname, null);
                     }
                 } catch (ExecutionException | InterruptedException | RuntimeException |
                          UnknownHostException e) {
@@ -450,7 +451,7 @@ public class FptnService extends VpnService {
                 .build());
     }
 
-    private void connect(ServerEntity serverEntity, String sniHostname) throws UnknownHostException {
+    private void connect(ServerEntity serverEntity, String sniHostname, String preFetchedToken) throws UnknownHostException {
         XLog.tag(TAG).i("Connecting to [%s] at %s:%d via sni=[%s]",
                 serverEntity.getServerInfo(), serverEntity.getHost(), serverEntity.getPort(), sniHostname);
         updateNotificationWithMessage(getString(R.string.connecting_to) + serverEntity.getServerInfo(), "");
@@ -520,7 +521,8 @@ public class FptnService extends VpnService {
                 bypassCensorshipMethod,
                 sniSpoofingMode,
                 perAppVpnMode,
-                appInfos
+                appInfos,
+                preFetchedToken
         );
         connection.setConfigureVpnIntent(launchMainActivityPendingIntent);
         connection.start();
