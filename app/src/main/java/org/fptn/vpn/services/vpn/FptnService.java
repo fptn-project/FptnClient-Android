@@ -285,6 +285,10 @@ public class FptnService extends VpnService {
                             updateNotificationWithMessage(getString(R.string.connecting_auto), "");
                             List<ServerEntity> serverEntities = appDatabase.serverDAO().getServerList(false);
                             ServerEntity server = SpeedTestUtils.findFastestServer(serverEntities, sniHostname, bypassCensorshipMethod, sniSpoofingMode);
+                            if (server == null && Thread.currentThread().isInterrupted()) {
+                                // Must never happen - just to process interruption
+                                return;
+                            }
                             XLog.tag(TAG).i("Auto-selected server [id=%d, name=%s]", server.getId(), server.getName());
                             setSelectedServer(server.getId());
                             connect(server, sniHostname);
