@@ -57,6 +57,7 @@ import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
@@ -105,6 +106,7 @@ public class FptnService extends VpnService {
      * LocalBinder - just the way to give HomeActivity link on FptnService object
      */
     private final IBinder binder = new LocalBinder();
+    private Future<?> submittedConnectionAttempt;
 
     public static void bindService(Context context, ServiceConnection connection) {
         Intent intent = new Intent(context, FptnService.class);
@@ -244,7 +246,7 @@ public class FptnService extends VpnService {
                 return START_NOT_STICKY;
             }
 
-            executorService.submit(() -> {
+            submittedConnectionAttempt = executorService.submit(() -> {
                 try {
                     setConnectionState(ConnectionState.CONNECTING, null);
 
@@ -283,6 +285,10 @@ public class FptnService extends VpnService {
                             updateNotificationWithMessage(getString(R.string.connecting_auto), "");
                             List<ServerEntity> serverEntities = appDatabase.serverDAO().getServerList(false);
                             ServerEntity server = SpeedTestUtils.findFastestServer(serverEntities, sniHostname, bypassCensorshipMethod, sniSpoofingMode);
+                            if (server == null && Thread.currentThread().isInterrupted()) {
+                                // Must never happen - just to process interruption
+                                return;
+                            }
                             XLog.tag(TAG).i("Auto-selected server [id=%d, name=%s]", server.getId(), server.getName());
                             setSelectedServer(server.getId());
                             connect(server, sniHostname);
@@ -305,7 +311,14 @@ public class FptnService extends VpnService {
 
         } else if (ACTION_DISCONNECT.equals(intent.getAction()) && isActiveState) {
             XLog.tag(TAG).i("User-initiated disconnect");
-            disconnect();
+
+            if (submittedConnectionAttempt != null && !submittedConnectionAttempt.isDone()) {
+                submittedConnectionAttempt.cancel(true);
+                submittedConnectionAttempt = null;
+                XLog.tag(TAG).i("Canceled connection attempt");
+            }
+
+            executorService.submit(() -> disconnect());
         } else if (ACTION_CONNECT.equals(intent.getAction())) {
             XLog.tag(TAG).w("Ignoring CONNECT — already in state [%s]", currentState);
         } else if (ACTION_DISCONNECT.equals(intent.getAction())) {
@@ -474,7 +487,7 @@ public class FptnService extends VpnService {
         BypassCensorshipMethod bypassCensorshipMethod = SharedPrefUtils.getBypassCensorshipMethod(this);
 
         SniSpoofingMode sniSpoofingMode = null;
-        if (bypassCensorshipMethod == BypassCensorshipMethod.SNI_REALITY){
+        if (bypassCensorshipMethod == BypassCensorshipMethod.SNI_REALITY) {
             sniSpoofingMode = SharedPrefUtils.getSniSpoofingMode(this);
         }
 
