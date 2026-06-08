@@ -57,6 +57,7 @@ import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
@@ -105,6 +106,7 @@ public class FptnService extends VpnService {
      * LocalBinder - just the way to give HomeActivity link on FptnService object
      */
     private final IBinder binder = new LocalBinder();
+    private Future<?> submittedConnectionAttempt;
 
     public static void bindService(Context context, ServiceConnection connection) {
         Intent intent = new Intent(context, FptnService.class);
@@ -244,7 +246,7 @@ public class FptnService extends VpnService {
                 return START_NOT_STICKY;
             }
 
-            executorService.submit(() -> {
+            submittedConnectionAttempt = executorService.submit(() -> {
                 try {
                     setConnectionState(ConnectionState.CONNECTING, null);
 
@@ -305,6 +307,13 @@ public class FptnService extends VpnService {
 
         } else if (ACTION_DISCONNECT.equals(intent.getAction()) && isActiveState) {
             XLog.tag(TAG).i("User-initiated disconnect");
+
+            if (submittedConnectionAttempt != null && !submittedConnectionAttempt.isDone()) {
+                submittedConnectionAttempt.cancel(true);
+                submittedConnectionAttempt = null;
+                XLog.tag(TAG).i("Canceled connection attempt");
+            }
+
             executorService.submit(() -> disconnect());
         } else if (ACTION_CONNECT.equals(intent.getAction())) {
             XLog.tag(TAG).w("Ignoring CONNECT — already in state [%s]", currentState);
