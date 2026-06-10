@@ -65,6 +65,7 @@ public class PerAppVpnModeActivity extends AppCompatActivity {
         });
 
         SwitchCompat showSystemAppsSwitch = findViewById(R.id.show_system_apps_switch);
+        showSystemAppsSwitch.setChecked(viewModel.isShowSystemApps());
         showSystemAppsSwitch.setOnCheckedChangeListener((btn, isChecked) ->
                 viewModel.setShowSystemApps(isChecked));
 

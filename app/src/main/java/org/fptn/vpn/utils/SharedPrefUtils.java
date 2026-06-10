@@ -170,4 +170,14 @@ public class SharedPrefUtils {
         sharedPreferences.edit().putString(Constants.PER_APP_VPN_MODE_SHARED_PREF_KEY, perAppVPNMode.toString()).apply();
     }
 
+    public static boolean getShowSystemApps(Context context) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        return sharedPreferences.getBoolean(Constants.SHOW_SYSTEM_APPS_SHARED_PREF_KEY, false);
+    }
+
+    public static void saveShowSystemApps(Context context, boolean show) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        sharedPreferences.edit().putBoolean(Constants.SHOW_SYSTEM_APPS_SHARED_PREF_KEY, show).apply();
+    }
+
 }
