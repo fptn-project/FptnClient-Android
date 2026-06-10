@@ -442,22 +442,34 @@ public class BypassMethodsActivity extends AppCompatActivity {
     private String getSniSpoofingModeFriendlyName(SniSpoofingMode mode) {
         return switch (mode) {
             case SNI -> getString(R.string.sni);
+            case SNI_REALITY_CHROME_149 ->
+                    getString(R.string.sni_reality_radio_button_label_chrome_149);
+            case SNI_REALITY_CHROME_148 ->
+                    getString(R.string.sni_reality_radio_button_label_chrome_148);
             case SNI_REALITY_CHROME_147 ->
                     getString(R.string.sni_reality_radio_button_label_chrome_147);
             case SNI_REALITY_CHROME_146 ->
                     getString(R.string.sni_reality_radio_button_label_chrome_146);
             case SNI_REALITY_CHROME_145 ->
                     getString(R.string.sni_reality_radio_button_label_chrome_145);
+            case SNI_REALITY_FIREFOX_151 ->
+                    getString(R.string.sni_reality_radio_button_label_firefox_151);
+            case SNI_REALITY_FIREFOX_150 ->
+                    getString(R.string.sni_reality_radio_button_label_firefox_150);
             case SNI_REALITY_FIREFOX_149 ->
                     getString(R.string.sni_reality_radio_button_label_firefox_149);
-            case SNI_REALITY_YANDEX_26 ->
-                    getString(R.string.sni_reality_radio_button_label_yandex_26);
+            case SNI_REALITY_YANDEX_26_4 ->
+                    getString(R.string.sni_reality_radio_button_label_yandex_26_4);
+            case SNI_REALITY_YANDEX_26_3 ->
+                    getString(R.string.sni_reality_radio_button_label_yandex_26_3);
             case SNI_REALITY_YANDEX_25 ->
                     getString(R.string.sni_reality_radio_button_label_yandex_25);
             case SNI_REALITY_YANDEX_24 ->
                     getString(R.string.sni_reality_radio_button_label_yandex_24);
-            case SNI_REALITY_SAFARI_26 ->
-                    getString(R.string.sni_reality_radio_button_label_safari_26);
+            case SNI_REALITY_SAFARI_26_5 ->
+                    getString(R.string.sni_reality_radio_button_label_safari_26_5);
+            case SNI_REALITY_SAFARI_26_4 ->
+                    getString(R.string.sni_reality_radio_button_label_safari_26_4);
             default -> mode.toString();
         };
     }

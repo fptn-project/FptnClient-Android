@@ -54,10 +54,10 @@ public class SpeedTestUtils {
             } finally {
                 executor.shutdownNow();
             }
-        } else {
+        } /* else {
             // Must never happen
-            throw new PVNClientException(ErrorCode.SERVER_LIST_NULL_OR_EMPTY);
-        }
+            // throw new PVNClientException(ErrorCode.SERVER_LIST_NULL_OR_EMPTY);
+        } */
         return null;
     }
 
@@ -92,7 +92,8 @@ public class SpeedTestUtils {
                 executor.shutdownNow();
             }
         }
-        throw new PVNClientException(ErrorCode.SERVER_LIST_NULL_OR_EMPTY);
+        return null;
+        //throw new PVNClientException(ErrorCode.SERVER_LIST_NULL_OR_EMPTY);
     }
 
     private static List<ServerEntity> selectServersForTesting(List<ServerEntity> servers) {

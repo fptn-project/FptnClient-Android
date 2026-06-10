@@ -88,36 +88,50 @@ Java_org_fptn_vpn_services_websocket_NativeWebSocketClientImpl_nativeCreate(
   fptn::protocol::https::CensorshipStrategy censorship_strategy =
             fptn::protocol::https::CensorshipStrategy::kSni;
   if (censorship_strategy_name == "SNI") {
-    censorship_strategy = fptn::protocol::https::CensorshipStrategy::kSni;
+      censorship_strategy = fptn::protocol::https::CensorshipStrategy::kSni;
   } else if (censorship_strategy_name == "OBFUSCATION") {
     censorship_strategy = fptn::protocol::https::CensorshipStrategy::kTlsObfuscator;
   } else if (censorship_strategy_name == "SNI-REALITY") {  // deprecated
-    censorship_strategy = fptn::protocol::https::CensorshipStrategy::kSniRealityMode;
+      censorship_strategy = fptn::protocol::https::CensorshipStrategy::kSniRealityMode;
   }
   /* Chrome */
-  else if (censorship_strategy_name == "SNI-REALITY-CHROME-147") {
-      censorship_strategy = fptn::protocol::https::CensorshipStrategy::kSniRealityModeChrome147;
+  else if (censorship_strategy_name == "SNI-REALITY-CHROME-149") {
+    censorship_strategy = fptn::protocol::https::CensorshipStrategy::kSniRealityModeChrome149;
+  } else if (censorship_strategy_name == "SNI-REALITY-CHROME-148") {
+      censorship_strategy = fptn::protocol::https::CensorshipStrategy::kSniRealityModeChrome148;
+  } else if (censorship_strategy_name == "SNI-REALITY-CHROME-147") {
+    censorship_strategy = fptn::protocol::https::CensorshipStrategy::kSniRealityModeChrome147;
   } else if (censorship_strategy_name == "SNI-REALITY-CHROME-146") {
-    censorship_strategy = fptn::protocol::https::CensorshipStrategy::kSniRealityModeChrome146;
+      censorship_strategy = fptn::protocol::https::CensorshipStrategy::kSniRealityModeChrome146;
   } else if (censorship_strategy_name == "SNI-REALITY-CHROME-145") {
       censorship_strategy = fptn::protocol::https::CensorshipStrategy::kSniRealityModeChrome145;
   }
   /* Firefox */
-  else if (censorship_strategy_name == "SNI-REALITY-FIREFOX-149") {
+  else if (censorship_strategy_name == "SNI-REALITY-FIREFOX-151") {
+    censorship_strategy = fptn::protocol::https::CensorshipStrategy::kSniRealityModeFirefox151;
+  } else if (censorship_strategy_name == "SNI-REALITY-FIREFOX-150") {
+    censorship_strategy = fptn::protocol::https::CensorshipStrategy::kSniRealityModeFirefox150;
+  } else if (censorship_strategy_name == "SNI-REALITY-FIREFOX-149") {
     censorship_strategy = fptn::protocol::https::CensorshipStrategy::kSniRealityModeFirefox149;
   }
   /* Yandex */
-  else if (censorship_strategy_name == "SNI-REALITY-YANDEX-26") {
-    censorship_strategy = fptn::protocol::https::CensorshipStrategy::kSniRealityModeYandex26;
+  else if (censorship_strategy_name == "SNI-REALITY-YANDEX-26-4") {
+    censorship_strategy = fptn::protocol::https::CensorshipStrategy::kSniRealityModeYandex26_4;
+  } else if (censorship_strategy_name == "SNI-REALITY-YANDEX-26-3") {
+    censorship_strategy = fptn::protocol::https::CensorshipStrategy::kSniRealityModeYandex26_3;
   } else if (censorship_strategy_name == "SNI-REALITY-YANDEX-25") {
     censorship_strategy = fptn::protocol::https::CensorshipStrategy::kSniRealityModeYandex25;
   } else if (censorship_strategy_name == "SNI-REALITY-YANDEX-24") {
-      censorship_strategy = fptn::protocol::https::CensorshipStrategy::kSniRealityModeYandex24;
+    censorship_strategy = fptn::protocol::https::CensorshipStrategy::kSniRealityModeYandex24;
   }
   /* Safari */
-  else if (censorship_strategy_name == "SNI-REALITY-SAFARI-26") {
-      censorship_strategy = fptn::protocol::https::CensorshipStrategy::kSniRealityModeSafari26;
+  else if (censorship_strategy_name == "SNI-REALITY-SAFARI-26-5") {
+    censorship_strategy = fptn::protocol::https::CensorshipStrategy::kSniRealityModeSafari26_5;
+  } else if (censorship_strategy_name == "SNI-REALITY-SAFARI-26-4") {
+    censorship_strategy = fptn::protocol::https::CensorshipStrategy::kSniRealityModeSafari26_4;
   }
+
+  SPDLOG_INFO("Censorship strategy selected: {}", censorship_strategy_name);
 
   jobject global_object_ref = env->NewWeakGlobalRef(thiz);
   auto* websocket_client = new WrapperWebsocketClient(

@@ -76,7 +76,7 @@ public class TokenUtils {
 
         if (serverDtoList.isEmpty()) {
             XLog.tag(TAG).e("Token parsed but no servers found — token may be invalid or expired");
-            throw new PVNClientException(ErrorCode.SERVER_LIST_NULL_OR_EMPTY);
+//            throw new PVNClientException(ErrorCode.SERVER_LIST_NULL_OR_EMPTY);
         }
 
         return serverDtoList;
