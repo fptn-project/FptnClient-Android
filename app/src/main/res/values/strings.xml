@@ -242,18 +242,23 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="tls_handshake_obfuscation_radio_button_label">Traffic masking (obfuscation)</string>
     <string name="sni_reality_radio_button_label">Domain spoofing (SNI + REALITY)</string>
 
+    <string name="sni_reality_radio_button_label_chrome_149">Domain spoofing (Chrome 149)</string>
+    <string name="sni_reality_radio_button_label_chrome_148">Domain spoofing (Chrome 148)</string>
     <string name="sni_reality_radio_button_label_chrome_147">Domain spoofing (Chrome 147)</string>
     <string name="sni_reality_radio_button_label_chrome_146">Domain spoofing (Chrome 146)</string>
     <string name="sni_reality_radio_button_label_chrome_145">Domain spoofing (Chrome 145)</string>
 
+    <string name="sni_reality_radio_button_label_firefox_151">Domain spoofing (Firefox 151)</string>
+    <string name="sni_reality_radio_button_label_firefox_150">Domain spoofing (Firefox 150)</string>
     <string name="sni_reality_radio_button_label_firefox_149">Domain spoofing (Firefox 149)</string>
 
-    <string name="sni_reality_radio_button_label_yandex_26">Domain spoofing (Yandex 26)</string>
+    <string name="sni_reality_radio_button_label_yandex_26_4">Domain spoofing (Yandex 26.4)</string>
+    <string name="sni_reality_radio_button_label_yandex_26_3">Domain spoofing (Yandex 26.3)</string>
     <string name="sni_reality_radio_button_label_yandex_25">Domain spoofing (Yandex 25)</string>
     <string name="sni_reality_radio_button_label_yandex_24">Domain spoofing (Yandex 24)</string>
 
-    <string name="sni_reality_radio_button_label_safari_26">Domain spoofing (Safari 26)</string>
-
+    <string name="sni_reality_radio_button_label_safari_26_5">Domain spoofing (Safari 26.5)</string>
+    <string name="sni_reality_radio_button_label_safari_26_4">Domain spoofing (Safari 26.4)</string>
 
     <string name="sni_reality_radio_button_label_additional_info">Requires a real existing domain (otherwise errors may occur)</string>
     <string name="connecting_auto">Selecting the best server...</string>

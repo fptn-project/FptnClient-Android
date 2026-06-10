@@ -479,10 +479,6 @@ public class FptnService extends VpnService {
         }
         int maxReconnectCount = SharedPrefUtils.getReconnectAttemptsCount(this);
         int delayBetweenAttempts = SharedPrefUtils.getDelayBetweenReconnect(this);
-        XLog.tag(TAG).i("Connection params [bypass=%s, maxRetries=%d, retryDelay=%ds, watchIP=%b, watchNetwork=%b]",
-                SharedPrefUtils.getBypassCensorshipMethod(this),
-                maxReconnectCount, delayBetweenAttempts,
-                reconnectOnChangeIPEnabled, reconnectOnChangeNetworkTypeEnabled);
 
         FptnConnection connection;
 
@@ -492,6 +488,11 @@ public class FptnService extends VpnService {
         if (bypassCensorshipMethod == BypassCensorshipMethod.SNI_REALITY) {
             sniSpoofingMode = SharedPrefUtils.getSniSpoofingMode(this);
         }
+        XLog.tag(TAG).i("Connection params [bypass=%s, spoofingMode=%s, maxRetries=%d, retryDelay=%ds, watchIP=%b, watchNetwork=%b]",
+                bypassCensorshipMethod,
+                sniSpoofingMode,
+                maxReconnectCount, delayBetweenAttempts,
+                reconnectOnChangeIPEnabled, reconnectOnChangeNetworkTypeEnabled);
 
         PerAppVpnMode perAppVpnMode = SharedPrefUtils.getPerAppVPNMode(this);
         List<AppInfo> appInfos = new ArrayList<>();
