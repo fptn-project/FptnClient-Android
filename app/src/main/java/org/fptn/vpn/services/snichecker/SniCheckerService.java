@@ -24,6 +24,7 @@ import org.fptn.vpn.database.AppDatabase;
 import org.fptn.vpn.database.entity.ServerEntity;
 import org.fptn.vpn.database.entity.SniEntity;
 import org.fptn.vpn.enums.BypassCensorshipMethod;
+import org.fptn.vpn.enums.SniSpoofingMode;
 import org.fptn.vpn.utils.NotificationUtils;
 import org.fptn.vpn.utils.SharedPrefUtils;
 import org.fptn.vpn.views.bypassmethod.BypassMethodsActivity;
@@ -176,7 +177,8 @@ public class SniCheckerService extends Service {
                 executorService.submit(() -> {
                     ServerEntity serverEntity = appDatabase.serverDAO().getById(serverId);
                     if (serverEntity != null) {
-                        SniChecker sniChecker = new SniChecker(serverEntity, bypassCensorshipMethod);
+                        SniSpoofingMode sniSpoofingMode = SharedPrefUtils.getSniSpoofingMode(getApplicationContext());
+                        SniChecker sniChecker = new SniChecker(serverEntity, bypassCensorshipMethod, sniSpoofingMode);
                         selectedServer.postValue(serverEntity);
 
                         acquirePowerLock();

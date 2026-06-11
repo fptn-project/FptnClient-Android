@@ -4,26 +4,33 @@ import com.elvishew.xlog.XLog;
 
 import org.fptn.vpn.database.entity.ServerEntity;
 import org.fptn.vpn.enums.BypassCensorshipMethod;
+import org.fptn.vpn.enums.SniSpoofingMode;
 
 
 public class SniChecker {
     private final String TAG = getClass().getSimpleName();
     private final ServerEntity selectedServer;
-    private final BypassCensorshipMethod bypassCensorshipMethod;
     private long nativeHandle = 0;
 
     static {
         System.loadLibrary("fptn_native_lib");
     }
 
-    public SniChecker(ServerEntity selectedServer, BypassCensorshipMethod bypassCensorshipMethod) {
+    public SniChecker(ServerEntity selectedServer, BypassCensorshipMethod bypassCensorshipMethod, SniSpoofingMode sniSpoofingMode) {
         this.selectedServer = selectedServer;
-        this.bypassCensorshipMethod = bypassCensorshipMethod;
+        String strategyName = "SNI";
+        if (bypassCensorshipMethod == BypassCensorshipMethod.SNI_REALITY && sniSpoofingMode == SniSpoofingMode.SNI) {
+            strategyName = "SNI";
+        } else if (bypassCensorshipMethod == BypassCensorshipMethod.TLS_OBFUSCATION) {
+            strategyName = "OBFUSCATION";
+        } else if (bypassCensorshipMethod == BypassCensorshipMethod.SNI_REALITY) {
+            strategyName = sniSpoofingMode.toString().replace('_', '-');
+        }
         this.nativeHandle = nativeCreate(
                 selectedServer.getHost(),
                 selectedServer.getPort(),
                 selectedServer.getMd5ServerFingerprint(),
-                bypassCensorshipMethod.name()
+                strategyName
         );
     }
 
