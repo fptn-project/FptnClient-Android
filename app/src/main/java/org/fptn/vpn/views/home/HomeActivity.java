@@ -148,6 +148,7 @@ public class HomeActivity extends AppCompatActivity {
             ((ServerEntityAdapter) spinnerServers.getAdapter()).setServerEntityList(serverEntities);
 
             spinnerServers.performClosedEvent(); // FIX SPINNER BACKGROUND
+            updateSpinnerSelection();
         });
 
         View settingsMenuItem = findViewById(R.id.menuSettings);
