@@ -52,8 +52,11 @@ public class SniCheckerService extends Service {
 
     public static final int SNI_BATCH_SIZE = 25;
 
-    @Getter
     private static final MutableLiveData<SniCheckerServiceState> staticServiceState = new MutableLiveData<>(SniCheckerServiceState.INACTIVE);
+
+    public static MutableLiveData<SniCheckerServiceState> getStaticServiceState() {
+        return staticServiceState;
+    }
 
     @Getter
     private final MutableLiveData<SniCheckerServiceState> serviceState = new MutableLiveData<>(SniCheckerServiceState.INACTIVE);

@@ -63,6 +63,10 @@ public class BypassMethodsViewModel extends AndroidViewModel {
     @Getter
     private final MutableLiveData<String> foundedSniEvent = new MutableLiveData<>();
 
+    // Cache for Compose UI - populated from Activity after async load
+    @Getter
+    public final MutableLiveData<List<ServerEntity>> allServersCacheLiveData = new MutableLiveData<>(List.of());
+
     private final AppDatabase appDatabase = AppDatabase.getInstance(getApplication());
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
