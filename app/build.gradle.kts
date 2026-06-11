@@ -7,6 +7,8 @@ plugins {
     id("pvnclient.android.application")
     id("com.google.gms.google-services")
     alias(libs.plugins.crashlytics)
+    alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.lombok)
 }
 
 val keystorePropertiesFile: File = rootProject.file("keystore.properties")
@@ -101,6 +103,7 @@ android {
     }
     buildFeatures {
         viewBinding = true
+        compose = true
     }
 
     externalNativeBuild {
@@ -113,6 +116,16 @@ android {
 
 dependencies {
     implementation(platform(libs.firebase.bom))
+    val composeBom = platform(libs.compose.bom)
+    implementation(composeBom)
+    implementation(libs.accompanist.drawablepainter)
+    implementation(libs.activity.compose)
+    implementation(libs.compose.material3)
+    implementation(libs.compose.runtime.livedata)
+    implementation(libs.compose.ui)
+    implementation(libs.compose.ui.tooling.preview)
+    implementation(libs.lifecycle.viewmodel.compose)
+    debugImplementation(libs.compose.ui.tooling)
     implementation(project(":core:common"))
     implementation(project(":vpnclient"))
     implementation(libs.androidx.activity)
