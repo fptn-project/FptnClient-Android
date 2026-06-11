@@ -217,7 +217,10 @@
                     android:layout_height="wrap_content"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
-                    android:paddingBottom="6dp">
+                    android:paddingBottom="6dp"
+                    android:paddingStart="6dp"
+                    android:paddingEnd="6dp"
+                    >
 
                     <TextView
                         android:layout_width="0dp"

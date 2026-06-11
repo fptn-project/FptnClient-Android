@@ -34,11 +34,14 @@ public class PerAppVpnModeViewModel extends AndroidViewModel {
     private final AppDatabase appDatabase = AppDatabase.getInstance(getApplication());
 
     private List<AppInfo> allLoadedApps = new ArrayList<>();
-    private boolean showSystemApps = false;
+
+    @Getter
+    private boolean showSystemApps;
 
     public PerAppVpnModeViewModel(@NonNull Application application) {
         super(application);
 
+        showSystemApps = SharedPrefUtils.getShowSystemApps(application);
         perAppVpnModeMutableLiveData = new MutableLiveData<>(SharedPrefUtils.getPerAppVPNMode(application));
 
         appListMutableLiveData = new MutableLiveData<>(List.of());
@@ -88,7 +91,9 @@ public class PerAppVpnModeViewModel extends AndroidViewModel {
 
             Collections.sort(apps, (a, b) -> a.getLabel().compareToIgnoreCase(b.getLabel()));
             allLoadedApps = apps;
-            List<AppInfo> filtered = apps.stream().filter(app -> !app.isSystemApp()).collect(Collectors.toList());
+            List<AppInfo> filtered = apps.stream()
+                    .filter(app -> showSystemApps || !app.isSystemApp())
+                    .collect(Collectors.toList());
             appListMutableLiveData.postValue(filtered);
         }).start();
     }
@@ -96,6 +101,7 @@ public class PerAppVpnModeViewModel extends AndroidViewModel {
     public void saveAllSettings() {
         savePerAppVpnMode();
         saveSelectedApps();
+        SharedPrefUtils.saveShowSystemApps(getApplication(), showSystemApps);
     }
 
     private void savePerAppVpnMode() {
