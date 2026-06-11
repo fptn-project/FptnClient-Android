@@ -1,7 +1,8 @@
 package org.fptn.vpn.ui.screens
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,15 +13,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
@@ -32,12 +30,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -46,9 +42,7 @@ import org.fptn.vpn.database.entity.ServerEntity
 import org.fptn.vpn.enums.ConnectionState
 import org.fptn.vpn.ui.components.BottomNavBar
 import org.fptn.vpn.ui.components.BottomNavTab
-import org.fptn.vpn.ui.theme.DeniedRed
 import org.fptn.vpn.ui.theme.Primary
-import org.fptn.vpn.ui.theme.Secondary
 import org.fptn.vpn.ui.theme.White
 import org.fptn.vpn.ui.theme.White10
 import org.fptn.vpn.ui.theme.Yellow
@@ -93,17 +87,173 @@ fun HomeScreen(
                 .fillMaxSize()
                 .background(Primary)
                 .padding(padding)
-                .padding(horizontal = 16.dp, vertical = 24.dp),
+                .padding(horizontal = 10.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(
-                text = statusText,
-                color = White,
-                fontSize = 16.sp,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
+            // Permission warning row (always occupies 80dp to avoid layout shift)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(80.dp)
+                    .padding(top = 20.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                if (showPermissionWarning) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(10.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Image(
+                            painter = painterResource(R.drawable.warning),
+                            contentDescription = null,
+                            modifier = Modifier.size(40.dp)
+                        )
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Text(
+                            text = stringResource(R.string.permission_warning_text),
+                            color = White,
+                            fontSize = 14.sp,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                }
+            }
+
+            // Timer row (always occupies 80dp to avoid layout shift)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(80.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                if (isConnected) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = stringResource(R.string.connection_time),
+                            color = White,
+                            fontSize = 14.sp,
+                        )
+                        Text(
+                            text = timerText,
+                            color = White,
+                            fontSize = 16.sp,
+                        )
+                    }
+                }
+            }
+
+            // Toggle button (180x180dp)
+            Image(
+                painter = painterResource(
+                    if (isActive) R.drawable.toggle_button_on else R.drawable.toggle_button_off
+                ),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(180.dp)
+                    .clickable { onConnectDisconnect() }
             )
 
+            // Status text
+            Text(
+                text = statusText,
+                color = Yellow,
+                fontSize = 16.sp,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(10.dp)
+            )
+
+            // Connected server info
+            if (connectedServerInfo.isNotEmpty()) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 10.dp),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = stringResource(R.string.server_label) + " ",
+                        color = White,
+                        fontSize = 14.sp,
+                    )
+                    Text(
+                        text = connectedServerInfo,
+                        color = White,
+                        fontSize = 14.sp,
+                    )
+                }
+            }
+
+            // Speed card with icons
+            if (isActive) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 10.dp, top = 10.dp, end = 10.dp)
+                        .background(White10, RoundedCornerShape(20.dp))
+                        .padding(10.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Download
+                    Row(
+                        modifier = Modifier.weight(1f),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Image(
+                            painter = painterResource(R.drawable.download),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(32.dp)
+                                .padding(end = 10.dp)
+                        )
+                        Text(
+                            text = downloadSpeed,
+                            color = White,
+                            fontSize = 14.sp,
+                            modifier = Modifier.weight(1f),
+                            textAlign = TextAlign.End
+                        )
+                    }
+                    // Upload
+                    Row(
+                        modifier = Modifier.weight(1f),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = uploadSpeed,
+                            color = White,
+                            fontSize = 14.sp,
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(start = 10.dp),
+                            textAlign = TextAlign.Start
+                        )
+                        Image(
+                            painter = painterResource(R.drawable.upload),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(32.dp)
+                                .padding(start = 10.dp)
+                        )
+                    }
+                }
+            }
+
+            // Server spinner (when not active)
+            if (!isActive && serverList.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(5.dp))
+                ServerDropdown(
+                    servers = serverList,
+                    selected = selectedServer,
+                    onSelected = onServerSelected,
+                )
+            }
+
+            // Error text
             if (errorText.isNotEmpty()) {
                 Text(
                     text = errorText,
@@ -112,90 +262,9 @@ fun HomeScreen(
                     textAlign = TextAlign.Center,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 4.dp)
+                        .padding(horizontal = 20.dp, vertical = 20.dp)
                 )
             }
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            ConnectButton(
-                isActive = isActive,
-                connectionState = connectionState,
-                onClick = onConnectDisconnect,
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            if (!isActive && serverList.isNotEmpty()) {
-                ServerDropdown(
-                    servers = serverList,
-                    selected = selectedServer,
-                    onSelected = onServerSelected,
-                )
-            }
-
-            if (isConnected) {
-                Spacer(modifier = Modifier.height(16.dp))
-
-                ConnectedInfoCard(
-                    timerText = timerText,
-                    downloadSpeed = downloadSpeed,
-                    uploadSpeed = uploadSpeed,
-                    connectedServerInfo = connectedServerInfo,
-                )
-            }
-
-            if (showPermissionWarning) {
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    text = stringResource(R.string.permission_warning_text),
-                    color = DeniedRed,
-                    fontSize = 14.sp,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(Color(0x37000000), RoundedCornerShape(8.dp))
-                        .padding(8.dp)
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun ConnectButton(
-    isActive: Boolean,
-    connectionState: ConnectionState,
-    onClick: () -> Unit,
-) {
-    val borderColor = if (isActive) Secondary else White10
-    val innerColor = if (isActive) Secondary else White10
-
-    Box(
-        contentAlignment = Alignment.Center,
-        modifier = Modifier
-            .size(180.dp)
-            .clip(CircleShape)
-            .border(4.dp, borderColor, CircleShape)
-    ) {
-        Button(
-            onClick = onClick,
-            modifier = Modifier.size(148.dp),
-            shape = CircleShape,
-            colors = ButtonDefaults.buttonColors(
-                containerColor = innerColor,
-                contentColor = Primary,
-            ),
-        ) {
-            Icon(
-                painter = painterResource(
-                    if (isActive) R.drawable.ic_baseline_logout_24
-                    else R.drawable.ic_baseline_update_24
-                ),
-                contentDescription = null,
-                modifier = Modifier.size(48.dp),
-                tint = Primary,
-            )
         }
     }
 }
@@ -213,7 +282,9 @@ private fun ServerDropdown(
     ExposedDropdownMenuBox(
         expanded = expanded,
         onExpandedChange = { expanded = !expanded },
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 10.dp, vertical = 5.dp),
     ) {
         OutlinedTextField(
             value = displayText,
@@ -222,7 +293,8 @@ private fun ServerDropdown(
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             modifier = Modifier
                 .menuAnchor()
-                .fillMaxWidth(),
+                .fillMaxWidth()
+                .height(52.dp),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedTextColor = White,
                 unfocusedTextColor = White,
@@ -276,49 +348,6 @@ private fun getPingEmoji(ping: Long) = when {
     ping < 200 -> "🟡"
     ping < 300 -> "🟠"
     else -> "🔴"
-}
-
-@Composable
-private fun ConnectedInfoCard(
-    timerText: String,
-    downloadSpeed: String,
-    uploadSpeed: String,
-    connectedServerInfo: String,
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(White10, RoundedCornerShape(16.dp))
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(text = "↓ $downloadSpeed", color = White, fontSize = 14.sp)
-            }
-            Text(
-                text = timerText,
-                color = Secondary,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-            )
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(text = "↑ $uploadSpeed", color = White, fontSize = 14.sp)
-            }
-        }
-        if (connectedServerInfo.isNotEmpty()) {
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = connectedServerInfo,
-                color = White,
-                fontSize = 14.sp,
-                textAlign = TextAlign.Center,
-            )
-        }
-    }
 }
 
 private val ServerEntity.isAuto: Boolean
