@@ -24,8 +24,37 @@ class NativeSniChecker {
       strategy_ = fptn::protocol::https::CensorshipStrategy::kTlsObfuscator;
     } else if (censorship_strategy == "SNI-REALITY") {
       strategy_ = fptn::protocol::https::CensorshipStrategy::kSniRealityMode;
+    } else if (censorship_strategy == "SNI-REALITY-CHROME-149") {
+      strategy_ = fptn::protocol::https::CensorshipStrategy::kSniRealityModeChrome149;
+    } else if (censorship_strategy == "SNI-REALITY-CHROME-148") {
+      strategy_ = fptn::protocol::https::CensorshipStrategy::kSniRealityModeChrome148;
+    } else if (censorship_strategy == "SNI-REALITY-CHROME-147") {
+      strategy_ = fptn::protocol::https::CensorshipStrategy::kSniRealityModeChrome147;
+    } else if (censorship_strategy == "SNI-REALITY-CHROME-146") {
+      strategy_ = fptn::protocol::https::CensorshipStrategy::kSniRealityModeChrome146;
+    } else if (censorship_strategy == "SNI-REALITY-CHROME-145") {
+      strategy_ = fptn::protocol::https::CensorshipStrategy::kSniRealityModeChrome145;
+    } else if (censorship_strategy == "SNI-REALITY-FIREFOX-151") {
+      strategy_ = fptn::protocol::https::CensorshipStrategy::kSniRealityModeFirefox151;
+    } else if (censorship_strategy == "SNI-REALITY-FIREFOX-150") {
+      strategy_ = fptn::protocol::https::CensorshipStrategy::kSniRealityModeFirefox150;
+    } else if (censorship_strategy == "SNI-REALITY-FIREFOX-149") {
+      strategy_ = fptn::protocol::https::CensorshipStrategy::kSniRealityModeFirefox149;
+    } else if (censorship_strategy == "SNI-REALITY-YANDEX-26-4") {
+      strategy_ = fptn::protocol::https::CensorshipStrategy::kSniRealityModeYandex26_4;
+    } else if (censorship_strategy == "SNI-REALITY-YANDEX-26-3") {
+      strategy_ = fptn::protocol::https::CensorshipStrategy::kSniRealityModeYandex26_3;
+    } else if (censorship_strategy == "SNI-REALITY-YANDEX-25") {
+      strategy_ = fptn::protocol::https::CensorshipStrategy::kSniRealityModeYandex25;
+    } else if (censorship_strategy == "SNI-REALITY-YANDEX-24") {
+      strategy_ = fptn::protocol::https::CensorshipStrategy::kSniRealityModeYandex24;
+    } else if (censorship_strategy == "SNI-REALITY-SAFARI-26-5") {
+      strategy_ = fptn::protocol::https::CensorshipStrategy::kSniRealityModeSafari26_5;
+    } else if (censorship_strategy == "SNI-REALITY-SAFARI-26-4") {
+      strategy_ = fptn::protocol::https::CensorshipStrategy::kSniRealityModeSafari26_4;
     }
-    SPDLOG_INFO("NativeSniChecker created for {}:{}", host, port);
+    SPDLOG_INFO("NativeSniChecker created for {}:{} [strategy={}]", host, port,
+        fptn::protocol::https::ToString(strategy_));
   }
 
   bool checkSni(const std::string& sni) {
