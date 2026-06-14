@@ -444,6 +444,7 @@ public class FptnConnection extends Thread {
     public void onNetworkChanged() {
         XLog.tag(TAG).i("[id=%d] Network changed — forcing clean reconnect [wsStarted=%b]",
                 connectionId, webSocketClient.isStarted());
+        reconnectCount.set(0);
         onConnectionFailure();
     }
 }

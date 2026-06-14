@@ -365,7 +365,7 @@ public class FptnService extends VpnService {
                 FptnConnection currentConnection = activeConnection.get();
                 ConnectionState connectionState = Optional.ofNullable(serviceStateMutableLiveData.getValue())
                         .map(FptnServiceState::getConnectionState).orElse(null);
-                if (currentConnection != null && connectionState == ConnectionState.CONNECTED) {
+                if (currentConnection != null && (connectionState == ConnectionState.CONNECTED || connectionState == ConnectionState.RECONNECTING)) {
                     Network activeNetwork = connectivityManager.getActiveNetwork();
                     NetworkCapabilities activeNetworkCapabilities = connectivityManager.getNetworkCapabilities(activeNetwork);
                     if (activeNetworkCapabilities != null && activeNetworkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)) {
