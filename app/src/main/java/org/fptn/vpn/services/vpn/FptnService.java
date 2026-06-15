@@ -216,13 +216,15 @@ public class FptnService extends VpnService {
         connectivityManager = (ConnectivityManager) getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
 
         serviceStateObserver = (fptnServiceState) -> {
-            FptnTileService.getServiceStateMutableLiveData().postValue(fptnServiceState.getConnectionState());
-            // to initialize call onStartListening() in FptnTileService
+            // setValue (not postValue) — observer runs on main thread via observeForever,
+            // so the static LiveData must be updated synchronously before the requestListeningState
+            // IPC fires onStartListening(), otherwise getValue() there reads stale state.
+            FptnTileService.getServiceStateMutableLiveData().setValue(fptnServiceState.getConnectionState());
             TileService.requestListeningState(this, new ComponentName(this, FptnTileService.class));
         };
         serviceStateMutableLiveData.observeForever(serviceStateObserver);
         //send initial value
-        FptnTileService.getServiceStateMutableLiveData().postValue(serviceStateMutableLiveData.getValue().getConnectionState());
+        FptnTileService.getServiceStateMutableLiveData().setValue(serviceStateMutableLiveData.getValue().getConnectionState());
     }
 
     @Override
@@ -346,6 +348,11 @@ public class FptnService extends VpnService {
     @Override
     public void onDestroy() {
         XLog.tag(TAG).i("Service destroyed [state=%s]", serviceStateMutableLiveData.getValue().getConnectionState());
+
+        // Sync tile synchronously before cleanup — postValue inside disconnect() won't reach
+        // the observer once it's removed below (both run on main thread).
+        FptnTileService.getServiceStateMutableLiveData().setValue(ConnectionState.DISCONNECTED);
+        TileService.requestListeningState(this, new ComponentName(this, FptnTileService.class));
 
         disconnect();
 
