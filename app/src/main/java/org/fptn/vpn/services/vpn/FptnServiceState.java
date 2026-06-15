@@ -13,6 +13,7 @@ import lombok.Data;
 public class FptnServiceState {
     private final ConnectionState connectionState;
     private final PVNClientException exception;
+    private final String serverInfo;
 
     public static final FptnServiceState INITIAL = FptnServiceState.builder()
             .connectionState(ConnectionState.DISCONNECTED)

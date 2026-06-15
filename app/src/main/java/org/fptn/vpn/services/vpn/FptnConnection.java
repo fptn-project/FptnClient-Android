@@ -88,6 +88,7 @@ public class FptnConnection extends Thread {
     @Getter
     private Instant connectionTime;
     private ScheduledFuture<?> onFailureScheduledTask;
+    private volatile Instant reconnectPhaseStart = null;
 
     @Getter
     @Setter
@@ -97,6 +98,7 @@ public class FptnConnection extends Thread {
     private NetworkType currentNetworkType;
 
     private final int maxReconnectCount;
+    private final int fallbackThreshold; // 0 = disabled
     private final int delayBetweenAttempts;
     private final PerAppVpnMode perAppVpnMode;
     private final List<AppInfo> appInfos;
@@ -109,6 +111,7 @@ public class FptnConnection extends Thread {
                           final String currentIPAddress,
                           final NetworkType currentNetworkType,
                           final int maxReconnectCount,
+                          final int fallbackThreshold,
                           final int delayBetweenAttempts,
                           final String sniHostName,
                           final BypassCensorshipMethod censorshipStrategy,
@@ -124,6 +127,7 @@ public class FptnConnection extends Thread {
         this.perAppVpnMode = perAppVpnMode;
         this.appInfos = appInfos;
         this.maxReconnectCount = maxReconnectCount;
+        this.fallbackThreshold = fallbackThreshold;
         this.delayBetweenAttempts = delayBetweenAttempts;
         this.webSocketClient = new WebSocketClientWrapper(
                 this.serverEntity,
@@ -377,6 +381,9 @@ public class FptnConnection extends Thread {
                 webSocketClient.isStarted(),
                 isTunInterfaceValid(vpnInterface),
                 onFailureScheduledTask != null && !onFailureScheduledTask.isCancelled());
+        if (reconnectPhaseStart == null) {
+            reconnectPhaseStart = Instant.now();
+        }
         cancelReconnectTask();
         webSocketClient.stopWebSocket();
         try {
@@ -389,6 +396,21 @@ public class FptnConnection extends Thread {
                 int currentCount = reconnectCount.incrementAndGet();
                 XLog.tag(TAG).i("[id=%d] Reconnecting [attempt %d/%d]", connectionId, currentCount, maxReconnectCount);
                 if (!currentThread.isInterrupted() && isTunInterfaceValid(vpnInterface) && currentCount <= maxReconnectCount) {
+                    if (fallbackThreshold > 0) {
+                        long elapsedSeconds = reconnectPhaseStart != null
+                                ? Duration.between(reconnectPhaseStart, Instant.now()).getSeconds()
+                                : 0;
+                        long thresholdSeconds = (long) fallbackThreshold * delayBetweenAttempts;
+                        boolean countReached = currentCount >= fallbackThreshold;
+                        boolean timeReached = elapsedSeconds >= thresholdSeconds;
+                        if (countReached || timeReached) {
+                            XLog.tag(TAG).i("[id=%d] Fallback triggered [attempt %d/%d, elapsed %ds/%ds] — requesting all-server scan",
+                                    connectionId, currentCount, fallbackThreshold, elapsedSeconds, thresholdSeconds);
+                            sendExceptionToService(new PVNClientException(ErrorCode.FALLBACK_TO_ALL_SERVERS));
+                            onFailureInterrupt();
+                            return;
+                        }
+                    }
                     try {
                         sendConnectionStateToService(ConnectionState.RECONNECTING, currentCount);
                         webSocketClient.startWebSocket();
@@ -455,6 +477,7 @@ public class FptnConnection extends Thread {
         XLog.tag(TAG).i("[id=%d] Network changed — forcing clean reconnect [wsStarted=%b]",
                 connectionId, webSocketClient.isStarted());
         reconnectCount.set(0);
+        reconnectPhaseStart = null;
         onConnectionFailure();
     }
 }

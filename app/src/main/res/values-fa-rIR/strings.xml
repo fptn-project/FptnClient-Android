@@ -137,8 +137,8 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
 
 
     <string name="sponsors_text">با تشکر از حامیان ما</string>
-    <string name="experimental_features_label">تنظیمات آزمایشی</string>
-    <string name="experimental_features_info">برای جلوگیری از اختلال در عملکرد اصلی، قابلیت‌های آزمایشی را فعال یا غیرفعال کنید.</string>
+    <string name="experimental_features_label">تنظیمات اضافی</string>
+    <string name="experimental_features_info">تنظیم دقیق رفتار اتصال با تنظیمات اضافی.</string>
     <string name="reconnect_on_change">اتصال مجدد در صورت تغییر:</string>
     <string name="reconnect_on_change_network_type">نوع شبکه</string>
     <string name="reconnect_on_change_ip_address">آدرس IP</string>
@@ -155,6 +155,11 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="tile_addition_failed">افزودن کاشی تنظیمات سریع ناموفق بود!</string>
 
     <string name="settings_reset_server_on_exception">تنظیم مجدد سرور فقط در صورت بروز خطاهای اتصال</string>
+    <string name="searching_for_server">جستجوی سرور...</string>
+    <string name="auto_fallback_title">تغییر خودکار به سرورهای موجود:</string>
+    <string name="auto_fallback_enable">تغییر سرور در صورت قطع ارتباط</string>
+    <string name="auto_fallback_threshold_label">تلاش‌ها قبل از تغییر سرور:</string>
+    <string name="auto_fallback_threshold_value">"%d"</string>
     <string name="bypass_methods_title">روش‌های دور زدن محدودیت‌ها</string>
     <string name="bypass_methods_info">پیکربندی روش‌های دور زدن فیلترینگ</string>
 
