@@ -43,19 +43,20 @@
 
                     <ImageView
                         android:id="@+id/home_permission_warning_icon"
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
                         android:importantForAccessibility="no"
                         android:src="@drawable/warning" />
 
                     <TextView
-                        android:layout_marginStart="10dp"
+                        android:layout_marginStart="6dp"
                         android:textAlignment="center"
                         android:id="@+id/home_permission_warning_label"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="@string/permission_warning_text"
-                        android:textColor="@color/white" />
+                        android:textColor="@color/white"
+                        android:textSize="11sp" />
                 </LinearLayout>
 
             </LinearLayout>
