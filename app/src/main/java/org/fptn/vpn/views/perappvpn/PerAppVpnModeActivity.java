@@ -13,6 +13,7 @@ import android.widget.ProgressBar;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.lifecycle.ViewModelProvider;
@@ -141,10 +142,22 @@ public class PerAppVpnModeActivity extends AppCompatActivity {
 
         Button saveButton = findViewById(R.id.save_button);
         saveButton.setOnClickListener(v -> {
-            XLog.tag(TAG).i("Per-app VPN mode saved [mode=%s]", viewModel.getPerAppVpnModeMutableLiveData().getValue());
-
+            PerAppVpnMode mode = viewModel.getPerAppVpnModeMutableLiveData().getValue();
+            if (mode == PerAppVpnMode.ONLY_ALLOWED && !viewModel.hasSelectedApps()) {
+                new AlertDialog.Builder(this)
+                        .setTitle(R.string.per_app_vpn_no_apps_selected_title)
+                        .setMessage(R.string.per_app_vpn_no_apps_selected_message)
+                        .setPositiveButton(R.string.save_anyway, (dialog, which) -> {
+                            XLog.tag(TAG).i("Per-app VPN mode saved with no apps selected [mode=%s]", mode);
+                            viewModel.saveAllSettings();
+                            finish();
+                        })
+                        .setNegativeButton(R.string.cancel_button, null)
+                        .show();
+                return;
+            }
+            XLog.tag(TAG).i("Per-app VPN mode saved [mode=%s]", mode);
             viewModel.saveAllSettings();
-
             finish();
         });
     }

@@ -272,6 +272,9 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="only_allowed_radio_button_label_additional_info">Only the apps in the list use the VPN</string>
     <string name="disallowed_apps_radio_button_label">All apps use VPN, except selected</string>
     <string name="disallowed_apps_radio_button_label_additional_info">All apps use VPN, except selected</string>
+    <string name="per_app_vpn_no_apps_selected_title">No apps selected</string>
+    <string name="per_app_vpn_no_apps_selected_message">No apps are selected for tunneling. The VPN will be active but no app traffic will go through the tunnel.\n\nSelect at least one app or choose a different mode.</string>
+    <string name="save_anyway">Save anyway</string>
 
     <string name="auto_sni_label">Autoselect SNI</string>
     <string name="sni_features_label">SNI settings</string>
