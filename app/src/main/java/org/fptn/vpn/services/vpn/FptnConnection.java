@@ -208,12 +208,22 @@ public class FptnConnection extends Thread {
                 XLog.tag(TAG).w("[id=%d] Package not found, skipping [pkg=%s]", connectionId, thisAppPackageName);
             }
         } else if (perAppVpnMode == PerAppVpnMode.ONLY_ALLOWED) {
-            for (AppInfo appInfo : appInfos) {
-                String packageName = appInfo.getPackageName();
+            if (appInfos.isEmpty()) {
+                // No apps selected: add self to allowed list so no user traffic is tunneled
+                String thisAppPackageName = service.getPackageName();
                 try {
-                    builder.addAllowedApplication(packageName);
+                    builder.addAllowedApplication(thisAppPackageName);
                 } catch (PackageManager.NameNotFoundException e) {
-                    XLog.tag(TAG).w("[id=%d] Package not found, skipping [pkg=%s]", connectionId, packageName);
+                    XLog.tag(TAG).w("[id=%d] Package not found, skipping [pkg=%s]", connectionId, thisAppPackageName);
+                }
+            } else {
+                for (AppInfo appInfo : appInfos) {
+                    String packageName = appInfo.getPackageName();
+                    try {
+                        builder.addAllowedApplication(packageName);
+                    } catch (PackageManager.NameNotFoundException e) {
+                        XLog.tag(TAG).w("[id=%d] Package not found, skipping [pkg=%s]", connectionId, packageName);
+                    }
                 }
             }
         } else if (perAppVpnMode == PerAppVpnMode.EXCEPT_DISALLOWED) {

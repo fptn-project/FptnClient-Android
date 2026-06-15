@@ -98,6 +98,14 @@ public class PerAppVpnModeViewModel extends AndroidViewModel {
         }).start();
     }
 
+    public boolean hasSelectedApps() {
+        PerAppVpnMode mode = perAppVpnModeMutableLiveData.getValue();
+        if (mode == PerAppVpnMode.ONLY_ALLOWED) {
+            return allLoadedApps.stream().anyMatch(AppInfo::isAllowed);
+        }
+        return true;
+    }
+
     public void saveAllSettings() {
         savePerAppVpnMode();
         saveSelectedApps();

@@ -189,6 +189,9 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="only_allowed_radio_button_label_additional_info">Только приложения из списка используют VPN</string>
     <string name="disallowed_apps_radio_button_label">Все приложения используют VPN, кроме выбранных</string>
     <string name="disallowed_apps_radio_button_label_additional_info">Все приложения используют VPN, кроме выбранных</string>
+    <string name="per_app_vpn_no_apps_selected_title">Не выбрано ни одного приложения</string>
+    <string name="per_app_vpn_no_apps_selected_message">Ни одно приложение не выбрано для туннелирования. VPN будет активен, но ни один трафик не пройдёт через туннель.\n\nВыберите хотя бы одно приложение или смените режим.</string>
+    <string name="save_anyway">Всё равно сохранить</string>
     <string name="settings_reset_server_title">Выбор сервера:</string>
     <string name="settings_reset_server_on_disconnect">Сброс на Auto после отключения</string>
 
