@@ -571,8 +571,12 @@ public class FptnService extends VpnService {
                 sniSpoofingMode = SharedPrefUtils.getSniSpoofingMode(this);
             }
 
+            String searchingText = getString(R.string.searching_for_server);
             updateNotificationWithMessage(getString(R.string.connecting_auto), "");
-            setConnectionState(ConnectionState.CONNECTING, null);
+            serviceStateMutableLiveData.postValue(FptnServiceState.builder()
+                    .connectionState(ConnectionState.CONNECTING)
+                    .serverInfo(searchingText)
+                    .build());
 
             List<ServerEntity> serverEntities = appDatabase.serverDAO().getServerList(false);
             SpeedTestResult loginResult = SpeedTestUtils.findServerByLogin(serverEntities, sniHostname, bypassCensorshipMethod, sniSpoofingMode);

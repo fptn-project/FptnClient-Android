@@ -88,6 +88,7 @@ public class FptnConnection extends Thread {
     @Getter
     private Instant connectionTime;
     private ScheduledFuture<?> onFailureScheduledTask;
+    private volatile Instant reconnectPhaseStart = null;
 
     @Getter
     @Setter
@@ -380,6 +381,9 @@ public class FptnConnection extends Thread {
                 webSocketClient.isStarted(),
                 isTunInterfaceValid(vpnInterface),
                 onFailureScheduledTask != null && !onFailureScheduledTask.isCancelled());
+        if (reconnectPhaseStart == null) {
+            reconnectPhaseStart = Instant.now();
+        }
         cancelReconnectTask();
         webSocketClient.stopWebSocket();
         try {
@@ -392,12 +396,20 @@ public class FptnConnection extends Thread {
                 int currentCount = reconnectCount.incrementAndGet();
                 XLog.tag(TAG).i("[id=%d] Reconnecting [attempt %d/%d]", connectionId, currentCount, maxReconnectCount);
                 if (!currentThread.isInterrupted() && isTunInterfaceValid(vpnInterface) && currentCount <= maxReconnectCount) {
-                    if (fallbackThreshold > 0 && currentCount >= fallbackThreshold) {
-                        XLog.tag(TAG).i("[id=%d] Fallback threshold reached [attempt %d/%d] — requesting all-server scan",
-                                connectionId, currentCount, fallbackThreshold);
-                        sendExceptionToService(new PVNClientException(ErrorCode.FALLBACK_TO_ALL_SERVERS));
-                        onFailureInterrupt();
-                        return;
+                    if (fallbackThreshold > 0) {
+                        long elapsedSeconds = reconnectPhaseStart != null
+                                ? Duration.between(reconnectPhaseStart, Instant.now()).getSeconds()
+                                : 0;
+                        long thresholdSeconds = (long) fallbackThreshold * delayBetweenAttempts;
+                        boolean countReached = currentCount >= fallbackThreshold;
+                        boolean timeReached = elapsedSeconds >= thresholdSeconds;
+                        if (countReached || timeReached) {
+                            XLog.tag(TAG).i("[id=%d] Fallback triggered [attempt %d/%d, elapsed %ds/%ds] — requesting all-server scan",
+                                    connectionId, currentCount, fallbackThreshold, elapsedSeconds, thresholdSeconds);
+                            sendExceptionToService(new PVNClientException(ErrorCode.FALLBACK_TO_ALL_SERVERS));
+                            onFailureInterrupt();
+                            return;
+                        }
                     }
                     try {
                         sendConnectionStateToService(ConnectionState.RECONNECTING, currentCount);
@@ -465,6 +477,7 @@ public class FptnConnection extends Thread {
         XLog.tag(TAG).i("[id=%d] Network changed — forcing clean reconnect [wsStarted=%b]",
                 connectionId, webSocketClient.isStarted());
         reconnectCount.set(0);
+        reconnectPhaseStart = null;
         onConnectionFailure();
     }
 }

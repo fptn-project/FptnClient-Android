@@ -269,7 +269,12 @@ public class HomeActivityViewModel extends AndroidViewModel {
 
             Optional.ofNullable(serverState).map(FptnServiceState::getConnectionState)
                     .filter(ConnectionState::isActiveState)
-                    .ifPresent(state -> connectedServerInfoLiveData.postValue(service.getActionConnectServerInfo()));
+                    .ifPresent(state -> {
+                        String info = serverState.getServerInfo() != null
+                                ? serverState.getServerInfo()
+                                : service.getActionConnectServerInfo();
+                        connectedServerInfoLiveData.postValue(info);
+                    });
         });
     }
 

@@ -153,6 +153,7 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="tile_addition_failed">Плитка быстрых настроек не добавлена!</string>
 
     <string name="settings_reset_server_on_exception">Сброс на Auto только при ошибке</string>
+    <string name="searching_for_server">Поиск сервера...</string>
     <string name="auto_fallback_title">Авто-переключение на доступные серверы:</string>
     <string name="auto_fallback_enable">Менять сервер при потере связи</string>
     <string name="auto_fallback_threshold_label">Попыток до смены сервера:</string>
