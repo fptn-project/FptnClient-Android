@@ -401,7 +401,7 @@ public class FptnConnection extends Thread {
                     sendExceptionToService(new PVNClientException(ErrorCode.RECONNECTING_FAILED));
                     onFailureInterrupt();
                 }
-            }, 0L, delayBetweenAttempts, TimeUnit.SECONDS);
+            }, (long) delayBetweenAttempts, delayBetweenAttempts, TimeUnit.SECONDS);
         } catch (RejectedExecutionException exception) {
             XLog.tag(TAG).e("[id=%d] Reconnect task rejected by scheduler — connection lost", connectionId);
         }
