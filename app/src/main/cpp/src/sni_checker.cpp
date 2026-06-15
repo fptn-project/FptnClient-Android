@@ -54,7 +54,7 @@ class NativeSniChecker {
       strategy_ = fptn::protocol::https::CensorshipStrategy::kSniRealityModeSafari26_4;
     }
     SPDLOG_INFO("NativeSniChecker created for {}:{} [strategy={}]", host, port,
-        fptn::protocol::https::ToString(strategy_));
+        static_cast<int>(strategy_));
   }
 
   bool checkSni(const std::string& sni) {
