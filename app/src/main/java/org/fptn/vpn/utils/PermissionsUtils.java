@@ -48,12 +48,18 @@ public class PermissionsUtils {
     }
 
     public static boolean checkBatteryOptimizations(Context context) {
+        if ("xiaomi".equalsIgnoreCase(Build.MANUFACTURER)) {
+            XLog.tag(TAG).i("Battery optimization check skipped [manufacturer=%s, brand=%s, model=%s]",
+                    Build.MANUFACTURER, Build.BRAND, Build.MODEL);
+            return true;
+        }
         boolean isGranted = false;
         PowerManager powerManager = (PowerManager) context.getSystemService(POWER_SERVICE);
         if (powerManager != null) {
             isGranted = powerManager.isIgnoringBatteryOptimizations(context.getPackageName());
         }
-        XLog.tag(TAG).i("Battery optimization exemption [granted=%b]", isGranted);
+        XLog.tag(TAG).i("Battery optimization exemption [granted=%b, manufacturer=%s, brand=%s, model=%s]",
+                isGranted, Build.MANUFACTURER, Build.BRAND, Build.MODEL);
         return isGranted;
     }
 
