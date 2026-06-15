@@ -9,6 +9,7 @@ enum class ErrorCode(
     NO_ACTIVE_INTERNET_CONNECTIONS("no_active_internet_connections"),
     CONNECT_TO_SERVER_ERROR("connect_to_server_error"),
     RECONNECTING_FAILED("reconnecting_failed"),
+    FALLBACK_TO_ALL_SERVERS("fallback_to_all_servers"),
     DNS_SERVER_ERROR("dns_server_error"),
     VPN_INTERFACE_ERROR("vpn_interface_error"),
     CIPHERS_ERROR("ciphers_error"),

@@ -97,6 +97,7 @@ public class FptnConnection extends Thread {
     private NetworkType currentNetworkType;
 
     private final int maxReconnectCount;
+    private final int fallbackThreshold; // 0 = disabled
     private final int delayBetweenAttempts;
     private final PerAppVpnMode perAppVpnMode;
     private final List<AppInfo> appInfos;
@@ -109,6 +110,7 @@ public class FptnConnection extends Thread {
                           final String currentIPAddress,
                           final NetworkType currentNetworkType,
                           final int maxReconnectCount,
+                          final int fallbackThreshold,
                           final int delayBetweenAttempts,
                           final String sniHostName,
                           final BypassCensorshipMethod censorshipStrategy,
@@ -124,6 +126,7 @@ public class FptnConnection extends Thread {
         this.perAppVpnMode = perAppVpnMode;
         this.appInfos = appInfos;
         this.maxReconnectCount = maxReconnectCount;
+        this.fallbackThreshold = fallbackThreshold;
         this.delayBetweenAttempts = delayBetweenAttempts;
         this.webSocketClient = new WebSocketClientWrapper(
                 this.serverEntity,
@@ -389,6 +392,13 @@ public class FptnConnection extends Thread {
                 int currentCount = reconnectCount.incrementAndGet();
                 XLog.tag(TAG).i("[id=%d] Reconnecting [attempt %d/%d]", connectionId, currentCount, maxReconnectCount);
                 if (!currentThread.isInterrupted() && isTunInterfaceValid(vpnInterface) && currentCount <= maxReconnectCount) {
+                    if (fallbackThreshold > 0 && currentCount >= fallbackThreshold) {
+                        XLog.tag(TAG).i("[id=%d] Fallback threshold reached [attempt %d/%d] — requesting all-server scan",
+                                connectionId, currentCount, fallbackThreshold);
+                        sendExceptionToService(new PVNClientException(ErrorCode.FALLBACK_TO_ALL_SERVERS));
+                        onFailureInterrupt();
+                        return;
+                    }
                     try {
                         sendConnectionStateToService(ConnectionState.RECONNECTING, currentCount);
                         webSocketClient.startWebSocket();

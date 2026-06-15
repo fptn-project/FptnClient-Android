@@ -135,8 +135,8 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="permission_request_text">Для стабильного соединения предоставьте необходимые разрешения</string>
 
     <string name="sponsors_text">Спасибо нашим спонсорам</string>
-    <string name="experimental_features_label">Экспериментальные настройки</string>
-    <string name="experimental_features_info">Включите или отключите экспериментальные функции для предотвращения нарушения основной функциональности.</string>
+    <string name="experimental_features_label">Дополнительные настройки</string>
+    <string name="experimental_features_info">Тонкая настройка поведения подключения.</string>
     <string name="reconnect_on_change">Переподключение при изменении:</string>
     <string name="reconnect_on_change_network_type">типа сети</string>
     <string name="reconnect_on_change_ip_address">IP адреса</string>
@@ -153,6 +153,10 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="tile_addition_failed">Плитка быстрых настроек не добавлена!</string>
 
     <string name="settings_reset_server_on_exception">Сброс на Auto только при ошибке</string>
+    <string name="auto_fallback_title">Авто-переключение на доступные серверы:</string>
+    <string name="auto_fallback_enable">Менять сервер при потере связи</string>
+    <string name="auto_fallback_threshold_label">Попыток до смены сервера:</string>
+    <string name="auto_fallback_threshold_value">"%d"</string>
     <string name="bypass_methods_title">Методы обхода блокировок</string>
     <string name="bypass_methods_info">Настройка методов обхода блокировок</string>
 

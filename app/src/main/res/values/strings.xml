@@ -210,8 +210,8 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
         •&nbsp;&nbsp;puffffik<br/>
         ]]>
     </string>
-    <string name="experimental_features_label">Experimental features</string>
-    <string name="experimental_features_info">Enable or disable experimental features to prevent disruption of core functionality.</string>
+    <string name="experimental_features_label">Additional settings</string>
+    <string name="experimental_features_info">Fine-tune connection behavior with additional settings.</string>
     <string name="reconnect_on_change">Reconnect on changing:</string>
     <string name="reconnect_on_change_network_type">of network type</string>
     <string name="reconnect_on_change_ip_address">of IP address</string>
@@ -233,6 +233,10 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="settings_reset_server_title">Server Selection:</string>
     <string name="settings_reset_server_on_disconnect">Reset selected server after disconnect</string>
     <string name="settings_reset_server_on_exception">Reset server only on connection errors</string>
+    <string name="auto_fallback_title">Auto-fallback to available servers:</string>
+    <string name="auto_fallback_enable">Switch server on connection loss</string>
+    <string name="auto_fallback_threshold_label">Attempts before switching server:</string>
+    <string name="auto_fallback_threshold_value">"%d"</string>
 
     <string name="bypass_methods_title">Bypass blocking methods</string>
     <string name="bypass_methods_info">Configure bypass blocking methods</string>

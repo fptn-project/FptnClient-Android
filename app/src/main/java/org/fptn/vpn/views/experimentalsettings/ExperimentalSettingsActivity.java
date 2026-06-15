@@ -27,6 +27,7 @@ public class ExperimentalSettingsActivity extends AppCompatActivity {
     private final String TAG = this.getClass().getSimpleName();
 
     private static final int[] ATTEMPTS_COUNT_VALUES = {5, 15, 35, Integer.MAX_VALUE};
+    private static final int[] FALLBACK_THRESHOLD_VALUES = {3, 6, 10, 15};
 
     private SwitchCompat switchNetworkType;
     private SwitchCompat switchIPAddress;
@@ -34,6 +35,9 @@ public class ExperimentalSettingsActivity extends AppCompatActivity {
     private SeekBar seekBarDelayBetween;
     private SwitchCompat resetServerAfterDisconnectSwitch;
     private SwitchCompat resetServerAfterDisconnectOnException;
+    private SwitchCompat autoFallbackSwitch;
+    private View autoFallbackThresholdLayout;
+    private SeekBar seekBarFallbackThreshold;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -122,6 +126,33 @@ public class ExperimentalSettingsActivity extends AppCompatActivity {
         resetServerAfterDisconnectSwitch.setOnCheckedChangeListener(
                 (buttonView, isChecked) -> updateExceptionVisibility(isChecked));
 
+        // Auto-fallback to all servers
+        autoFallbackSwitch = findViewById(R.id.auto_fallback_switch);
+        autoFallbackSwitch.setChecked(SharedPrefUtils.getAutoFallbackEnabled(this));
+
+        autoFallbackThresholdLayout = findViewById(R.id.auto_fallback_threshold_layout);
+        seekBarFallbackThreshold = findViewById(R.id.seekBarFallbackThreshold);
+        TextView textViewFallbackThreshold = findViewById(R.id.textViewFallbackThreshold);
+        seekBarFallbackThreshold.setOnSeekBarChangeListener(new SimpleSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                String format = getString(R.string.auto_fallback_threshold_value);
+                textViewFallbackThreshold.setText(String.format(format, FALLBACK_THRESHOLD_VALUES[progress]));
+            }
+        });
+
+        int savedThreshold = SharedPrefUtils.getAutoFallbackThreshold(this);
+        int fallbackProgressToSet = 1; // default to 6
+        for (int i = 0; i < FALLBACK_THRESHOLD_VALUES.length; i++) {
+            if (FALLBACK_THRESHOLD_VALUES[i] >= savedThreshold) {
+                fallbackProgressToSet = i;
+                break;
+            }
+        }
+        seekBarFallbackThreshold.setProgress(fallbackProgressToSet);
+        updateAutoFallbackThresholdVisibility(autoFallbackSwitch.isChecked());
+        autoFallbackSwitch.setOnCheckedChangeListener(
+                (buttonView, isChecked) -> updateAutoFallbackThresholdVisibility(isChecked));
 
         // Save and Cancel buttons
         Button cancelButton = findViewById(R.id.cancel_button);
@@ -136,6 +167,10 @@ public class ExperimentalSettingsActivity extends AppCompatActivity {
 
     private void updateExceptionVisibility(boolean isVisible) {
         resetServerAfterDisconnectOnException.setVisibility(isVisible ? View.GONE : View.VISIBLE);
+    }
+
+    private void updateAutoFallbackThresholdVisibility(boolean isEnabled) {
+        autoFallbackThresholdLayout.setVisibility(isEnabled ? View.VISIBLE : View.GONE);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
@@ -212,6 +247,9 @@ public class ExperimentalSettingsActivity extends AppCompatActivity {
 
         int delayBetweenProgress = seekBarDelayBetween.getProgress();
         SharedPrefUtils.saveDelayBetweenReconnect(this, delayBetweenProgress + 1);
+
+        SharedPrefUtils.saveAutoFallbackEnabled(this, autoFallbackSwitch.isChecked());
+        SharedPrefUtils.saveAutoFallbackThreshold(this, FALLBACK_THRESHOLD_VALUES[seekBarFallbackThreshold.getProgress()]);
 
         finish();
     }
