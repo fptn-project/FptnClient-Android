@@ -16,7 +16,8 @@ import com.elvishew.xlog.XLog;
 
 import androidx.core.content.ContextCompat;
 
-import java.util.List;
+import org.fptn.vpn.core.common.Constants;
+
 
 public class PermissionsUtils {
     private static final String TAG = PermissionsUtils.class.getSimpleName();
@@ -30,11 +31,12 @@ public class PermissionsUtils {
         if (!notificationManager.areNotificationsEnabled()) {
             return false;
         }
-        List<NotificationChannel> channels = notificationManager.getNotificationChannels();
-        for (NotificationChannel channel : channels) {
-            if (channel.getImportance() == NotificationManager.IMPORTANCE_NONE) {
-                return false;
-            }
+        // Only check the app's own channels by known IDs — iterating getNotificationChannels()
+        // includes system/vendor channels (e.g. on MIUI/ColorOS) that can have IMPORTANCE_NONE
+        // even when the user has properly enabled notifications for the app.
+        NotificationChannel mainChannel = notificationManager.getNotificationChannel(Constants.MAIN_NOTIFICATION_CHANNEL_ID);
+        if (mainChannel != null && mainChannel.getImportance() == NotificationManager.IMPORTANCE_NONE) {
+            return false;
         }
 
         boolean isGranted = true;
@@ -59,7 +61,7 @@ public class PermissionsUtils {
         boolean isGranted = false;
         ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(CONNECTIVITY_SERVICE);
         if (connectivityManager != null) {
-            isGranted = connectivityManager.getRestrictBackgroundStatus() == ConnectivityManager.RESTRICT_BACKGROUND_STATUS_DISABLED;
+            isGranted = connectivityManager.getRestrictBackgroundStatus() != ConnectivityManager.RESTRICT_BACKGROUND_STATUS_ENABLED;
         }
         XLog.tag(TAG).i("Background data transfer [unrestricted=%b]", isGranted);
         return isGranted;
