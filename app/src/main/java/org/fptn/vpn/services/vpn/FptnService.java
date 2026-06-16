@@ -77,6 +77,7 @@ public class FptnService extends VpnService {
 
     private final AtomicReference<FptnConnection> activeConnection = new AtomicReference<>();
     private final AtomicInteger nextConnectionId = new AtomicInteger(1);
+    private final AtomicInteger remainingFallbackBudget = new AtomicInteger(0);
 
     // Pending Intent for launch MainActivity when notification tapped
     private PendingIntent launchMainActivityPendingIntent;
@@ -433,10 +434,13 @@ public class FptnService extends VpnService {
             }
             case CONNECTING -> setConnectionState(ConnectionState.CONNECTING, null);
             case CONNECTED -> {
-                String title_connected_to = getString(R.string.connected_to) + getActionConnectServerInfo();
-                updateNotificationWithMessage(title_connected_to, "");
+                String serverInfo = getActionConnectServerInfo();
+                updateNotificationWithMessage(getString(R.string.connected_to) + serverInfo, "");
 
-                setConnectionState(ConnectionState.CONNECTED, null);
+                serviceStateMutableLiveData.postValue(FptnServiceState.builder()
+                        .connectionState(ConnectionState.CONNECTED)
+                        .serverInfo(serverInfo)
+                        .build());
             }
             case RECONNECTING -> {
                 String title = getString(R.string.reconnection_to) + getActionConnectServerInfo();
@@ -467,12 +471,18 @@ public class FptnService extends VpnService {
         int maxReconnectCount = SharedPrefUtils.getReconnectAttemptsCount(this);
         boolean autoFallbackEnabled = SharedPrefUtils.getAutoFallbackEnabled(this);
         int fallbackThreshold = (autoFallbackEnabled && !serverEntity.IsAuto())
-                ? SharedPrefUtils.getAutoFallbackThreshold(this) : 0;
+                ? Math.min(SharedPrefUtils.getAutoFallbackThreshold(this), maxReconnectCount) : 0;
+        remainingFallbackBudget.set(maxReconnectCount);
         connectInternal(serverEntity, sniHostname, preFetchedToken, maxReconnectCount, fallbackThreshold);
     }
 
-    private void connectWithRemainingAttempts(ServerEntity serverEntity, String sniHostname, String preFetchedToken, int remainingAttempts) throws UnknownHostException {
-        connectInternal(serverEntity, sniHostname, preFetchedToken, remainingAttempts, 0);
+    private void connectWithRemainingAttempts(ServerEntity serverEntity, String sniHostname, String preFetchedToken) throws UnknownHostException {
+        int maxReconnectCount = SharedPrefUtils.getReconnectAttemptsCount(this);
+        boolean autoFallbackEnabled = SharedPrefUtils.getAutoFallbackEnabled(this);
+        int fallbackThreshold = (autoFallbackEnabled && !serverEntity.IsAuto())
+                ? Math.min(SharedPrefUtils.getAutoFallbackThreshold(this), maxReconnectCount) : 0;
+        remainingFallbackBudget.set(maxReconnectCount);
+        connectInternal(serverEntity, sniHostname, preFetchedToken, maxReconnectCount, fallbackThreshold);
     }
 
     private void connectInternal(ServerEntity serverEntity, String sniHostname, String preFetchedToken, int maxReconnectCount, int fallbackThreshold) throws UnknownHostException {
@@ -558,11 +568,8 @@ public class FptnService extends VpnService {
     private void handleFallbackToAllServers() {
         XLog.tag(TAG).i("Fallback: initiating all-server scan after repeated failures");
         try {
+            String lastServerInfo = getActionConnectServerInfo();
             setActiveConnection(null);
-
-            int maxReconnectCount = SharedPrefUtils.getReconnectAttemptsCount(this);
-            int fallbackThreshold = SharedPrefUtils.getAutoFallbackThreshold(this);
-            int remainingAttempts = Math.max(1, maxReconnectCount - fallbackThreshold);
 
             String sniHostname = SharedPrefUtils.getSniHostname(getApplicationContext());
             BypassCensorshipMethod bypassCensorshipMethod = SharedPrefUtils.getBypassCensorshipMethod(this);
@@ -570,35 +577,57 @@ public class FptnService extends VpnService {
             if (bypassCensorshipMethod == BypassCensorshipMethod.SNI_REALITY) {
                 sniSpoofingMode = SharedPrefUtils.getSniSpoofingMode(this);
             }
+            int fallbackThreshold = SharedPrefUtils.getAutoFallbackThreshold(this);
+            int delayBetweenAttempts = SharedPrefUtils.getDelayBetweenReconnect(this);
 
-            String searchingText = getString(R.string.searching_for_server);
-            updateNotificationWithMessage(getString(R.string.connecting_auto), "");
-            serviceStateMutableLiveData.postValue(FptnServiceState.builder()
-                    .connectionState(ConnectionState.CONNECTING)
-                    .serverInfo(searchingText)
-                    .build());
-
-            List<ServerEntity> serverEntities = appDatabase.serverDAO().getServerList(false);
-            SpeedTestResult loginResult = SpeedTestUtils.findServerByLogin(serverEntities, sniHostname, bypassCensorshipMethod, sniSpoofingMode);
-            ServerEntity server = loginResult.getServerEntity();
-
-            if (server == null && Thread.currentThread().isInterrupted()) {
-                return;
-            }
-            if (server == null) {
-                XLog.tag(TAG).e("Fallback: all-server scan found no reachable server");
+            // Deduct the cost of reconnects that triggered this fallback (once)
+            int remainingBudget = remainingFallbackBudget.addAndGet(-fallbackThreshold);
+            if (remainingBudget <= 0) {
+                XLog.tag(TAG).e("Fallback: reconnection budget exhausted");
                 disconnect(new PVNClientException(ErrorCode.ALL_SERVERS_UNREACHABLE));
                 return;
             }
 
-            XLog.tag(TAG).i("Fallback: selected [id=%d, name=%s] with %d remaining attempts",
-                    server.getId(), server.getName(), remainingAttempts);
-            setSelectedServer(server.getId());
-            connectWithRemainingAttempts(server, sniHostname, loginResult.getAccessToken(), remainingAttempts);
-        } catch (PVNClientException e) {
-            XLog.tag(TAG).e("Fallback: scan failed: %s", e.getMessage());
-            disconnect(e);
-        } catch (ExecutionException | InterruptedException | RuntimeException | UnknownHostException e) {
+            int maxReconnectCount = SharedPrefUtils.getReconnectAttemptsCount(this);
+            while (!Thread.currentThread().isInterrupted()) {
+                int currentAttempt = maxReconnectCount - remainingFallbackBudget.get() + 1;
+                String errorMessage = getString(R.string.try_number) + currentAttempt;
+                updateNotificationWithMessage(getString(R.string.connecting_auto), errorMessage);
+                serviceStateMutableLiveData.postValue(FptnServiceState.builder()
+                        .connectionState(ConnectionState.RECONNECTING)
+                        .exception(new PVNClientException(errorMessage))
+                        .serverInfo(getString(R.string.connecting_auto))
+                        .build());
+
+                List<ServerEntity> serverEntities = appDatabase.serverDAO().getServerList(false);
+                try {
+                    SpeedTestResult loginResult = SpeedTestUtils.findServerByLogin(serverEntities, sniHostname, bypassCensorshipMethod, sniSpoofingMode);
+                    ServerEntity server = loginResult.getServerEntity();
+                    if (server == null) {
+                        XLog.tag(TAG).e("Fallback: all-server scan found no reachable server");
+                        disconnect(new PVNClientException(ErrorCode.ALL_SERVERS_UNREACHABLE));
+                        return;
+                    }
+                    XLog.tag(TAG).i("Fallback: selected [id=%d, name=%s] with %d scan budget remaining",
+                            server.getId(), server.getName(), remainingFallbackBudget.get());
+                    setSelectedServer(server.getId());
+                    connectWithRemainingAttempts(server, sniHostname, loginResult.getAccessToken());
+                    return;
+                } catch (PVNClientException scanException) {
+                    int remaining = remainingFallbackBudget.addAndGet(-1);
+                    XLog.tag(TAG).e("Fallback: scan failed [%s], remaining budget=%d — retrying after %ds",
+                            scanException.getMessage(), remaining, delayBetweenAttempts);
+                    if (remaining <= 0) {
+                        XLog.tag(TAG).e("Fallback: reconnection budget exhausted");
+                        disconnect(new PVNClientException(ErrorCode.ALL_SERVERS_UNREACHABLE));
+                        return;
+                    }
+                    Thread.sleep((long) delayBetweenAttempts * 1000L);
+                }
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } catch (ExecutionException | RuntimeException | UnknownHostException e) {
             XLog.tag(TAG).e("Fallback: unexpected error: %s", e.getMessage());
             disconnect(new PVNClientException(e.getMessage()));
         }
