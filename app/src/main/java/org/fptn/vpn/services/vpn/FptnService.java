@@ -20,7 +20,9 @@ import android.net.NetworkCapabilities;
 import android.net.VpnService;
 import android.os.Binder;
 import android.os.Build;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.os.PowerManager;
 import android.service.quicksettings.TileService;
 
@@ -224,8 +226,15 @@ public class FptnService extends VpnService {
             // setValue (not postValue) — observer runs on main thread via observeForever,
             // so the static LiveData must be updated synchronously before the requestListeningState
             // IPC fires onStartListening(), otherwise getValue() there reads stale state.
-            FptnTileService.getServiceStateMutableLiveData().setValue(fptnServiceState.getConnectionState());
-            TileService.requestListeningState(this, new ComponentName(this, FptnTileService.class));
+            ConnectionState newState = fptnServiceState.getConnectionState();
+            FptnTileService.getServiceStateMutableLiveData().setValue(newState);
+            // Only notify the tile for terminal states. Transient states (CONNECTING, RECONNECTING,
+            // SEARCH_SNI) are skipped to prevent rapid back-to-back requestListeningState() calls
+            // from being rate-limited/deduplicated by the system — which would cause the subsequent
+            // DISCONNECTED call to be dropped and the tile to stay lit after a failed connection.
+            if (newState == ConnectionState.CONNECTED || newState == ConnectionState.DISCONNECTED) {
+                notifyTileListeningState();
+            }
         };
         serviceStateMutableLiveData.observeForever(serviceStateObserver);
         //send initial value
@@ -357,7 +366,7 @@ public class FptnService extends VpnService {
         // Sync tile synchronously before cleanup — postValue inside disconnect() won't reach
         // the observer once it's removed below (both run on main thread).
         FptnTileService.getServiceStateMutableLiveData().setValue(ConnectionState.DISCONNECTED);
-        TileService.requestListeningState(this, new ComponentName(this, FptnTileService.class));
+        notifyTileListeningState();
 
         disconnect();
 
@@ -654,6 +663,21 @@ public class FptnService extends VpnService {
                 XLog.tag(TAG).e("Can't release power lock!", e);
             }
         }
+    }
+
+    private void notifyTileListeningState() {
+        TileService.requestListeningState(this, new ComponentName(this, FptnTileService.class));
+        // Delayed retry: the system may rate-limit or deduplicate rapid requestListeningState()
+        // calls, causing a DISCONNECTED notification to be silently dropped. A second attempt
+        // 500 ms later recovers from this without interfering with a new connection — the check
+        // guards against calling when the user has already reconnected.
+        final Context appCtx = getApplicationContext();
+        final ComponentName tileName = new ComponentName(this, FptnTileService.class);
+        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+            if (FptnTileService.getServiceStateMutableLiveData().getValue() == ConnectionState.DISCONNECTED) {
+                TileService.requestListeningState(appCtx, tileName);
+            }
+        }, 500);
     }
 
     private void setActiveConnection(FptnConnection connection) {
