@@ -131,7 +131,7 @@ public class SharedPrefUtils {
 
     public static int getAutoFallbackThreshold(Context context) {
         SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
-        return sharedPreferences.getInt(Constants.AUTO_FALLBACK_THRESHOLD_PREF_KEY, 6);
+        return sharedPreferences.getInt(Constants.AUTO_FALLBACK_THRESHOLD_PREF_KEY, 15);
     }
 
     public static void saveAutoFallbackThreshold(Context context, int count) {
