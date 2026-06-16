@@ -195,7 +195,8 @@ public class FptnService extends VpnService {
 
     @Override
     public void onCreate() {
-        XLog.tag(TAG).i("Service created");
+        XLog.tag(TAG).i("Service created [manufacturer=%s, brand=%s, model=%s, sdk=%d]",
+                Build.MANUFACTURER, Build.BRAND, Build.MODEL, Build.VERSION.SDK_INT);
 
         // Configure notification channels
         NotificationUtils.configureNotificationChannels(this);
