@@ -88,6 +88,10 @@ public class HomeActivityViewModel extends AndroidViewModel {
                         statusTextLiveData.postValue(getApplication().getString(R.string.disconnected));
                         refreshServerListFromDB();
                     }
+                    case WAITING_FOR_NETWORK -> {
+                        statusTextLiveData.postValue(getApplication().getString(R.string.waiting_for_network));
+                        resetErrorMessage();
+                    }
                     case CONNECTING -> {
                         statusTextLiveData.postValue(getApplication().getString(R.string.connecting));
                         resetErrorMessage();

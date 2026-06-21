@@ -10,6 +10,7 @@ import static org.fptn.vpn.enums.ConnectionSubnets.TUN_ADDRESS;
 
 import android.app.PendingIntent;
 import android.content.pm.PackageManager;
+import android.net.ConnectivityManager;
 import android.net.IpPrefix;
 import android.net.VpnService;
 import android.os.Build;
@@ -27,6 +28,7 @@ import org.fptn.vpn.services.websocket.DnsServers;
 import org.fptn.vpn.services.websocket.WebSocketAlreadyShutdownException;
 import org.fptn.vpn.services.websocket.WebSocketClientWrapper;
 import org.fptn.vpn.utils.DataRateCalculator;
+import org.fptn.vpn.utils.NetworkUtils;
 import org.fptn.vpn.utils.IPUtils;
 import org.fptn.vpn.views.perappvpn.AppInfo;
 import org.fptn.vpn.vpnclient.exception.ErrorCode;
@@ -100,6 +102,7 @@ public class FptnConnection extends Thread {
     private final int delayBetweenAttempts;
     private final PerAppVpnMode perAppVpnMode;
     private final List<AppInfo> appInfos;
+    private final ConnectivityManager connectivityManager;
 
     private final Object webSocketLock = new Object();
 
@@ -116,7 +119,8 @@ public class FptnConnection extends Thread {
                           final SniSpoofingMode sniSpoofingMode,
                           final PerAppVpnMode perAppVpnMode,
                           final List<AppInfo> appInfos,
-                          final String preFetchedToken) {
+                          final String preFetchedToken,
+                          final ConnectivityManager connectivityManager) {
         this.service = service;
         this.connectionId = connectionId;
         this.serverEntity = serverEntity;
@@ -124,6 +128,7 @@ public class FptnConnection extends Thread {
         this.currentNetworkType = currentNetworkType;
         this.perAppVpnMode = perAppVpnMode;
         this.appInfos = appInfos;
+        this.connectivityManager = connectivityManager;
         this.maxReconnectCount = maxReconnectCount;
         this.fallbackThreshold = fallbackThreshold;
         this.delayBetweenAttempts = delayBetweenAttempts;
@@ -386,6 +391,11 @@ public class FptnConnection extends Thread {
                 if (webSocketClient.isStarted()) {
                     XLog.tag(TAG).i("[id=%d] WebSocket already reconnected by native layer — cancelling Java retry", connectionId);
                     cancelReconnectTask();
+                    return;
+                }
+                if (!NetworkUtils.isOnline(connectivityManager)) {
+                    XLog.tag(TAG).i("[id=%d] No internet — suspending reconnect, entering WAITING_FOR_NETWORK", connectionId);
+                    service.enterWaitingForNetwork(serverEntity.getId());
                     return;
                 }
                 int currentCount = reconnectCount.incrementAndGet();

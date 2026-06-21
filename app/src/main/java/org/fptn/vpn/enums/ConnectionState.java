@@ -7,13 +7,15 @@ public enum ConnectionState {
     DISCONNECTED,
     CONNECTING,
     CONNECTED,
-    RECONNECTING;
+    RECONNECTING,
+    WAITING_FOR_NETWORK;
 
     private final static Set<ConnectionState> ACTIVE_STATES = Set.of(
             CONNECTING,
             CONNECTED,
             RECONNECTING,
-            SEARCH_SNI
+            SEARCH_SNI,
+            WAITING_FOR_NETWORK
     );
 
     public boolean isActiveState() {

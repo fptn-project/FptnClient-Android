@@ -86,6 +86,7 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="all_servers_are_unreachable">تمام سرورها در دسترس نیستند!</string>
     <string name="connect_to_server_error">سرور در دسترس نیست! لطفاً از یک سرور دیگر استفاده کنید.</string>
     <string name="dns_server_error">خطای شبکه! دریافت سرور DNS ناموفق بود!</string>
+    <string name="waiting_for_network">در انتظار شبکه...</string>
     <string name="no_active_internet_connections">اتصال به اینترنت وجود ندارد!</string>
     <string name="reconnecting_failed">اتصال مجدد ناموفق بود!</string>
     <string name="vpn_interface_error">ایجاد تونل VPN ناموفق بود!</string>
