@@ -81,6 +81,9 @@ public class FptnService extends VpnService {
     private final AtomicInteger nextConnectionId = new AtomicInteger(1);
     private final AtomicInteger remainingFallbackBudget = new AtomicInteger(0);
 
+    private ConnectivityManager.NetworkCallback networkWaitCallback;
+    private volatile int pendingServerId = SELECTED_SERVER_ID_AUTO;
+
     // Pending Intent for launch MainActivity when notification tapped
     private PendingIntent launchMainActivityPendingIntent;
 
@@ -233,7 +236,8 @@ public class FptnService extends VpnService {
             // SEARCH_SNI) are skipped to prevent rapid back-to-back requestListeningState() calls
             // from being rate-limited/deduplicated by the system — which would cause the subsequent
             // DISCONNECTED call to be dropped and the tile to stay lit after a failed connection.
-            if (newState == ConnectionState.CONNECTED || newState == ConnectionState.DISCONNECTED) {
+            if (newState == ConnectionState.CONNECTED || newState == ConnectionState.DISCONNECTED
+                    || newState == ConnectionState.WAITING_FOR_NETWORK) {
                 notifyTileListeningState();
             }
         };
@@ -259,74 +263,15 @@ public class FptnService extends VpnService {
             startForegroundWithNotification(getString(R.string.connecting));
 
             if (!NetworkUtils.isOnline(connectivityManager)) {
-                XLog.tag(TAG).e("No internet connection — aborting connect");
-                disconnect(new PVNClientException(ErrorCode.NO_ACTIVE_INTERNET_CONNECTIONS));
+                XLog.tag(TAG).i("No internet — entering WAITING_FOR_NETWORK state");
+                pendingServerId = intent.getIntExtra(SELECTED_SERVER, SELECTED_SERVER_ID_AUTO);
+                updateNotificationWithMessage(getString(R.string.waiting_for_network), "");
+                setConnectionState(ConnectionState.WAITING_FOR_NETWORK, null);
+                registerNetworkWaitCallback();
                 return START_NOT_STICKY;
             }
 
-            submittedConnectionAttempt = executorService.submit(() -> {
-                try {
-                    setConnectionState(ConnectionState.CONNECTING, null);
-
-                    NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-                    notificationManager.cancel(Constants.ERROR_CONNECTED_NOTIFICATION_ID);
-
-                    String sniHostname = SharedPrefUtils.getSniHostname(getApplicationContext());
-                    BypassCensorshipMethod bypassCensorshipMethod = SharedPrefUtils.getBypassCensorshipMethod(this);
-
-                    SniSpoofingMode sniSpoofingMode = null;
-                    if (bypassCensorshipMethod == BypassCensorshipMethod.SNI_REALITY) {
-                        sniSpoofingMode = SharedPrefUtils.getSniSpoofingMode(this);
-                    }
-
-                    int serverId = intent.getIntExtra(SELECTED_SERVER, SELECTED_SERVER_ID_AUTO);
-
-                    if (serverId == START_FROM_TILE_AUTO) {
-                        XLog.tag(TAG).i("Connect requested from Quick Settings tile");
-                        if (SharedPrefUtils.getResetSelectedServerEnabled(this)) {
-                            serverId = SELECTED_SERVER_ID_AUTO;
-                        } else {
-                            ServerEntity server = getSelectedServer();
-                            if (server != null) {
-                                XLog.tag(TAG).i("Resuming previously selected server [id=%d, name=%s]", server.getId(), server.getName());
-                                serverId = server.getId();
-                            } else {
-                                XLog.tag(TAG).i("No previously selected server — using auto-select");
-                                serverId = SELECTED_SERVER_ID_AUTO;
-                            }
-                        }
-                    }
-
-                    if (serverId == SELECTED_SERVER_ID_AUTO) {
-                        try {
-                            XLog.tag(TAG).i("Auto-selecting fastest server via login");
-                            updateNotificationWithMessage(getString(R.string.connecting_auto), "");
-                            List<ServerEntity> serverEntities = appDatabase.serverDAO().getServerList(false);
-                            SpeedTestResult loginResult = SpeedTestUtils.findServerByLogin(serverEntities, sniHostname, bypassCensorshipMethod, sniSpoofingMode);
-                            ServerEntity server = loginResult.getServerEntity();
-                            if (server == null && Thread.currentThread().isInterrupted()) {
-                                // Must never happen - just to process interruption
-                                return;
-                            }
-                            XLog.tag(TAG).i("Auto-selected server [id=%d, name=%s]", server.getId(), server.getName());
-                            setSelectedServer(server.getId());
-                            connect(server, sniHostname, loginResult.getAccessToken());
-                        } catch (PVNClientException e) {
-                            XLog.tag(TAG).e("Auto-select failed — all servers unreachable: %s", e.getMessage());
-                            disconnect(e);
-                        }
-                    } else {
-                        XLog.tag(TAG).i("Connecting to server [id=%d]", serverId);
-                        setSelectedServer(serverId);
-                        ServerEntity server = getSelectedServer();
-                        connect(server, sniHostname, null);
-                    }
-                } catch (ExecutionException | InterruptedException | RuntimeException |
-                         UnknownHostException e) {
-                    XLog.tag(TAG).e("Unexpected error during connect setup: %s", e.getMessage());
-                    disconnect(new PVNClientException(e.getMessage()));
-                }
-            });
+            startConnectionAttempt(intent.getIntExtra(SELECTED_SERVER, SELECTED_SERVER_ID_AUTO));
 
         } else if (ACTION_DISCONNECT.equals(intent.getAction()) && isActiveState) {
             XLog.tag(TAG).i("User-initiated disconnect");
@@ -431,6 +376,109 @@ public class FptnService extends VpnService {
             connectivityManager.unregisterNetworkCallback(networkCallback);
             networkCallback = null;
         }
+    }
+
+    public void enterWaitingForNetwork(int serverId) {
+        XLog.tag(TAG).i("Network offline — entering WAITING_FOR_NETWORK [pendingServerId=%d]", serverId);
+        String serverInfo = getActionConnectServerInfo(); // capture before teardown nulls the connection
+        pendingServerId = serverId;
+        updateNotificationWithMessage(getString(R.string.waiting_for_network), serverInfo);
+        setActiveConnection(null);
+        serviceStateMutableLiveData.postValue(FptnServiceState.builder()
+                .connectionState(ConnectionState.WAITING_FOR_NETWORK)
+                .serverInfo(serverInfo)
+                .build());
+        registerNetworkWaitCallback();
+    }
+
+    private synchronized void registerNetworkWaitCallback() {
+        unregisterNetworkWaitCallback();
+        networkWaitCallback = new ConnectivityManager.NetworkCallback() {
+            @Override
+            public void onAvailable(@NonNull Network network) {
+                XLog.tag(TAG).i("Network available — resuming connection");
+                unregisterNetworkWaitCallback();
+                updateNotificationWithMessage(getString(R.string.connecting), "");
+                startConnectionAttempt(pendingServerId);
+            }
+        };
+        connectivityManager.registerNetworkCallback(NetworkUtils.createNetworkRequest(), networkWaitCallback);
+        XLog.tag(TAG).i("Waiting for network connectivity [pendingServerId=%d]", pendingServerId);
+    }
+
+    private synchronized void unregisterNetworkWaitCallback() {
+        if (networkWaitCallback != null) {
+            try {
+                connectivityManager.unregisterNetworkCallback(networkWaitCallback);
+            } catch (Exception e) {
+                XLog.tag(TAG).w("Failed to unregister network-wait callback: %s", e.getMessage());
+            }
+            networkWaitCallback = null;
+        }
+    }
+
+    private void startConnectionAttempt(int initialServerId) {
+        submittedConnectionAttempt = executorService.submit(() -> {
+            try {
+                setConnectionState(ConnectionState.CONNECTING, null);
+
+                NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+                notificationManager.cancel(Constants.ERROR_CONNECTED_NOTIFICATION_ID);
+
+                String sniHostname = SharedPrefUtils.getSniHostname(getApplicationContext());
+                BypassCensorshipMethod bypassCensorshipMethod = SharedPrefUtils.getBypassCensorshipMethod(this);
+
+                SniSpoofingMode sniSpoofingMode = null;
+                if (bypassCensorshipMethod == BypassCensorshipMethod.SNI_REALITY) {
+                    sniSpoofingMode = SharedPrefUtils.getSniSpoofingMode(this);
+                }
+
+                int serverId = initialServerId;
+                if (serverId == START_FROM_TILE_AUTO) {
+                    XLog.tag(TAG).i("Connect requested from Quick Settings tile");
+                    if (SharedPrefUtils.getResetSelectedServerEnabled(this)) {
+                        serverId = SELECTED_SERVER_ID_AUTO;
+                    } else {
+                        ServerEntity server = getSelectedServer();
+                        if (server != null) {
+                            XLog.tag(TAG).i("Resuming previously selected server [id=%d, name=%s]", server.getId(), server.getName());
+                            serverId = server.getId();
+                        } else {
+                            XLog.tag(TAG).i("No previously selected server — using auto-select");
+                            serverId = SELECTED_SERVER_ID_AUTO;
+                        }
+                    }
+                }
+
+                if (serverId == SELECTED_SERVER_ID_AUTO) {
+                    try {
+                        XLog.tag(TAG).i("Auto-selecting fastest server via login");
+                        updateNotificationWithMessage(getString(R.string.connecting_auto), "");
+                        List<ServerEntity> serverEntities = appDatabase.serverDAO().getServerList(false);
+                        SpeedTestResult loginResult = SpeedTestUtils.findServerByLogin(serverEntities, sniHostname, bypassCensorshipMethod, sniSpoofingMode);
+                        ServerEntity server = loginResult.getServerEntity();
+                        if (server == null && Thread.currentThread().isInterrupted()) {
+                            return;
+                        }
+                        XLog.tag(TAG).i("Auto-selected server [id=%d, name=%s]", server.getId(), server.getName());
+                        setSelectedServer(server.getId());
+                        connect(server, sniHostname, loginResult.getAccessToken());
+                    } catch (PVNClientException e) {
+                        XLog.tag(TAG).e("Auto-select failed — all servers unreachable: %s", e.getMessage());
+                        disconnect(e);
+                    }
+                } else {
+                    XLog.tag(TAG).i("Connecting to server [id=%d]", serverId);
+                    setSelectedServer(serverId);
+                    ServerEntity server = getSelectedServer();
+                    connect(server, sniHostname, null);
+                }
+            } catch (ExecutionException | InterruptedException | RuntimeException |
+                     UnknownHostException e) {
+                XLog.tag(TAG).e("Unexpected error during connect setup: %s", e.getMessage());
+                disconnect(new PVNClientException(e.getMessage()));
+            }
+        });
     }
 
     private void switchState(ConnectionState connectionState, int reconnectCount) {
@@ -567,7 +615,8 @@ public class FptnService extends VpnService {
                 sniSpoofingMode,
                 perAppVpnMode,
                 appInfos,
-                preFetchedToken
+                preFetchedToken,
+                connectivityManager
         );
         connection.setConfigureVpnIntent(launchMainActivityPendingIntent);
         connection.start();
@@ -723,7 +772,8 @@ public class FptnService extends VpnService {
         // Release wakelock
         releasePowerLock();
 
-        // unregister network callback
+        // unregister network callbacks
+        unregisterNetworkWaitCallback();
         unregisterNetworkCallback();
 
         if (SharedPrefUtils.getResetSelectedServerEnabled(this)

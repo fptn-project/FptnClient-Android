@@ -86,6 +86,7 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="all_servers_are_unreachable">Все сервера недоступны!</string>
     <string name="connect_to_server_error">Сервер недоступен! Попробуйте использовать другой сервер.</string>
     <string name="dns_server_error">Ошибка сети! Не удалось получить DNS сервер!</string>
+    <string name="waiting_for_network">Ожидание сети...</string>
     <string name="no_active_internet_connections">Нет подключения к интернету!</string>
     <string name="reconnecting_failed">Переподключение не удалось!</string>
     <string name="vpn_interface_error">Не удалось создать VPN тунель!</string>
