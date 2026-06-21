@@ -15,6 +15,7 @@ import android.widget.Toast;
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.elvishew.xlog.XLog;
@@ -92,7 +93,7 @@ public class LoginActivity extends AppCompatActivity {
                     Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_SHORT).show();
                     viewModel.getErrorTextLiveData().postValue(t.getMessage());
                 }
-            }, getMainExecutor());
+            }, ContextCompat.getMainExecutor(this));
         } catch (Exception e) {
             XLog.tag(TAG).e("Token parsing failed at login: %s", e.getMessage());
             Toast.makeText(getApplicationContext(), R.string.token_saving_failed, Toast.LENGTH_SHORT).show();

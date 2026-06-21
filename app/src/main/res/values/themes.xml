@@ -8,6 +8,5 @@
 <!--        <item name="android:windowSplashScreenAnimatedIcon">@drawable/dowload</item>-->
     </style>
     <style name="Theme.RemoveSplashScreenTheme" parent="Base.Theme.FptnClient">
-        <item name="android:windowIsTranslucent">true</item>
     </style>
 </resources>

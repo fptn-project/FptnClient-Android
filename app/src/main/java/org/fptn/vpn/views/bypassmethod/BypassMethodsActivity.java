@@ -28,6 +28,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.elvishew.xlog.XLog;
@@ -331,7 +332,7 @@ public class BypassMethodsActivity extends AppCompatActivity {
                 public void onFailure(Throwable t) {
                     XLog.tag(TAG).e("Failed to load server list for SNI auto-select: %s", t.getMessage());
                 }
-            }, getMainExecutor());
+            }, ContextCompat.getMainExecutor(this));
         } else {
             SniCheckerService.stopChecking(this);
         }
