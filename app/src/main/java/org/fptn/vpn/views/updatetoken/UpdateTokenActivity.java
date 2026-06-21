@@ -14,6 +14,7 @@ import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProvider;
 
 import org.fptn.vpn.R;
@@ -105,7 +106,7 @@ public class UpdateTokenActivity extends AppCompatActivity {
                     viewModel.getErrorTextLiveData().postValue(t.getMessage());
                 }
 
-            }, getMainExecutor());
+            }, ContextCompat.getMainExecutor(this));
         } catch (Exception e) {
             XLog.tag(TAG).e("Token parsing failed: %s", e.getMessage());
             Toast.makeText(getApplicationContext(), R.string.token_saving_failed, Toast.LENGTH_SHORT).show();
