@@ -87,6 +87,9 @@ public class FptnConnection extends Thread {
     private ParcelFileDescriptor vpnInterface;
     private FileOutputStream outputStream;
 
+    private volatile boolean tunNeedsRecreate = false;
+    private volatile boolean tunRecreating = false;
+
     @Getter
     private Instant connectionTime;
     private ScheduledFuture<?> onFailureScheduledTask;
@@ -153,41 +156,41 @@ public class FptnConnection extends Thread {
         try {
             sendConnectionStateToService(ConnectionState.CONNECTING);
 
-            VpnService.Builder builder = service.new Builder();
-            builder.setMtu(MAX_PACKET_SIZE);
-            builder.setBlocking(true);
-            builder.setConfigureIntent(configureVpnIntent);
-
-            configurePerAppMode(builder);
-            configureAddressesAndRoutes(builder);
-
-            synchronized (service) {
-                vpnInterface = builder.establish();
-            }
-
-            XLog.tag(TAG).i("[id=%d] TUN interface established [fd=%s]", connectionId, vpnInterface);
-            if (isTunInterfaceValid(vpnInterface)) {
-                outputStream = new FileOutputStream(vpnInterface.getFileDescriptor());
-            } else {
-                throw new PVNClientException(ErrorCode.VPN_INTERFACE_ERROR);
-            }
-
+            setupTun();
             webSocketClient.startWebSocket();
-
             configureConnectionTimeSpeedScheduler();
 
-            try (FileInputStream inputStream = new FileInputStream(vpnInterface.getFileDescriptor())) {
-                byte[] byteBuffer = new byte[MAX_PACKET_SIZE];
-                while (!currentThread.isInterrupted()) {
-                    int length = inputStream.read(byteBuffer);
-                    uploadRate.update(length);
+            byte[] byteBuffer = new byte[MAX_PACKET_SIZE];
+            outer:
+            while (!currentThread.isInterrupted()) {
+                try (FileInputStream inputStream = new FileInputStream(vpnInterface.getFileDescriptor())) {
+                    while (!currentThread.isInterrupted()) {
+                        int length = inputStream.read(byteBuffer);
+                        uploadRate.update(length);
 
-                    if (!webSocketClient.isStarted()) {
-                        synchronized (webSocketLock) {
-                            webSocketLock.wait();
+                        if (!webSocketClient.isStarted()) {
+                            synchronized (webSocketLock) {
+                                webSocketLock.wait();
+                            }
                         }
+                        webSocketClient.send(byteBuffer, length);
                     }
-                    webSocketClient.send(byteBuffer, length);
+                } catch (IOException ex) {
+                    if (tunNeedsRecreate && !currentThread.isInterrupted()) {
+                        XLog.tag(TAG).i("[id=%d] TUN closed — recreating interface", connectionId);
+                        try {
+                            setupTun();
+                            tunNeedsRecreate = false;
+                            tunRecreating = false;
+                            XLog.tag(TAG).i("[id=%d] TUN interface recreated successfully", connectionId);
+                        } catch (Exception e) {
+                            XLog.tag(TAG).e("[id=%d] Failed to recreate TUN: %s", connectionId, e.getMessage());
+                            break outer;
+                        }
+                    } else {
+                        XLog.tag(TAG).w("[id=%d] TUN interface closed: %s", connectionId, ex.getMessage());
+                        break outer;
+                    }
                 }
             }
         } catch (PVNClientException e) {
@@ -202,6 +205,35 @@ public class FptnConnection extends Thread {
             XLog.tag(TAG).e("[id=" + connectionId + "] ERRORRR [wsStarted=" + webSocketClient.isStarted() + "]: " + e.getMessage());
         } finally {
             shutdown();
+        }
+    }
+
+    private void setupTun() throws UnknownHostException, PVNClientException {
+        if (outputStream != null) {
+            try { outputStream.close(); } catch (IOException ignored) {}
+            outputStream = null;
+        }
+        if (vpnInterface != null) {
+            try { vpnInterface.close(); } catch (IOException ignored) {}
+            vpnInterface = null;
+        }
+
+        VpnService.Builder builder = service.new Builder();
+        builder.setMtu(MAX_PACKET_SIZE);
+        builder.setBlocking(true);
+        builder.setConfigureIntent(configureVpnIntent);
+        configurePerAppMode(builder);
+        configureAddressesAndRoutes(builder);
+
+        synchronized (service) {
+            vpnInterface = builder.establish();
+        }
+
+        XLog.tag(TAG).i("[id=%d] TUN interface established [fd=%s]", connectionId, vpnInterface);
+        if (isTunInterfaceValid(vpnInterface)) {
+            outputStream = new FileOutputStream(vpnInterface.getFileDescriptor());
+        } else {
+            throw new PVNClientException(ErrorCode.VPN_INTERFACE_ERROR);
         }
     }
 
@@ -375,6 +407,14 @@ public class FptnConnection extends Thread {
         } catch (Exception e) {
             XLog.tag(TAG).w("[id=%d] Failed to write %d-byte packet to TUN: %s",
                     connectionId, data.length, e.getMessage());
+            if (!tunRecreating && !currentThread.isInterrupted()) {
+                tunRecreating = true;
+                tunNeedsRecreate = true;
+                // Close the fd to unblock the main thread's inputStream.read()
+                if (vpnInterface != null) {
+                    try { vpnInterface.close(); } catch (IOException ignored) {}
+                }
+            }
         }
     }
 
