@@ -119,6 +119,7 @@ public class FptnConnection extends Thread {
     @Setter
     private NetworkType currentNetworkType;
 
+    private final List<String> allServerHosts;
     private final int maxReconnectCount;
     private final int fallbackThreshold; // 0 = disabled
     private final int delayBetweenAttempts;
@@ -131,6 +132,7 @@ public class FptnConnection extends Thread {
     public FptnConnection(final FptnService service,
                           final int connectionId,
                           final ServerEntity serverEntity,
+                          final List<String> allServerHosts,
                           final String currentIPAddress,
                           final NetworkType currentNetworkType,
                           final int maxReconnectCount,
@@ -146,6 +148,7 @@ public class FptnConnection extends Thread {
         this.service = service;
         this.connectionId = connectionId;
         this.serverEntity = serverEntity;
+        this.allServerHosts = allServerHosts;
         this.currentIPAddress = currentIPAddress;
         this.currentNetworkType = currentNetworkType;
         this.perAppVpnMode = perAppVpnMode;
@@ -349,7 +352,13 @@ public class FptnConnection extends Thread {
         builder.addRoute(dnsServers.getIpv6(), IP_V6_PREFIX_LENGTH);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            builder.excludeRoute(new IpPrefix(InetAddress.getByName(serverEntity.getHost()), IP_V4_PREFIX_LENGTH));
+            for (String host : allServerHosts) {
+                try {
+                    builder.excludeRoute(new IpPrefix(InetAddress.getByName(host), IP_V4_PREFIX_LENGTH));
+                } catch (UnknownHostException e) {
+                    XLog.tag(TAG).w("[id=%d] Cannot exclude server from TUN routing: %s", connectionId, host);
+                }
+            }
             builder.excludeRoute(LOCAL_TUN_INTERFACE_SUBNET.getAsIpV4Prefix());
             builder.excludeRoute(LOCAL_TUN_INTERFACE_SUBNET.getAsIpV6Prefix());
             builder.excludeRoute(FPTN_SERVER_SUBNET.getAsIpV4Prefix());
@@ -361,11 +370,13 @@ public class FptnConnection extends Thread {
         } else {
             // IPv4
             IPAddress rootSubnetV4 = new IPAddressString(ALL_SUBNET.getAsIpV4PrefixAsString()).getAddress();
-            List<IPAddress> subnetsToExcludeV4 = Stream.of(
-                            String.format("%s/%s", serverEntity.getHost(), IP_V4_PREFIX_LENGTH),
-                            LOCAL_TUN_INTERFACE_SUBNET.getAsIpV4PrefixAsString(),
-                            FPTN_SERVER_SUBNET.getAsIpV4PrefixAsString(),
-                            LOCAL_SUBNET.getAsIpV4PrefixAsString()
+            List<IPAddress> subnetsToExcludeV4 = Stream.concat(
+                            allServerHosts.stream().map(host -> String.format("%s/%s", host, IP_V4_PREFIX_LENGTH)),
+                            Stream.of(
+                                    LOCAL_TUN_INTERFACE_SUBNET.getAsIpV4PrefixAsString(),
+                                    FPTN_SERVER_SUBNET.getAsIpV4PrefixAsString(),
+                                    LOCAL_SUBNET.getAsIpV4PrefixAsString()
+                            )
                     )
                     .map(sub -> new IPAddressString(sub).getAddress())
                     .collect(Collectors.toList());
@@ -515,11 +526,11 @@ public class FptnConnection extends Thread {
     }
 
     private void sendConnectionStateToService(ConnectionState connectionState) {
-        service.updateConnectionState(connectionState, reconnectCount.get());
+        service.updateConnectionState(connectionState, reconnectCount.get(), connectionId);
     }
 
     private void sendConnectionStateToService(ConnectionState connectionState, int count) {
-        service.updateConnectionState(connectionState, count);
+        service.updateConnectionState(connectionState, count, connectionId);
     }
 
     private boolean isTunInterfaceValid(ParcelFileDescriptor vpnInterface) {

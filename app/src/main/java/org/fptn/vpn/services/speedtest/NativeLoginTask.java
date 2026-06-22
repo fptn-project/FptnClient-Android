@@ -30,7 +30,11 @@ import org.fptn.vpn.services.websocket.NativeHttpsClientImpl;
 import org.fptn.vpn.services.websocket.NativeResponse;
 import org.json.JSONObject;
 
+import org.fptn.vpn.vpnclient.exception.ErrorCode;
+import org.fptn.vpn.vpnclient.exception.PVNClientException;
+
 import java.util.concurrent.Callable;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class NativeLoginTask implements Callable<SpeedTestResult> {
     private static final String LOGIN_URL = "/api/v1/login";
@@ -38,9 +42,11 @@ public class NativeLoginTask implements Callable<SpeedTestResult> {
 
     private final ServerEntity serverEntity;
     private final NativeHttpsClientImpl nativeHttpsClient;
+    private final AtomicReference<PVNClientException> sharedAuthError;
 
-    public NativeLoginTask(ServerEntity serverEntity, String sniHost, BypassCensorshipMethod censorshipStrategy, SniSpoofingMode sniSpoofingMode) {
+    public NativeLoginTask(ServerEntity serverEntity, String sniHost, BypassCensorshipMethod censorshipStrategy, SniSpoofingMode sniSpoofingMode, AtomicReference<PVNClientException> sharedAuthError) {
         this.serverEntity = serverEntity;
+        this.sharedAuthError = sharedAuthError;
         this.nativeHttpsClient = new NativeHttpsClientImpl(
                 serverEntity.getHost(),
                 serverEntity.getPort(),
@@ -59,6 +65,11 @@ public class NativeLoginTask implements Callable<SpeedTestResult> {
             JSONObject json = new JSONObject(response.body);
             String accessToken = json.getString("access_token");
             return new SpeedTestResult(serverEntity, accessToken);
+        }
+        if (response != null && response.code == 401) {
+            PVNClientException ex = new PVNClientException(ErrorCode.ACCESS_TOKEN_ERROR);
+            sharedAuthError.set(ex);
+            throw ex;
         }
         throw new Exception("Login failed for " + serverEntity.getHost() + " [code=" + (response != null ? response.code : -1) + "]");
     }

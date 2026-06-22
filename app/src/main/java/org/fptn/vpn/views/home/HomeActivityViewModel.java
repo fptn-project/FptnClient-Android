@@ -106,6 +106,7 @@ public class HomeActivityViewModel extends AndroidViewModel {
                 switch (connectionState) {
                     case DISCONNECTED -> {
                         statusTextLiveData.postValue(getApplication().getString(R.string.disconnected));
+                        resetErrorMessage();
                         refreshServerListFromDB();
                     }
                     case WAITING_FOR_NETWORK -> {

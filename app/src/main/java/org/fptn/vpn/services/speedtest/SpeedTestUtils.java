@@ -36,6 +36,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 public class SpeedTestUtils {
@@ -88,25 +89,27 @@ public class SpeedTestUtils {
             List<ServerEntity> selectedServers = selectServersForTesting(serverEntityList);
             XLog.tag(TAG).d("Testing %d/%d servers via login", selectedServers.size(), serverEntityList.size());
 
+            AtomicReference<PVNClientException> authError = new AtomicReference<>();
             ExecutorService executor = Executors.newFixedThreadPool(selectedServers.size());
             List<NativeLoginTask> tasks = selectedServers.stream()
-                    .map(server -> new NativeLoginTask(server, sniHostName, censorshipStrategy, sniSpoofingMode))
+                    .map(server -> new NativeLoginTask(server, sniHostName, censorshipStrategy, sniSpoofingMode, authError))
                     .collect(Collectors.toList());
             try {
                 SpeedTestResult result = executor.invokeAny(tasks, SEARCH_BEST_SERVER_MAX_TIMEOUT, TimeUnit.SECONDS);
                 XLog.tag(TAG).i("Fastest server found via login [server=%s]", result.getServerEntity().getServerInfo());
                 return result;
             } catch (InterruptedException e) {
-                // EXTERNAL STOP: The thread was interrupted from the outside
                 XLog.tag(TAG).w("Speed test was externally cancelled");
-                Thread.currentThread().interrupt(); // Restore interrupted status
+                Thread.currentThread().interrupt();
             } catch (TimeoutException e) {
-                // TIMEOUT: The timer expired before any server responded
                 XLog.tag(TAG).e("Speed test timed out after %d seconds", SEARCH_BEST_SERVER_MAX_TIMEOUT);
                 throw new PVNClientException(ErrorCode.FIND_FASTEST_SERVER_TIMEOUT);
             } catch (ExecutionException e) {
-                // FAILURE: Tasks failed or crashed
                 XLog.tag(TAG).e("Speed test execution failed: %s", e.getMessage());
+                PVNClientException captured = authError.get();
+                if (captured != null) {
+                    throw captured;
+                }
                 throw new PVNClientException(ErrorCode.ALL_SERVERS_UNREACHABLE);
             } finally {
                 executor.shutdownNow();
