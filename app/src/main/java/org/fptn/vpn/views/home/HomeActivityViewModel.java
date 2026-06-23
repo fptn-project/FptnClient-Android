@@ -78,6 +78,12 @@ public class HomeActivityViewModel extends AndroidViewModel {
     private final MutableLiveData<List<ServerEntity>> serverDtoListLiveData = new MutableLiveData<>(List.of());
     @Getter
     private final MutableLiveData<String> connectedServerInfoLiveData = new MutableLiveData<>();
+    @Getter
+    private final MutableLiveData<String> downloadTrafficLiveData = new MutableLiveData<>("0 B");
+    @Getter
+    private final MutableLiveData<String> uploadTrafficLiveData = new MutableLiveData<>("0 B");
+    @Getter
+    private final MutableLiveData<long[]> speedSampleLiveData = new MutableLiveData<>();
 
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
     private final AppDatabase appDatabase = AppDatabase.getInstance(getApplication());
@@ -109,20 +115,13 @@ public class HomeActivityViewModel extends AndroidViewModel {
                         resetErrorMessage();
                         refreshServerListFromDB();
                     }
-                    case WAITING_FOR_NETWORK -> {
-                        statusTextLiveData.postValue(getApplication().getString(R.string.waiting_for_network));
-                        resetErrorMessage();
-                    }
-                    case CONNECTING -> {
-                        statusTextLiveData.postValue(getApplication().getString(R.string.connecting));
-                        resetErrorMessage();
-                    }
-                    case CONNECTED -> {
-                        statusTextLiveData.postValue(getApplication().getString(R.string.connected));
-                        resetErrorMessage();
-                    }
-                    case RECONNECTING ->
+                    case WAITING_FOR_NETWORK ->
+                            statusTextLiveData.postValue(getApplication().getString(R.string.waiting_for_network));
+                    case CONNECTING ->
+                            statusTextLiveData.postValue(getApplication().getString(R.string.connecting));
+                    case CONNECTED ->
                             statusTextLiveData.postValue(getApplication().getString(R.string.connected));
+                    case RECONNECTING -> {} // text comes from exception below
                 }
 
                 PVNClientException exception = fptnServiceState.getException();
@@ -260,12 +259,11 @@ public class HomeActivityViewModel extends AndroidViewModel {
     private void handlePVNClientException(PVNClientException exception) {
         ErrorCode errorCode = exception.errorCode;
         if (errorCode != ErrorCode.UNKNOWN_ERROR) {
-            String stringResourceByName = getStringResourceByName(getApplication(), errorCode.getValue());
-            XLog.tag(TAG).e("VPN error [code=%s]: %s", errorCode, stringResourceByName);
-
-            errorTextLiveData.postValue(stringResourceByName);
+            String msg = getStringResourceByName(getApplication(), errorCode.getValue());
+            XLog.tag(TAG).e("VPN error [code=%s]: %s", errorCode, msg);
+            statusTextLiveData.postValue(msg);
         } else {
-            errorTextLiveData.postValue(exception.errorMessage);
+            statusTextLiveData.postValue(exception.errorMessage);
         }
     }
 
@@ -289,6 +287,19 @@ public class HomeActivityViewModel extends AndroidViewModel {
             }
         });
 
+        service.getTrafficBytesLiveData().observeForever(traffic -> {
+            if (traffic != null) {
+                downloadTrafficLiveData.postValue(formatBytes(traffic.getFirst()));
+                uploadTrafficLiveData.postValue(formatBytes(traffic.getSecond()));
+            }
+        });
+
+        service.getRawSpeedBpsLiveData().observeForever(bps -> {
+            if (bps != null) {
+                speedSampleLiveData.postValue(bps);
+            }
+        });
+
         service.getServiceStateMutableLiveData().observeForever(serverState -> {
             serviceStateMutableLiveData.postValue(serverState);
 
@@ -305,5 +316,17 @@ public class HomeActivityViewModel extends AndroidViewModel {
 
     public void unsubscribe() {
         // todo: check memory leaks and maybe remove observers
+    }
+
+    private static String formatBytes(long bytes) {
+        if (bytes >= 1_000_000_000L) {
+            return String.format("%.2f GB", bytes / 1_000_000_000.0);
+        } else if (bytes >= 1_000_000L) {
+            return String.format("%.2f MB", bytes / 1_000_000.0);
+        } else if (bytes >= 1_000L) {
+            return String.format("%.2f KB", bytes / 1_000.0);
+        } else {
+            return bytes + " B";
+        }
     }
 }

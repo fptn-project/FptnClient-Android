@@ -85,6 +85,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
+import kotlin.Pair;
 import kotlin.Triple;
 import lombok.Getter;
 
@@ -120,6 +121,10 @@ public class FptnService extends VpnService {
     private final MutableLiveData<FptnServiceState> serviceStateMutableLiveData = new MutableLiveData<>(FptnServiceState.INITIAL);
     @Getter
     private final MutableLiveData<Triple<String, String, Long>> speedAndDurationMutableLiveData = new MutableLiveData<>();
+    @Getter
+    private final MutableLiveData<Pair<Long, Long>> trafficBytesLiveData = new MutableLiveData<>(new Pair<>(0L, 0L));
+    @Getter
+    private final MutableLiveData<long[]> rawSpeedBpsLiveData = new MutableLiveData<>(new long[]{0L, 0L});
 
     @Getter
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
@@ -154,7 +159,7 @@ public class FptnService extends VpnService {
     /* binder part END */
 
 
-    public void updateSpeedInfo(String downloadSpeed, String uploadSpeed, long duration) {
+    public void updateSpeedInfo(String downloadSpeed, String uploadSpeed, long duration, long totalDownload, long totalUpload, long downloadBps, long uploadBps) {
         if (serviceStateMutableLiveData.getValue().getConnectionState() == ConnectionState.CONNECTED) {
             updateNotificationWithMessage(
                     String.format("%s %s", getString(R.string.connected_to), getActionConnectServerInfo()),
@@ -162,6 +167,8 @@ public class FptnService extends VpnService {
             );
 
             speedAndDurationMutableLiveData.postValue(new Triple<>(downloadSpeed, uploadSpeed, duration));
+            trafficBytesLiveData.postValue(new Pair<>(totalDownload, totalUpload));
+            rawSpeedBpsLiveData.postValue(new long[]{downloadBps, uploadBps});
         }
     }
 
@@ -691,7 +698,7 @@ public class FptnService extends VpnService {
             int maxReconnectCount = SharedPrefUtils.getReconnectAttemptsCount(this);
             while (!Thread.currentThread().isInterrupted()) {
                 int currentAttempt = maxReconnectCount - remainingFallbackBudget.get() + 1;
-                String errorMessage = getString(R.string.try_number) + currentAttempt;
+                String errorMessage = getString(R.string.try_number_fallback) + currentAttempt;
                 updateNotificationWithMessage(getString(R.string.connecting_auto), errorMessage);
                 serviceStateMutableLiveData.postValue(FptnServiceState.builder()
                         .connectionState(ConnectionState.RECONNECTING)

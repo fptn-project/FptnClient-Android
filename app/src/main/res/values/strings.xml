@@ -116,7 +116,8 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="connecting_to">"Connecting to "</string>
     <string name="connected_to">"Connected to "</string>
     <string name="reconnection_to">"Reconnection to "</string>
-    <string name="try_number">"Reconnection attempt number: "</string>
+    <string name="try_number">"Reconnecting: attempt "</string>
+    <string name="try_number_fallback">"Searching server: attempt "</string>
     <string name="download_upload_speed_pattern">Download: %s Upload: %s</string>
     <string name="refresh_token">Refresh token...</string>
     <string name="play_market_link" translatable="false">https://play.google.com/store/apps/details?id=org.fptn.vpn</string>
@@ -307,5 +308,7 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="sni_found_message">Found working SNI: </string>
     <string name="sni_not_found_title">SNI not found</string>
     <string name="sni_not_found_message">No working SNI found for server: </string>
+    <string name="traffic_download">Download</string>
+    <string name="traffic_upload">Upload</string>
 
 </resources>

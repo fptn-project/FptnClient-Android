@@ -57,7 +57,7 @@ public class App extends Application {
 
         FilePrinter filePrinter = new FilePrinter.Builder(logPath)
                 .fileNameGenerator(new DateFileNameGenerator())
-                .backupStrategy(new FileSizeBackupStrategy2(1 * 1024 * 1024, 10))
+                .backupStrategy(new FileSizeBackupStrategy2(512 * 1024, 10))
                 .cleanStrategy(new FileLastModifiedCleanStrategy(60 * 60 * 1000L))
                 .flattener(flattener)
                 .build();

@@ -107,7 +107,8 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="connecting_to">"Подключаемся к "</string>
     <string name="connected_to">"Подключен к "</string>
     <string name="reconnection_to">"Переподключаемся к "</string>
-    <string name="try_number">"Попытка номер: "</string>
+    <string name="try_number">"Переподключение: попытка "</string>
+    <string name="try_number_fallback">"Поиск сервера: попытка "</string>
     <string name="download_upload_speed_pattern">Загрузка: %s Выгрузка: %s</string>
     <string name="refresh_token">Обновить токен...</string>
     <string name="close_button_text">Закрыть</string>
@@ -227,5 +228,7 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="sni_found_message">Найден рабочий SNI: </string>
     <string name="sni_not_found_title">SNI не найден</string>
     <string name="sni_not_found_message">Рабочий SNI не найден для сервера: </string>
+    <string name="traffic_download">Получено</string>
+    <string name="traffic_upload">Отправлено</string>
 
 </resources>
