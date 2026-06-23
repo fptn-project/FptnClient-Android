@@ -133,7 +133,7 @@ public class FptnService extends VpnService {
      * LocalBinder - just the way to give HomeActivity link on FptnService object
      */
     private final IBinder binder = new LocalBinder();
-    private Future<?> submittedConnectionAttempt;
+    private volatile Future<?> submittedConnectionAttempt;
 
     public static void bindService(Context context, ServiceConnection connection) {
         Intent intent = new Intent(context, FptnService.class);
@@ -167,7 +167,7 @@ public class FptnService extends VpnService {
 
     public void sendExceptionToService(PVNClientException exception) {
         if (Objects.equals(exception.errorCode, ErrorCode.FALLBACK_TO_ALL_SERVERS)) {
-            executorService.submit(this::handleFallbackToAllServers);
+            submittedConnectionAttempt = executorService.submit(this::handleFallbackToAllServers);
             return;
         }
         disconnect(exception);
@@ -176,7 +176,15 @@ public class FptnService extends VpnService {
         }
     }
 
-    public void updateConnectionState(ConnectionState connectionState, int reconnectionCount) {
+    public void updateConnectionState(ConnectionState connectionState, int reconnectionCount, int senderConnectionId) {
+        if (connectionState == ConnectionState.DISCONNECTED) {
+            FptnConnection current = activeConnection.get();
+            if (current != null && current.getConnectionId() != senderConnectionId) {
+                XLog.tag(TAG).d("Ignoring stale DISCONNECTED [from=id%d, active=id%d]",
+                        senderConnectionId, current.getConnectionId());
+                return;
+            }
+        }
         switchState(connectionState, reconnectionCount);
     }
 
@@ -476,8 +484,11 @@ public class FptnService extends VpnService {
                         updateNotificationWithMessage(getString(R.string.connecting_auto), "");
                         List<ServerEntity> serverEntities = appDatabase.serverDAO().getServerList(false);
                         SpeedTestResult loginResult = SpeedTestUtils.findServerByLogin(serverEntities, sniHostname, bypassCensorshipMethod, sniSpoofingMode);
+                        if (loginResult == null || Thread.currentThread().isInterrupted()) {
+                            return;
+                        }
                         ServerEntity server = loginResult.getServerEntity();
-                        if (server == null && Thread.currentThread().isInterrupted()) {
+                        if (server == null) {
                             return;
                         }
                         XLog.tag(TAG).i("Auto-selected server [id=%d, name=%s]", server.getId(), server.getName());
@@ -493,8 +504,12 @@ public class FptnService extends VpnService {
                     ServerEntity server = getSelectedServer();
                     connect(server, sniHostname, null);
                 }
-            } catch (ExecutionException | InterruptedException | RuntimeException |
-                     UnknownHostException e) {
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            } catch (ExecutionException | RuntimeException | UnknownHostException e) {
+                if (Thread.currentThread().isInterrupted()) {
+                    return;
+                }
                 XLog.tag(TAG).e("Unexpected error during connect setup: %s", e.getMessage());
                 disconnect(new PVNClientException(e.getMessage()));
             }
@@ -621,10 +636,16 @@ public class FptnService extends VpnService {
             appInfos.addAll(packages);
         }
 
+        List<String> allServerHosts = appDatabase.serverDAO().getServerList(false)
+                .stream()
+                .map(ServerEntity::getHost)
+                .collect(Collectors.toList());
+
         connection = new FptnConnection(
                 this,
                 nextConnectionId.getAndIncrement(),
                 serverEntity,
+                allServerHosts,
                 currentIPAddress,
                 networkType,
                 maxReconnectCount,
@@ -681,6 +702,9 @@ public class FptnService extends VpnService {
                 List<ServerEntity> serverEntities = appDatabase.serverDAO().getServerList(false);
                 try {
                     SpeedTestResult loginResult = SpeedTestUtils.findServerByLogin(serverEntities, sniHostname, bypassCensorshipMethod, sniSpoofingMode);
+                    if (loginResult == null || Thread.currentThread().isInterrupted()) {
+                        return;
+                    }
                     ServerEntity server = loginResult.getServerEntity();
                     if (server == null) {
                         XLog.tag(TAG).e("Fallback: all-server scan found no reachable server");
