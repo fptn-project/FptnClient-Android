@@ -8,76 +8,65 @@
     android:background="@drawable/application_background"
     android:textSize="18sp">
 
+    <!-- Warning pinned to top, outside scrollable content -->
+    <LinearLayout
+        android:id="@+id/home_permission_warning_frame"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:padding="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:id="@+id/home_permission_warning_icon"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:importantForAccessibility="no"
+            android:src="@drawable/warning" />
+
+        <TextView
+            android:id="@+id/home_permission_warning_label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:gravity="center"
+            android:text="@string/permission_warning_text"
+            android:textColor="@color/white"
+            android:textSize="12sp" />
+    </LinearLayout>
+
     <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:id="@+id/layout"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="0dp"
         app:layout_constraintBottom_toTopOf="@id/bottomNavBar"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/home_permission_warning_frame"
         tools:context="org.fptn.vpn.views.home.HomeActivity">
 
-        <androidx.core.widget.NestedScrollView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:orientation="vertical"
-            android:padding="10dp">
-
-            <LinearLayout
+            <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
-                android:layout_marginTop="8dp"
-                android:layout_height="25dp"
-                android:gravity="center_vertical"
-                android:orientation="vertical">
+                android:layout_height="match_parent"
+                android:clipToPadding="false"
+                android:padding="10dp">
 
-                <!--Don't remove this layout! - all will change position when hidden-->
-                <LinearLayout
-                    android:id="@+id/home_permission_warning_frame"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:gravity="center"
-                    android:orientation="horizontal"
-                    android:padding="6dp">
-
-                    <ImageView
-                        android:id="@+id/home_permission_warning_icon"
-                        android:layout_width="14dp"
-                        android:layout_height="14dp"
-                        android:importantForAccessibility="no"
-                        android:src="@drawable/warning" />
-
-                    <TextView
-                        android:layout_marginStart="4dp"
-                        android:textAlignment="center"
-                        android:id="@+id/home_permission_warning_label"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/permission_warning_text"
-                        android:textColor="@color/white"
-                        android:textSize="8sp" />
-                </LinearLayout>
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:gravity="center_vertical"
-                android:orientation="vertical">
-
-                <!--Don't remove this layout! - all will change position when hidden-->
+                <!-- Timer: floats just above button, collapses when GONE -->
                 <LinearLayout
                     android:id="@+id/home_connection_timer_frame"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
                     android:gravity="center"
-                    android:orientation="vertical">
+                    android:orientation="vertical"
+                    android:paddingTop="4dp"
+                    android:paddingBottom="4dp"
+                    app:layout_constraintBottom_toTopOf="@id/home_do_connect_button"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent">
 
                     <TextView
                         android:id="@+id/home_connection_timer_label"
@@ -93,150 +82,74 @@
                         android:text="@string/zero_time"
                         android:textColor="@color/white" />
                 </LinearLayout>
-            </LinearLayout>
 
-            <!-- Toggle button -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:orientation="vertical">
-
+                <!-- Toggle button: vertically centered at 38% of screen height, regardless of state -->
                 <ToggleButton
                     android:id="@+id/home_do_connect_button"
-                    android:layout_width="180dp"
-                    android:layout_height="180dp"
+                    android:layout_width="@dimen/toggle_button_size"
+                    android:layout_height="@dimen/toggle_button_size"
                     android:background="@drawable/toggle_button"
                     android:text=""
                     android:textOff=""
-                    android:textOn="" />
-            </LinearLayout>
+                    android:textOn=""
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintVertical_bias="0.38" />
 
-            <!--- Status -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:orientation="vertical"
-                android:padding="10dp"
-                tools:ignore="MissingConstraints">
-
+                <!-- Status: below button -->
                 <TextView
                     android:id="@+id/home_connection_status"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginBottom="-8dp"
+                    android:paddingTop="4dp"
+                    android:paddingBottom="4dp"
                     android:text="@string/state_disconnect"
-                    android:textColor="@color/yellow" />
-            </LinearLayout>
+                    android:textColor="@color/yellow"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/home_do_connect_button" />
 
-            <!-- Server -->
-            <LinearLayout
-                android:id="@+id/home_server_info_frame"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:orientation="horizontal"
-                android:padding="10dp"
-                tools:ignore="MissingConstraints">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="5dp"
-                    android:text="@string/server_label"
-                    android:textColor="@color/white" />
-
-                <TextView
-                    android:id="@+id/home_connected_server_name"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Estonia (127.0.0.1)"
-                    android:textColor="@color/white"
-                    android:maxLines="2"
-                    tools:ignore="HardcodedText" />
-            </LinearLayout>
-
-            <!-- Speed status -->
-            <LinearLayout
-                android:id="@+id/home_speed_frame"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="10dp"
-                android:layout_marginTop="10dp"
-                android:layout_marginEnd="10dp"
-                android:background="@drawable/round_settings_back_white10_20"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:padding="10dp"
-                tools:ignore="MissingConstraints">
-
+                <!-- Server info: below status, shown when connected -->
                 <LinearLayout
+                    android:id="@+id/home_server_info_frame"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <ImageView
-                        android:layout_width="32dp"
-                        android:layout_height="32dp"
-                        android:layout_marginEnd="10dp"
-                        app:srcCompat="@drawable/download" />
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    android:paddingTop="2dp"
+                    android:paddingBottom="6dp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/home_connection_status">
 
                     <TextView
-                        android:id="@+id/home_download_speed"
-                        android:layout_width="0dp"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:gravity="end|center_vertical"
-                        android:paddingEnd="10dp"
-                        android:text="0 Mb/s"
+                        android:layout_marginEnd="5dp"
+                        android:text="@string/server_label"
                         android:textColor="@color/white" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
 
                     <TextView
-                        android:id="@+id/home_upload_speed"
-                        android:layout_width="0dp"
+                        android:id="@+id/home_connected_server_name"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:gravity="start|center_vertical"
-                        android:paddingLeft="10dp"
-                        android:text="0 Mb/s"
-                        android:textColor="@color/white" />
-
-                    <ImageView
-                        android:layout_width="32dp"
-                        android:layout_height="32dp"
-                        android:layout_marginStart="10dp"
-                        android:contentDescription="Download Icon"
-                        app:srcCompat="@drawable/upload" />
+                        android:maxLines="2"
+                        android:text="Estonia (127.0.0.1)"
+                        android:textColor="@color/white"
+                        tools:ignore="HardcodedText" />
                 </LinearLayout>
-            </LinearLayout>
 
-            <!-- Spinner -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="10dp"
-                android:layout_marginTop="5dp"
-                android:layout_marginEnd="10dp"
-                android:gravity="center"
-                android:orientation="vertical"
-                android:padding="5dp"
-                tools:ignore="MissingConstraints">
-
+                <!-- Spinner: below server info, shown when disconnected -->
                 <org.fptn.vpn.utils.CustomSpinner
                     android:id="@+id/home_server_spinner"
-                    android:layout_width="match_parent"
-                    android:layout_height="52dp"
-                    android:layout_marginTop="10dp"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_marginStart="4dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginEnd="4dp"
                     android:background="@drawable/round_back_spinner_down"
                     android:clipToOutline="true"
                     android:dropDownWidth="match_parent"
@@ -247,32 +160,172 @@
                     android:spinnerMode="dropdown"
                     android:state_pressed="true"
                     android:textColor="@color/primary"
-                    android:textColorHint="@color/white" />
-            </LinearLayout>
+                    android:textColorHint="@color/white"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/home_server_info_frame" />
 
-            <!-- Show error -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:orientation="vertical"
-                android:padding="5dp"
-                tools:ignore="MissingConstraints">
+                <!-- Traffic card: from below spinner to bottom of screen -->
+                <LinearLayout
+                    android:id="@+id/home_traffic_frame"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:layout_marginStart="-3dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginEnd="-3dp"
+                    android:layout_marginBottom="-5dp"
+                    android:background="@drawable/round_settings_back_white10_20"
+                    android:orientation="vertical"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintHeight_min="140dp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/home_server_spinner">
 
-                <TextView
-                    android:id="@+id/home_error_text_view"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="20dp"
-                    android:layout_marginStart="5dp"
-                    android:layout_marginEnd="20dp"
-                    android:layout_marginBottom="20dp"
-                    android:text=""
-                    android:textColor="@color/yellow" />
-            </LinearLayout>
-        </LinearLayout>
+                    <!-- Speed row -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:padding="8dp">
 
-        </androidx.core.widget.NestedScrollView>
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <ImageView
+                                android:layout_width="@dimen/traffic_icon_size"
+                                android:layout_height="@dimen/traffic_icon_size"
+                                android:layout_marginEnd="8dp"
+                                android:importantForAccessibility="no"
+                                app:srcCompat="@drawable/download" />
+
+                            <TextView
+                                android:id="@+id/home_download_speed"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:gravity="end|center_vertical"
+                                android:paddingEnd="8dp"
+                                android:text="0 Mb/s"
+                                android:textColor="@color/white" />
+                        </LinearLayout>
+
+                        <View
+                            android:layout_width="1dp"
+                            android:layout_height="30dp"
+                            android:background="#26FFFFFF" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:id="@+id/home_upload_speed"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:gravity="start|center_vertical"
+                                android:paddingStart="8dp"
+                                android:text="0 Mb/s"
+                                android:textColor="@color/white" />
+
+                            <ImageView
+                                android:layout_width="@dimen/traffic_icon_size"
+                                android:layout_height="@dimen/traffic_icon_size"
+                                android:layout_marginStart="8dp"
+                                android:importantForAccessibility="no"
+                                app:srcCompat="@drawable/upload" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="#26FFFFFF" />
+
+                    <org.fptn.vpn.views.home.TrafficSpeedChart
+                        android:id="@+id/home_traffic_chart"
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_weight="1" />
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="#26FFFFFF" />
+
+                    <!-- Stats row -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:padding="8dp">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="end"
+                            android:orientation="vertical"
+                            android:paddingEnd="10dp">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/traffic_download"
+                                android:textColor="#80FFFFFF"
+                                android:textSize="10sp" />
+
+                            <TextView
+                                android:id="@+id/home_download_traffic"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="0 B"
+                                android:textColor="@color/white"
+                                android:textSize="14sp" />
+                        </LinearLayout>
+
+                        <View
+                            android:layout_width="1dp"
+                            android:layout_height="30dp"
+                            android:background="#26FFFFFF" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="start"
+                            android:orientation="vertical"
+                            android:paddingStart="10dp">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/traffic_upload"
+                                android:textColor="#80FFFFFF"
+                                android:textSize="10sp" />
+
+                            <TextView
+                                android:id="@+id/home_upload_traffic"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="0 B"
+                                android:textColor="@color/white"
+                                android:textSize="14sp" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </LinearLayout>
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 

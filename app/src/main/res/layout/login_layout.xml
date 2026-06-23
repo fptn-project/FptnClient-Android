@@ -53,7 +53,7 @@
         android:text="@string/login_button"
         android:textAllCaps="false"
         android:textColor="@color/primary"
-        android:textSize="18sp" />
+        android:textSize="16sp" />
 
     <TextView
         android:id="@+id/errorTextView"

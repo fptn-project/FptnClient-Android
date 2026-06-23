@@ -39,7 +39,7 @@
                 android:text="@string/per_app_vpn_settings_title"
                 android:textAlignment="center"
                 android:textColor="@color/white"
-                android:textSize="18sp"
+                android:textSize="16sp"
                 android:textStyle="bold" />
 
             <!--Method per_app_vpn censorship-->
@@ -276,7 +276,7 @@
             android:text="@string/cancel_button"
             android:textAllCaps="false"
             android:textColor="@color/primary"
-            android:textSize="18sp" />
+            android:textSize="16sp" />
 
         <Button
             android:id="@+id/save_button"
@@ -290,7 +290,7 @@
             android:text="@string/save_button"
             android:textAllCaps="false"
             android:textColor="@color/primary"
-            android:textSize="18sp" />
+            android:textSize="16sp" />
     </LinearLayout>
 
     <com.google.android.material.bottomnavigation.BottomNavigationView

@@ -37,7 +37,7 @@
                 android:layout_marginBottom="10dp"
                 android:text="@string/experimental_features_label"
                 android:textColor="@color/white"
-                android:textSize="18sp"
+                android:textSize="16sp"
                 android:textStyle="bold" />
 
             <!--Auto-fallback to all servers-->

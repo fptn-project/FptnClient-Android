@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/application_background"
-    android:textSize="18sp">
+    android:textSize="16sp">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -92,7 +92,7 @@
                     android:text="@string/cancel_button"
                     android:textAllCaps="false"
                     android:textColor="@color/primary"
-                    android:textSize="18sp" />
+                    android:textSize="16sp" />
 
                 <Button
                     android:id="@+id/fptn_login_button"
@@ -106,7 +106,7 @@
                     android:text="@string/save_button"
                     android:textAllCaps="false"
                     android:textColor="@color/primary"
-                    android:textSize="18sp" />
+                    android:textSize="16sp" />
             </LinearLayout>
 
         </LinearLayout>

@@ -69,6 +69,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -96,6 +97,8 @@ public class FptnConnection extends Thread {
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
     private final DataRateCalculator downloadRate = new DataRateCalculator(1000);
     private final DataRateCalculator uploadRate = new DataRateCalculator(1000);
+    private final AtomicLong totalDownloadBytes = new AtomicLong(0);
+    private final AtomicLong totalUploadBytes = new AtomicLong(0);
     private final Thread currentThread = this;
 
     @Getter
@@ -230,6 +233,7 @@ public class FptnConnection extends Thread {
             while (!currentThread.isInterrupted()) {
                 int length = inputStream.read(byteBuffer);
                 uploadRate.update(length);
+                totalUploadBytes.addAndGet(length);
                 if (!webSocketClient.isStarted()) {
                     synchronized (webSocketLock) {
                         webSocketLock.wait();
@@ -328,7 +332,9 @@ public class FptnConnection extends Thread {
                 String downloadSpeed = downloadRate.getFormatString();
                 String uploadSpeed = uploadRate.getFormatString();
                 long durationInSeconds = (int) Duration.between(connectionTime, Instant.now()).getSeconds();
-                sendSpeedInfoAndDurationToService(downloadSpeed, uploadSpeed, durationInSeconds);
+                sendSpeedInfoAndDurationToService(downloadSpeed, uploadSpeed, durationInSeconds,
+                        totalDownloadBytes.get(), totalUploadBytes.get(),
+                        downloadRate.getRateForSecond(), uploadRate.getRateForSecond());
             }, 1, 1, TimeUnit.SECONDS);
         } catch (RejectedExecutionException e) {
             XLog.tag(TAG).i("update speed task rejected by scheduler", e);
@@ -420,6 +426,7 @@ public class FptnConnection extends Thread {
         try {
             if (outputStream != null) {
                 downloadRate.update(data.length);
+                totalDownloadBytes.addAndGet(data.length);
                 outputStream.write(data);
             }
         } catch (Exception e) {
@@ -510,8 +517,8 @@ public class FptnConnection extends Thread {
         service.sendExceptionToService(exception);
     }
 
-    private void sendSpeedInfoAndDurationToService(String downloadSpeed, String uploadSpeed, long duration) {
-        service.updateSpeedInfo(downloadSpeed, uploadSpeed, duration);
+    private void sendSpeedInfoAndDurationToService(String downloadSpeed, String uploadSpeed, long duration, long totalDownload, long totalUpload, long downloadBps, long uploadBps) {
+        service.updateSpeedInfo(downloadSpeed, uploadSpeed, duration, totalDownload, totalUpload, downloadBps, uploadBps);
     }
 
     private void sendConnectionStateToService(ConnectionState connectionState) {

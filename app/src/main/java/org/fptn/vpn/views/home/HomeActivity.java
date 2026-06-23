@@ -43,6 +43,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.ViewModelProvider;
@@ -85,14 +86,14 @@ public class HomeActivity extends AppCompatActivity {
     private TextView uploadTextView;
 
     private TextView statusTextView;
-    private TextView errorTextView;
 
     private TextView connectedServerTextView;
 
     private View connectionTimeFrame;
     private View serverInfoFrame;
-    private View homeSpeedFrame;
+    private View homeTrafficFrame;
     private View permissionWarningFrame;
+    private TrafficSpeedChart trafficSpeedChart;
 
     private CustomSpinner spinnerServers;
 
@@ -157,9 +158,11 @@ public class HomeActivity extends AppCompatActivity {
 
         startStopButton = findViewById(R.id.home_do_connect_button);
         startStopButton.setOnClickListener(this::onClickToStartStop);
+        adjustButtonVerticalBias();
 
         /*View containers to hide*/
-        homeSpeedFrame = findViewById(R.id.home_speed_frame);
+        homeTrafficFrame = findViewById(R.id.home_traffic_frame);
+        trafficSpeedChart = findViewById(R.id.home_traffic_chart);
         connectionTimeFrame = findViewById(R.id.home_connection_timer_frame);
         serverInfoFrame = findViewById(R.id.home_server_info_frame);
 
@@ -202,7 +205,7 @@ public class HomeActivity extends AppCompatActivity {
             PVNClientException exception = fptnServiceState.getException();
             if (exception != null) {
                 if (ErrorCode.Companion.isNeedToOfferRefreshToken(exception.errorCode)) {
-                    String errorText = Optional.ofNullable(viewModel.getErrorTextLiveData().getValue())
+                    String errorText = Optional.ofNullable(viewModel.getStatusTextLiveData().getValue())
                             .orElse(ErrorCode.UNKNOWN_ERROR.getValue());
                     Snackbar snackbar = Snackbar.make(findViewById(R.id.layout), errorText, 8000);
                     if (ErrorCode.Companion.isNeedToOfferRefreshToken(exception.errorCode)) {
@@ -225,11 +228,20 @@ public class HomeActivity extends AppCompatActivity {
         uploadTextView = findViewById(R.id.home_upload_speed);
         viewModel.getUploadSpeedAsStringLiveData().observe(this, uploadSpeed -> uploadTextView.setText(uploadSpeed));
 
+        TextView downloadTrafficTextView = findViewById(R.id.home_download_traffic);
+        viewModel.getDownloadTrafficLiveData().observe(this, t -> downloadTrafficTextView.setText(t));
+
+        TextView uploadTrafficTextView = findViewById(R.id.home_upload_traffic);
+        viewModel.getUploadTrafficLiveData().observe(this, t -> uploadTrafficTextView.setText(t));
+
+        viewModel.getSpeedSampleLiveData().observe(this, bps -> {
+            if (trafficSpeedChart != null && bps != null) {
+                trafficSpeedChart.addSample(bps[0], bps[1]);
+            }
+        });
+
         connectionTimerTextView = findViewById(R.id.home_connection_timer);
         viewModel.getTimerTextLiveData().observe(this, timerText -> connectionTimerTextView.setText(timerText));
-
-        errorTextView = findViewById(R.id.home_error_text_view);
-        viewModel.getErrorTextLiveData().observe(this, errorCodeText -> errorTextView.setText(errorCodeText));
 
         statusTextView = findViewById(R.id.home_connection_status);
         viewModel.getStatusTextLiveData().observe(this, statusText -> statusTextView.setText(statusText));
@@ -247,6 +259,15 @@ public class HomeActivity extends AppCompatActivity {
         disconnectedStateUiItems();
 
         requestAddTileService();
+    }
+
+    private void adjustButtonVerticalBias() {
+        int screenHeightDp = (int) (getResources().getDisplayMetrics().heightPixels
+                / getResources().getDisplayMetrics().density);
+        float bias = screenHeightDp < 600 ? 0.10f : screenHeightDp < 700 ? 0.15f : 0.25f;
+        ConstraintLayout.LayoutParams params = (ConstraintLayout.LayoutParams) startStopButton.getLayoutParams();
+        params.verticalBias = bias;
+        startStopButton.setLayoutParams(params);
     }
 
     private void updateSpinnerSelection() {
@@ -307,8 +328,9 @@ public class HomeActivity extends AppCompatActivity {
     private void disconnectedStateUiItems() {
         ViewUtils.hideView(connectionTimeFrame);
         ViewUtils.hideView(serverInfoFrame);
-        ViewUtils.hideView(homeSpeedFrame);
+        ViewUtils.hideView(homeTrafficFrame);
         ViewUtils.hideView(permissionWarningFrame);
+        if (trafficSpeedChart != null) trafficSpeedChart.reset();
 
         ViewUtils.showView(spinnerServers);
 
@@ -322,7 +344,7 @@ public class HomeActivity extends AppCompatActivity {
     private void connectedStateUiItems() {
         ViewUtils.showView(connectionTimeFrame);
         ViewUtils.showView(serverInfoFrame);
-        ViewUtils.showView(homeSpeedFrame);
+        ViewUtils.showView(homeTrafficFrame);
 
         // check is need to show permissions warning
         if (!PermissionsUtils.isAllOptionalPermissionsGranted(this)) {

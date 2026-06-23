@@ -65,7 +65,7 @@ public class ServerEntity {
 
     public String getServerInfo() {
         String flag = CountryFlags.getCountryFlagByCountryCode(countryCode);
-        return name + " (" + (flag != null ? flag : host) + ")";
+        return flag != null ? name + " " + flag : name;
     }
 
     public static final ServerEntity AUTO = ServerEntity.builder()

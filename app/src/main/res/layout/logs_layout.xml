@@ -36,7 +36,7 @@
                 android:layout_marginTop="10dp"
                 android:text="@string/logs"
                 android:textColor="@color/white"
-                android:textSize="18sp"
+                android:textSize="16sp"
                 android:textStyle="bold" />
 
                 <TextView
