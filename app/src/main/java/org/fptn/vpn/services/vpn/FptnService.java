@@ -341,6 +341,12 @@ public class FptnService extends VpnService {
     }
 
     @Override
+    public void onRevoke() {
+        XLog.tag(TAG).i("VPN permission revoked — another VPN took over, disconnecting");
+        executorService.submit(() -> disconnect());
+    }
+
+    @Override
     public void onDestroy() {
         XLog.tag(TAG).i("Service destroyed [state=%s]", serviceStateMutableLiveData.getValue().getConnectionState());
 
