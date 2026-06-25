@@ -29,9 +29,15 @@ import android.app.NotificationManager;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
+import android.net.Network;
+import android.net.NetworkCapabilities;
 import android.os.Build;
 import android.os.PowerManager;
 import android.provider.Settings;
+
+import java.net.NetworkInterface;
+import java.util.Enumeration;
+import java.util.Locale;
 
 import com.elvishew.xlog.XLog;
 
@@ -44,16 +50,64 @@ public class PermissionsUtils {
     private static final String TAG = PermissionsUtils.class.getSimpleName();
 
     public static boolean isAlwaysOnVpnEnabledByAnotherApp(Context context) {
+        // Primary: Settings.Secure key (stock Android)
         try {
             String alwaysOnVpnApp = Settings.Secure.getString(
                     context.getContentResolver(), "always_on_vpn_app");
-            return alwaysOnVpnApp != null
+            if (alwaysOnVpnApp != null
                     && !alwaysOnVpnApp.isEmpty()
-                    && !alwaysOnVpnApp.equals(context.getPackageName());
+                    && !alwaysOnVpnApp.equals(context.getPackageName())) {
+                XLog.tag(TAG).w("Always-on VPN detected via Settings.Secure [app=%s]", alwaysOnVpnApp);
+                return true;
+            }
         } catch (Exception e) {
-            XLog.tag(TAG).w("Failed to check always-on VPN: %s", e.getMessage());
-            return false;
+            XLog.tag(TAG).w("Settings.Secure always_on_vpn_app check failed: %s", e.getMessage());
         }
+
+        // Fallback 1: check for an active VPN network owned by another app via ConnectivityManager
+        try {
+            ConnectivityManager cm = (ConnectivityManager) context.getSystemService(CONNECTIVITY_SERVICE);
+            if (cm != null) {
+                int myUid = context.getApplicationInfo().uid;
+                for (Network network : cm.getAllNetworks()) {
+                    NetworkCapabilities caps = cm.getNetworkCapabilities(network);
+                    if (caps != null && caps.hasTransport(NetworkCapabilities.TRANSPORT_VPN)) {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                            if (caps.getOwnerUid() != myUid) {
+                                XLog.tag(TAG).w("Active VPN from another app detected [ownerUid=%d, myUid=%d]",
+                                        caps.getOwnerUid(), myUid);
+                                return true;
+                            }
+                        } else {
+                            XLog.tag(TAG).w("Active VPN detected (API<28, owner unknown)");
+                            return true;
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            XLog.tag(TAG).w("VPN network fallback check failed: %s", e.getMessage());
+        }
+
+        // Fallback 2: check for active tun/ppp tunnel network interface at OS level
+        try {
+            Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+            if (interfaces != null) {
+                while (interfaces.hasMoreElements()) {
+                    NetworkInterface iface = interfaces.nextElement();
+                    String name = iface.getName().toLowerCase(Locale.ROOT);
+                    if (iface.isUp() && !iface.isLoopback()
+                            && (name.startsWith("tun") || name.startsWith("ppp") || name.startsWith("vpn"))) {
+                        XLog.tag(TAG).w("Active tunnel interface detected [name=%s]", iface.getName());
+                        return true;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            XLog.tag(TAG).w("NetworkInterface tunnel check failed: %s", e.getMessage());
+        }
+
+        return false;
     }
 
     public static boolean isAllOptionalPermissionsGranted(Context context) {

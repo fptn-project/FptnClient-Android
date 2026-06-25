@@ -204,18 +204,18 @@ public class HomeActivity extends AppCompatActivity {
             // we can't show Snackbar from viewModel
             PVNClientException exception = fptnServiceState.getException();
             if (exception != null) {
-                if (ErrorCode.Companion.isNeedToOfferRefreshToken(exception.errorCode)) {
+                if (exception.errorCode == ErrorCode.VPN_INTERFACE_ERROR) {
+                    showVpnSetupErrorDialog();
+                } else if (ErrorCode.Companion.isNeedToOfferRefreshToken(exception.errorCode)) {
                     String errorText = Optional.ofNullable(viewModel.getStatusTextLiveData().getValue())
                             .orElse(ErrorCode.UNKNOWN_ERROR.getValue());
                     Snackbar snackbar = Snackbar.make(findViewById(R.id.layout), errorText, 8000);
-                    if (ErrorCode.Companion.isNeedToOfferRefreshToken(exception.errorCode)) {
-                        snackbar.setAction(getString(R.string.refresh_token), v -> {
-                            Intent browserIntent = new
-                                    Intent(Intent.ACTION_VIEW,
-                                    Uri.parse(getString(R.string.telegram_bot_link)));
-                            startActivity(browserIntent);
-                        });
-                    }
+                    snackbar.setAction(getString(R.string.refresh_token), v -> {
+                        Intent browserIntent = new
+                                Intent(Intent.ACTION_VIEW,
+                                Uri.parse(getString(R.string.telegram_bot_link)));
+                        startActivity(browserIntent);
+                    });
                     snackbar.show();
                 }
             }
@@ -375,44 +375,49 @@ public class HomeActivity extends AppCompatActivity {
                 return;
             }
 
-            // Request required permission
-            boolean hasPermissionsRequestedBefore = SharedPrefUtils.isPermissionsRequested(this);
-            if (!hasPermissionsRequestedBefore) {
-                // we don't know result of vpn permission request yet
+            // Request required permissions if not yet granted — checked on every connect attempt
+            if (!PermissionsUtils.isAllOptionalPermissionsGranted(this)) {
                 startStopButton.setChecked(false);
-
                 requestRequiredPermissions();
-
-                // remember to not ask everytime
-                SharedPrefUtils.savePermissionsRequested(this, true);
-
-                // we call onClick later - when receive all permissions request results
+                // proceedToVpnConnect() is called from the dialog callbacks — not here
                 return;
             }
 
-            if (PermissionsUtils.isAlwaysOnVpnEnabledByAnotherApp(this)) {
-                startStopButton.setChecked(false);
-                showVpnSetupErrorDialog();
-                return;
-            }
-
-            Intent intent = VpnService.prepare(this);
-            if (intent != null) {
-                // Request to user on launch vpn
-                vpnPermissionActivityResultLauncher.launch(intent);
-                // we don't know result of vpn permission request yet
-                startStopButton.setChecked(false);
-            } else {
-                // explicit assignment cause service may start slowly
-                viewModel.getServiceStateMutableLiveData().postValue(FptnServiceState.FAKE_CONNECTING);
-
-                FptnService.startToConnect(this, (ServerEntity) spinnerServers.getSelectedItem());
-            }
+            proceedToVpnConnect();
         } else {
             if (currentConnectionState.isActiveState()) {
                 FptnService.startToDisconnect(this);
             }
         }
+    }
+
+    private void proceedToVpnConnect() {
+        if (PermissionsUtils.isAlwaysOnVpnEnabledByAnotherApp(this)) {
+            startStopButton.setChecked(false);
+            showVpnSwitchDialog();
+            return;
+        }
+        connectVpn();
+    }
+
+    private void connectVpn() {
+        Intent intent = VpnService.prepare(this);
+        if (intent != null) {
+            vpnPermissionActivityResultLauncher.launch(intent);
+            startStopButton.setChecked(false);
+        } else {
+            viewModel.getServiceStateMutableLiveData().postValue(FptnServiceState.FAKE_CONNECTING);
+            FptnService.startToConnect(this, (ServerEntity) spinnerServers.getSelectedItem());
+        }
+    }
+
+    private void showVpnSwitchDialog() {
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.vpn_switch_title)
+                .setMessage(R.string.vpn_switch_message)
+                .setPositiveButton(R.string.vpn_switch_button, (d, w) -> connectVpn())
+                .setNegativeButton(R.string.cancel_button, null)
+                .show();
     }
 
     private void showVpnSetupErrorDialog() {
@@ -466,8 +471,7 @@ public class HomeActivity extends AppCompatActivity {
                 if (activityResult != null && activityResult.getResultCode() == RESULT_OK) {
                     FptnService.startToConnect(this, (ServerEntity) spinnerServers.getSelectedItem());
                 } else {
-                    Toast.makeText(this, R.string.vpn_permission_warning, Toast.LENGTH_SHORT).show();
-                    viewModel.getErrorTextLiveData().postValue(getString(R.string.vpn_permission_warning));
+                    showVpnSetupErrorDialog();
                 }
             }
     );
@@ -483,7 +487,7 @@ public class HomeActivity extends AppCompatActivity {
                     XLog.tag(TAG).w("System permission denied via Settings");
                 }
                 if (requestedPermissions.decrementAndGet() == 0) {
-                    startStopButton.callOnClick();
+                    proceedToVpnConnect();
                 }
             }
     );
@@ -509,8 +513,7 @@ public class HomeActivity extends AppCompatActivity {
                 })
                 .setNegativeButton(getString(R.string.deny), (dialog, which) -> {
                     XLog.tag(TAG).w("Optional permissions denied by user — continuing without them");
-                    // it must work without permissions
-                    startStopButton.callOnClick();
+                    proceedToVpnConnect();
                 })
                 .show();
     }

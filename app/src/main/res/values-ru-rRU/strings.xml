@@ -231,6 +231,10 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="traffic_download">Получено</string>
     <string name="traffic_upload">Отправлено</string>
 
+    <string name="vpn_switch_title">Активен другой VPN</string>
+    <string name="vpn_switch_message">В данный момент работает другой VPN. Хотите переключиться на FPTN?</string>
+    <string name="vpn_switch_button">Переключиться</string>
+
     <string name="vpn_setup_error_title">Ошибка настройки VPN</string>
     <string name="vpn_setup_error_message">Чтобы подключиться к FPTN VPN необходимо:\n\n- Разрешить приложению подключаться к сети VPN\n- Отключить функцию \"Постоянная VPN\" для всех остальных VPN-приложений в системных настройках VPN</string>
     <string name="open_vpn_settings">Открыть настройки VPN</string>

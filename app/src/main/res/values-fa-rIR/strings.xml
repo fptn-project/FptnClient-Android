@@ -234,6 +234,10 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="traffic_download">دانلود</string>
     <string name="traffic_upload">آپلود</string>
 
+    <string name="vpn_switch_title">VPN دیگری فعال است</string>
+    <string name="vpn_switch_message">در حال حاضر یک VPN دیگر در حال اجرا است. آیا می‌خواهید به FPTN تغییر دهید؟</string>
+    <string name="vpn_switch_button">تغییر</string>
+
     <string name="vpn_setup_error_title">خطای تنظیمات VPN</string>
     <string name="vpn_setup_error_message">برای اتصال به FPTN VPN باید:\n\n- به برنامه اجازه دهید به شبکه VPN متصل شود\n- ویژگی «VPN همیشه فعال» را برای تمام برنامه‌های VPN دیگر در تنظیمات سیستم غیرفعال کنید</string>
     <string name="open_vpn_settings">باز کردن تنظیمات VPN</string>
