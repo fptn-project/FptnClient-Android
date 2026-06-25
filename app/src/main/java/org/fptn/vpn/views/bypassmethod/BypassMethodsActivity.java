@@ -44,6 +44,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Locale;
+
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
@@ -52,8 +58,9 @@ import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.elvishew.xlog.XLog;
+import android.widget.AutoCompleteTextView;
+
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.android.material.textfield.TextInputEditText;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 
@@ -439,8 +446,18 @@ public class BypassMethodsActivity extends AppCompatActivity {
 
     public void onEditSNIServer(View view) {
         View inflated = View.inflate(this, R.layout.sni_dialog_layout, null);
-        TextInputEditText sniEditText = inflated.findViewById(R.id.text_edit_sni);
+
+        AutoCompleteTextView sniEditText = inflated.findViewById(R.id.text_edit_sni);
         sniEditText.setText(viewModel.getCurrentSni());
+
+        List<String> suggestions = loadSniSuggestions();
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                this, android.R.layout.simple_dropdown_item_1line, suggestions);
+        sniEditText.setAdapter(adapter);
+
+        com.google.android.material.textfield.TextInputLayout inputLayout =
+                inflated.findViewById(R.id.sni_input_layout);
+        inputLayout.setEndIconOnClickListener(v -> sniEditText.showDropDown());
 
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
         alertDialogBuilder.setView(inflated);
@@ -458,6 +475,31 @@ public class BypassMethodsActivity extends AppCompatActivity {
             XLog.tag(TAG).i("SNI edit cancelled");
         });
         alertDialogBuilder.show();
+    }
+
+    private List<String> loadSniSuggestions() {
+        List<String> result = new ArrayList<>();
+        if (Locale.getDefault().getLanguage().equals("ru")) {
+            result.addAll(readSniRawFile(R.raw.russia));
+        }
+        result.addAll(readSniRawFile(R.raw.global));
+        return result;
+    }
+
+    private List<String> readSniRawFile(int rawResId) {
+        List<String> list = new ArrayList<>();
+        try (InputStream is = getResources().openRawResource(rawResId);
+             BufferedReader reader = new BufferedReader(new InputStreamReader(is))) {
+            reader.lines().forEach(line -> {
+                String trimmed = line.trim();
+                if (!trimmed.isEmpty() && !trimmed.startsWith("#")) {
+                    list.add(trimmed);
+                }
+            });
+        } catch (Exception e) {
+            XLog.tag(TAG).e("Failed to read SNI suggestions file: %s", e.getMessage());
+        }
+        return list;
     }
 
     private String getSniSpoofingModeFriendlyName(SniSpoofingMode mode) {
