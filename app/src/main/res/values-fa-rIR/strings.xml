@@ -233,4 +233,9 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="sni_not_found_message">هیچ SNI کارآمدی برای سرور پیدا نشد: </string>
     <string name="traffic_download">دانلود</string>
     <string name="traffic_upload">آپلود</string>
+
+    <string name="vpn_setup_error_title">خطای تنظیمات VPN</string>
+    <string name="vpn_setup_error_message">برای اتصال به FPTN VPN باید:\n\n- به برنامه اجازه دهید به شبکه VPN متصل شود\n- ویژگی «VPN همیشه فعال» را برای تمام برنامه‌های VPN دیگر در تنظیمات سیستم غیرفعال کنید</string>
+    <string name="open_vpn_settings">باز کردن تنظیمات VPN</string>
+
 </resources>

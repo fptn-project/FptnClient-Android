@@ -311,4 +311,8 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="traffic_download">Download</string>
     <string name="traffic_upload">Upload</string>
 
+    <string name="vpn_setup_error_title">VPN Setup Error</string>
+    <string name="vpn_setup_error_message">To connect to FPTN VPN you need to:\n\n- Allow the app to connect to VPN network\n- Disable the \'Always-on VPN\' feature for all other VPN apps in system VPN settings</string>
+    <string name="open_vpn_settings">Open VPN Settings</string>
+
 </resources>

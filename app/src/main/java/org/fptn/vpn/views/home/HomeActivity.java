@@ -390,6 +390,12 @@ public class HomeActivity extends AppCompatActivity {
                 return;
             }
 
+            if (PermissionsUtils.isAlwaysOnVpnEnabledByAnotherApp(this)) {
+                startStopButton.setChecked(false);
+                showVpnSetupErrorDialog();
+                return;
+            }
+
             Intent intent = VpnService.prepare(this);
             if (intent != null) {
                 // Request to user on launch vpn
@@ -407,6 +413,16 @@ public class HomeActivity extends AppCompatActivity {
                 FptnService.startToDisconnect(this);
             }
         }
+    }
+
+    private void showVpnSetupErrorDialog() {
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.vpn_setup_error_title)
+                .setMessage(R.string.vpn_setup_error_message)
+                .setPositiveButton(android.R.string.ok, null)
+                .setNegativeButton(R.string.open_vpn_settings, (d, w) ->
+                        startActivity(new Intent(Settings.ACTION_VPN_SETTINGS)))
+                .show();
     }
 
     private void requestAddTileService() {
