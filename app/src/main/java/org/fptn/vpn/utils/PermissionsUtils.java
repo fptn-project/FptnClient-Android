@@ -31,6 +31,7 @@ import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.os.Build;
 import android.os.PowerManager;
+import android.provider.Settings;
 
 import com.elvishew.xlog.XLog;
 
@@ -41,6 +42,19 @@ import org.fptn.vpn.core.common.Constants;
 
 public class PermissionsUtils {
     private static final String TAG = PermissionsUtils.class.getSimpleName();
+
+    public static boolean isAlwaysOnVpnEnabledByAnotherApp(Context context) {
+        try {
+            String alwaysOnVpnApp = Settings.Secure.getString(
+                    context.getContentResolver(), "always_on_vpn_app");
+            return alwaysOnVpnApp != null
+                    && !alwaysOnVpnApp.isEmpty()
+                    && !alwaysOnVpnApp.equals(context.getPackageName());
+        } catch (Exception e) {
+            XLog.tag(TAG).w("Failed to check always-on VPN: %s", e.getMessage());
+            return false;
+        }
+    }
 
     public static boolean isAllOptionalPermissionsGranted(Context context) {
         return checkBackgroundDataTransferRestrictions(context) && checkBatteryOptimizations(context);
