@@ -58,6 +58,7 @@ public class ExperimentalSettingsActivity extends AppCompatActivity {
     private SwitchCompat autoFallbackSwitch;
     private View autoFallbackThresholdLayout;
     private SeekBar seekBarFallbackThreshold;
+    private SwitchCompat adBlockSwitch;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -69,6 +70,9 @@ public class ExperimentalSettingsActivity extends AppCompatActivity {
 
     @SuppressLint("InlinedApi")
     private void initializeVariable() {
+        adBlockSwitch = findViewById(R.id.ad_block_switch);
+        adBlockSwitch.setChecked(SharedPrefUtils.getAdBlockEnabled(this));
+
         switchNetworkType = findViewById(R.id.reconnect_on_change_network_type_switch);
         switchNetworkType.setChecked(SharedPrefUtils.getReconnectOnChangeNetworkTypeEnabled(this));
 
@@ -257,6 +261,7 @@ public class ExperimentalSettingsActivity extends AppCompatActivity {
     private void saveAndFinish() {
         XLog.tag(TAG).i("Experimental settings saved [watchNetwork=%b, watchIP=%b, attempts=%d, delay=%ds]", switchNetworkType.isChecked(), switchIPAddress.isChecked(), seekBarAttemptsCount.getProgress(), seekBarDelayBetween.getProgress() + 1);
 
+        SharedPrefUtils.saveAdBlockEnabled(this, adBlockSwitch.isChecked());
         SharedPrefUtils.saveReconnectOnChangeNetworkTypeEnabled(this, switchNetworkType.isChecked());
         SharedPrefUtils.saveReconnectOnChangeIPEnabled(this, switchIPAddress.isChecked());
         SharedPrefUtils.saveResetSelectedServerEnabled(this, resetServerAfterDisconnectSwitch.isChecked());

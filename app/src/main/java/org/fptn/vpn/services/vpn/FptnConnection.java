@@ -38,6 +38,7 @@ import android.os.ParcelFileDescriptor;
 
 import com.elvishew.xlog.XLog;
 
+import org.fptn.vpn.adblock.AdBlocker;
 import org.fptn.vpn.database.entity.ServerEntity;
 import org.fptn.vpn.enums.BypassCensorshipMethod;
 import org.fptn.vpn.enums.ConnectionState;
@@ -129,6 +130,7 @@ public class FptnConnection extends Thread {
     private final PerAppVpnMode perAppVpnMode;
     private final List<AppInfo> appInfos;
     private final ConnectivityManager connectivityManager;
+    private final AdBlocker adBlocker; // null when ad blocking is disabled
 
     private final Object webSocketLock = new Object();
 
@@ -147,7 +149,8 @@ public class FptnConnection extends Thread {
                           final PerAppVpnMode perAppVpnMode,
                           final List<AppInfo> appInfos,
                           final String preFetchedToken,
-                          final ConnectivityManager connectivityManager) {
+                          final ConnectivityManager connectivityManager,
+                          final AdBlocker adBlocker) {
         this.service = service;
         this.connectionId = connectionId;
         this.serverEntity = serverEntity;
@@ -157,6 +160,7 @@ public class FptnConnection extends Thread {
         this.perAppVpnMode = perAppVpnMode;
         this.appInfos = appInfos;
         this.connectivityManager = connectivityManager;
+        this.adBlocker = adBlocker;
         this.maxReconnectCount = maxReconnectCount;
         this.fallbackThreshold = fallbackThreshold;
         this.delayBetweenAttempts = delayBetweenAttempts;
@@ -235,6 +239,17 @@ public class FptnConnection extends Thread {
         try (FileInputStream inputStream = new FileInputStream(vpnInterface.getFileDescriptor())) {
             while (!currentThread.isInterrupted()) {
                 int length = inputStream.read(byteBuffer);
+
+                if (adBlocker != null && AdBlocker.isDnsPacket(byteBuffer, length)) {
+                    byte[] blockedResponse = adBlocker.processPacket(byteBuffer, length);
+                    if (blockedResponse != null) {
+                        if (outputStream != null) {
+                            outputStream.write(blockedResponse);
+                        }
+                        continue;
+                    }
+                }
+
                 uploadRate.update(length);
                 totalUploadBytes.addAndGet(length);
                 if (!webSocketClient.isStarted()) {

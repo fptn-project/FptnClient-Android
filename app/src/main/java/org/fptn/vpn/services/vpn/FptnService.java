@@ -53,6 +53,7 @@ import androidx.lifecycle.Observer;
 import com.elvishew.xlog.XLog;
 
 import org.fptn.vpn.R;
+import org.fptn.vpn.adblock.AdBlocker;
 import org.fptn.vpn.core.common.Constants;
 import org.fptn.vpn.database.AppDatabase;
 import org.fptn.vpn.database.entity.ServerEntity;
@@ -658,6 +659,9 @@ public class FptnService extends VpnService {
                 .map(ServerEntity::getHost)
                 .collect(Collectors.toList());
 
+        boolean adBlockEnabled = SharedPrefUtils.getAdBlockEnabled(this);
+        AdBlocker adBlocker = adBlockEnabled ? new AdBlocker(this) : null;
+
         connection = new FptnConnection(
                 this,
                 nextConnectionId.getAndIncrement(),
@@ -674,7 +678,8 @@ public class FptnService extends VpnService {
                 perAppVpnMode,
                 appInfos,
                 preFetchedToken,
-                connectivityManager
+                connectivityManager,
+                adBlocker
         );
         connection.setConfigureVpnIntent(launchMainActivityPendingIntent);
         connection.start();

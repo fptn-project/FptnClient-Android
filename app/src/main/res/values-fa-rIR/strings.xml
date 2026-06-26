@@ -158,6 +158,10 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
 
     <string name="settings_reset_server_on_exception">تنظیم مجدد سرور فقط در صورت بروز خطاهای اتصال</string>
     <string name="searching_for_server">جستجوی سرور...</string>
+    <string name="ad_block_title">مسدودسازی تبلیغات (آزمایشی):</string>
+    <string name="ad_block_description">تبلیغات و ردیاب‌ها را در سطح DNS برای تمام برنامه‌ها مسدود می‌کند.</string>
+    <string name="ad_block_enable">مسدودسازی تبلیغات و ردیاب‌ها</string>
+
     <string name="auto_fallback_title">تغییر خودکار به سرورهای موجود:</string>
     <string name="auto_fallback_enable">تغییر سرور در صورت قطع ارتباط</string>
     <string name="auto_fallback_threshold_label">تلاش‌ها قبل از تغییر سرور:</string>

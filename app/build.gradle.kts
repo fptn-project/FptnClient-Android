@@ -1,6 +1,8 @@
 import java.io.FileInputStream
 import java.io.InputStream
+import java.net.URL
 import java.util.Properties
+import java.util.zip.GZIPOutputStream
 import kotlin.concurrent.thread
 
 plugins {
@@ -96,9 +98,6 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-    kotlinOptions {
-        jvmTarget = "17"
-    }
     buildFeatures {
         viewBinding = true
     }
@@ -166,29 +165,75 @@ fun readStreamAsync(
 tasks.register("conanInstall") {
     group = "c++"
     doLast {
-        val buildDir = file("$buildDir/conan").apply { mkdirs() }
+        val conanBuildDir = layout.buildDirectory.dir("conan").get().asFile.apply { mkdirs() }
         listOf("Debug", "Release", "RelWithDebInfo").forEach { buildType ->
             listOf("armv8", "armv7", "x86_64").forEach { arch ->
-                exec {
-                    workingDir = buildDir
-                    commandLine(
-                        "conan",
-                        "install",
-                        "$projectDir/src/main/cpp",
-                        "--profile",
-                        "$rootDir/conan/profiles/android-studio",
-                        "-s",
-                        "build_type=$buildType",
-                        "-s",
-                        "arch=$arch",
-                        "--build",
-                        "missing",
-                        "-c",
-                        "tools.cmake.cmake_layout:build_folder_vars=['settings.arch']",
-                    )
-                }
+                val process = ProcessBuilder(
+                    "conan", "install", "$projectDir/src/main/cpp",
+                    "--profile", "$rootDir/conan/profiles/android-studio",
+                    "-s", "build_type=$buildType",
+                    "-s", "arch=$arch",
+                    "--build", "missing",
+                    "-c", "tools.cmake.cmake_layout:build_folder_vars=['settings.arch']",
+                ).directory(conanBuildDir).inheritIO().start()
+                val exitCode = process.waitFor()
+                if (exitCode != 0) throw GradleException("conan install failed [buildType=$buildType, arch=$arch]")
             }
         }
     }
 }
-tasks.named("preBuild") { dependsOn("conanInstall") }
+tasks.register("downloadBlocklist") {
+    group = "build"
+    description = "Downloads StevenBlack unified hosts list and bundles it as a gzipped asset"
+
+    val outputFile = file("src/main/res/raw/blocklist.gz")
+    outputs.file(outputFile)
+    // Re-download only if the cached file is older than 7 days
+    outputs.upToDateWhen {
+        val maxAgeMs = 7L * 24 * 60 * 60 * 1000
+        outputFile.exists() && (System.currentTimeMillis() - outputFile.lastModified()) < maxAgeMs
+    }
+
+    doLast {
+        outputFile.parentFile.mkdirs()
+        val sources = listOf(
+            "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/domains/pro.txt",
+            "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts"
+        )
+        var anySuccess = false
+        val tmpFile = File(outputFile.path + ".tmp")
+        GZIPOutputStream(tmpFile.outputStream()).bufferedWriter().use { writer ->
+            for (src in sources) {
+                try {
+                    println("[blocklist] Downloading $src ...")
+                    URL(src).openStream().use { input: InputStream ->
+                        input.bufferedReader().forEachLine { line ->
+                            writer.write(line)
+                            writer.newLine()
+                        }
+                    }
+                    anySuccess = true
+                    println("[blocklist] OK: $src")
+                } catch (e: Exception) {
+                    println("[blocklist] FAILED $src: ${e.message}")
+                }
+            }
+        }
+        if (!anySuccess) {
+            tmpFile.delete()
+            throw GradleException("[blocklist] All sources failed and no cached file found")
+        }
+        tmpFile.renameTo(outputFile)
+        if (!anySuccess) throw GradleException("[blocklist] All sources failed and no cached file found")
+        println("[blocklist] Saved to ${outputFile.path} (${outputFile.length() / 1024} KB)")
+    }
+}
+
+tasks.named("preBuild") { dependsOn("conanInstall", "downloadBlocklist") }
+afterEvaluate {
+    tasks.matching { t ->
+        t.name.endsWith("Resources") || t.name.endsWith("SourceSetPaths") || t.name.endsWith("NavigationResources")
+    }.configureEach {
+        dependsOn("downloadBlocklist")
+    }
+}
