@@ -177,6 +177,9 @@ public class WebSocketClientWrapper {
 
         int maxAttempts = 5;
         for (int attempt = 1; attempt <= maxAttempts; attempt++) {
+            if (isShutdown() || Thread.currentThread().isInterrupted()) {
+                throw new PVNClientException(ErrorCode.CONNECT_TO_SERVER_ERROR);
+            }
             NativeResponse response = nativeHttpsClient.Post(LOGIN_URL, requestBody, 6);
             if (response != null) {
                 if (response.code == 200) {
@@ -197,7 +200,9 @@ public class WebSocketClientWrapper {
             if (attempt < maxAttempts) {
                 try {
                     Thread.sleep(300);
-                } catch (InterruptedException ignored) {
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw new PVNClientException(ErrorCode.CONNECT_TO_SERVER_ERROR);
                 }
             }
         }
@@ -207,6 +212,9 @@ public class WebSocketClientWrapper {
     public DnsServers getDnsServers() throws PVNClientException {
         int maxAttempts = 5;
         for (int attempt = 1; attempt <= maxAttempts; attempt++) {
+            if (isShutdown() || Thread.currentThread().isInterrupted()) {
+                throw new PVNClientException(ErrorCode.CONNECT_TO_SERVER_ERROR);
+            }
             NativeResponse response = nativeHttpsClient.Get(DNS_URL, 6);
             if (response != null && response.code == 200) {
                 DnsServers dnsServers = new Gson().fromJson(response.body, DnsServers.class);
@@ -217,7 +225,9 @@ public class WebSocketClientWrapper {
             if (attempt < maxAttempts) {
                 try {
                     Thread.sleep(300);
-                } catch (InterruptedException ignored) {
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw new PVNClientException(ErrorCode.CONNECT_TO_SERVER_ERROR);
                 }
             }
         }
