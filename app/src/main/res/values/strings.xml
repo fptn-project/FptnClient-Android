@@ -236,6 +236,10 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="settings_reset_server_on_disconnect">Reset selected server after disconnect</string>
     <string name="settings_reset_server_on_exception">Reset server only on connection errors</string>
     <string name="searching_for_server">Searching for server...</string>
+    <string name="ad_block_title">Ad Blocking (experimental):</string>
+    <string name="ad_block_description">Blocks ads and trackers at the DNS level for all apps.</string>
+    <string name="ad_block_enable">Block ads and trackers</string>
+
     <string name="auto_fallback_title">Auto-fallback to available servers:</string>
     <string name="auto_fallback_enable">Switch server on connection loss</string>
     <string name="auto_fallback_threshold_label">Attempts before switching server:</string>

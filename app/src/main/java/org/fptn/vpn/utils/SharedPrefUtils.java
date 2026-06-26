@@ -219,4 +219,15 @@ public class SharedPrefUtils {
         sharedPreferences.edit().putBoolean(Constants.SHOW_SYSTEM_APPS_SHARED_PREF_KEY, show).apply();
     }
 
+    /* Ad blocking */
+    public static boolean getAdBlockEnabled(Context context) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        return sharedPreferences.getBoolean(Constants.AD_BLOCK_ENABLED_PREF_KEY, false);
+    }
+
+    public static void saveAdBlockEnabled(Context context, boolean enabled) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        sharedPreferences.edit().putBoolean(Constants.AD_BLOCK_ENABLED_PREF_KEY, enabled).apply();
+    }
+
 }

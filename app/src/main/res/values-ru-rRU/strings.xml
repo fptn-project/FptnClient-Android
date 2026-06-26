@@ -156,6 +156,10 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
 
     <string name="settings_reset_server_on_exception">Сброс на Auto только при ошибке</string>
     <string name="searching_for_server">Поиск сервера...</string>
+    <string name="ad_block_title">Блокировка рекламы (экспериментально):</string>
+    <string name="ad_block_description">Блокирует рекламу и трекеры на уровне DNS для всех приложений.</string>
+    <string name="ad_block_enable">Блокировать рекламу и трекеры</string>
+
     <string name="auto_fallback_title">Авто-переключение на доступные серверы:</string>
     <string name="auto_fallback_enable">Менять сервер при потере связи</string>
     <string name="auto_fallback_threshold_label">Попыток до смены сервера:</string>
