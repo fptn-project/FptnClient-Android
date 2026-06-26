@@ -173,7 +173,15 @@ public class FptnService extends VpnService {
         }
     }
 
-    public void sendExceptionToService(PVNClientException exception) {
+    public void sendExceptionToService(PVNClientException exception, int senderConnectionId) {
+        FptnConnection current = activeConnection.get();
+        if (current == null || current.getConnectionId() != senderConnectionId) {
+            XLog.tag(TAG).d("Ignoring stale exception [from=id%d, active=%s, code=%s]",
+                    senderConnectionId,
+                    current != null ? String.valueOf(current.getConnectionId()) : "none",
+                    exception.errorCode);
+            return;
+        }
         if (Objects.equals(exception.errorCode, ErrorCode.FALLBACK_TO_ALL_SERVERS)) {
             submittedConnectionAttempt = executorService.submit(this::handleFallbackToAllServers);
             return;
@@ -284,10 +292,11 @@ public class FptnService extends VpnService {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        // if service crashed previously
+        // service restarted by OS (e.g. TECNO/OEM aggressive process management)
         if (intent == null) {
-            XLog.tag(TAG).e("Received null intent — service likely restarted after crash; stopping");
-            stopSelf();
+            XLog.tag(TAG).w("Received null intent — service restarted by system; reconnecting");
+            startForegroundWithNotification(getString(R.string.connecting));
+            startConnectionAttempt(SELECTED_SERVER_ID_AUTO);
             return START_NOT_STICKY;
         }
 

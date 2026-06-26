@@ -540,7 +540,7 @@ public class FptnConnection extends Thread {
     }
 
     private void sendExceptionToService(PVNClientException exception) {
-        service.sendExceptionToService(exception);
+        service.sendExceptionToService(exception, connectionId);
     }
 
     private void sendSpeedInfoAndDurationToService(String downloadSpeed, String uploadSpeed, long duration, long totalDownload, long totalUpload, long downloadBps, long uploadBps) {
