@@ -70,17 +70,11 @@ bool WrapperWebsocketClient::Start() {
 }
 
 bool WrapperWebsocketClient::Stop() {
-  // Helper: join th_ only when called from a different thread.
-  // Calling th_.join() from th_ itself raises EDEADLK (pthread_join on self).
-  // This can happen when the JNI failure callback triggers the reconnect chain
-  // which calls Stop() from within the C++ worker thread.
   auto safe_join = [this]() {
     if (!th_.joinable()) {
         return;
     }
     if (std::this_thread::get_id() == th_.get_id()) {
-      // We are th_ — cannot join ourselves.  Detach so the handle is released;
-      // the thread will exit naturally once Run() returns.
       th_.detach();
     } else {
       th_.join();
@@ -92,7 +86,7 @@ bool WrapperWebsocketClient::Stop() {
     return true;
   }
   {
-    const std::unique_lock<std::mutex> lock(mutex_);  // mutex
+    const std::unique_lock<std::mutex> lock(mutex_);
     if (!running_) {
       return false;
     }
@@ -100,14 +94,16 @@ bool WrapperWebsocketClient::Stop() {
 
     if (client_) {
       client_->Stop();
-
-      std::this_thread::sleep_for(std::chrono::milliseconds(100));
-
-      client_.reset();
     }
   }
 
   safe_join();
+
+  {
+    const std::unique_lock<std::mutex> lock(mutex_);
+    client_.reset();
+  }
+
   return true;
 }
 

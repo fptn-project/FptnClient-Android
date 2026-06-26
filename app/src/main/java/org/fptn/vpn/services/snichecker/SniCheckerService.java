@@ -322,7 +322,7 @@ public class SniCheckerService extends Service {
     private void startForegroundWithNotification(String title) {
         Notification notification = createNotificationInProgress(title, "");
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            startForeground(Constants.SNI_CHECKER_NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SYSTEM_EXEMPTED);
+            startForeground(Constants.SNI_CHECKER_NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC);
         } else {
             startForeground(Constants.SNI_CHECKER_NOTIFICATION_ID, notification);
         }
