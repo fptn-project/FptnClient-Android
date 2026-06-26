@@ -295,6 +295,10 @@ public class FptnService extends VpnService {
         XLog.tag(TAG).i("Received command [action=%s, state=%s]", intent.getAction(), currentState);
 
         if (ACTION_CONNECT.equals(intent.getAction()) && !isActiveState) {
+            if (submittedConnectionAttempt != null && !submittedConnectionAttempt.isDone()) {
+                XLog.tag(TAG).w("Ignoring CONNECT — connection attempt already in progress [state=%s]", currentState);
+                return START_NOT_STICKY;
+            }
             startForegroundWithNotification(getString(R.string.connecting));
 
             if (!NetworkUtils.isOnline(connectivityManager)) {
