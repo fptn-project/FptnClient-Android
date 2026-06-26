@@ -116,12 +116,13 @@ public class AdBlocker {
         }
 
         String domain = getDnsDomain(packet, length, dnsOff);
+        XLog.tag(TAG).i("DNS query [domain=%s]", domain);
         if (domain == null || !isDomainBlocked(domain)) {
             return null;
         }
 
         XLog.tag(TAG).i("Blocked DNS query [domain=%s]", domain);
-        return buildNxdomainResponse(packet, length, ver, ipHdrLen, udpOff, dnsOff);
+        return buildNullRouteResponse(packet, length, ver, ipHdrLen, udpOff, dnsOff);
     }
 
     // Port of ParseDnsName() from ip_packet.h — supports RFC 1035 pointer compression.
@@ -185,6 +186,98 @@ public class AdBlocker {
         int[] cur = {dnsOff + DNS_HDR};
         String name = parseDnsName(p, len, dnsOff, cur);
         return name.isEmpty() ? null : name.toLowerCase();
+    }
+
+    // Returns 127.0.0.1 (A) or ::1 (AAAA) so SDK gets a "successful" DNS response,
+    // attempts TCP connect to loopback, gets connection refused, and does NOT fall back to DoH.
+    private byte[] buildNullRouteResponse(byte[] packet, int length, int ver,
+                                           int ipHdrLen, int udpOff, int dnsOff) {
+        // Find question section end to know where to append the answer
+        int[] cur = {dnsOff + DNS_HDR};
+        parseDnsName(packet, length, dnsOff, cur);
+        if (cur[0] + 4 > length) {
+            return buildNxdomainResponse(packet, length, ver, ipHdrLen, udpOff, dnsOff);
+        }
+        int qtype = ((packet[cur[0]] & 0xFF) << 8) | (packet[cur[0] + 1] & 0xFF);
+        int questionEnd = cur[0] + 4; // past QTYPE + QCLASS
+
+        // Build answer rdata based on query type
+        final int QTYPE_A    = 0x0001;
+        final int QTYPE_AAAA = 0x001C;
+        byte[] rdata;
+        int answerType;
+        if (qtype == QTYPE_AAAA) {
+            answerType = QTYPE_AAAA;
+            rdata = new byte[]{0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,1}; // ::1
+        } else if (qtype == QTYPE_A) {
+            answerType = QTYPE_A;
+            rdata = new byte[]{127, 0, 0, 1}; // 127.0.0.1
+        } else {
+            return buildNxdomainResponse(packet, length, ver, ipHdrLen, udpOff, dnsOff);
+        }
+
+        // answer = name_ptr(2) + type(2) + class(2) + ttl(4) + rdlen(2) + rdata
+        int answerLen = 2 + 2 + 2 + 4 + 2 + rdata.length;
+        int newLen = questionEnd + answerLen;
+
+        byte[] resp = new byte[newLen];
+        System.arraycopy(packet, 0, resp, 0, questionEnd);
+
+        // Append answer record
+        int off = questionEnd;
+        resp[off++] = (byte) 0xC0; resp[off++] = (byte) DNS_HDR; // ptr to QNAME at dnsOff+12
+        resp[off++] = (byte) (answerType >> 8); resp[off++] = (byte) (answerType & 0xFF);
+        resp[off++] = 0x00; resp[off++] = 0x01; // class IN
+        resp[off++] = 0; resp[off++] = 0; resp[off++] = 2; resp[off++] = 0x58; // TTL 600s
+        resp[off++] = (byte) (rdata.length >> 8); resp[off++] = (byte) (rdata.length & 0xFF);
+        System.arraycopy(rdata, 0, resp, off, rdata.length);
+
+        // DNS flags: QR=1, RA=1, RCODE=0 (no error), ANCOUNT=1
+        resp[dnsOff + 2] = (byte) ((resp[dnsOff + 2] & 0x01) | 0x80);
+        resp[dnsOff + 3] = (byte) 0x80;
+        resp[dnsOff + 6] = 0; resp[dnsOff + 7] = 1; // ANCOUNT = 1
+        resp[dnsOff + 8] = 0; resp[dnsOff + 9] = 0;   // NSCOUNT = 0
+        resp[dnsOff + 10] = 0; resp[dnsOff + 11] = 0; // ARCOUNT = 0 (drop EDNS0 OPT)
+
+        // Swap IP src/dst
+        if (ver == 4) {
+            for (int i = 0; i < 4; i++) {
+                byte tmp = resp[12 + i]; resp[12 + i] = resp[16 + i]; resp[16 + i] = tmp;
+            }
+            resp[8] = 64; // TTL
+            resp[2] = (byte) (newLen >> 8); resp[3] = (byte) (newLen & 0xFF); // IP total length
+        } else {
+            for (int i = 0; i < 16; i++) {
+                byte tmp = resp[8 + i]; resp[8 + i] = resp[24 + i]; resp[24 + i] = tmp;
+            }
+            resp[7] = 64; // hop limit
+            int payloadLen = newLen - ipHdrLen;
+            resp[4] = (byte) (payloadLen >> 8); resp[5] = (byte) (payloadLen & 0xFF);
+        }
+
+        // Swap UDP ports, update UDP length
+        byte p0 = resp[udpOff], p1 = resp[udpOff + 1];
+        resp[udpOff]     = resp[udpOff + 2];
+        resp[udpOff + 1] = resp[udpOff + 3];
+        resp[udpOff + 2] = p0;
+        resp[udpOff + 3] = p1;
+        int udpLen = newLen - udpOff;
+        resp[udpOff + 4] = (byte) (udpLen >> 8);
+        resp[udpOff + 5] = (byte) (udpLen & 0xFF);
+
+        // Checksums
+        if (ver == 4) {
+            resp[10] = 0; resp[11] = 0;
+            int ck = calcIpv4Checksum(resp, ipHdrLen);
+            resp[10] = (byte) (ck >> 8); resp[11] = (byte) (ck & 0xFF);
+            resp[udpOff + 6] = 0; resp[udpOff + 7] = 0; // UDP checksum optional in IPv4
+        } else {
+            resp[udpOff + 6] = 0; resp[udpOff + 7] = 0;
+            int ck = calcUdpIpv6Checksum(resp, udpOff, newLen);
+            resp[udpOff + 6] = (byte) (ck >> 8); resp[udpOff + 7] = (byte) (ck & 0xFF);
+        }
+
+        return resp;
     }
 
     private byte[] buildNxdomainResponse(byte[] packet, int length, int ver,
@@ -267,24 +360,33 @@ public class AdBlocker {
             Set<String> domains = new HashSet<>();
             String line;
             while ((line = reader.readLine()) != null) {
-                if (line.isEmpty() || line.charAt(0) == '#' || line.charAt(0) == '!') continue;
+                if (line.isEmpty() || line.charAt(0) == '#' || line.charAt(0) == '!') {
+                    continue;
+                }
                 int commentIdx = line.indexOf('#');
-                if (commentIdx >= 0) line = line.substring(0, commentIdx);
+                if (commentIdx >= 0) {
+                    line = line.substring(0, commentIdx);
+                }
                 line = line.trim().toLowerCase();
-                if (line.isEmpty()) continue;
+                if (line.isEmpty()) {
+                    continue;
+                }
 
                 // Hosts format: "0.0.0.0 domain.com" or "127.0.0.1 domain.com"
                 // Plain format: "domain.com"
                 String domain;
                 int space = line.indexOf(' ');
-                if (space < 0) space = line.indexOf('\t');
+                if (space < 0) {
+                    space = line.indexOf('\t');
+                }
                 if (space >= 0) {
                     domain = line.substring(space + 1).trim();
                 } else {
                     domain = line;
                 }
-
-                if (!domain.contains(".") || domain.equals("0.0.0.0")) continue;
+                if (!domain.contains(".") || domain.equals("0.0.0.0")) {
+                    continue;
+                }
                 domains.add(domain);
             }
             return domains;

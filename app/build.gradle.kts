@@ -197,7 +197,7 @@ tasks.register("downloadBlocklist") {
     doLast {
         outputFile.parentFile.mkdirs()
         val sources = listOf(
-            "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/domains/pro.txt",
+            "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/domains/ultimate.txt",
             "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts"
         )
         var anySuccess = false
