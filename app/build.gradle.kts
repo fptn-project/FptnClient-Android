@@ -102,6 +102,15 @@ android {
         viewBinding = true
     }
 
+    splits {
+        abi {
+            isEnable = true
+            reset()
+            include("arm64-v8a", "armeabi-v7a", "x86_64")
+            isUniversalApk = true
+        }
+    }
+
     externalNativeBuild {
         cmake {
             // version = "3.31.6"

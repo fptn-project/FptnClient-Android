@@ -63,20 +63,29 @@ jobs:
       if: github.event_name == 'release'
       run: |
         ./gradlew assembleRelease bundleRelease
-        AAB_FILE=(app/build/outputs/bundle/release/app-release.aab)
+        AAB_FILE=app/build/outputs/bundle/release/app-release.aab
         if [ -f "$AAB_FILE" ]; then
           cp -v "$AAB_FILE" "fptn-android-${RELEASE_VERSION_NAME}.aab"
         else
           echo "Error: AAB file not found at $AAB_FILE"
           exit 1
         fi
-        APK_FILES=(app/build/outputs/apk/release/*.apk)
-        if [ -f "${APK_FILES[0]}" ]; then
-          cp -v "${APK_FILES[0]}" "fptn-android-${RELEASE_VERSION_NAME}.apk"
+        UNIVERSAL_APK=app/build/outputs/apk/release/app-universal-release.apk
+        if [ -f "$UNIVERSAL_APK" ]; then
+          cp -v "$UNIVERSAL_APK" "fptn-android-${RELEASE_VERSION_NAME}-all-platforms-universal.apk"
         else
-          echo "Error: No APK files found in app/build/outputs/apk/release/"
+          echo "Error: Universal APK not found at $UNIVERSAL_APK"
           exit 1
         fi
+        for ARCH in arm64-v8a armeabi-v7a x86_64; do
+          ABI_APK="app/build/outputs/apk/release/app-${ARCH}-release.apk"
+          if [ -f "$ABI_APK" ]; then
+            cp -v "$ABI_APK" "fptn-android-${RELEASE_VERSION_NAME}-${ARCH}.apk"
+          else
+            echo "Error: APK not found for arch $ARCH at $ABI_APK"
+            exit 1
+          fi
+        done
 
     - name: Upload APK to Release
       if: github.event_name == 'release'
