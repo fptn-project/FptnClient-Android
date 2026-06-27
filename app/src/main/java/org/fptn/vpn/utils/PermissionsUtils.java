@@ -72,19 +72,22 @@ public class PermissionsUtils {
                 for (Network network : cm.getAllNetworks()) {
                     NetworkCapabilities caps = cm.getNetworkCapabilities(network);
                     if (caps != null && caps.hasTransport(NetworkCapabilities.TRANSPORT_VPN)) {
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                             if (caps.getOwnerUid() != myUid) {
                                 XLog.tag(TAG).w("Active VPN from another app detected [ownerUid=%d, myUid=%d]",
                                         caps.getOwnerUid(), myUid);
                                 return true;
                             }
                         } else {
-                            XLog.tag(TAG).w("Active VPN detected (API<28, owner unknown)");
+                            XLog.tag(TAG).w("Active VPN detected (API<29, owner unknown)");
                             return true;
                         }
                     }
                 }
             }
+        } catch (NoSuchMethodError e) {
+            // Samsung Android 10 ships without NetworkCapabilities.getOwnerUid() despite API level 29
+            XLog.tag(TAG).w("VPN owner check not supported on this device: %s", e.getMessage());
         } catch (Exception e) {
             XLog.tag(TAG).w("VPN network fallback check failed: %s", e.getMessage());
         }
