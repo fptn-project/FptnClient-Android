@@ -230,4 +230,25 @@ public class SharedPrefUtils {
         sharedPreferences.edit().putBoolean(Constants.AD_BLOCK_ENABLED_PREF_KEY, enabled).apply();
     }
 
+    /* Custom DNS */
+    public static boolean getCustomDnsEnabled(Context context) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        return sharedPreferences.getBoolean(Constants.CUSTOM_DNS_ENABLED_PREF_KEY, false);
+    }
+
+    public static void saveCustomDnsEnabled(Context context, boolean enabled) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        sharedPreferences.edit().putBoolean(Constants.CUSTOM_DNS_ENABLED_PREF_KEY, enabled).apply();
+    }
+
+    public static String getCustomDnsIpv4(Context context) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        return sharedPreferences.getString(Constants.CUSTOM_DNS_IPV4_PREF_KEY, "");
+    }
+
+    public static void saveCustomDnsIpv4(Context context, String ipv4) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        sharedPreferences.edit().putString(Constants.CUSTOM_DNS_IPV4_PREF_KEY, ipv4).apply();
+    }
+
 }

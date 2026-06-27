@@ -671,6 +671,9 @@ public class FptnService extends VpnService {
         boolean adBlockEnabled = SharedPrefUtils.getAdBlockEnabled(this);
         AdBlocker adBlocker = adBlockEnabled ? new AdBlocker(this) : null;
 
+        boolean customDnsEnabled = SharedPrefUtils.getCustomDnsEnabled(this);
+        String customDnsIpv4 = customDnsEnabled ? SharedPrefUtils.getCustomDnsIpv4(this) : null;
+
         connection = new FptnConnection(
                 this,
                 nextConnectionId.getAndIncrement(),
@@ -688,7 +691,8 @@ public class FptnService extends VpnService {
                 appInfos,
                 preFetchedToken,
                 connectivityManager,
-                adBlocker
+                adBlocker,
+                customDnsIpv4
         );
         connection.setConfigureVpnIntent(launchMainActivityPendingIntent);
         connection.start();

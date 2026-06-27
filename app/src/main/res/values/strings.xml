@@ -236,7 +236,13 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="settings_reset_server_on_disconnect">Reset selected server after disconnect</string>
     <string name="settings_reset_server_on_exception">Reset server only on connection errors</string>
     <string name="searching_for_server">Searching for server...</string>
-    <string name="ad_block_title">Ad Blocking (experimental):</string>
+    <string name="custom_dns_title">Custom DNS:</string>
+    <string name="custom_dns_description">Use a custom DNS server.</string>
+    <string name="custom_dns_enable">Enable custom DNS</string>
+    <string name="custom_dns_hint">DNS IPv4 address (e.g. 8.8.8.8)</string>
+    <string name="custom_dns_invalid">Invalid IPv4 address</string>
+
+    <string name="ad_block_title">Ad Blocking:</string>
     <string name="ad_block_description">Blocks ads and trackers at the DNS level for all apps.</string>
     <string name="ad_block_enable">Block ads and trackers</string>
 
