@@ -158,9 +158,15 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
 
     <string name="settings_reset_server_on_exception">تنظیم مجدد سرور فقط در صورت بروز خطاهای اتصال</string>
     <string name="searching_for_server">جستجوی سرور...</string>
-    <string name="ad_block_title">مسدودسازی تبلیغات (آزمایشی):</string>
+    <string name="ad_block_title">مسدودسازی تبلیغات:</string>
     <string name="ad_block_description">تبلیغات و ردیاب‌ها را در سطح DNS برای تمام برنامه‌ها مسدود می‌کند.</string>
     <string name="ad_block_enable">مسدودسازی تبلیغات و ردیاب‌ها</string>
+
+    <string name="custom_dns_title">DNS سفارشی:</string>
+    <string name="custom_dns_description">استفاده از DNS سفارشی.</string>
+    <string name="custom_dns_enable">فعال‌سازی DNS سفارشی</string>
+    <string name="custom_dns_hint">آدرس IPv4 DNS (مثلاً 8.8.8.8)</string>
+    <string name="custom_dns_invalid">آدرس IPv4 نامعتبر است</string>
 
     <string name="auto_fallback_title">تغییر خودکار به سرورهای موجود:</string>
     <string name="auto_fallback_enable">تغییر سرور در صورت قطع ارتباط</string>

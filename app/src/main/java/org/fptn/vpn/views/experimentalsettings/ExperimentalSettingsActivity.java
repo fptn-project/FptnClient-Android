@@ -26,8 +26,10 @@ import android.content.ComponentName;
 import android.graphics.drawable.Icon;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.method.DigitsKeyListener;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -48,6 +50,9 @@ public class ExperimentalSettingsActivity extends AppCompatActivity {
 
     private static final int[] ATTEMPTS_COUNT_VALUES = {5, 15, 35, Integer.MAX_VALUE};
     private static final int[] FALLBACK_THRESHOLD_VALUES = {3, 6, 10, 15};
+
+    private SwitchCompat customDnsSwitch;
+    private EditText customDnsInput;
 
     private SwitchCompat switchNetworkType;
     private SwitchCompat switchIPAddress;
@@ -70,6 +75,15 @@ public class ExperimentalSettingsActivity extends AppCompatActivity {
 
     @SuppressLint("InlinedApi")
     private void initializeVariable() {
+        customDnsSwitch = findViewById(R.id.custom_dns_switch);
+        customDnsInput = findViewById(R.id.custom_dns_input);
+        customDnsInput.setKeyListener(DigitsKeyListener.getInstance("0123456789."));
+        customDnsSwitch.setChecked(SharedPrefUtils.getCustomDnsEnabled(this));
+        customDnsInput.setText(SharedPrefUtils.getCustomDnsIpv4(this));
+        updateCustomDnsInputVisibility(customDnsSwitch.isChecked());
+        customDnsSwitch.setOnCheckedChangeListener(
+                (buttonView, isChecked) -> updateCustomDnsInputVisibility(isChecked));
+
         adBlockSwitch = findViewById(R.id.ad_block_switch);
         adBlockSwitch.setChecked(SharedPrefUtils.getAdBlockEnabled(this));
 
@@ -189,6 +203,10 @@ public class ExperimentalSettingsActivity extends AppCompatActivity {
         saveButton.setOnClickListener(v -> saveAndFinish());
     }
 
+    private void updateCustomDnsInputVisibility(boolean isEnabled) {
+        customDnsInput.setVisibility(isEnabled ? View.VISIBLE : View.GONE);
+    }
+
     private void updateExceptionVisibility(boolean isVisible) {
         resetServerAfterDisconnectOnException.setVisibility(isVisible ? View.GONE : View.VISIBLE);
     }
@@ -259,6 +277,16 @@ public class ExperimentalSettingsActivity extends AppCompatActivity {
     }
 
     private void saveAndFinish() {
+        if (customDnsSwitch.isChecked()) {
+            String dnsValue = customDnsInput.getText().toString().trim();
+            if (!isValidDnsAddress(dnsValue)) {
+                Toast.makeText(this, R.string.custom_dns_invalid, Toast.LENGTH_SHORT).show();
+                return;
+            }
+            SharedPrefUtils.saveCustomDnsIpv4(this, dnsValue);
+        }
+        SharedPrefUtils.saveCustomDnsEnabled(this, customDnsSwitch.isChecked());
+
         XLog.tag(TAG).i("Experimental settings saved [watchNetwork=%b, watchIP=%b, attempts=%d, delay=%ds]", switchNetworkType.isChecked(), switchIPAddress.isChecked(), seekBarAttemptsCount.getProgress(), seekBarDelayBetween.getProgress() + 1);
 
         SharedPrefUtils.saveAdBlockEnabled(this, adBlockSwitch.isChecked());
@@ -277,6 +305,21 @@ public class ExperimentalSettingsActivity extends AppCompatActivity {
         SharedPrefUtils.saveAutoFallbackThreshold(this, FALLBACK_THRESHOLD_VALUES[seekBarFallbackThreshold.getProgress()]);
 
         finish();
+    }
+
+    private static boolean isValidDnsAddress(String value) {
+        if (value == null || value.trim().isEmpty()) return false;
+        String[] parts = value.trim().split("\\.");
+        if (parts.length != 4) return false;
+        for (String part : parts) {
+            try {
+                int val = Integer.parseInt(part);
+                if (val < 0 || val > 255) return false;
+            } catch (NumberFormatException e) {
+                return false;
+            }
+        }
+        return true;
     }
 
     // Helper to reduce boilerplate for SeekBars

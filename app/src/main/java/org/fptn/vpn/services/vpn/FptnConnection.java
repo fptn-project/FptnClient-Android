@@ -131,6 +131,7 @@ public class FptnConnection extends Thread {
     private final List<AppInfo> appInfos;
     private final ConnectivityManager connectivityManager;
     private final AdBlocker adBlocker; // null when ad blocking is disabled
+    private final String customDnsIpv4; // null when custom DNS is disabled
 
     private final Object webSocketLock = new Object();
 
@@ -150,7 +151,8 @@ public class FptnConnection extends Thread {
                           final List<AppInfo> appInfos,
                           final String preFetchedToken,
                           final ConnectivityManager connectivityManager,
-                          final AdBlocker adBlocker) {
+                          final AdBlocker adBlocker,
+                          final String customDnsIpv4) {
         this.service = service;
         this.connectionId = connectionId;
         this.serverEntity = serverEntity;
@@ -161,6 +163,7 @@ public class FptnConnection extends Thread {
         this.appInfos = appInfos;
         this.connectivityManager = connectivityManager;
         this.adBlocker = adBlocker;
+        this.customDnsIpv4 = customDnsIpv4;
         this.maxReconnectCount = maxReconnectCount;
         this.fallbackThreshold = fallbackThreshold;
         this.delayBetweenAttempts = delayBetweenAttempts;
@@ -361,6 +364,13 @@ public class FptnConnection extends Thread {
 
     private void configureAddressesAndRoutes(VpnService.Builder builder) throws UnknownHostException, PVNClientException {
         final DnsServers dnsServers = webSocketClient.getDnsServers();
+
+        // Custom DNS (added first so it takes priority)
+        if (customDnsIpv4 != null && !customDnsIpv4.isEmpty()) {
+            XLog.tag(TAG).i("[id=%d] Custom DNS configured [ipv4=%s]", connectionId, customDnsIpv4);
+            builder.addDnsServer(customDnsIpv4);
+            builder.addRoute(customDnsIpv4, IP_V4_PREFIX_LENGTH);
+        }
 
         // IPv4
         builder.addDnsServer(dnsServers.getIpv4());
