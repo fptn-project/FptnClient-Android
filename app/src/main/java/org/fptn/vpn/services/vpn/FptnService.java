@@ -162,10 +162,12 @@ public class FptnService extends VpnService {
 
     public void updateSpeedInfo(String downloadSpeed, String uploadSpeed, long duration, long totalDownload, long totalUpload, long downloadBps, long uploadBps) {
         if (serviceStateMutableLiveData.getValue().getConnectionState() == ConnectionState.CONNECTED) {
-            updateNotificationWithMessage(
-                    String.format("%s %s", getString(R.string.connected_to), getActionConnectServerInfo()),
-                    String.format(getString(R.string.download_upload_speed_pattern), downloadSpeed, uploadSpeed)
-            );
+            if (SharedPrefUtils.getShowSpeedInNotification(getApplication())) {
+                updateNotificationWithMessage(
+                        String.format("%s %s", getString(R.string.connected_to), getActionConnectServerInfo()),
+                        String.format(getString(R.string.download_upload_speed_pattern), downloadSpeed, uploadSpeed)
+                );
+            }
 
             speedAndDurationMutableLiveData.postValue(new Triple<>(downloadSpeed, uploadSpeed, duration));
             trafficBytesLiveData.postValue(new Pair<>(totalDownload, totalUpload));

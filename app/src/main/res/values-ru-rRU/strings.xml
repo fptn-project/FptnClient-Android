@@ -165,6 +165,8 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="custom_dns_enable">Включить пользовательский DNS</string>
     <string name="custom_dns_hint">IPv4-адрес DNS (например, 8.8.8.8)</string>
     <string name="custom_dns_invalid">Неверный IPv4-адрес</string>
+    <string name="speed_notification_title">Уведомления:</string>
+    <string name="speed_notification_enable">Скорость подключения в статус-баре</string>
 
     <string name="auto_fallback_title">Авто-переключение на доступные серверы:</string>
     <string name="auto_fallback_enable">Менять сервер при потере связи</string>

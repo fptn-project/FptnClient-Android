@@ -246,6 +246,9 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="ad_block_description">Blocks ads and trackers at the DNS level for all apps.</string>
     <string name="ad_block_enable">Block ads and trackers</string>
 
+    <string name="speed_notification_title">Notification:</string>
+    <string name="speed_notification_enable">Connection speed in status bar</string>
+
     <string name="auto_fallback_title">Auto-fallback to available servers:</string>
     <string name="auto_fallback_enable">Switch server on connection loss</string>
     <string name="auto_fallback_threshold_label">Attempts before switching server:</string>

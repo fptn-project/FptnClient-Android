@@ -175,7 +175,7 @@ public class WebSocketClientWrapper {
         );
         String requestBody = new Gson().toJson(loginRequest);
 
-        int maxAttempts = 5;
+        int maxAttempts = 7;
         for (int attempt = 1; attempt <= maxAttempts; attempt++) {
             if (isShutdown() || Thread.currentThread().isInterrupted()) {
                 throw new PVNClientException(ErrorCode.CONNECT_TO_SERVER_ERROR);
@@ -210,7 +210,7 @@ public class WebSocketClientWrapper {
     }
 
     public DnsServers getDnsServers() throws PVNClientException {
-        int maxAttempts = 5;
+        int maxAttempts = 7;
         for (int attempt = 1; attempt <= maxAttempts; attempt++) {
             if (isShutdown() || Thread.currentThread().isInterrupted()) {
                 throw new PVNClientException(ErrorCode.CONNECT_TO_SERVER_ERROR);

@@ -222,7 +222,7 @@ public class SharedPrefUtils {
     /* Ad blocking */
     public static boolean getAdBlockEnabled(Context context) {
         SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
-        return sharedPreferences.getBoolean(Constants.AD_BLOCK_ENABLED_PREF_KEY, false);
+        return sharedPreferences.getBoolean(Constants.AD_BLOCK_ENABLED_PREF_KEY, true);
     }
 
     public static void saveAdBlockEnabled(Context context, boolean enabled) {
@@ -249,6 +249,17 @@ public class SharedPrefUtils {
     public static void saveCustomDnsIpv4(Context context, String ipv4) {
         SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
         sharedPreferences.edit().putString(Constants.CUSTOM_DNS_IPV4_PREF_KEY, ipv4).apply();
+    }
+
+    /* Speed in notification */
+    public static boolean getShowSpeedInNotification(Context context) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        return sharedPreferences.getBoolean(Constants.SHOW_SPEED_IN_NOTIFICATION_PREF_KEY, false);
+    }
+
+    public static void saveShowSpeedInNotification(Context context, boolean show) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        sharedPreferences.edit().putBoolean(Constants.SHOW_SPEED_IN_NOTIFICATION_PREF_KEY, show).apply();
     }
 
 }
