@@ -175,6 +175,14 @@ public class FptnService extends VpnService {
         }
     }
 
+    public void disconnectSilently(int senderConnectionId) {
+        FptnConnection current = activeConnection.get();
+        if (current == null || current.getConnectionId() != senderConnectionId) {
+            return;
+        }
+        executorService.submit(() -> disconnect(null));
+    }
+
     public void sendExceptionToService(PVNClientException exception, int senderConnectionId) {
         FptnConnection current = activeConnection.get();
         if (current == null || current.getConnectionId() != senderConnectionId) {

@@ -389,6 +389,9 @@ public class AdBlocker {
                 domains.add(domain);
             }
             return domains;
+        } catch (OutOfMemoryError e) {
+            XLog.tag(TAG).w("Not enough memory to load blocklist — ad blocking inactive");
+            return Collections.emptySet();
         } catch (IOException | Resources.NotFoundException e) {
             XLog.tag(TAG).w("Blocklist not found — ad blocking inactive: %s", e.getMessage());
             return Collections.emptySet();
