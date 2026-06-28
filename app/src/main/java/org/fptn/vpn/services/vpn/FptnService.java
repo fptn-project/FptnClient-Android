@@ -307,7 +307,7 @@ public class FptnService extends VpnService {
         if (ACTION_CONNECT.equals(intent.getAction()) && !isActiveState) {
             if (submittedConnectionAttempt != null && !submittedConnectionAttempt.isDone()) {
                 XLog.tag(TAG).w("Ignoring CONNECT — connection attempt already in progress [state=%s]", currentState);
-                return START_NOT_STICKY;
+                return START_STICKY;
             }
             startForegroundWithNotification(getString(R.string.connecting));
 
@@ -317,7 +317,7 @@ public class FptnService extends VpnService {
                 updateNotificationWithMessage(getString(R.string.waiting_for_network), "");
                 setConnectionState(ConnectionState.WAITING_FOR_NETWORK, null);
                 registerNetworkWaitCallback();
-                return START_NOT_STICKY;
+                return START_STICKY;
             }
 
             startConnectionAttempt(intent.getIntExtra(SELECTED_SERVER, SELECTED_SERVER_ID_AUTO));
@@ -338,8 +338,7 @@ public class FptnService extends VpnService {
             XLog.tag(TAG).w("Ignoring DISCONNECT — service not active [%s]", currentState);
         }
 
-        // if it stops - it stops
-        return START_NOT_STICKY;
+        return START_STICKY;
     }
 
     private void setSelectedServer(Integer serverId) throws ExecutionException, InterruptedException {

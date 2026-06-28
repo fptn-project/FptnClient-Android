@@ -116,7 +116,6 @@ public class AdBlocker {
         }
 
         String domain = getDnsDomain(packet, length, dnsOff);
-        XLog.tag(TAG).i("DNS query [domain=%s]", domain);
         if (domain == null || !isDomainBlocked(domain)) {
             return null;
         }
