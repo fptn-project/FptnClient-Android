@@ -32,7 +32,10 @@ import android.app.PendingIntent;
 import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.IpPrefix;
+import android.net.Network;
+import android.net.NetworkCapabilities;
 import android.net.VpnService;
+import android.content.Context;
 import android.os.Build;
 import android.os.ParcelFileDescriptor;
 
@@ -446,6 +449,12 @@ public class FptnConnection extends Thread {
     private void onConnectionOpen() {
         XLog.tag(TAG).i("[id=%d] WebSocket connected [reconnectCount=%d]",
                 connectionId, reconnectCount.get());
+        if (!isTunInterfaceValid(vpnInterface)) {
+            XLog.tag(TAG).i("[id=%d] WebSocket opened but TUN is gone — VPN revoked, disconnecting", connectionId);
+            webSocketClient.stopWebSocket();
+            service.disconnectSilently(connectionId);
+            return;
+        }
         reconnectCount.set(0);
         if (!currentThread.isInterrupted()) {
             sendConnectionStateToService(ConnectionState.CONNECTED);
@@ -478,11 +487,19 @@ public class FptnConnection extends Thread {
     }
 
     public void onConnectionFailure() {
+        boolean tunValid = isTunInterfaceValid(vpnInterface);
         XLog.tag(TAG).w("[id=%d] Connection failure detected [wsStarted=%b, tunValid=%b, reconnectActive=%b]",
                 connectionId,
                 webSocketClient.isStarted(),
-                isTunInterfaceValid(vpnInterface),
+                tunValid,
                 onFailureScheduledTask != null && !onFailureScheduledTask.isCancelled());
+        boolean otherVpnActive = isOtherVpnActive();
+        XLog.tag(TAG).w("[id=%d] VPN state check [tunValid=%b, otherVpnActive=%b]", connectionId, tunValid, otherVpnActive);
+        if (!tunValid || otherVpnActive) {
+            XLog.tag(TAG).i("[id=%d] Disconnecting silently [tunValid=%b, otherVpnActive=%b]", connectionId, tunValid, otherVpnActive);
+            service.disconnectSilently(connectionId);
+            return;
+        }
         cancelReconnectTask();
         webSocketClient.stopWebSocket();
         try {
@@ -567,6 +584,30 @@ public class FptnConnection extends Thread {
 
     private boolean isTunInterfaceValid(ParcelFileDescriptor vpnInterface) {
         return vpnInterface != null && vpnInterface.getFileDescriptor() != null && vpnInterface.getFileDescriptor().valid();
+    }
+
+    private boolean isOtherVpnActive() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            return false;
+        }
+        try {
+            ConnectivityManager cm = (ConnectivityManager) service.getSystemService(Context.CONNECTIVITY_SERVICE);
+            if (cm == null) return false;
+            int myUid = service.getApplicationInfo().uid;
+            for (Network network : cm.getAllNetworks()) {
+                NetworkCapabilities caps = cm.getNetworkCapabilities(network);
+                if (caps != null && caps.hasTransport(NetworkCapabilities.TRANSPORT_VPN)
+                        && caps.getOwnerUid() != myUid) {
+                    return true;
+                }
+            }
+        } catch (NoSuchMethodError e) {
+            // Samsung Android 10 ships without getOwnerUid() despite API level 29
+            XLog.tag(TAG).w("[id=%d] getOwnerUid() not available on this device", connectionId);
+        } catch (Exception e) {
+            XLog.tag(TAG).w("[id=%d] isOtherVpnActive check failed: %s", connectionId, e.getMessage());
+        }
+        return false;
     }
 
     public void onNetworkChanged() {
