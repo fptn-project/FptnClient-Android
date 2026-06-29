@@ -309,6 +309,13 @@ void WrapperWebsocketClient::onConnectedCallback() {
   reconnection_attempts_ = kMaxReconnectionAttempts_;
   window_start_time_ = std::chrono::steady_clock::now();
 
+  // onOpenImpl fires only once per object lifetime
+  bool expected = false;
+  if (!has_opened_.compare_exchange_strong(expected, true)) {
+    SPDLOG_INFO("onConnectedCallback: already notified Java once — skipping onOpenImpl");
+    return;
+  }
+
   JNIEnv* env = getJniEnv();
   if (!env) {
     SPDLOG_ERROR("Failed to get JNI environment in onConnectedCallback");

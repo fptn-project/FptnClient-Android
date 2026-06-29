@@ -115,6 +115,7 @@ public class FptnConnection extends Thread {
     private FileOutputStream outputStream;
 
     private volatile boolean tunNeedsRecreate = false;
+    private volatile String pendingShutdownReason = null;
 
     @Getter
     private Instant connectionTime;
@@ -135,8 +136,6 @@ public class FptnConnection extends Thread {
     private final ConnectivityManager connectivityManager;
     private final AdBlocker adBlocker; // null when ad blocking is disabled
     private final String customDnsIpv4; // null when custom DNS is disabled
-
-    private final Object webSocketLock = new Object();
 
     public FptnConnection(final FptnService service,
                           final int connectionId,
@@ -198,15 +197,22 @@ public class FptnConnection extends Thread {
             byte[] byteBuffer = new byte[MAX_PACKET_SIZE];
             while (!currentThread.isInterrupted() && runTunReadLoop(byteBuffer)) {}
         } catch (PVNClientException e) {
+            XLog.tag(TAG).w("[id=%d] DISCONNECT REASON: VPN client error [code=%s, msg=%s]",
+                    connectionId, e.errorCode, e.errorMessage);
             sendExceptionToService(e);
         } catch (IOException ex) {
-            XLog.tag(TAG).w("[id=" + connectionId + "] TUN interface closed: " + ex.getMessage());
+            XLog.tag(TAG).w("[id=%d] DISCONNECT REASON: IO error — VPN likely revoked by system or another app [%s]",
+                    connectionId, ex.getMessage());
+            pendingShutdownReason = FptnService.DISCONNECT_REASON_SYSTEM_REVOKED;
         } catch (WebSocketAlreadyShutdownException e) {
-            XLog.tag(TAG).w("The websocket already shutdown", e);
+            XLog.tag(TAG).w("[id=%d] DISCONNECT REASON: WebSocket already shut down", connectionId);
+            pendingShutdownReason = FptnService.DISCONNECT_REASON_CLOSED_UNEXPECTEDLY;
         } catch (InterruptedException e) {
-            XLog.tag(TAG).d("InterruptedException catch!", e);
+            XLog.tag(TAG).i("[id=%d] DISCONNECT REASON: thread interrupted — explicit disconnect or service stopped", connectionId);
         } catch (Exception e) {
-            XLog.tag(TAG).e("[id=" + connectionId + "] ERRORRR [wsStarted=" + webSocketClient.isStarted() + "]: " + e.getMessage());
+            XLog.tag(TAG).e("[id=%d] DISCONNECT REASON: unexpected exception [type=%s, msg=%s, wsStarted=%b]",
+                    connectionId, e.getClass().getSimpleName(), e.getMessage(), webSocketClient.isStarted());
+            pendingShutdownReason = FptnService.DISCONNECT_REASON_UNEXPECTED_ERROR;
         } finally {
             shutdown();
         }
@@ -258,11 +264,9 @@ public class FptnConnection extends Thread {
 
                 uploadRate.update(length);
                 totalUploadBytes.addAndGet(length);
-                if (!webSocketClient.isStarted()) {
-                    synchronized (webSocketLock) {
-                        webSocketLock.wait();
-                    }
-                }
+                // If WebSocket isn't started (reconnecting), send() silently drops the packet.
+                // No blocking/waiting on the native layer's reconnect state; the read loop
+                // keeps draining the TUN interface regardless.
                 webSocketClient.send(byteBuffer, length);
             }
         } catch (IOException ex) {
@@ -346,7 +350,7 @@ public class FptnConnection extends Thread {
         webSocketClient.shutdown();
         scheduler.shutdown();
 
-        sendConnectionStateToService(ConnectionState.DISCONNECTED);
+        sendConnectionStateToService(ConnectionState.DISCONNECTED, pendingShutdownReason);
     }
 
     private void configureConnectionTimeSpeedScheduler() {
@@ -459,11 +463,6 @@ public class FptnConnection extends Thread {
         if (!currentThread.isInterrupted()) {
             sendConnectionStateToService(ConnectionState.CONNECTED);
             cancelReconnectTask();
-
-            // resume thread
-            synchronized (webSocketLock) {
-                webSocketLock.notify();
-            }
         }
     }
 
@@ -511,6 +510,7 @@ public class FptnConnection extends Thread {
                 }
                 if (!NetworkUtils.isOnline(connectivityManager)) {
                     XLog.tag(TAG).i("[id=%d] No internet — suspending reconnect, entering WAITING_FOR_NETWORK", connectionId);
+                    cancelReconnectTask();
                     service.enterWaitingForNetwork(serverEntity.getId());
                     return;
                 }
@@ -575,11 +575,15 @@ public class FptnConnection extends Thread {
     }
 
     private void sendConnectionStateToService(ConnectionState connectionState) {
-        service.updateConnectionState(connectionState, reconnectCount.get(), connectionId);
+        service.updateConnectionState(connectionState, reconnectCount.get(), connectionId, null);
+    }
+
+    private void sendConnectionStateToService(ConnectionState connectionState, String disconnectReason) {
+        service.updateConnectionState(connectionState, reconnectCount.get(), connectionId, disconnectReason);
     }
 
     private void sendConnectionStateToService(ConnectionState connectionState, int count) {
-        service.updateConnectionState(connectionState, count, connectionId);
+        service.updateConnectionState(connectionState, count, connectionId, null);
     }
 
     private boolean isTunInterfaceValid(ParcelFileDescriptor vpnInterface) {

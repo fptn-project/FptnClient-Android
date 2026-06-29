@@ -34,6 +34,7 @@ public class FptnServiceState {
     private final ConnectionState connectionState;
     private final PVNClientException exception;
     private final String serverInfo;
+    private final String disconnectReason;
 
     public static final FptnServiceState INITIAL = FptnServiceState.builder()
             .connectionState(ConnectionState.DISCONNECTED)

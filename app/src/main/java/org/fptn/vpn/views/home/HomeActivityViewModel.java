@@ -111,7 +111,11 @@ public class HomeActivityViewModel extends AndroidViewModel {
                 ConnectionState connectionState = fptnServiceState.getConnectionState();
                 switch (connectionState) {
                     case DISCONNECTED -> {
-                        statusTextLiveData.postValue(getApplication().getString(R.string.disconnected));
+                        String reason = fptnServiceState.getDisconnectReason();
+                        String label = (reason != null && !reason.isEmpty())
+                                ? reason
+                                : getApplication().getString(R.string.disconnected);
+                        statusTextLiveData.postValue(label);
                         resetErrorMessage();
                         refreshServerListFromDB();
                     }

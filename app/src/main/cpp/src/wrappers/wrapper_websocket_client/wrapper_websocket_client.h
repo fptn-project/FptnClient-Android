@@ -65,13 +65,16 @@ class WrapperWebsocketClient final {
                             const fptn::common::network::IPv6Address& ipv6);
 
  private:
-  const int kMaxReconnectionAttempts_ = 2;
+  const int kMaxReconnectionAttempts_ = 3;
 
   std::thread th_;
   mutable std::mutex mutex_;
   mutable std::atomic<bool> running_;
   mutable std::atomic<int> reconnection_attempts_;
   std::chrono::steady_clock::time_point window_start_time_;
+  // onOpenImpl must fire only once per object lifetime — set on first successful
+  // connect, never cleared until this object is destroyed and a new one is created.
+  std::atomic<bool> has_opened_{false};
 
   const jobject wrapper_;
 

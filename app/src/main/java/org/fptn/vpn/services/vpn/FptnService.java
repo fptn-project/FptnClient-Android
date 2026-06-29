@@ -99,6 +99,10 @@ public class FptnService extends VpnService {
     public static final String ACTION_BIND = "FptnService:BIND";
     public static final String FPTN_SERVICE_POWER_LOCK = "FptnService::POWER_LOCK";
 
+    public static final String DISCONNECT_REASON_SYSTEM_REVOKED = "reason:system_revoked";
+    public static final String DISCONNECT_REASON_CLOSED_UNEXPECTEDLY = "reason:closed_unexpectedly";
+    public static final String DISCONNECT_REASON_UNEXPECTED_ERROR = "reason:unexpected_error";
+
     private final AtomicReference<FptnConnection> activeConnection = new AtomicReference<>();
     private final AtomicInteger nextConnectionId = new AtomicInteger(1);
     private final AtomicInteger remainingFallbackBudget = new AtomicInteger(0);
@@ -117,6 +121,7 @@ public class FptnService extends VpnService {
 
     private ConnectivityManager.NetworkCallback networkCallback;
     private ConnectivityManager connectivityManager;
+    private volatile String pendingRevokeReason = null;
 
     @Getter
     private final MutableLiveData<FptnServiceState> serviceStateMutableLiveData = new MutableLiveData<>(FptnServiceState.INITIAL);
@@ -180,7 +185,8 @@ public class FptnService extends VpnService {
         if (current == null || current.getConnectionId() != senderConnectionId) {
             return;
         }
-        executorService.submit(() -> disconnect(null));
+        XLog.tag(TAG).w("DISCONNECT REASON: silent disconnect requested [connectionId=%d] — TUN gone or foreign VPN detected", senderConnectionId);
+        executorService.submit(() -> disconnect(null, getString(R.string.disconnect_reason_vpn_conflict)));
     }
 
     public void sendExceptionToService(PVNClientException exception, int senderConnectionId) {
@@ -203,6 +209,10 @@ public class FptnService extends VpnService {
     }
 
     public void updateConnectionState(ConnectionState connectionState, int reconnectionCount, int senderConnectionId) {
+        updateConnectionState(connectionState, reconnectionCount, senderConnectionId, null);
+    }
+
+    public void updateConnectionState(ConnectionState connectionState, int reconnectionCount, int senderConnectionId, String disconnectReason) {
         if (connectionState == ConnectionState.DISCONNECTED) {
             FptnConnection current = activeConnection.get();
             if (current != null && current.getConnectionId() != senderConnectionId) {
@@ -211,7 +221,7 @@ public class FptnService extends VpnService {
                 return;
             }
         }
-        switchState(connectionState, reconnectionCount);
+        switchState(connectionState, reconnectionCount, disconnectReason);
     }
 
     /* Static methods to start/stop service */
@@ -366,7 +376,8 @@ public class FptnService extends VpnService {
     @Override
     public void onRevoke() {
         XLog.tag(TAG).i("VPN permission revoked — another VPN took over, disconnecting");
-        executorService.submit(() -> disconnect());
+        pendingRevokeReason = getString(R.string.disconnect_reason_vpn_revoked);
+        executorService.submit(() -> disconnect(null, pendingRevokeReason));
     }
 
     @Override
@@ -377,6 +388,14 @@ public class FptnService extends VpnService {
         // the observer once it's removed below (both run on main thread).
         FptnTileService.getServiceStateMutableLiveData().setValue(ConnectionState.DISCONNECTED);
         notifyTileListeningState();
+
+        // If revoked, post disconnect reason to UI synchronously before observer is removed
+        if (pendingRevokeReason != null) {
+            serviceStateMutableLiveData.setValue(FptnServiceState.builder()
+                    .connectionState(ConnectionState.DISCONNECTED)
+                    .disconnectReason(pendingRevokeReason)
+                    .build());
+        }
 
         disconnect();
 
@@ -396,7 +415,7 @@ public class FptnService extends VpnService {
                 FptnConnection currentConnection = activeConnection.get();
                 ConnectionState connectionState = Optional.ofNullable(serviceStateMutableLiveData.getValue())
                         .map(FptnServiceState::getConnectionState).orElse(null);
-                if (currentConnection != null && (connectionState == ConnectionState.CONNECTED || connectionState == ConnectionState.RECONNECTING)) {
+                if (currentConnection != null && connectionState == ConnectionState.CONNECTED) {
                     Network activeNetwork = connectivityManager.getActiveNetwork();
                     NetworkCapabilities activeNetworkCapabilities = connectivityManager.getNetworkCapabilities(activeNetwork);
                     if (activeNetworkCapabilities != null && activeNetworkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)) {
@@ -553,12 +572,16 @@ public class FptnService extends VpnService {
     }
 
     private void switchState(ConnectionState connectionState, int reconnectCount) {
+        switchState(connectionState, reconnectCount, null);
+    }
+
+    private void switchState(ConnectionState connectionState, int reconnectCount, String disconnectReason) {
         XLog.tag(TAG).i("State transition -> %s%s", connectionState,
                 reconnectCount > 0 ? " [attempt " + reconnectCount + "]" : "");
         switch (connectionState) {
             case DISCONNECTED -> {
                 if (activeConnection.get() != null) {
-                    disconnect();
+                    disconnect(null, disconnectReason);
                 }
             }
             case CONNECTING -> setConnectionState(ConnectionState.CONNECTING, null);
@@ -590,9 +613,14 @@ public class FptnService extends VpnService {
     }
 
     private void setConnectionState(ConnectionState connectionState, PVNClientException exception) {
+        setConnectionState(connectionState, exception, null);
+    }
+
+    private void setConnectionState(ConnectionState connectionState, PVNClientException exception, String disconnectReason) {
         serviceStateMutableLiveData.postValue(FptnServiceState.builder()
                 .connectionState(connectionState)
                 .exception(exception)
+                .disconnectReason(disconnectReason)
                 .build());
     }
 
@@ -827,15 +855,31 @@ public class FptnService extends VpnService {
     }
 
     private void disconnect() {
-        //disconnect without exception
-        disconnect(null);
+        disconnect(null, null);
     }
 
     private void disconnect(PVNClientException exception) {
-        if (exception == null) {
-            XLog.tag(TAG).i("Disconnecting [reason=user]");
+        disconnect(exception, null);
+    }
+
+    private String resolveDisconnectReason(String key) {
+        if (key == null) return null;
+        switch (key) {
+            case DISCONNECT_REASON_SYSTEM_REVOKED:    return getString(R.string.disconnect_reason_system_revoked);
+            case DISCONNECT_REASON_CLOSED_UNEXPECTEDLY: return getString(R.string.disconnect_reason_closed_unexpectedly);
+            case DISCONNECT_REASON_UNEXPECTED_ERROR:  return getString(R.string.disconnect_reason_unexpected_error);
+            default: return key;
+        }
+    }
+
+    private void disconnect(PVNClientException exception, String disconnectReasonKey) {
+        String disconnectReason = resolveDisconnectReason(disconnectReasonKey);
+        if (exception == null && disconnectReason == null) {
+            XLog.tag(TAG).w("DISCONNECT REASON: user action");
+        } else if (disconnectReason != null) {
+            XLog.tag(TAG).w("DISCONNECT REASON: %s", disconnectReason);
         } else {
-            XLog.tag(TAG).w("Disconnecting [reason=error, code=%s, message=%s]",
+            XLog.tag(TAG).w("DISCONNECT REASON: error [code=%s, message=%s]",
                     exception.errorCode, exception.errorMessage);
         }
         // stop and null existed connection
@@ -845,7 +889,7 @@ public class FptnService extends VpnService {
         // sometimes need to remove notification explicitly
         removeForegroundNotification();
         //send to UI activity that state is disconnected.
-        setConnectionState(ConnectionState.DISCONNECTED, exception);
+        setConnectionState(ConnectionState.DISCONNECTED, exception, disconnectReason);
 
         if (exception != null) {
             ErrorCode errorCode = exception.errorCode;
@@ -871,7 +915,7 @@ public class FptnService extends VpnService {
                     resetSelectedServer();
 
                     //send to UI activity that state is disconnected.
-                    setConnectionState(ConnectionState.DISCONNECTED, exception);
+                    setConnectionState(ConnectionState.DISCONNECTED, exception, disconnectReason);
                 } catch (ExecutionException | InterruptedException e) {
                     XLog.tag(TAG).e("Failed to reset selected server: %s", e.getMessage());
                 }
