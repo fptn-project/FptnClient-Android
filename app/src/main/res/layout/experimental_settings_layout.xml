@@ -19,7 +19,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingBottom="16dp">
+            android:paddingBottom="8dp">
 
             <ImageView
                 android:layout_width="80dp"
@@ -406,28 +406,43 @@
                 android:layout_marginEnd="16dp"
                 android:background="@drawable/round_settings_back_white10_20"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:paddingStart="16dp"
+                android:paddingTop="16dp"
+                android:paddingEnd="16dp"
+                android:paddingBottom="8dp">
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="12dp"
-                    android:text="@string/quick_settings_tile"
+                    android:layout_marginBottom="4dp"
+                    android:text="@string/quick_settings_tile_title"
                     android:textColor="@color/white"
                     android:textSize="16sp"
                     android:textStyle="bold" />
 
-                <Button
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="6dp"
+                    android:alpha="0.7"
+                    android:text="@string/quick_settings_tile_description"
+                    android:textColor="@color/white"
+                    android:textSize="12sp" />
+
+                <TextView
                     android:id="@+id/quick_settings_tile_button"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/round_back_secondary_100"
-                    android:padding="12dp"
-                    android:text="@string/quick_settings_tile"
-                    android:textAllCaps="false"
-                    android:textColor="@color/primary"
-                    android:textSize="14sp"
-                    android:textStyle="bold" />
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:paddingTop="3dp"
+                    android:paddingBottom="3dp"
+                    android:text="@string/quick_settings_tile_button"
+                    android:textColor="@color/white"
+                    android:alpha="0.7"
+                    android:textSize="14sp" />
             </LinearLayout>
 
             <!--Reset Server Settings-->
@@ -439,7 +454,10 @@
                 android:layout_marginEnd="16dp"
                 android:background="@drawable/round_settings_back_white10_20"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:paddingStart="16dp"
+                android:paddingTop="16dp"
+                android:paddingEnd="16dp"
+                android:paddingBottom="8dp">
 
                 <TextView
                     android:layout_width="match_parent"
@@ -472,6 +490,23 @@
                     android:textSize="14sp" />
 
             </LinearLayout>
+
+            <!--Reset to default-->
+            <TextView
+                android:id="@+id/reset_to_default_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center"
+                android:paddingTop="3dp"
+                android:paddingBottom="3dp"
+                android:text="@string/reset_to_default_button"
+                android:textColor="@color/white"
+                android:alpha="0.7"
+                android:textSize="14sp" />
 
         </LinearLayout>
 

@@ -231,7 +231,9 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="reconnect_attempts_text">"%d"</string>
 
     <string name="another_settings">Another settings:</string>
-    <string name="quick_settings_tile">Quick settings tile</string>
+    <string name="quick_settings_tile_title">Quick toggle in notification shade</string>
+    <string name="quick_settings_tile_description">Adds a VPN connect/disconnect button to the Android quick settings panel (the pull-down shade), so you can turn the VPN on or off without opening the app.</string>
+    <string name="quick_settings_tile_button">Add to quick settings</string>
     <string name="tile_already_added">Tile already added</string>
     <string name="tile_added_successfully">Tile added successfully</string>
     <string name="tile_addition_failed">Tile addition failed!</string>
@@ -246,6 +248,8 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="custom_dns_enable">Enable custom DNS</string>
     <string name="custom_dns_hint">DNS IPv4 address (e.g. 8.8.8.8)</string>
     <string name="custom_dns_invalid">Invalid IPv4 address</string>
+    <string name="reset_to_default_button">Reset to default</string>
+    <string name="reset_to_default_success">Advanced settings reset to default</string>
 
     <string name="ad_block_title">Ad Blocking:</string>
     <string name="ad_block_description">Blocks ads and trackers at the DNS level for all apps.</string>

@@ -156,7 +156,9 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="reconnect_attempts_text">"%d"</string>
 
     <string name="another_settings">سایر تنظیمات:</string>
-    <string name="quick_settings_tile">کاشی تنظیمات سریع (نوار اعلان)</string>
+    <string name="quick_settings_tile_title">دکمه سریع VPN در نوار اعلان</string>
+    <string name="quick_settings_tile_description">دکمه روشن/خاموش کردن VPN را به پنل تنظیمات سریع اندروید (نوار اعلان) اضافه می‌کند تا بدون باز کردن برنامه بتوانید VPN را کنترل کنید.</string>
+    <string name="quick_settings_tile_button">افزودن به تنظیمات سریع</string>
     <string name="tile_already_added">کاشی تنظیمات سریع قبلاً اضافه شده است</string>
     <string name="tile_added_successfully">کاشی تنظیمات سریع با موفقیت اضافه شد</string>
     <string name="tile_addition_failed">افزودن کاشی تنظیمات سریع ناموفق بود!</string>
@@ -172,6 +174,8 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="custom_dns_enable">فعال‌سازی DNS سفارشی</string>
     <string name="custom_dns_hint">آدرس IPv4 DNS (مثلاً 8.8.8.8)</string>
     <string name="custom_dns_invalid">آدرس IPv4 نامعتبر است</string>
+    <string name="reset_to_default_button">بازنشانی به پیش‌فرض</string>
+    <string name="reset_to_default_success">تنظیمات پیشرفته به حالت پیش‌فرض بازنشانی شد</string>
     <string name="speed_notification_title">اعلان:</string>
     <string name="speed_notification_enable">سرعت اتصال در نوار وضعیت</string>
 

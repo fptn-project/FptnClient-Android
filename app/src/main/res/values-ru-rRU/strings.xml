@@ -154,7 +154,9 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="reconnect_attempts_text">"%d"</string>
 
     <string name="another_settings">Другие настройки:</string>
-    <string name="quick_settings_tile">Плитка быстрых настроек (шторка)</string>
+    <string name="quick_settings_tile_title">Быстрая кнопка VPN в шторке</string>
+    <string name="quick_settings_tile_description">Добавляет кнопку включения/выключения VPN в панель быстрых настроек Android (шторку уведомлений), чтобы управлять VPN без открытия приложения.</string>
+    <string name="quick_settings_tile_button">Добавить в шторку</string>
     <string name="tile_already_added">Плитка быстрых настроек была добавлена ранее</string>
     <string name="tile_added_successfully">Плитка быстрых настроек добавлена</string>
     <string name="tile_addition_failed">Плитка быстрых настроек не добавлена!</string>
@@ -170,6 +172,8 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="custom_dns_enable">Включить пользовательский DNS</string>
     <string name="custom_dns_hint">IPv4-адрес DNS (например, 8.8.8.8)</string>
     <string name="custom_dns_invalid">Неверный IPv4-адрес</string>
+    <string name="reset_to_default_button">Восстановить по умолчанию</string>
+    <string name="reset_to_default_success">Дополнительные настройки сброшены по умолчанию</string>
     <string name="speed_notification_title">Уведомления:</string>
     <string name="speed_notification_enable">Скорость подключения в статус-баре</string>
 
