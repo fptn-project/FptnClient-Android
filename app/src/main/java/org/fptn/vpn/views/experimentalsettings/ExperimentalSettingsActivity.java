@@ -139,7 +139,8 @@ public class ExperimentalSettingsActivity extends AppCompatActivity {
 
         // Quick tile request
         View tileButtonLayout = findViewById(R.id.tile_layout);
-        Button buttonRequestTile = findViewById(R.id.quick_settings_tile_button);
+        TextView buttonRequestTile = findViewById(R.id.quick_settings_tile_button);
+        buttonRequestTile.setPaintFlags(buttonRequestTile.getPaintFlags() | android.graphics.Paint.UNDERLINE_TEXT_FLAG);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             buttonRequestTile.setVisibility(View.VISIBLE);
             buttonRequestTile.setEnabled(true);
@@ -204,6 +205,41 @@ public class ExperimentalSettingsActivity extends AppCompatActivity {
 
         Button saveButton = findViewById(R.id.save_button);
         saveButton.setOnClickListener(v -> saveAndFinish());
+
+        TextView resetToDefaultLink = findViewById(R.id.reset_to_default_button);
+        resetToDefaultLink.setPaintFlags(resetToDefaultLink.getPaintFlags() | android.graphics.Paint.UNDERLINE_TEXT_FLAG);
+        resetToDefaultLink.setOnClickListener(v -> resetToDefault());
+    }
+
+    private void resetToDefault() {
+        customDnsSwitch.setChecked(false);
+        customDnsInput.setText("");
+        showSpeedInNotificationSwitch.setChecked(false);
+        adBlockSwitch.setChecked(true);
+        switchNetworkType.setChecked(true);
+        switchIPAddress.setChecked(true);
+        seekBarAttemptsCount.setProgress(2); // default 35
+        seekBarDelayBetween.setProgress(0); // default 1s
+        resetServerAfterDisconnectSwitch.setChecked(true);
+        resetServerAfterDisconnectOnException.setChecked(false);
+        autoFallbackSwitch.setChecked(true);
+        seekBarFallbackThreshold.setProgress(3); // default 15
+
+        SharedPrefUtils.saveCustomDnsEnabled(this, false);
+        SharedPrefUtils.saveCustomDnsIpv4(this, "");
+        SharedPrefUtils.saveShowSpeedInNotification(this, false);
+        SharedPrefUtils.saveAdBlockEnabled(this, true);
+        SharedPrefUtils.saveReconnectOnChangeNetworkTypeEnabled(this, true);
+        SharedPrefUtils.saveReconnectOnChangeIPEnabled(this, true);
+        SharedPrefUtils.saveReconnectAttemptsCount(this, ATTEMPTS_COUNT_VALUES[2]);
+        SharedPrefUtils.saveDelayBetweenReconnect(this, 1);
+        SharedPrefUtils.saveResetSelectedServerEnabled(this, true);
+        SharedPrefUtils.saveResetSelectedServerOnExceptionEnabled(this, false);
+        SharedPrefUtils.saveAutoFallbackEnabled(this, true);
+        SharedPrefUtils.saveAutoFallbackThreshold(this, FALLBACK_THRESHOLD_VALUES[3]);
+
+        XLog.tag(TAG).i("Experimental settings reset to default");
+        Toast.makeText(this, R.string.reset_to_default_success, Toast.LENGTH_SHORT).show();
     }
 
     private void updateCustomDnsInputVisibility(boolean isEnabled) {
@@ -219,7 +255,7 @@ public class ExperimentalSettingsActivity extends AppCompatActivity {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
-    private void requestQuickSettingsTile(Button buttonRequestTile) {
+    private void requestQuickSettingsTile(TextView buttonRequestTile) {
         StatusBarManager statusBarManager = getSystemService(StatusBarManager.class);
         if (statusBarManager == null) return;
 
@@ -244,7 +280,7 @@ public class ExperimentalSettingsActivity extends AppCompatActivity {
         }
     }
 
-    private void handleTileRequestResult(int resultCode, Button button) {
+    private void handleTileRequestResult(int resultCode, TextView button) {
         // Re-enable button unless the tile was successfully added/exists
         boolean shouldKeepDisabled = false;
 
@@ -252,7 +288,6 @@ public class ExperimentalSettingsActivity extends AppCompatActivity {
             case StatusBarManager.TILE_ADD_REQUEST_RESULT_TILE_ALREADY_ADDED:
                 XLog.tag(TAG).i("Quick settings tile already present");
                 Toast.makeText(this, R.string.tile_already_added, Toast.LENGTH_SHORT).show();
-                button.setBackgroundResource(R.drawable.round_back_secondary_cancel_100);
                 shouldKeepDisabled = true;
                 break;
 
