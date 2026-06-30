@@ -375,8 +375,8 @@ public class HomeActivity extends AppCompatActivity {
                 return;
             }
 
-            // Request required permissions if not yet granted — checked on every connect attempt
-            if (!PermissionsUtils.isAllOptionalPermissionsGranted(this)) {
+            // Ask for optional permissions until user grants them; once granted, never ask again
+            if (!SharedPrefUtils.isPermissionsRequested(this)) {
                 startStopButton.setChecked(false);
                 requestRequiredPermissions();
                 // proceedToVpnConnect() is called from the dialog callbacks — not here
@@ -487,6 +487,9 @@ public class HomeActivity extends AppCompatActivity {
                     XLog.tag(TAG).w("System permission denied via Settings");
                 }
                 if (requestedPermissions.decrementAndGet() == 0) {
+                    if (PermissionsUtils.isAllOptionalPermissionsGranted(this)) {
+                        SharedPrefUtils.savePermissionsRequested(this, true);
+                    }
                     proceedToVpnConnect();
                 }
             }
@@ -509,6 +512,11 @@ public class HomeActivity extends AppCompatActivity {
                     if (!PermissionsUtils.checkBackgroundDataTransferRestrictions(this)) {
                         requestedPermissions.incrementAndGet();
                         startActivityWithSettings(Settings.ACTION_IGNORE_BACKGROUND_DATA_RESTRICTIONS_SETTINGS);
+                    }
+                    // Nothing to open — permissions already granted, save and proceed
+                    if (requestedPermissions.get() == 0) {
+                        SharedPrefUtils.savePermissionsRequested(this, true);
+                        proceedToVpnConnect();
                     }
                 })
                 .setNegativeButton(getString(R.string.deny), (dialog, which) -> {

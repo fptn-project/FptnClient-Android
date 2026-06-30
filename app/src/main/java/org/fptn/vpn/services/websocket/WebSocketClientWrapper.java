@@ -154,9 +154,8 @@ public class WebSocketClientWrapper {
                 && nativeWebSocketClient.isStarted()
                 && length > 0) {
             nativeWebSocketClient.send(bytes, length);
-        } else {
-            throw new RuntimeException("nativeWebSocketClient is null or not started");
         }
+        // silently drop otherwise (reconnecting/not ready) — no exception, no log spam
     }
 
     public synchronized void shutdown() {
