@@ -259,5 +259,9 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="vpn_setup_error_title">Ошибка настройки VPN</string>
     <string name="vpn_setup_error_message">Чтобы подключиться к FPTN VPN необходимо:\n\n- Разрешить приложению подключаться к сети VPN\n- Отключить функцию \"Постоянная VPN\" для всех остальных VPN-приложений в системных настройках VPN</string>
     <string name="open_vpn_settings">Открыть настройки VPN</string>
-
+    <!--Диалог подтверждения сброса настроек-->
+    <string name="reset_to_default_confirm_title">Восстановить по умолчанию?</string>
+    <string name="reset_to_default_confirm_message">Все текущие настройки будут сброшены до значений по умолчанию.\n\nЭто действие нельзя отменить.</string>
+    <string name="reset_to_default_confirm_yes">Да</string>
+    <string name="reset_to_default_confirm_no">Нет</string>
 </resources>
