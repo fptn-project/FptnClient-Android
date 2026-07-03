@@ -55,6 +55,7 @@ public class WebSocketClientWrapper {
 
     private NativeWebSocketClientImpl nativeWebSocketClient;
     private String cachedAccessToken = null;
+    private DnsServers cachedDnsServers = null;
 
     @Getter
     private boolean shutdown = false;
@@ -68,7 +69,8 @@ public class WebSocketClientWrapper {
                                   String sniHostName,
                                   BypassCensorshipMethod censorshipStrategy,
                                   SniSpoofingMode sniSpoofingMode,
-                                  String preFetchedToken) {
+                                  String preFetchedToken,
+                                  DnsServers preFetchedDnsServers) {
         this.serverEntity = serverEntity;
         this.tunAddressIPv4 = tunAddressIPv4;
         this.tunAddressIPv6 = tunAddressIPv6;
@@ -82,6 +84,7 @@ public class WebSocketClientWrapper {
         this.sniSpoofingMode = sniSpoofingMode;
 
         this.cachedAccessToken = preFetchedToken;
+        this.cachedDnsServers = preFetchedDnsServers;
 
         this.nativeHttpsClient = new NativeHttpsClientImpl(
                 serverEntity.getHost(),
@@ -209,6 +212,10 @@ public class WebSocketClientWrapper {
     }
 
     public DnsServers getDnsServers() throws PVNClientException {
+        if (cachedDnsServers != null) {
+            XLog.d(getTag(), "Re-using cached DNS servers (skipping /api/v1/dns request)");
+            return cachedDnsServers;
+        }
         int maxAttempts = 7;
         for (int attempt = 1; attempt <= maxAttempts; attempt++) {
             if (isShutdown() || Thread.currentThread().isInterrupted()) {
@@ -218,6 +225,7 @@ public class WebSocketClientWrapper {
             if (response != null && response.code == 200) {
                 DnsServers dnsServers = new Gson().fromJson(response.body, DnsServers.class);
                 XLog.tag(getTag()).i("DNS servers received: %s", dnsServers.toString());
+                cachedDnsServers = dnsServers;
                 return dnsServers;
             }
             XLog.tag(getTag()).w("DNS server request failed [attempt=%d/%d]", attempt, maxAttempts);
