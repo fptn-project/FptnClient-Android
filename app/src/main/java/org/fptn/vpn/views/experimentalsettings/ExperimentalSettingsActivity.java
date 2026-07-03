@@ -45,6 +45,9 @@ import org.fptn.vpn.R;
 import org.fptn.vpn.services.tile.FptnTileService;
 import org.fptn.vpn.utils.SharedPrefUtils;
 
+import org.fptn.vpn.enums.PerAppVpnMode;
+import org.fptn.vpn.database.AppDatabase;
+
 public class ExperimentalSettingsActivity extends AppCompatActivity {
     private final String TAG = this.getClass().getSimpleName();
 
@@ -224,7 +227,9 @@ public class ExperimentalSettingsActivity extends AppCompatActivity {
         resetServerAfterDisconnectOnException.setChecked(false);
         autoFallbackSwitch.setChecked(true);
         seekBarFallbackThreshold.setProgress(3); // default 15
-
+        SharedPrefUtils.savePerAppVPNMode(this, PerAppVpnMode.OFF);
+        AppDatabase db = AppDatabase.getInstance(this);
+        db.appInfoDao().deleteAll();
         SharedPrefUtils.saveCustomDnsEnabled(this, false);
         SharedPrefUtils.saveCustomDnsIpv4(this, "");
         SharedPrefUtils.saveShowSpeedInNotification(this, false);
@@ -237,7 +242,6 @@ public class ExperimentalSettingsActivity extends AppCompatActivity {
         SharedPrefUtils.saveResetSelectedServerOnExceptionEnabled(this, false);
         SharedPrefUtils.saveAutoFallbackEnabled(this, true);
         SharedPrefUtils.saveAutoFallbackThreshold(this, FALLBACK_THRESHOLD_VALUES[3]);
-
         XLog.tag(TAG).i("Experimental settings reset to default");
         Toast.makeText(this, R.string.reset_to_default_success, Toast.LENGTH_SHORT).show();
     }
