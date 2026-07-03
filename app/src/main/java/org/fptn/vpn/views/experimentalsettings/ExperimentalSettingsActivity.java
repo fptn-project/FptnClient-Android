@@ -208,7 +208,7 @@ public class ExperimentalSettingsActivity extends AppCompatActivity {
 
         TextView resetToDefaultLink = findViewById(R.id.reset_to_default_button);
         resetToDefaultLink.setPaintFlags(resetToDefaultLink.getPaintFlags() | android.graphics.Paint.UNDERLINE_TEXT_FLAG);
-        resetToDefaultLink.setOnClickListener(v -> resetToDefault());
+        resetToDefaultLink.setOnClickListener(v -> showResetConfirmationDialog());
     }
 
     private void resetToDefault() {
@@ -241,6 +241,21 @@ public class ExperimentalSettingsActivity extends AppCompatActivity {
         XLog.tag(TAG).i("Experimental settings reset to default");
         Toast.makeText(this, R.string.reset_to_default_success, Toast.LENGTH_SHORT).show();
     }
+
+    private void showResetConfirmationDialog() {
+    new AlertDialog.Builder(this)
+        .setTitle(R.string.reset_to_default_confirm_title)
+        .setMessage(R.string.reset_to_default_confirm_message)
+        .setPositiveButton(R.string.reset_to_default_confirm_yes, (dialog, which) -> {
+            resetToDefault();
+            dialog.dismiss();
+        })
+        .setNegativeButton(R.string.reset_to_default_confirm_no, (dialog, which) -> {
+            dialog.dismiss();
+        })
+        .setCancelable(true)
+        .show();
+}
 
     private void updateCustomDnsInputVisibility(boolean isEnabled) {
         customDnsInput.setVisibility(isEnabled ? View.VISIBLE : View.GONE);
