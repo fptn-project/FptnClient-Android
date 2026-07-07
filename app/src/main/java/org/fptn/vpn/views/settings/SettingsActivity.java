@@ -46,6 +46,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import org.fptn.vpn.R;
 import org.fptn.vpn.utils.PermissionsUtils;
+import org.fptn.vpn.utils.SharedPrefUtils;
 import org.fptn.vpn.views.CustomBottomNavigationListener;
 import org.fptn.vpn.views.experimentalsettings.ExperimentalSettingsActivity;
 import org.fptn.vpn.views.log.LogsActivity;
@@ -178,6 +179,9 @@ public class SettingsActivity extends AppCompatActivity {
                 .setPositiveButton(getString(R.string.grant), (d, w) -> {
                     @SuppressLint("BatteryLife") Intent intent = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
                     intent.setData(Uri.parse("package:" + getPackageName()));
+                    // On MIUI the OS never reports the exemption back — record that we asked so the
+                    // toggle can settle to granted instead of always showing off.
+                    SharedPrefUtils.saveBatteryOptimizationRequested(this, true);
                     startActivity(intent);
                 })
                 .setNegativeButton(getString(R.string.deny), (dialog, which) -> {

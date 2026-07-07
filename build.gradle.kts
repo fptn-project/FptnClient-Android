@@ -61,9 +61,9 @@ repositories {
     mavenCentral()
 }
 
-extra["compileSdkVersion"] = 35
+extra["compileSdkVersion"] = 36
 extra["minSdkVersion"] = 26
-extra["targetSdkVersion"] = 35
+extra["targetSdkVersion"] = 36
 extra["versionMajor"] = versionInfo.major
 extra["versionMinor"] = versionInfo.minor
 extra["versionPatch"] = versionInfo.patch

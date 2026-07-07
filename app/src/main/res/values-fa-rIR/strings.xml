@@ -104,8 +104,6 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
 
     <string name="unknown_error">یک خطای ناشناخته رخ داد!</string>
 
-    <string name="notifications_request_title">مجوز نمایش اعلان‌ها مورد نیاز است!</string>
-    <string name="notifications_request_reason">برای عملکرد پایدار سرویس، برنامه باید اعلان اتصال فعال را نمایش دهد</string>
     <string name="grant">اجازه دادن</string>
     <string name="deny">رد کردن</string>
 
@@ -128,6 +126,15 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="warning">هشدار</string>
     <string name="battery_optimization_request_dialog_title">غیرفعال‌سازی بهینه‌سازی باتری</string>
     <string name="battery_optimization_request_dialog_text">برای اتصال پایدار، لطفاً مجوز غیرفعال‌سازی بهینه‌سازی مصرف انرژی برای این برنامه را ارائه دهید</string>
+    <string name="background_setup_title">کارکرد پایدار در پس‌زمینه</string>
+    <string name="background_setup_text">برای اتصال پایدار، این موارد را تنظیم کنید:</string>
+    <string name="background_setup_notifications_title">فعال‌سازی اعلان‌ها</string>
+    <string name="background_setup_battery_title">مصرف باتری</string>
+    <string name="background_setup_battery_desc">روی «بدون محدودیت» تنظیم کنید</string>
+    <string name="background_setup_pin_title">قفل کردن برنامه در «امنیت»</string>
+    <string name="background_setup_pin_desc">امنیت ← شتاب‌دهنده ← ⚙ ← برنامه‌های قفل‌شده</string>
+    <string name="background_setup_done">ادامه</string>
+    <string name="background_setup_later">بعداً</string>
 
     <string name="required_permissions">مجوزهای مورد نیاز:</string>
     <string name="denied_text">رد شده</string>
@@ -139,8 +146,6 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="show_notification_label">اعلان‌های الزامی</string>
     <string name="permission_warning_text">برای عملکرد پایدار برنامه، لطفاً همهٔ مجوزها را در صفحهٔ تنظیمات ارائه دهید</string>
 
-    <string name="permission_request_title">درخواست مجوزها</string>
-    <string name="permission_request_text">برای اتصال پایدار، لطفاً مجوزهای لازم را ارائه دهید</string>
 
 
     <string name="sponsors_text">با تشکر از حامیان ما</string>

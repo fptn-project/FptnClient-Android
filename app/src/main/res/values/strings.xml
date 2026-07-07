@@ -112,8 +112,6 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="unknown_error">Unknown error occurred! We don\'t know what has happened and it\'s scary.</string>
     <string name="list_point" translatable="false">•</string>
 
-    <string name="notifications_request_title">Please enable notifications.</string>
-    <string name="notifications_request_reason">For a stable connection, the application needs to show a notification once the connection is established.</string>
     <string name="grant">Grant</string>
     <string name="deny">Deny</string>
     <string name="zero_time" translatable="false">00:00:00</string>
@@ -138,6 +136,15 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
 
     <string name="battery_optimization_request_dialog_title">Disable battery optimization</string>
     <string name="battery_optimization_request_dialog_text">For a stable connection, please grant permission to disable battery optimization for this app</string>
+    <string name="background_setup_title">Reliable background operation</string>
+    <string name="background_setup_text">For a stable connection, set these up:</string>
+    <string name="background_setup_notifications_title">Enable notifications</string>
+    <string name="background_setup_battery_title">Battery usage</string>
+    <string name="background_setup_battery_desc">Set it to “No restrictions”</string>
+    <string name="background_setup_pin_title">Lock the app in Security</string>
+    <string name="background_setup_pin_desc">Security → Boost → ⚙ → Locked apps</string>
+    <string name="background_setup_done">Continue</string>
+    <string name="background_setup_later">Later</string>
 
     <string name="required_permissions">Required permissions:</string>
     <string name="granted_text">GRANTED</string>
@@ -150,8 +157,6 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="background_data_request_dialog_text">For a stable connection, please grant permission to disable data transfer restrictions in background for this app</string>
     <string name="permission_warning_text">Allow all permissions for stable connection on Settings screen</string>
 
-    <string name="permission_request_title">Permissions request</string>
-    <string name="permission_request_text">For a stable connection, please grant required permissions</string>
 
 
     <string name="sponsors_text">Thanks to our sponsors</string>

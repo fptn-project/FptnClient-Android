@@ -63,6 +63,7 @@ import org.fptn.vpn.enums.NetworkType;
 import org.fptn.vpn.enums.PerAppVpnMode;
 import org.fptn.vpn.enums.SniSpoofingMode;
 import org.fptn.vpn.services.tile.FptnTileService;
+import org.fptn.vpn.services.websocket.DnsServers;
 import org.fptn.vpn.utils.NetworkUtils;
 import org.fptn.vpn.utils.NotificationUtils;
 import org.fptn.vpn.utils.SharedPrefUtils;
@@ -82,6 +83,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
@@ -109,6 +111,22 @@ public class FptnService extends VpnService {
 
     private ConnectivityManager.NetworkCallback networkWaitCallback;
     private volatile int pendingServerId = SELECTED_SERVER_ID_AUTO;
+
+    private volatile DnsServers cachedDnsServers = null;
+    private volatile int cachedDnsServersServerId = -1;
+
+    private volatile boolean restoringSession = false;
+    // Number of reconnect attempts on the current server during a restore episode,
+    // before escalating to an all-server scan ("change server on connection loss").
+    private final AtomicInteger restoreRetryCount = new AtomicInteger(0);
+
+    // Grace period to wait for a NET_CAPABILITY_VALIDATED network after it appears,
+    // before attempting a connection anyway. Kept short so we never rely on Android's
+    // validation probe (which is routinely blocked in censored networks) — it is only a hint.
+    private static final long VALIDATED_GRACE_PERIOD_MS = 2000L;
+    private final Handler restoreHandler = new Handler(Looper.getMainLooper());
+    private final AtomicBoolean waitProceeded = new AtomicBoolean(false);
+    private final Runnable proceedAfterGraceRunnable = this::proceedFromWait;
 
     // Pending Intent for launch MainActivity when notification tapped
     private PendingIntent launchMainActivityPendingIntent;
@@ -164,7 +182,6 @@ public class FptnService extends VpnService {
     }
     /* binder part END */
 
-
     public void updateSpeedInfo(String downloadSpeed, String uploadSpeed, long duration, long totalDownload, long totalUpload, long downloadBps, long uploadBps) {
         if (serviceStateMutableLiveData.getValue().getConnectionState() == ConnectionState.CONNECTED) {
             if (SharedPrefUtils.getShowSpeedInNotification(getApplication())) {
@@ -202,6 +219,57 @@ public class FptnService extends VpnService {
             submittedConnectionAttempt = executorService.submit(this::handleFallbackToAllServers);
             return;
         }
+        if (restoringSession && Objects.equals(exception.errorCode, ErrorCode.CONNECT_TO_SERVER_ERROR)) {
+            int failedServerId = current.getServerEntity().getId();
+            // Network dropped again — stay in the waiting loop rather than giving up.
+            if (!NetworkUtils.isOnline(connectivityManager)) {
+                XLog.tag(TAG).i("Reconnect couldn't re-establish, offline — waiting for network [server=%d]",
+                        failedServerId);
+                enterWaitingForNetwork(failedServerId);
+                return;
+            }
+            // Finite attempts budget spent — the episode is over, report honestly.
+            if (remainingFallbackBudget.get() <= 0) {
+                XLog.tag(TAG).e("Reconnect: attempts budget exhausted — giving up");
+                restoringSession = false;
+                restoreRetryCount.set(0);
+                disconnect(new PVNClientException(ErrorCode.RECONNECTING_FAILED));
+                showReconnectionFailedNotification();
+                return;
+            }
+            int attempt = restoreRetryCount.incrementAndGet();
+            boolean autoFallbackEnabled = SharedPrefUtils.getAutoFallbackEnabled(this)
+                    && !current.getServerEntity().IsAuto();
+            int maxReconnectCount = SharedPrefUtils.getReconnectAttemptsCount(this);
+            int sameServerAttempts = autoFallbackEnabled
+                    ? Math.min(SharedPrefUtils.getAutoFallbackThreshold(this), maxReconnectCount)
+                    : maxReconnectCount;
+            // Give the current server a fair number of retries before switching servers.
+            // A single early failure (e.g. the link came up but isn't usable yet) must not
+            // escalate straight into an all-server scan and a terminal disconnect.
+            if (attempt <= sameServerAttempts) {
+                XLog.tag(TAG).i("Reconnect: attempt %d/%d on server %d failed — retrying same server",
+                        attempt, sameServerAttempts, failedServerId);
+                scheduleRestoreRetry(failedServerId, attempt);
+                return;
+            }
+            if (autoFallbackEnabled) {
+                XLog.tag(TAG).i("Reconnect: server %d exhausted after %d attempts — scanning for a working server",
+                        failedServerId, attempt);
+                setActiveConnection(null);
+                submittedConnectionAttempt = executorService.submit(this::handleFallbackToAllServers);
+                return;
+            }
+            // Server-change disabled (or Auto server): honour the reconnect-attempts budget and stop.
+            XLog.tag(TAG).e("Reconnect: server %d unreachable after %d attempts and fallback disabled — giving up",
+                    failedServerId, attempt);
+            restoringSession = false;
+            restoreRetryCount.set(0);
+            disconnect(exception);
+            return;
+        }
+        restoringSession = false;
+        restoreRetryCount.set(0);
         disconnect(exception);
         if (Objects.equals(exception.errorCode, ErrorCode.RECONNECTING_FAILED)) {
             showReconnectionFailedNotification();
@@ -222,6 +290,11 @@ public class FptnService extends VpnService {
             }
         }
         switchState(connectionState, reconnectionCount, disconnectReason);
+    }
+
+    public void cacheDnsServers(int serverId, DnsServers dnsServers) {
+        cachedDnsServers = dnsServers;
+        cachedDnsServersServerId = serverId;
     }
 
     /* Static methods to start/stop service */
@@ -316,6 +389,13 @@ public class FptnService extends VpnService {
         if (intent == null) {
             XLog.tag(TAG).w("Received null intent — service restarted by system; reconnecting");
             startForegroundWithNotification(getString(R.string.connecting));
+            // This IS a reconnection (the OS killed us mid-session): recover through the
+            // restore cycle instead of dying on the first failed scan — the network is often
+            // not usable yet right after a process kill.
+            restoringSession = true;
+            // Fresh process: the episode budget field is still 0 — fund the recovery episode,
+            // otherwise the first escalation to a scan sees an exhausted budget and dies.
+            remainingFallbackBudget.set(SharedPrefUtils.getReconnectAttemptsCount(this));
             startConnectionAttempt(SELECTED_SERVER_ID_AUTO);
             return START_NOT_STICKY;
         }
@@ -325,6 +405,11 @@ public class FptnService extends VpnService {
         XLog.tag(TAG).i("Received command [action=%s, state=%s]", intent.getAction(), currentState);
 
         if (ACTION_CONNECT.equals(intent.getAction()) && !isActiveState) {
+            restoringSession = false;
+            restoreRetryCount.set(0);
+            // Drop ALL pending restore work (grace runnable AND delayed retries) — a stale
+            // retry firing into the new session would race it with the old server id.
+            restoreHandler.removeCallbacksAndMessages(null);
             if (submittedConnectionAttempt != null && !submittedConnectionAttempt.isDone()) {
                 XLog.tag(TAG).w("Ignoring CONNECT — connection attempt already in progress [state=%s]", currentState);
                 return START_STICKY;
@@ -333,6 +418,12 @@ public class FptnService extends VpnService {
 
             if (!NetworkUtils.isOnline(connectivityManager)) {
                 XLog.tag(TAG).i("No internet — entering WAITING_FOR_NETWORK state");
+                // This IS the "reconnect on network loss" scenario the attempts setting is for:
+                // when the network returns half-alive, the first failed scan must go through the
+                // recovery cycle (retry/scan per the configured budget), not die with a terminal
+                // "all servers unreachable" — with restoringSession=false it did exactly that.
+                restoringSession = true;
+                remainingFallbackBudget.set(SharedPrefUtils.getReconnectAttemptsCount(this));
                 pendingServerId = intent.getIntExtra(SELECTED_SERVER, SELECTED_SERVER_ID_AUTO);
                 updateNotificationWithMessage(getString(R.string.waiting_for_network), "");
                 setConnectionState(ConnectionState.WAITING_FOR_NETWORK, null);
@@ -463,6 +554,13 @@ public class FptnService extends VpnService {
 
     public void enterWaitingForNetwork(int serverId) {
         XLog.tag(TAG).i("Network offline — entering WAITING_FOR_NETWORK [pendingServerId=%d]", serverId);
+        restoringSession = true;
+        // A genuine network-loss episode gives the server a fresh set of retries once it returns.
+        restoreRetryCount.set(0);
+        // Drop ALL pending restore work: a delayed same-server retry firing while we sit in
+        // WAITING_FOR_NETWORK would attempt offline and churn for nothing.
+        restoreHandler.removeCallbacksAndMessages(null);
+
         String serverInfo = getActionConnectServerInfo(); // capture before teardown nulls the connection
         pendingServerId = serverId;
         updateNotificationWithMessage(getString(R.string.waiting_for_network), serverInfo);
@@ -476,17 +574,72 @@ public class FptnService extends VpnService {
 
     private synchronized void registerNetworkWaitCallback() {
         unregisterNetworkWaitCallback();
+        waitProceeded.set(false);
+        restoreHandler.removeCallbacks(proceedAfterGraceRunnable);
         networkWaitCallback = new ConnectivityManager.NetworkCallback() {
             @Override
             public void onAvailable(@NonNull Network network) {
-                XLog.tag(TAG).i("Network available — resuming connection");
-                unregisterNetworkWaitCallback();
-                updateNotificationWithMessage(getString(R.string.connecting), "");
-                startConnectionAttempt(pendingServerId);
+                NetworkCapabilities caps = connectivityManager.getNetworkCapabilities(network);
+                if (caps != null && caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)) {
+                    XLog.tag(TAG).i("Network available and validated — resuming connection");
+                    proceedFromWait();
+                } else {
+                    // The link is up but Android hasn't validated it yet. Don't block on validation —
+                    // it is frequently unreachable under censorship. Wait a short grace period for
+                    // validation to arrive (onCapabilitiesChanged), then attempt anyway.
+                    XLog.tag(TAG).i("Network available but not yet validated — attempting in up to %dms", VALIDATED_GRACE_PERIOD_MS);
+                    restoreHandler.postDelayed(proceedAfterGraceRunnable, VALIDATED_GRACE_PERIOD_MS);
+                }
+            }
+
+            @Override
+            public void onCapabilitiesChanged(@NonNull Network network, @NonNull NetworkCapabilities caps) {
+                if (caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)) {
+                    XLog.tag(TAG).i("Network validated — resuming connection");
+                    proceedFromWait();
+                }
             }
         };
         connectivityManager.registerNetworkCallback(NetworkUtils.createNetworkRequest(), networkWaitCallback);
         XLog.tag(TAG).i("Waiting for network connectivity [pendingServerId=%d]", pendingServerId);
+    }
+
+    // Resume a pending connection attempt once — guarded so the validated-now path and the
+    // grace-period timeout can't both fire.
+    private void proceedFromWait() {
+        if (!waitProceeded.compareAndSet(false, true)) {
+            return;
+        }
+        restoreHandler.removeCallbacks(proceedAfterGraceRunnable);
+        unregisterNetworkWaitCallback();
+        updateNotificationWithMessage(getString(R.string.connecting), "");
+        startConnectionAttempt(pendingServerId);
+    }
+
+    // Sticky retry of the same server during a restore episode: schedule another attempt after
+    // the configured delay instead of tearing the session down. Keeps restoringSession true so a
+    // subsequent failure re-enters the restore logic (retry again, escalate, or wait for network).
+    private void scheduleRestoreRetry(int failedServerId, int attempt) {
+        String serverInfo = getActionConnectServerInfo(); // capture before teardown nulls the connection
+        setActiveConnection(null);
+        pendingServerId = failedServerId;
+        int delaySeconds = Math.max(1, SharedPrefUtils.getDelayBetweenReconnect(this));
+
+        String title = getString(R.string.reconnection_to) + serverInfo;
+        String message = getString(R.string.try_number) + attempt;
+        updateNotificationWithMessage(title, message);
+        serviceStateMutableLiveData.postValue(FptnServiceState.builder()
+                .connectionState(ConnectionState.RECONNECTING)
+                .exception(new PVNClientException(message))
+                .serverInfo(serverInfo)
+                .build());
+
+        XLog.tag(TAG).i("Restore: retrying server %d in %ds [attempt %d]", failedServerId, delaySeconds, attempt);
+        restoreHandler.postDelayed(() -> {
+            if (restoringSession) {
+                startConnectionAttempt(failedServerId);
+            }
+        }, delaySeconds * 1000L);
     }
 
     private synchronized void unregisterNetworkWaitCallback() {
@@ -550,6 +703,18 @@ public class FptnService extends VpnService {
                         setSelectedServer(server.getId());
                         connect(server, sniHostname, loginResult.getAccessToken());
                     } catch (PVNClientException e) {
+                        // During a reconnect episode a failed scan is not terminal: the network may
+                        // have just come back and not be usable yet. Keep recovering — only a cold
+                        // user-initiated connect is allowed to fail hard.
+                        if (restoringSession) {
+                            XLog.tag(TAG).w("Auto-select failed during reconnect: %s — continuing recovery", e.getMessage());
+                            if (!NetworkUtils.isOnline(connectivityManager)) {
+                                enterWaitingForNetwork(SELECTED_SERVER_ID_AUTO);
+                            } else {
+                                submittedConnectionAttempt = executorService.submit(this::handleFallbackToAllServers);
+                            }
+                            return;
+                        }
                         XLog.tag(TAG).e("Auto-select failed — all servers unreachable: %s", e.getMessage());
                         disconnect(e);
                     }
@@ -586,6 +751,12 @@ public class FptnService extends VpnService {
             }
             case CONNECTING -> setConnectionState(ConnectionState.CONNECTING, null);
             case CONNECTED -> {
+                // Success fully closes the recovery episode: clear the restore flag, zero the
+                // attempt counters, refill the budget and drop any pending restore work.
+                restoringSession = false;
+                restoreRetryCount.set(0);
+                remainingFallbackBudget.set(SharedPrefUtils.getReconnectAttemptsCount(this));
+                restoreHandler.removeCallbacksAndMessages(null);
                 String serverInfo = getActionConnectServerInfo();
                 updateNotificationWithMessage(getString(R.string.connected_to) + serverInfo, "");
 
@@ -625,21 +796,29 @@ public class FptnService extends VpnService {
     }
 
     private void connect(ServerEntity serverEntity, String sniHostname, String preFetchedToken) throws UnknownHostException {
-        int maxReconnectCount = SharedPrefUtils.getReconnectAttemptsCount(this);
+        // A cold connect opens a new episode with the full configured budget. During a restore
+        // episode the remaining budget carries over, so the configured attempts count is honoured
+        // across same-server retries, scans and handoffs. <= 0 means uninitialised (fresh process
+        // restarted by the OS mid-episode) — start a full episode then.
+        if (!restoringSession || remainingFallbackBudget.get() <= 0) {
+            remainingFallbackBudget.set(SharedPrefUtils.getReconnectAttemptsCount(this));
+        }
+        int budget = remainingFallbackBudget.get();
         boolean autoFallbackEnabled = SharedPrefUtils.getAutoFallbackEnabled(this);
         int fallbackThreshold = (autoFallbackEnabled && !serverEntity.IsAuto())
-                ? Math.min(SharedPrefUtils.getAutoFallbackThreshold(this), maxReconnectCount) : 0;
-        remainingFallbackBudget.set(maxReconnectCount);
-        connectInternal(serverEntity, sniHostname, preFetchedToken, maxReconnectCount, fallbackThreshold);
+                ? Math.min(SharedPrefUtils.getAutoFallbackThreshold(this), budget) : 0;
+        connectInternal(serverEntity, sniHostname, preFetchedToken, budget, fallbackThreshold);
     }
 
     private void connectWithRemainingAttempts(ServerEntity serverEntity, String sniHostname, String preFetchedToken) throws UnknownHostException {
-        int maxReconnectCount = SharedPrefUtils.getReconnectAttemptsCount(this);
+        // Handoff after a scan: continue the episode on the REMAINING budget. Resetting it here
+        // (the old behaviour) made the drop→scan→handoff cycle unbounded for finite attempt
+        // counts — the budget refilled to max on every handoff.
+        int budget = Math.max(1, remainingFallbackBudget.get());
         boolean autoFallbackEnabled = SharedPrefUtils.getAutoFallbackEnabled(this);
         int fallbackThreshold = (autoFallbackEnabled && !serverEntity.IsAuto())
-                ? Math.min(SharedPrefUtils.getAutoFallbackThreshold(this), maxReconnectCount) : 0;
-        remainingFallbackBudget.set(maxReconnectCount);
-        connectInternal(serverEntity, sniHostname, preFetchedToken, maxReconnectCount, fallbackThreshold);
+                ? Math.min(SharedPrefUtils.getAutoFallbackThreshold(this), budget) : 0;
+        connectInternal(serverEntity, sniHostname, preFetchedToken, budget, fallbackThreshold);
     }
 
     private void connectInternal(ServerEntity serverEntity, String sniHostname, String preFetchedToken, int maxReconnectCount, int fallbackThreshold) throws UnknownHostException {
@@ -711,6 +890,9 @@ public class FptnService extends VpnService {
         boolean customDnsEnabled = SharedPrefUtils.getCustomDnsEnabled(this);
         String customDnsIpv4 = customDnsEnabled ? SharedPrefUtils.getCustomDnsIpv4(this) : null;
 
+        DnsServers preFetchedDnsServers = (cachedDnsServers != null && cachedDnsServersServerId == serverEntity.getId())
+                ? cachedDnsServers : null;
+
         connection = new FptnConnection(
                 this,
                 nextConnectionId.getAndIncrement(),
@@ -729,7 +911,8 @@ public class FptnService extends VpnService {
                 preFetchedToken,
                 connectivityManager,
                 adBlocker,
-                customDnsIpv4
+                customDnsIpv4,
+                preFetchedDnsServers
         );
         connection.setConfigureVpnIntent(launchMainActivityPendingIntent);
         connection.start();
@@ -762,6 +945,14 @@ public class FptnService extends VpnService {
 
             int maxReconnectCount = SharedPrefUtils.getReconnectAttemptsCount(this);
             while (!Thread.currentThread().isInterrupted()) {
+                // Offline: scanning 52 servers every second is pointless and drains the battery
+                // (inviting an OEM process kill). Park in WAITING_FOR_NETWORK and resume via the
+                // network callback instead.
+                if (!NetworkUtils.isOnline(connectivityManager)) {
+                    XLog.tag(TAG).i("Fallback: network offline — suspending scan, waiting for network");
+                    enterWaitingForNetwork(SELECTED_SERVER_ID_AUTO);
+                    return;
+                }
                 int currentAttempt = maxReconnectCount - remainingFallbackBudget.get() + 1;
                 String errorMessage = getString(R.string.try_number_fallback) + currentAttempt;
                 updateNotificationWithMessage(getString(R.string.connecting_auto), errorMessage);
@@ -786,6 +977,13 @@ public class FptnService extends VpnService {
                     XLog.tag(TAG).i("Fallback: selected [id=%d, name=%s] with %d scan budget remaining",
                             server.getId(), server.getName(), remainingFallbackBudget.get());
                     setSelectedServer(server.getId());
+                    // Handoff from scan to a full connection attempt. The login probe passed, but
+                    // the full establish (TUN + DNS + WebSocket) can still fail. Keep the session
+                    // in restore mode so that failure routes back into retry/fallback instead of a
+                    // terminal disconnect — otherwise a single handoff miss kills the service even
+                    // with unlimited reconnect attempts configured.
+                    restoringSession = true;
+                    restoreRetryCount.set(0);
                     connectWithRemainingAttempts(server, sniHostname, loginResult.getAccessToken());
                     return;
                 } catch (PVNClientException scanException) {
@@ -873,6 +1071,17 @@ public class FptnService extends VpnService {
     }
 
     private void disconnect(PVNClientException exception, String disconnectReasonKey) {
+        // Cancel any pending restore work so a scheduled retry can't resurrect a torn-down session.
+        restoringSession = false;
+        restoreRetryCount.set(0);
+        restoreHandler.removeCallbacksAndMessages(null);
+        // Stop an in-flight scan/connect task too — otherwise it can outlive this disconnect
+        // and re-establish a session nobody asked for. Self-cancel (when disconnect runs inside
+        // that very task) is harmless: nothing below blocks on the interrupt flag.
+        Future<?> pendingAttempt = submittedConnectionAttempt;
+        if (pendingAttempt != null && !pendingAttempt.isDone()) {
+            pendingAttempt.cancel(true);
+        }
         String disconnectReason = resolveDisconnectReason(disconnectReasonKey);
         if (exception == null && disconnectReason == null) {
             XLog.tag(TAG).w("DISCONNECT REASON: user action");

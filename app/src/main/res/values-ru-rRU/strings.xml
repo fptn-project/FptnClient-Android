@@ -104,8 +104,6 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
 
     <string name="unknown_error">Произошла неизвестная ошибка!</string>
 
-    <string name="notifications_request_title">Необходимо разрешение на вывод уведомлений!</string>
-    <string name="notifications_request_reason">Для устойчивой работы сервиса приложению необходимо выводить уведомление об активном соединении</string>
     <string name="grant">Предоставить</string>
     <string name="deny">Отказать</string>
 
@@ -127,6 +125,15 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="warning">Внимание</string>
     <string name="battery_optimization_request_dialog_title">Откл оптимизацию батареи</string>
     <string name="battery_optimization_request_dialog_text">Для стабильного подключения предоставьте разрешение на отключение оптимизации энергопотребления для этого приложения</string>
+    <string name="background_setup_title">Стабильная работа в фоне</string>
+    <string name="background_setup_text">Для стабильного соединения настройте:</string>
+    <string name="background_setup_notifications_title">Включить уведомления</string>
+    <string name="background_setup_battery_title">Экономия батареи</string>
+    <string name="background_setup_battery_desc">Нужно выставить «Без ограничений»</string>
+    <string name="background_setup_pin_title">Закрепить в «Безопасности»</string>
+    <string name="background_setup_pin_desc">Безопасность → Ускорение → ⚙ → Закрепление приложений</string>
+    <string name="background_setup_done">Продолжить</string>
+    <string name="background_setup_later">Позже</string>
 
     <string name="required_permissions">Необходимые разрешения:</string>
     <string name="denied_text">ОТКЛОНЕНО</string>
@@ -138,8 +145,6 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="show_notification_label">Обязательные уведомления</string>
     <string name="permission_warning_text">Для стабильной работы приложения предоставьте все разрешения на экране настроек</string>
 
-    <string name="permission_request_title">Запрос разрешений</string>
-    <string name="permission_request_text">Для стабильного соединения предоставьте необходимые разрешения</string>
 
     <string name="sponsors_text">Спасибо нашим спонсорам</string>
     <string name="experimental_features_label">Дополнительные настройки</string>
