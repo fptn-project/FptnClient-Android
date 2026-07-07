@@ -64,6 +64,7 @@ public class ExperimentalSettingsActivity extends AppCompatActivity {
     private View autoFallbackThresholdLayout;
     private SeekBar seekBarFallbackThreshold;
     private SwitchCompat showSpeedInNotificationSwitch;
+    private SwitchCompat showTrafficChartSwitch;
     private SwitchCompat adBlockSwitch;
 
     @Override
@@ -86,6 +87,9 @@ public class ExperimentalSettingsActivity extends AppCompatActivity {
                 (buttonView, isChecked) -> updateCustomDnsInputVisibility(isChecked));
         showSpeedInNotificationSwitch = findViewById(R.id.show_speed_in_notification_switch);
         showSpeedInNotificationSwitch.setChecked(SharedPrefUtils.getShowSpeedInNotification(this));
+
+        showTrafficChartSwitch = findViewById(R.id.show_traffic_chart_switch);
+        showTrafficChartSwitch.setChecked(SharedPrefUtils.getShowTrafficChart(this));
 
         adBlockSwitch = findViewById(R.id.ad_block_switch);
         adBlockSwitch.setChecked(SharedPrefUtils.getAdBlockEnabled(this));
@@ -215,6 +219,7 @@ public class ExperimentalSettingsActivity extends AppCompatActivity {
         customDnsSwitch.setChecked(false);
         customDnsInput.setText("");
         showSpeedInNotificationSwitch.setChecked(false);
+        showTrafficChartSwitch.setChecked(true);
         adBlockSwitch.setChecked(true);
         switchNetworkType.setChecked(true);
         switchIPAddress.setChecked(true);
@@ -228,6 +233,7 @@ public class ExperimentalSettingsActivity extends AppCompatActivity {
         SharedPrefUtils.saveCustomDnsEnabled(this, false);
         SharedPrefUtils.saveCustomDnsIpv4(this, "");
         SharedPrefUtils.saveShowSpeedInNotification(this, false);
+        SharedPrefUtils.saveShowTrafficChart(this, true);
         SharedPrefUtils.saveAdBlockEnabled(this, true);
         SharedPrefUtils.saveReconnectOnChangeNetworkTypeEnabled(this, true);
         SharedPrefUtils.saveReconnectOnChangeIPEnabled(this, true);
@@ -328,6 +334,7 @@ public class ExperimentalSettingsActivity extends AppCompatActivity {
         XLog.tag(TAG).i("Experimental settings saved [watchNetwork=%b, watchIP=%b, attempts=%d, delay=%ds]", switchNetworkType.isChecked(), switchIPAddress.isChecked(), seekBarAttemptsCount.getProgress(), seekBarDelayBetween.getProgress() + 1);
 
         SharedPrefUtils.saveShowSpeedInNotification(this, showSpeedInNotificationSwitch.isChecked());
+        SharedPrefUtils.saveShowTrafficChart(this, showTrafficChartSwitch.isChecked());
         SharedPrefUtils.saveAdBlockEnabled(this, adBlockSwitch.isChecked());
         SharedPrefUtils.saveReconnectOnChangeNetworkTypeEnabled(this, switchNetworkType.isChecked());
         SharedPrefUtils.saveReconnectOnChangeIPEnabled(this, switchIPAddress.isChecked());
