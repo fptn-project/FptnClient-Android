@@ -115,10 +115,6 @@ public class PermissionsUtils {
         return false;
     }
 
-    public static boolean isAllOptionalPermissionsGranted(Context context) {
-        return checkBackgroundDataTransferRestrictions(context) && checkBatteryOptimizations(context);
-    }
-
     public static boolean checkNotificationEnabled(Context context) {
         NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         if (!notificationManager.areNotificationsEnabled()) {
@@ -182,6 +178,28 @@ public class PermissionsUtils {
             XLog.tag(TAG).e("Failed to open settings for MIUI guidance: %s", e.getMessage());
             return false;
         }
+    }
+
+    /**
+     * Launches the MIUI "Security" app so the user can reach the "Locked apps" (pin in memory)
+     * screen. Deep-linking straight to that screen is not a stable public API across HyperOS
+     * versions, so we open the app by package and fall back to the app-details screen.
+     *
+     * @return true if some screen was launched.
+     */
+    public static boolean openMiuiSecurityApp(Context context) {
+        try {
+            Intent intent = context.getPackageManager()
+                    .getLaunchIntentForPackage("com.miui.securitycenter");
+            if (intent != null) {
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                context.startActivity(intent);
+                return true;
+            }
+        } catch (Exception e) {
+            XLog.tag(TAG).w("Failed to open MIUI Security app: %s", e.getMessage());
+        }
+        return openMiuiBackgroundSettings(context);
     }
 
     public static boolean checkBackgroundDataTransferRestrictions(Context context) {

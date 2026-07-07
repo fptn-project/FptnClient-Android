@@ -30,12 +30,15 @@ import android.content.ServiceConnection;
 import android.graphics.drawable.Icon;
 import android.net.Uri;
 import android.net.VpnService;
+import android.Manifest;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.provider.Settings;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
@@ -70,7 +73,6 @@ import com.google.android.material.snackbar.Snackbar;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import lombok.Getter;
 
@@ -98,6 +100,18 @@ public class HomeActivity extends AppCompatActivity {
     private CustomSpinner spinnerServers;
 
     private ToggleButton startStopButton;
+
+    // Background-setup checklist dialog (notifications / battery / pin), refreshed on resume
+    private AlertDialog backgroundSetupDialog;
+    private ImageView notificationsStateIcon;
+    private ImageView batteryStateIcon;
+    private Button backgroundSetupContinueButton;
+    // Notifications/battery are gated on the real grant state; only the Xiaomi "lock in Security"
+    // step (which can't be read back) is gated on the user having opened it.
+    private boolean visitedPin;
+    private boolean connectAfterBackgroundSetup;
+    // POST_NOTIFICATIONS permanently denied — the system dialog won't show again, use settings.
+    private boolean notificationPermanentlyDenied;
 
     //for service binding
     private ServiceConnection connection;
@@ -254,6 +268,8 @@ public class HomeActivity extends AppCompatActivity {
         bottomNavigationView.setOnItemSelectedListener(new CustomBottomNavigationListener(this, R.id.menuHome));
 
         permissionWarningFrame = findViewById(R.id.home_permission_warning_frame);
+        // Re-entry point: tapping the warning re-opens the checklist (without forcing a connect).
+        permissionWarningFrame.setOnClickListener(v -> showBackgroundSetupDialog(false));
 
         // hide
         disconnectedStateUiItems();
@@ -315,6 +331,11 @@ public class HomeActivity extends AppCompatActivity {
             bottomNavigationView.setSelectedItemId(R.id.menuHome);
         }
 
+        // Returned from a system settings screen — refresh the checklist marks.
+        if (backgroundSetupDialog != null && backgroundSetupDialog.isShowing()) {
+            refreshBackgroundSetupStates();
+        }
+
         Optional.ofNullable(viewModel.getServiceStateMutableLiveData())
                 .map(LiveData::getValue)
                 .map(FptnServiceState::getConnectionState)
@@ -346,12 +367,22 @@ public class HomeActivity extends AppCompatActivity {
         ViewUtils.showView(serverInfoFrame);
         ViewUtils.showView(homeTrafficFrame);
 
-        // check is need to show permissions warning
-        if (!PermissionsUtils.isAllOptionalPermissionsGranted(this)) {
+        // Show the warning banner on exactly the same condition the checklist opens on, so the two
+        // never disagree (and tapping the banner can actually clear it).
+        if (needsBackgroundSetup()) {
             ViewUtils.showView(permissionWarningFrame);
         }
 
         ViewUtils.hideView(spinnerServers);
+    }
+
+    // Single source of truth for "background setup incomplete": notifications + battery on every
+    // device, plus the Xiaomi "lock in Security" step (persisted once opened, since it can't be
+    // read back). Used by both the connect gate and the home warning banner.
+    private boolean needsBackgroundSetup() {
+        return !PermissionsUtils.checkNotificationEnabled(this)
+                || !PermissionsUtils.checkBatteryOptimizations(this)
+                || (PermissionsUtils.isXiaomi() && !SharedPrefUtils.isXiaomiPinDone(this));
     }
 
     public void onClickToStartStop(View v) {
@@ -360,26 +391,10 @@ public class HomeActivity extends AppCompatActivity {
                 .orElse(ConnectionState.DISCONNECTED);
         if (currentConnectionState == ConnectionState.DISCONNECTED) {
 
-            // Check notification enabled
-            if (!PermissionsUtils.checkNotificationEnabled(this)) {
-                Toast.makeText(this, R.string.notifications_request_title, Toast.LENGTH_SHORT)
-                        .show();
-
-                Intent intent = new Intent();
-                intent.setAction(Settings.ACTION_APP_NOTIFICATION_SETTINGS);
-                intent.putExtra(Settings.EXTRA_APP_PACKAGE, getPackageName());
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(intent);
-
+            if (needsBackgroundSetup()) {
                 startStopButton.setChecked(false);
-                return;
-            }
-
-            // Ask for optional permissions until user grants them; once granted, never ask again
-            if (!SharedPrefUtils.isPermissionsRequested(this)) {
-                startStopButton.setChecked(false);
-                requestRequiredPermissions();
-                // proceedToVpnConnect() is called from the dialog callbacks — not here
+                showBackgroundSetupDialog(true);
+                // proceedToVpnConnect() is called from the dialog's Continue button — not here
                 return;
             }
 
@@ -392,14 +407,6 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     private void proceedToVpnConnect() {
-        // MIUI kills background apps regardless of the battery exemption, dropping the VPN (and
-        // leaking the real IP) while the screen is off. Guide Xiaomi users to the background /
-        // battery settings once before the first connect.
-        if (PermissionsUtils.isXiaomi() && !SharedPrefUtils.isXiaomiBackgroundHintShown(this)) {
-            SharedPrefUtils.saveXiaomiBackgroundHintShown(this, true);
-            showXiaomiBackgroundHintDialog();
-            return;
-        }
         if (PermissionsUtils.isAlwaysOnVpnEnabledByAnotherApp(this)) {
             startStopButton.setChecked(false);
             showVpnSwitchDialog();
@@ -408,19 +415,127 @@ public class HomeActivity extends AppCompatActivity {
         connectVpn();
     }
 
-    private void showXiaomiBackgroundHintDialog() {
-        new AlertDialog.Builder(this)
-                .setTitle(R.string.xiaomi_background_hint_title)
-                .setMessage(R.string.xiaomi_background_hint_text)
-                .setCancelable(false)
-                .setPositiveButton(R.string.xiaomi_background_hint_open, (d, w) -> {
-                    // User is heading into system settings — don't auto-connect; they can tap
-                    // connect again when they return (the hint won't show a second time).
-                    startStopButton.setChecked(false);
-                    PermissionsUtils.openMiuiBackgroundSettings(this);
+    private void showBackgroundSetupDialog(boolean connectOnDone) {
+        connectAfterBackgroundSetup = connectOnDone;
+        visitedPin = false;
+
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_background_setup, null);
+        // Buttons live in the dialog's fixed footer, so on small screens they stay visible while the
+        // checklist itself scrolls. "Continue" (positive) is gated in refresh(); "Later" (negative)
+        // is always available so the user is never trapped. Both dismiss and, in the connect flow,
+        // proceed to connect. The checklist reappears next connect while something is outstanding.
+        backgroundSetupDialog = new AlertDialog.Builder(this)
+                .setView(dialogView)
+                .setCancelable(true)
+                .setPositiveButton(R.string.background_setup_done, (d, w) -> {
+                    if (connectAfterBackgroundSetup) {
+                        proceedToVpnConnect();
+                    }
                 })
-                .setNegativeButton(R.string.xiaomi_background_hint_later, (d, w) -> proceedToVpnConnect())
-                .show();
+                .setNegativeButton(R.string.background_setup_later, (d, w) -> {
+                    if (connectAfterBackgroundSetup) {
+                        proceedToVpnConnect();
+                    }
+                })
+                .create();
+
+        View rowNotifications = dialogView.findViewById(R.id.row_notifications);
+        View rowBattery = dialogView.findViewById(R.id.row_battery);
+        View rowPin = dialogView.findViewById(R.id.row_pin);
+        notificationsStateIcon = dialogView.findViewById(R.id.row_notifications_state);
+        batteryStateIcon = dialogView.findViewById(R.id.row_battery_state);
+
+        // Notifications and battery apply to every device; the "lock in Security" step is Xiaomi-only.
+        rowPin.setVisibility(PermissionsUtils.isXiaomi() ? View.VISIBLE : View.GONE);
+
+        // Rows open system screens; keep the dialog up so the user does every step and then taps
+        // Continue. State refreshes on resume, so the check marks reflect what was actually granted.
+        rowNotifications.setOnClickListener(v -> {
+            startStopButton.setChecked(false);
+            requestNotifications();
+        });
+        rowBattery.setOnClickListener(v -> {
+            startStopButton.setChecked(false);
+            SharedPrefUtils.saveBatteryOptimizationRequested(this, true);
+            openBatteryOptimizationSettings();
+        });
+        rowPin.setOnClickListener(v -> {
+            startStopButton.setChecked(false);
+            visitedPin = true;
+            SharedPrefUtils.saveXiaomiPinDone(this, true);
+            refreshBackgroundSetupStates();
+            PermissionsUtils.openMiuiSecurityApp(this);
+        });
+
+        // getButton() is only valid after show() — grab "Continue" then and gate it.
+        backgroundSetupDialog.setOnShowListener(d -> {
+            backgroundSetupContinueButton = backgroundSetupDialog.getButton(AlertDialog.BUTTON_POSITIVE);
+            refreshBackgroundSetupStates();
+        });
+        backgroundSetupDialog.setOnDismissListener(d -> {
+            backgroundSetupDialog = null;
+            notificationsStateIcon = null;
+            batteryStateIcon = null;
+            backgroundSetupContinueButton = null;
+        });
+        backgroundSetupDialog.show();
+    }
+
+    // Notifications and battery are gated on the REAL grant state (honest check marks); the Xiaomi
+    // pin step is gated on the user having opened it, since MIUI exposes no way to read it back.
+    // Called again on resume so state updates after returning from a system screen.
+    private void refreshBackgroundSetupStates() {
+        boolean notificationsDone = PermissionsUtils.checkNotificationEnabled(this);
+        boolean batteryDone = PermissionsUtils.checkBatteryOptimizations(this);
+        boolean pinDone = !PermissionsUtils.isXiaomi() || visitedPin || SharedPrefUtils.isXiaomiPinDone(this);
+
+        if (notificationsStateIcon != null) {
+            notificationsStateIcon.setImageResource(notificationsDone
+                    ? R.drawable.ic_check_16 : R.drawable.ic_outline_arrow_forward_ios_16);
+        }
+        if (batteryStateIcon != null) {
+            batteryStateIcon.setImageResource(batteryDone
+                    ? R.drawable.ic_check_16 : R.drawable.ic_outline_arrow_forward_ios_16);
+        }
+        if (backgroundSetupContinueButton != null) {
+            backgroundSetupContinueButton.setEnabled(notificationsDone && batteryDone && pinDone);
+        }
+    }
+
+    private void requestNotifications() {
+        if (PermissionsUtils.checkNotificationEnabled(this)) {
+            refreshBackgroundSetupStates();
+            return;
+        }
+        // Android 13+: one-tap runtime prompt while it's still available; otherwise settings.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !notificationPermanentlyDenied) {
+            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS);
+        } else {
+            openNotificationSettings();
+        }
+    }
+
+    private void openNotificationSettings() {
+        try {
+            Intent intent = new Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS);
+            intent.putExtra(Settings.EXTRA_APP_PACKAGE, getPackageName());
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+        } catch (Exception e) {
+            XLog.tag(TAG).w("Failed to open notification settings: %s", e.getMessage());
+            PermissionsUtils.openMiuiBackgroundSettings(this);
+        }
+    }
+
+    @SuppressLint("BatteryLife")
+    private void openBatteryOptimizationSettings() {
+        try {
+            Intent intent = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+            intent.setData(Uri.parse("package:" + getPackageName()));
+            startActivity(intent);
+        } catch (Exception e) {
+            PermissionsUtils.openMiuiBackgroundSettings(this);
+        }
     }
 
     private void connectVpn() {
@@ -499,63 +614,16 @@ public class HomeActivity extends AppCompatActivity {
             }
     );
 
-    private final AtomicInteger requestedPermissions = new AtomicInteger(0);
-
-    private final ActivityResultLauncher<Intent> settingsPermissionActivityResultLauncher = registerForActivityResult(
-            new ActivityResultContracts.StartActivityForResult(),
-            activityResult -> {
-                if (activityResult != null && activityResult.getResultCode() == RESULT_OK) {
-                    XLog.tag(TAG).i("System permission granted via Settings");
-                } else {
-                    XLog.tag(TAG).w("System permission denied via Settings");
+    private final ActivityResultLauncher<String> notificationPermissionLauncher = registerForActivityResult(
+            new ActivityResultContracts.RequestPermission(),
+            granted -> {
+                // If it wasn't granted and the system won't show the dialog again, the only path
+                // left is the notification settings screen.
+                if (!granted && !shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS)) {
+                    notificationPermanentlyDenied = true;
                 }
-                if (requestedPermissions.decrementAndGet() == 0) {
-                    if (PermissionsUtils.isAllOptionalPermissionsGranted(this)) {
-                        SharedPrefUtils.savePermissionsRequested(this, true);
-                    }
-                    proceedToVpnConnect();
-                }
+                refreshBackgroundSetupStates();
             }
     );
-
-    /* PERMISSIONS PART */
-    @SuppressLint("BatteryLife")
-    private void requestRequiredPermissions() {
-        new AlertDialog.Builder(this)
-                .setTitle(getString(R.string.permission_request_title))
-                .setMessage(getString(R.string.permission_request_text))
-                .setPositiveButton(getString(R.string.grant), (d, w) -> {
-                    // Battery optimization permission
-                    if (!PermissionsUtils.checkBatteryOptimizations(this)) {
-                        //Manifest.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
-                        requestedPermissions.incrementAndGet();
-                        // On MIUI the OS never reports the exemption back — record that we asked so
-                        // the check can settle instead of re-prompting on every connect.
-                        SharedPrefUtils.saveBatteryOptimizationRequested(this, true);
-                        startActivityWithSettings(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
-                    }
-                    // Background data transfer restriction permission
-                    if (!PermissionsUtils.checkBackgroundDataTransferRestrictions(this)) {
-                        requestedPermissions.incrementAndGet();
-                        startActivityWithSettings(Settings.ACTION_IGNORE_BACKGROUND_DATA_RESTRICTIONS_SETTINGS);
-                    }
-                    // Nothing to open — permissions already granted, save and proceed
-                    if (requestedPermissions.get() == 0) {
-                        SharedPrefUtils.savePermissionsRequested(this, true);
-                        proceedToVpnConnect();
-                    }
-                })
-                .setNegativeButton(getString(R.string.deny), (dialog, which) -> {
-                    XLog.tag(TAG).w("Optional permissions denied by user — continuing without them");
-                    proceedToVpnConnect();
-                })
-                .show();
-    }
-
-    private void startActivityWithSettings(String settingsAction) {
-        Intent intent = new Intent(settingsAction);
-        intent.setData(Uri.parse("package:" + getPackageName()));
-        settingsPermissionActivityResultLauncher.launch(intent);
-    }
 
 }

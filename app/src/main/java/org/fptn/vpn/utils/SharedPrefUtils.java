@@ -56,16 +56,6 @@ public class SharedPrefUtils {
         sharedPreferences.edit().putInt(channelVersionTag, version).apply();
     }
 
-    public static boolean isPermissionsRequested(Context context) {
-        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
-        return sharedPreferences.getBoolean(Constants.PERMISSIONS_REQUESTED_SHARED_PREF_KEY, false);
-    }
-
-    public static void savePermissionsRequested(Context context, boolean requested) {
-        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
-        sharedPreferences.edit().putBoolean(Constants.PERMISSIONS_REQUESTED_SHARED_PREF_KEY, requested).apply();
-    }
-
     public static boolean isBatteryOptimizationRequested(Context context) {
         SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
         return sharedPreferences.getBoolean(Constants.BATTERY_OPTIMIZATION_REQUESTED_SHARED_PREF_KEY, false);
@@ -76,14 +66,16 @@ public class SharedPrefUtils {
         sharedPreferences.edit().putBoolean(Constants.BATTERY_OPTIMIZATION_REQUESTED_SHARED_PREF_KEY, requested).apply();
     }
 
-    public static boolean isXiaomiBackgroundHintShown(Context context) {
+    // Xiaomi "lock in Security" can't be read back from the OS, so we remember once the user has
+    // opened it and treat the step as handled from then on.
+    public static boolean isXiaomiPinDone(Context context) {
         SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
-        return sharedPreferences.getBoolean(Constants.XIAOMI_BACKGROUND_HINT_SHOWN_SHARED_PREF_KEY, false);
+        return sharedPreferences.getBoolean(Constants.XIAOMI_PIN_DONE_SHARED_PREF_KEY, false);
     }
 
-    public static void saveXiaomiBackgroundHintShown(Context context, boolean shown) {
+    public static void saveXiaomiPinDone(Context context, boolean done) {
         SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
-        sharedPreferences.edit().putBoolean(Constants.XIAOMI_BACKGROUND_HINT_SHOWN_SHARED_PREF_KEY, shown).apply();
+        sharedPreferences.edit().putBoolean(Constants.XIAOMI_PIN_DONE_SHARED_PREF_KEY, done).apply();
     }
 
     /* QUICK SETTINGS TILE */

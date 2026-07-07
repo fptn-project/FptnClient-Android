@@ -51,9 +51,8 @@ object Constants {
     const val RESET_SELECTED_SERVER_PREF_KEY: String = "RESET_SELECTED_SERVER_PREF_KEY"
     const val RESET_SELECTED_SERVER_ON_EXCEPTION_PREF_KEY: String = "RESET_SELECTED_SERVER_ON_EXCEPTION_PREF_KEY"
     const val APPLICATION_SHARED_PREFERENCES = "fptnvpn-shared-preferences"
-    const val PERMISSIONS_REQUESTED_SHARED_PREF_KEY: String = "permissions_requested_previously"
     const val BATTERY_OPTIMIZATION_REQUESTED_SHARED_PREF_KEY: String = "battery_optimization_requested"
-    const val XIAOMI_BACKGROUND_HINT_SHOWN_SHARED_PREF_KEY: String = "xiaomi_background_hint_shown"
+    const val XIAOMI_PIN_DONE_SHARED_PREF_KEY: String = "xiaomi_pin_done"
     const val RECONNECT_ON_CHANGE_IP_ENABLED_SHARED_PREF_KEY: String = "RECONNECT_ON_CHANGE_IP_ENABLED_V2"
     const val RECONNECT_ON_CHANGE_NETWORK_TYPE_ENABLED_SHARED_PREF_KEY: String =
         "RECONNECT_ON_CHANGE_NETWORK_TYPE_ENABLED"
