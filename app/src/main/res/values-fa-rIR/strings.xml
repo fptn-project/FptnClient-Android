@@ -128,6 +128,10 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="warning">هشدار</string>
     <string name="battery_optimization_request_dialog_title">غیرفعال‌سازی بهینه‌سازی باتری</string>
     <string name="battery_optimization_request_dialog_text">برای اتصال پایدار، لطفاً مجوز غیرفعال‌سازی بهینه‌سازی مصرف انرژی برای این برنامه را ارائه دهید</string>
+    <string name="xiaomi_background_hint_title">اجازه اجرا در پس‌زمینه</string>
+    <string name="xiaomi_background_hint_text">برای کارکرد پایدار در پس‌زمینه، «صرفه‌جویی باتری» را برای این برنامه روی «بدون محدودیت» تنظیم کنید.</string>
+    <string name="xiaomi_background_hint_open">باز کردن تنظیمات</string>
+    <string name="xiaomi_background_hint_later">ادامه</string>
 
     <string name="required_permissions">مجوزهای مورد نیاز:</string>
     <string name="denied_text">رد شده</string>

@@ -138,6 +138,10 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
 
     <string name="battery_optimization_request_dialog_title">Disable battery optimization</string>
     <string name="battery_optimization_request_dialog_text">For a stable connection, please grant permission to disable battery optimization for this app</string>
+    <string name="xiaomi_background_hint_title">Allow background operation</string>
+    <string name="xiaomi_background_hint_text">For stable background operation, set \"Battery saver\" to \"No restrictions\" for this app.</string>
+    <string name="xiaomi_background_hint_open">Open settings</string>
+    <string name="xiaomi_background_hint_later">Continue</string>
 
     <string name="required_permissions">Required permissions:</string>
     <string name="granted_text">GRANTED</string>

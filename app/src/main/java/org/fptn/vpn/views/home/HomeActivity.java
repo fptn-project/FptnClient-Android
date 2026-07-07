@@ -392,12 +392,35 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     private void proceedToVpnConnect() {
+        // MIUI kills background apps regardless of the battery exemption, dropping the VPN (and
+        // leaking the real IP) while the screen is off. Guide Xiaomi users to the background /
+        // battery settings once before the first connect.
+        if (PermissionsUtils.isXiaomi() && !SharedPrefUtils.isXiaomiBackgroundHintShown(this)) {
+            SharedPrefUtils.saveXiaomiBackgroundHintShown(this, true);
+            showXiaomiBackgroundHintDialog();
+            return;
+        }
         if (PermissionsUtils.isAlwaysOnVpnEnabledByAnotherApp(this)) {
             startStopButton.setChecked(false);
             showVpnSwitchDialog();
             return;
         }
         connectVpn();
+    }
+
+    private void showXiaomiBackgroundHintDialog() {
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.xiaomi_background_hint_title)
+                .setMessage(R.string.xiaomi_background_hint_text)
+                .setCancelable(false)
+                .setPositiveButton(R.string.xiaomi_background_hint_open, (d, w) -> {
+                    // User is heading into system settings — don't auto-connect; they can tap
+                    // connect again when they return (the hint won't show a second time).
+                    startStopButton.setChecked(false);
+                    PermissionsUtils.openMiuiBackgroundSettings(this);
+                })
+                .setNegativeButton(R.string.xiaomi_background_hint_later, (d, w) -> proceedToVpnConnect())
+                .show();
     }
 
     private void connectVpn() {
@@ -506,6 +529,9 @@ public class HomeActivity extends AppCompatActivity {
                     if (!PermissionsUtils.checkBatteryOptimizations(this)) {
                         //Manifest.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
                         requestedPermissions.incrementAndGet();
+                        // On MIUI the OS never reports the exemption back — record that we asked so
+                        // the check can settle instead of re-prompting on every connect.
+                        SharedPrefUtils.saveBatteryOptimizationRequested(this, true);
                         startActivityWithSettings(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
                     }
                     // Background data transfer restriction permission

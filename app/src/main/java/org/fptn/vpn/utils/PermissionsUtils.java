@@ -27,10 +27,12 @@ import android.Manifest;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkCapabilities;
+import android.net.Uri;
 import android.os.Build;
 import android.os.PowerManager;
 import android.provider.Settings;
@@ -139,19 +141,47 @@ public class PermissionsUtils {
     }
 
     public static boolean checkBatteryOptimizations(Context context) {
-        if ("xiaomi".equalsIgnoreCase(Build.MANUFACTURER)) {
-            XLog.tag(TAG).i("Battery optimization check skipped [manufacturer=%s, brand=%s, model=%s]",
-                    Build.MANUFACTURER, Build.BRAND, Build.MODEL);
-            return true;
-        }
         boolean isGranted = false;
         PowerManager powerManager = (PowerManager) context.getSystemService(POWER_SERVICE);
         if (powerManager != null) {
             isGranted = powerManager.isIgnoringBatteryOptimizations(context.getPackageName());
         }
+        // MIUI (Xiaomi/Redmi/POCO all report MANUFACTURER=xiaomi) runs its own battery manager;
+        // isIgnoringBatteryOptimizations() stays false even after the user grants the exemption.
+        // Trusting it would nag on every connect and never let the first-run flow complete, so once
+        // we have sent the user to the system dialog we treat the exemption as handled here.
+        if (!isGranted && isXiaomi() && SharedPrefUtils.isBatteryOptimizationRequested(context)) {
+            isGranted = true;
+        }
         XLog.tag(TAG).i("Battery optimization exemption [granted=%b, manufacturer=%s, brand=%s, model=%s]",
                 isGranted, Build.MANUFACTURER, Build.BRAND, Build.MODEL);
         return isGranted;
+    }
+
+    public static boolean isXiaomi() {
+        return "xiaomi".equalsIgnoreCase(Build.MANUFACTURER)
+                || "xiaomi".equalsIgnoreCase(Build.BRAND)
+                || "redmi".equalsIgnoreCase(Build.BRAND)
+                || "poco".equalsIgnoreCase(Build.BRAND);
+    }
+
+    /**
+     * Opens the app-details screen so the user can reach the MIUI background / battery controls
+     * (the standard battery-optimization exemption is not enough on MIUI).
+     *
+     * @return true if some settings screen was launched.
+     */
+    public static boolean openMiuiBackgroundSettings(Context context) {
+        try {
+            Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+            intent.setData(Uri.parse("package:" + context.getPackageName()));
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            context.startActivity(intent);
+            return true;
+        } catch (Exception e) {
+            XLog.tag(TAG).e("Failed to open settings for MIUI guidance: %s", e.getMessage());
+            return false;
+        }
     }
 
     public static boolean checkBackgroundDataTransferRestrictions(Context context) {

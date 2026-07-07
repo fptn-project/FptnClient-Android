@@ -182,7 +182,6 @@ public class FptnService extends VpnService {
     }
     /* binder part END */
 
-
     public void updateSpeedInfo(String downloadSpeed, String uploadSpeed, long duration, long totalDownload, long totalUpload, long downloadBps, long uploadBps) {
         if (serviceStateMutableLiveData.getValue().getConnectionState() == ConnectionState.CONNECTED) {
             if (SharedPrefUtils.getShowSpeedInNotification(getApplication())) {
@@ -419,6 +418,12 @@ public class FptnService extends VpnService {
 
             if (!NetworkUtils.isOnline(connectivityManager)) {
                 XLog.tag(TAG).i("No internet — entering WAITING_FOR_NETWORK state");
+                // This IS the "reconnect on network loss" scenario the attempts setting is for:
+                // when the network returns half-alive, the first failed scan must go through the
+                // recovery cycle (retry/scan per the configured budget), not die with a terminal
+                // "all servers unreachable" — with restoringSession=false it did exactly that.
+                restoringSession = true;
+                remainingFallbackBudget.set(SharedPrefUtils.getReconnectAttemptsCount(this));
                 pendingServerId = intent.getIntExtra(SELECTED_SERVER, SELECTED_SERVER_ID_AUTO);
                 updateNotificationWithMessage(getString(R.string.waiting_for_network), "");
                 setConnectionState(ConnectionState.WAITING_FOR_NETWORK, null);

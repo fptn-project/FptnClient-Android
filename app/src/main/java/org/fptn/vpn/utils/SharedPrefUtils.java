@@ -66,6 +66,26 @@ public class SharedPrefUtils {
         sharedPreferences.edit().putBoolean(Constants.PERMISSIONS_REQUESTED_SHARED_PREF_KEY, requested).apply();
     }
 
+    public static boolean isBatteryOptimizationRequested(Context context) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        return sharedPreferences.getBoolean(Constants.BATTERY_OPTIMIZATION_REQUESTED_SHARED_PREF_KEY, false);
+    }
+
+    public static void saveBatteryOptimizationRequested(Context context, boolean requested) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        sharedPreferences.edit().putBoolean(Constants.BATTERY_OPTIMIZATION_REQUESTED_SHARED_PREF_KEY, requested).apply();
+    }
+
+    public static boolean isXiaomiBackgroundHintShown(Context context) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        return sharedPreferences.getBoolean(Constants.XIAOMI_BACKGROUND_HINT_SHOWN_SHARED_PREF_KEY, false);
+    }
+
+    public static void saveXiaomiBackgroundHintShown(Context context, boolean shown) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        sharedPreferences.edit().putBoolean(Constants.XIAOMI_BACKGROUND_HINT_SHOWN_SHARED_PREF_KEY, shown).apply();
+    }
+
     /* QUICK SETTINGS TILE */
     public static boolean isQuickSettingsTileRequested(Context context) {
         SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);

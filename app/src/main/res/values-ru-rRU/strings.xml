@@ -127,6 +127,10 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="warning">Внимание</string>
     <string name="battery_optimization_request_dialog_title">Откл оптимизацию батареи</string>
     <string name="battery_optimization_request_dialog_text">Для стабильного подключения предоставьте разрешение на отключение оптимизации энергопотребления для этого приложения</string>
+    <string name="xiaomi_background_hint_title">Разрешите работу в фоне</string>
+    <string name="xiaomi_background_hint_text">Для стабильной работы в фоне выберите «Экономия батареи» → «Без ограничений» для приложения.</string>
+    <string name="xiaomi_background_hint_open">Открыть настройки</string>
+    <string name="xiaomi_background_hint_later">Продолжить</string>
 
     <string name="required_permissions">Необходимые разрешения:</string>
     <string name="denied_text">ОТКЛОНЕНО</string>
