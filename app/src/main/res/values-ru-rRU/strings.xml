@@ -182,6 +182,9 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="speed_notification_title">Уведомления:</string>
     <string name="speed_notification_enable">Скорость подключения в статус-баре</string>
 
+    <string name="home_screen_settings_title">Главный экран:</string>
+    <string name="show_traffic_chart_label">Показывать график скорости</string>
+
     <string name="auto_fallback_title">Авто-переключение на доступные серверы:</string>
     <string name="auto_fallback_enable">Менять сервер при потере связи</string>
     <string name="auto_fallback_threshold_label">Попыток до смены сервера:</string>

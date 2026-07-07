@@ -258,6 +258,7 @@
                         android:layout_weight="1" />
 
                     <View
+                        android:id="@+id/home_traffic_chart_divider"
                         android:layout_width="match_parent"
                         android:layout_height="1dp"
                         android:background="#26FFFFFF" />

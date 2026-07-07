@@ -96,6 +96,8 @@ public class HomeActivity extends AppCompatActivity {
     private View homeTrafficFrame;
     private View permissionWarningFrame;
     private TrafficSpeedChart trafficSpeedChart;
+    private View trafficChartDivider;
+    private int trafficFrameMinHeight;
 
     private CustomSpinner spinnerServers;
 
@@ -177,6 +179,9 @@ public class HomeActivity extends AppCompatActivity {
         /*View containers to hide*/
         homeTrafficFrame = findViewById(R.id.home_traffic_frame);
         trafficSpeedChart = findViewById(R.id.home_traffic_chart);
+        trafficChartDivider = findViewById(R.id.home_traffic_chart_divider);
+        trafficFrameMinHeight = ((ConstraintLayout.LayoutParams) homeTrafficFrame.getLayoutParams()).matchConstraintMinHeight;
+        applyTrafficChartVisibility();
         connectionTimeFrame = findViewById(R.id.home_connection_timer_frame);
         serverInfoFrame = findViewById(R.id.home_server_info_frame);
 
@@ -336,6 +341,9 @@ public class HomeActivity extends AppCompatActivity {
             refreshBackgroundSetupStates();
         }
 
+        // The setting may have changed while this activity was paused (advanced settings screen).
+        applyTrafficChartVisibility();
+
         Optional.ofNullable(viewModel.getServiceStateMutableLiveData())
                 .map(LiveData::getValue)
                 .map(FptnServiceState::getConnectionState)
@@ -344,6 +352,21 @@ public class HomeActivity extends AppCompatActivity {
                         viewModel.startCheckingPing();
                     }
                 });
+    }
+
+    // Toggles only the speed chart (advanced setting); speed and traffic rows stay visible,
+    // and the traffic card shrinks to its remaining content instead of keeping the chart's space.
+    private void applyTrafficChartVisibility() {
+        boolean showChart = SharedPrefUtils.getShowTrafficChart(this);
+        trafficSpeedChart.setVisibility(showChart ? View.VISIBLE : View.GONE);
+        trafficChartDivider.setVisibility(showChart ? View.VISIBLE : View.GONE);
+
+        ConstraintLayout.LayoutParams params = (ConstraintLayout.LayoutParams) homeTrafficFrame.getLayoutParams();
+        params.height = showChart ? ConstraintLayout.LayoutParams.MATCH_CONSTRAINT : ConstraintLayout.LayoutParams.WRAP_CONTENT;
+        params.verticalBias = showChart ? 0.5f : 0f;
+        // The XML min height (140dp) keeps padding the card even in wrap mode — drop it with the chart.
+        params.matchConstraintMinHeight = showChart ? trafficFrameMinHeight : 0;
+        homeTrafficFrame.setLayoutParams(params);
     }
 
     private void disconnectedStateUiItems() {
