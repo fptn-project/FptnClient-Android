@@ -26,9 +26,10 @@ import android.content.ComponentName;
 import android.graphics.drawable.Icon;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.text.method.DigitsKeyListener;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -40,10 +41,12 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
 
 import com.elvishew.xlog.XLog;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import org.fptn.vpn.R;
 import org.fptn.vpn.services.tile.FptnTileService;
 import org.fptn.vpn.utils.SharedPrefUtils;
+import org.fptn.vpn.views.CustomBottomNavigationListener;
 
 public class ExperimentalSettingsActivity extends AppCompatActivity {
     private final String TAG = this.getClass().getSimpleName();
@@ -77,28 +80,61 @@ public class ExperimentalSettingsActivity extends AppCompatActivity {
 
     @SuppressLint("InlinedApi")
     private void initializeVariable() {
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavBar);
+        bottomNavigationView.setSelectedItemId(R.id.menuSettings);
+        CustomBottomNavigationListener bottomNavigationListener = new CustomBottomNavigationListener(this, R.id.menuSettings);
+        bottomNavigationView.setOnItemSelectedListener(bottomNavigationListener);
+        bottomNavigationView.setOnItemReselectedListener(bottomNavigationListener);
+
         customDnsSwitch = findViewById(R.id.custom_dns_switch);
         customDnsInput = findViewById(R.id.custom_dns_input);
         customDnsInput.setKeyListener(DigitsKeyListener.getInstance("0123456789."));
         customDnsSwitch.setChecked(SharedPrefUtils.getCustomDnsEnabled(this));
         customDnsInput.setText(SharedPrefUtils.getCustomDnsIpv4(this));
         updateCustomDnsInputVisibility(customDnsSwitch.isChecked());
-        customDnsSwitch.setOnCheckedChangeListener(
-                (buttonView, isChecked) -> updateCustomDnsInputVisibility(isChecked));
+        customDnsSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            updateCustomDnsInputVisibility(isChecked);
+            SharedPrefUtils.saveCustomDnsEnabled(this, isChecked);
+        });
+        customDnsInput.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                String dnsValue = s.toString().trim();
+                if (isValidDnsAddress(dnsValue)) {
+                    SharedPrefUtils.saveCustomDnsIpv4(ExperimentalSettingsActivity.this, dnsValue);
+                    customDnsInput.setError(null);
+                } else {
+                    customDnsInput.setError(getString(R.string.custom_dns_invalid));
+                }
+            }
+        });
         showSpeedInNotificationSwitch = findViewById(R.id.show_speed_in_notification_switch);
         showSpeedInNotificationSwitch.setChecked(SharedPrefUtils.getShowSpeedInNotification(this));
+        showSpeedInNotificationSwitch.setOnCheckedChangeListener(
+                (buttonView, isChecked) -> SharedPrefUtils.saveShowSpeedInNotification(this, isChecked));
 
         showTrafficChartSwitch = findViewById(R.id.show_traffic_chart_switch);
         showTrafficChartSwitch.setChecked(SharedPrefUtils.getShowTrafficChart(this));
+        showTrafficChartSwitch.setOnCheckedChangeListener(
+                (buttonView, isChecked) -> SharedPrefUtils.saveShowTrafficChart(this, isChecked));
 
         adBlockSwitch = findViewById(R.id.ad_block_switch);
         adBlockSwitch.setChecked(SharedPrefUtils.getAdBlockEnabled(this));
+        adBlockSwitch.setOnCheckedChangeListener(
+                (buttonView, isChecked) -> SharedPrefUtils.saveAdBlockEnabled(this, isChecked));
 
         switchNetworkType = findViewById(R.id.reconnect_on_change_network_type_switch);
         switchNetworkType.setChecked(SharedPrefUtils.getReconnectOnChangeNetworkTypeEnabled(this));
+        switchNetworkType.setOnCheckedChangeListener(
+                (buttonView, isChecked) -> SharedPrefUtils.saveReconnectOnChangeNetworkTypeEnabled(this, isChecked));
 
         switchIPAddress = findViewById(R.id.reconnect_on_change_ip_address_switch);
         switchIPAddress.setChecked(SharedPrefUtils.getReconnectOnChangeIPEnabled(this));
+        switchIPAddress.setOnCheckedChangeListener(
+                (buttonView, isChecked) -> SharedPrefUtils.saveReconnectOnChangeIPEnabled(this, isChecked));
 
         // Reconnects attempts count
         seekBarAttemptsCount = findViewById(R.id.seekBarAttemptsCount);
@@ -112,6 +148,9 @@ public class ExperimentalSettingsActivity extends AppCompatActivity {
                 } else {
                     String format = getString(R.string.reconnect_attempts_text);
                     textViewAttemptsCount.setText(String.format(format, value));
+                }
+                if (fromUser) {
+                    SharedPrefUtils.saveReconnectAttemptsCount(ExperimentalSettingsActivity.this, value);
                 }
             }
         });
@@ -134,6 +173,9 @@ public class ExperimentalSettingsActivity extends AppCompatActivity {
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 String format = getString(R.string.delay_between_attempts_seconds);
                 textViewDelayBetween.setText(String.format(format, progress + 1));
+                if (fromUser) {
+                    SharedPrefUtils.saveDelayBetweenReconnect(ExperimentalSettingsActivity.this, progress + 1);
+                }
             }
         });
 
@@ -163,14 +205,15 @@ public class ExperimentalSettingsActivity extends AppCompatActivity {
 
         // Reset selected server on disconnect with exception
         resetServerAfterDisconnectOnException = findViewById(R.id.reset_selected_server_after_disconnect_with_exception);
-        resetServerAfterDisconnectOnException.setChecked(SharedPrefUtils.getResetSelectedServerEnabled(this));
-
         resetServerAfterDisconnectOnException.setChecked(SharedPrefUtils.getResetSelectedServerOnExceptionEnabled(this));
+        resetServerAfterDisconnectOnException.setOnCheckedChangeListener(
+                (buttonView, isChecked) -> SharedPrefUtils.saveResetSelectedServerOnExceptionEnabled(this, isChecked));
         updateExceptionVisibility(resetServerAfterDisconnectSwitch.isChecked());
 
-        // Toggle visibility on change
-        resetServerAfterDisconnectSwitch.setOnCheckedChangeListener(
-                (buttonView, isChecked) -> updateExceptionVisibility(isChecked));
+        resetServerAfterDisconnectSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            updateExceptionVisibility(isChecked);
+            SharedPrefUtils.saveResetSelectedServerEnabled(this, isChecked);
+        });
 
         // Auto-fallback to all servers
         autoFallbackSwitch = findViewById(R.id.auto_fallback_switch);
@@ -184,6 +227,9 @@ public class ExperimentalSettingsActivity extends AppCompatActivity {
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 String format = getString(R.string.auto_fallback_threshold_value);
                 textViewFallbackThreshold.setText(String.format(format, FALLBACK_THRESHOLD_VALUES[progress]));
+                if (fromUser) {
+                    SharedPrefUtils.saveAutoFallbackThreshold(ExperimentalSettingsActivity.this, FALLBACK_THRESHOLD_VALUES[progress]);
+                }
             }
         });
 
@@ -197,18 +243,10 @@ public class ExperimentalSettingsActivity extends AppCompatActivity {
         }
         seekBarFallbackThreshold.setProgress(fallbackProgressToSet);
         updateAutoFallbackThresholdVisibility(autoFallbackSwitch.isChecked());
-        autoFallbackSwitch.setOnCheckedChangeListener(
-                (buttonView, isChecked) -> updateAutoFallbackThresholdVisibility(isChecked));
-
-        // Save and Cancel buttons
-        Button cancelButton = findViewById(R.id.cancel_button);
-        cancelButton.setOnClickListener(v -> {
-            XLog.tag(TAG).i("Experimental settings cancelled");
-            finish();
+        autoFallbackSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            updateAutoFallbackThresholdVisibility(isChecked);
+            SharedPrefUtils.saveAutoFallbackEnabled(this, isChecked);
         });
-
-        Button saveButton = findViewById(R.id.save_button);
-        saveButton.setOnClickListener(v -> saveAndFinish());
 
         TextView resetToDefaultLink = findViewById(R.id.reset_to_default_button);
         resetToDefaultLink.setPaintFlags(resetToDefaultLink.getPaintFlags() | android.graphics.Paint.UNDERLINE_TEXT_FLAG);
@@ -318,39 +356,6 @@ public class ExperimentalSettingsActivity extends AppCompatActivity {
             button.setEnabled(false);
             button.setAlpha(0.5f); // Visual cue that it's no longer needed
         }
-    }
-
-    private void saveAndFinish() {
-        if (customDnsSwitch.isChecked()) {
-            String dnsValue = customDnsInput.getText().toString().trim();
-            if (!isValidDnsAddress(dnsValue)) {
-                Toast.makeText(this, R.string.custom_dns_invalid, Toast.LENGTH_SHORT).show();
-                return;
-            }
-            SharedPrefUtils.saveCustomDnsIpv4(this, dnsValue);
-        }
-        SharedPrefUtils.saveCustomDnsEnabled(this, customDnsSwitch.isChecked());
-
-        XLog.tag(TAG).i("Experimental settings saved [watchNetwork=%b, watchIP=%b, attempts=%d, delay=%ds]", switchNetworkType.isChecked(), switchIPAddress.isChecked(), seekBarAttemptsCount.getProgress(), seekBarDelayBetween.getProgress() + 1);
-
-        SharedPrefUtils.saveShowSpeedInNotification(this, showSpeedInNotificationSwitch.isChecked());
-        SharedPrefUtils.saveShowTrafficChart(this, showTrafficChartSwitch.isChecked());
-        SharedPrefUtils.saveAdBlockEnabled(this, adBlockSwitch.isChecked());
-        SharedPrefUtils.saveReconnectOnChangeNetworkTypeEnabled(this, switchNetworkType.isChecked());
-        SharedPrefUtils.saveReconnectOnChangeIPEnabled(this, switchIPAddress.isChecked());
-        SharedPrefUtils.saveResetSelectedServerEnabled(this, resetServerAfterDisconnectSwitch.isChecked());
-        SharedPrefUtils.saveResetSelectedServerOnExceptionEnabled(this, resetServerAfterDisconnectOnException.isChecked());
-
-        int attemptsCountProgress = seekBarAttemptsCount.getProgress();
-        SharedPrefUtils.saveReconnectAttemptsCount(this, ATTEMPTS_COUNT_VALUES[attemptsCountProgress]);
-
-        int delayBetweenProgress = seekBarDelayBetween.getProgress();
-        SharedPrefUtils.saveDelayBetweenReconnect(this, delayBetweenProgress + 1);
-
-        SharedPrefUtils.saveAutoFallbackEnabled(this, autoFallbackSwitch.isChecked());
-        SharedPrefUtils.saveAutoFallbackThreshold(this, FALLBACK_THRESHOLD_VALUES[seekBarFallbackThreshold.getProgress()]);
-
-        finish();
     }
 
     private static boolean isValidDnsAddress(String value) {

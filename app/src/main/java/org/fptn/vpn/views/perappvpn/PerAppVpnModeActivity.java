@@ -27,13 +27,11 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.lifecycle.ViewModelProvider;
@@ -69,7 +67,9 @@ public class PerAppVpnModeActivity extends AppCompatActivity {
 
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavBar);
         bottomNavigationView.setSelectedItemId(R.id.menuSettings);
-        bottomNavigationView.setOnItemSelectedListener(new CustomBottomNavigationListener(this, R.id.menuSettings));
+        CustomBottomNavigationListener bottomNavigationListener = new CustomBottomNavigationListener(this, R.id.menuSettings);
+        bottomNavigationView.setOnItemSelectedListener(bottomNavigationListener);
+        bottomNavigationView.setOnItemReselectedListener(bottomNavigationListener);
 
         selectAppsListLayout = findViewById(R.id.select_apps_list_layout);
 
@@ -142,7 +142,9 @@ public class PerAppVpnModeActivity extends AppCompatActivity {
         ProgressBar progressBar = findViewById(R.id.loading_apps_progress_bar);
 
         viewModel.getAppListMutableLiveData().observe(this, apps -> {
-            AppInfoListAdapter adapter = new AppInfoListAdapter(apps, viewModel.getPerAppVpnModeMutableLiveData().getValue());
+            AppInfoListAdapter adapter = new AppInfoListAdapter(apps,
+                    viewModel.getPerAppVpnModeMutableLiveData().getValue(),
+                    viewModel::saveSelectedApps);
             String query = searchAppsEditText.getText().toString();
             if (!query.isEmpty()) adapter.filter(query);
             appListRecyclerView.setAdapter(adapter);
@@ -152,33 +154,5 @@ public class PerAppVpnModeActivity extends AppCompatActivity {
 
         // Trigger the load
         viewModel.loadInstalledApps(getPackageManager());
-
-        // Save and Cancel buttons
-        Button cancelButton = findViewById(R.id.cancel_button);
-        cancelButton.setOnClickListener(v -> {
-            XLog.tag(TAG).i("Per-app VPN mode changes cancelled");
-            finish();
-        });
-
-        Button saveButton = findViewById(R.id.save_button);
-        saveButton.setOnClickListener(v -> {
-            PerAppVpnMode mode = viewModel.getPerAppVpnModeMutableLiveData().getValue();
-            if (mode == PerAppVpnMode.ONLY_ALLOWED && !viewModel.hasSelectedApps()) {
-                new AlertDialog.Builder(this)
-                        .setTitle(R.string.per_app_vpn_no_apps_selected_title)
-                        .setMessage(R.string.per_app_vpn_no_apps_selected_message)
-                        .setPositiveButton(R.string.save_anyway, (dialog, which) -> {
-                            XLog.tag(TAG).i("Per-app VPN mode saved with no apps selected [mode=%s]", mode);
-                            viewModel.saveAllSettings();
-                            finish();
-                        })
-                        .setNegativeButton(R.string.cancel_button, null)
-                        .show();
-                return;
-            }
-            XLog.tag(TAG).i("Per-app VPN mode saved [mode=%s]", mode);
-            viewModel.saveAllSettings();
-            finish();
-        });
     }
 }

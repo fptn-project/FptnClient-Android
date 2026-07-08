@@ -45,13 +45,26 @@ import org.fptn.vpn.views.settings.SettingsActivity;
 
 import lombok.SneakyThrows;
 
-public class CustomBottomNavigationListener implements NavigationBarView.OnItemSelectedListener {
+public class CustomBottomNavigationListener implements NavigationBarView.OnItemSelectedListener,
+        NavigationBarView.OnItemReselectedListener {
     private final Context context;
     private final int currentViewId;
 
     public CustomBottomNavigationListener(Context context, int currentViewId) {
         this.context = context;
         this.currentViewId = currentViewId;
+    }
+
+    @Override
+    public void onNavigationItemReselected(@NonNull MenuItem item) {
+        // Sub-screens (bypass methods, backups, etc.) mark the Settings tab as selected,
+        // so a tap on it lands here instead of onNavigationItemSelected
+        int itemId = item.getItemId();
+        if (itemId == R.id.menuSettings && !(context instanceof SettingsActivity)) {
+            context.startActivity(new Intent(context, SettingsActivity.class));
+        } else if (itemId == R.id.menuHome && !(context instanceof HomeActivity)) {
+            context.startActivity(new Intent(context, HomeActivity.class));
+        }
     }
 
     @Override

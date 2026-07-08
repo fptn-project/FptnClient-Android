@@ -137,7 +137,7 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="battery_optimization_request_dialog_title">Disable battery optimization</string>
     <string name="battery_optimization_request_dialog_text">For a stable connection, please grant permission to disable battery optimization for this app</string>
     <string name="background_setup_title">Reliable background operation</string>
-    <string name="background_setup_text">For a stable connection, set these up:</string>
+    <string name="background_setup_text">For stable operation, set these up:</string>
     <string name="background_setup_notifications_title">Enable notifications</string>
     <string name="background_setup_battery_title">Battery usage</string>
     <string name="background_setup_battery_desc">Set it to “No restrictions”</string>
@@ -348,5 +348,21 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="vpn_setup_error_title">VPN Setup Error</string>
     <string name="vpn_setup_error_message">To connect to FPTN VPN you need to:\n\n- Allow the app to connect to VPN network\n- Disable the \'Always-on VPN\' feature for all other VPN apps in system VPN settings</string>
     <string name="open_vpn_settings">Open VPN Settings</string>
+
+    <string name="backups_title">Settings backups</string>
+    <string name="backups_info">Save all FPTN settings to a file or restore them from a backup</string>
+    <string name="backup_save_title">Save settings</string>
+    <string name="backup_save_description">Export all settings (bypass methods, SNI, tunneling, per-app VPN, additional settings) to a JSON file. You can save it on this device or share it.</string>
+    <string name="backup_save_button">Save</string>
+    <string name="backup_share_button">Share</string>
+    <string name="backup_restore_title">Restore settings</string>
+    <string name="backup_restore_description">Load settings from a previously saved file. Current settings will be overwritten.</string>
+    <string name="backup_restore_button">Load from file</string>
+    <string name="backup_saved_success">Settings saved to file</string>
+    <string name="backup_save_error">Failed to save settings</string>
+    <string name="backup_restore_success">Settings restored</string>
+    <string name="backup_restore_error">Failed to load settings: invalid backup file</string>
+    <string name="backup_restore_confirm_title">Restore settings?</string>
+    <string name="backup_restore_confirm_message">Current settings will be replaced with the settings from the selected file.</string>
 
 </resources>

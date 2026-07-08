@@ -54,8 +54,10 @@ public class LogsActivity extends AppCompatActivity {
 
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavBar);
         bottomNavigationView.setSelectedItemId(R.id.menuSettings);
-        bottomNavigationView.setOnItemSelectedListener(
-                new CustomBottomNavigationListener(this, R.id.menuSettings));
+        CustomBottomNavigationListener bottomNavigationListener =
+                new CustomBottomNavigationListener(this, R.id.menuSettings);
+        bottomNavigationView.setOnItemSelectedListener(bottomNavigationListener);
+        bottomNavigationView.setOnItemReselectedListener(bottomNavigationListener);
     }
 
     private void copyLogs() {

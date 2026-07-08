@@ -126,7 +126,7 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="battery_optimization_request_dialog_title">Откл оптимизацию батареи</string>
     <string name="battery_optimization_request_dialog_text">Для стабильного подключения предоставьте разрешение на отключение оптимизации энергопотребления для этого приложения</string>
     <string name="background_setup_title">Стабильная работа в фоне</string>
-    <string name="background_setup_text">Для стабильного соединения настройте:</string>
+    <string name="background_setup_text">Для стабильной работы настройте:</string>
     <string name="background_setup_notifications_title">Включить уведомления</string>
     <string name="background_setup_battery_title">Экономия батареи</string>
     <string name="background_setup_battery_desc">Нужно выставить «Без ограничений»</string>
@@ -267,5 +267,21 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="vpn_setup_error_title">Ошибка настройки VPN</string>
     <string name="vpn_setup_error_message">Чтобы подключиться к FPTN VPN необходимо:\n\n- Разрешить приложению подключаться к сети VPN\n- Отключить функцию \"Постоянная VPN\" для всех остальных VPN-приложений в системных настройках VPN</string>
     <string name="open_vpn_settings">Открыть настройки VPN</string>
+
+    <string name="backups_title">Бэкапы настроек</string>
+    <string name="backups_info">Сохранение всех настроек FPTN в файл и восстановление из файла</string>
+    <string name="backup_save_title">Сохранить настройки</string>
+    <string name="backup_save_description">Экспорт всех настроек (методы обхода, SNI, туннелирование, VPN для приложений, дополнительные настройки) в JSON-файл. Его можно сохранить на устройстве или отправить.</string>
+    <string name="backup_save_button">Сохранить</string>
+    <string name="backup_share_button">Поделиться</string>
+    <string name="backup_restore_title">Загрузить настройки</string>
+    <string name="backup_restore_description">Загрузка настроек из ранее сохранённого файла. Текущие настройки будут перезаписаны.</string>
+    <string name="backup_restore_button">Загрузить из файла</string>
+    <string name="backup_saved_success">Настройки сохранены в файл</string>
+    <string name="backup_save_error">Не удалось сохранить настройки</string>
+    <string name="backup_restore_success">Настройки загружены</string>
+    <string name="backup_restore_error">Не удалось загрузить настройки: неверный файл бэкапа</string>
+    <string name="backup_restore_confirm_title">Загрузить настройки?</string>
+    <string name="backup_restore_confirm_message">Текущие настройки будут заменены настройками из выбранного файла.</string>
 
 </resources>
