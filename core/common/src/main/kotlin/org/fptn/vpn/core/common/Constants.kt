@@ -70,4 +70,10 @@ object Constants {
     const val CUSTOM_DNS_IPV4_PREF_KEY: String = "CUSTOM_DNS_IPV4_V1"
     const val SHOW_SPEED_IN_NOTIFICATION_PREF_KEY: String = "SHOW_SPEED_IN_NOTIFICATION_V1"
     const val SHOW_TRAFFIC_CHART_PREF_KEY: String = "SHOW_TRAFFIC_CHART_V1"
+    const val DOMAIN_BLACKLIST_ENABLED_PREF_KEY: String = "DOMAIN_BLACKLIST_ENABLED_V1"
+    const val DOMAIN_BLACKLIST_DOMAINS_PREF_KEY: String = "DOMAIN_BLACKLIST_DOMAINS_V1"
+
+    // Default matches blacklist_domains in the fptn desktop client (settingsmodel.cpp)
+    const val DOMAIN_BLACKLIST_DEFAULT: String =
+        "solovev-live.ru\nria.ru\ntass.ru\n1tv.ru\nntv.ru\nrt.com"
 }

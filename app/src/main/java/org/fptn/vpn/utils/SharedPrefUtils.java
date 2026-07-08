@@ -242,6 +242,27 @@ public class SharedPrefUtils {
         sharedPreferences.edit().putBoolean(Constants.AD_BLOCK_ENABLED_PREF_KEY, enabled).apply();
     }
 
+    /* Domain blacklist */
+    public static boolean getDomainBlacklistEnabled(Context context) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        return sharedPreferences.getBoolean(Constants.DOMAIN_BLACKLIST_ENABLED_PREF_KEY, true);
+    }
+
+    public static void saveDomainBlacklistEnabled(Context context, boolean enabled) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        sharedPreferences.edit().putBoolean(Constants.DOMAIN_BLACKLIST_ENABLED_PREF_KEY, enabled).apply();
+    }
+
+    public static String getDomainBlacklistDomains(Context context) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        return sharedPreferences.getString(Constants.DOMAIN_BLACKLIST_DOMAINS_PREF_KEY, Constants.DOMAIN_BLACKLIST_DEFAULT);
+    }
+
+    public static void saveDomainBlacklistDomains(Context context, String domains) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        sharedPreferences.edit().putString(Constants.DOMAIN_BLACKLIST_DOMAINS_PREF_KEY, domains).apply();
+    }
+
     /* Custom DNS */
     public static boolean getCustomDnsEnabled(Context context) {
         SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);

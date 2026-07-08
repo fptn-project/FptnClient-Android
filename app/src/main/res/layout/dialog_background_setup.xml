@@ -156,6 +156,7 @@
             </LinearLayout>
 
             <ImageView
+                android:id="@+id/row_pin_state"
                 android:layout_width="16dp"
                 android:layout_height="16dp"
                 android:importantForAccessibility="no"

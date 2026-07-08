@@ -169,8 +169,14 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="settings_reset_server_on_exception">Сброс на Auto только при ошибке</string>
     <string name="searching_for_server">Поиск сервера...</string>
     <string name="ad_block_title">Блокировка рекламы:</string>
-    <string name="ad_block_description">Блокирует рекламу и трекеры на уровне DNS для всех приложений.</string>
+    <string name="ad_block_description">Блокирует рекламу и трекеры на уровне DNS для всех приложений. Может потребовать отключения приватного DNS (DoH) в системных настройках — иначе DNS-запросы обходят фильтрацию.</string>
     <string name="ad_block_enable">Блокировать рекламу и трекеры</string>
+
+    <string name="domain_blacklist_title">Чёрный список доменов:</string>
+    <string name="domain_blacklist_description">Блокирует подключения к указанным доменам и их поддоменам. Один домен на строку. Может потребовать отключения приватного DNS (DoH) в системных настройках — иначе DNS-запросы обходят фильтрацию.</string>
+    <string name="domain_blacklist_enable">Блокировать домены из списка</string>
+    <string name="domain_blacklist_enable_link">из списка</string>
+    <string name="domain_blacklist_hint">example.com</string>
 
     <string name="custom_dns_title">Пользовательский DNS:</string>
     <string name="custom_dns_description">Использовать пользовательский DNS.</string>

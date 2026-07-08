@@ -220,6 +220,9 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
         •&nbsp;&nbsp;Noragami9779<br/>
         •&nbsp;&nbsp;NightFox<br/>
         •&nbsp;&nbsp;puffffik<br/>
+        •&nbsp;&nbsp;draserg1<br/>
+        •&nbsp;&nbsp;Artem Kushner<br/>
+        •&nbsp;&nbsp;AgNeSYUT<br/>
         ]]>
     </string>
     <string name="experimental_features_label">Additional settings</string>
@@ -257,8 +260,14 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="reset_to_default_success">Advanced settings reset to default</string>
 
     <string name="ad_block_title">Ad Blocking:</string>
-    <string name="ad_block_description">Blocks ads and trackers at the DNS level for all apps.</string>
+    <string name="ad_block_description">Blocks ads and trackers at the DNS level for all apps. May require turning off Private DNS (DoH) in system settings — otherwise DNS queries bypass filtering.</string>
     <string name="ad_block_enable">Block ads and trackers</string>
+
+    <string name="domain_blacklist_title">Domain Blacklist:</string>
+    <string name="domain_blacklist_description">Blocks connections to the listed domains and their subdomains. One domain per line. May require turning off Private DNS (DoH) in system settings — otherwise DNS queries bypass filtering.</string>
+    <string name="domain_blacklist_enable">Block domains from the list</string>
+    <string name="domain_blacklist_enable_link">the list</string>
+    <string name="domain_blacklist_hint">example.com</string>
 
     <string name="speed_notification_title">Notification:</string>
     <string name="speed_notification_enable">Connection speed in status bar</string>

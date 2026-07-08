@@ -18,7 +18,7 @@
  * Website: https://fptn.org
  */
 
-package org.fptn.vpn.adblock;
+package org.fptn.vpn.domainblocker;
 
 import android.content.Context;
 import android.content.res.Resources;
@@ -36,8 +36,8 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.zip.GZIPInputStream;
 
-public class AdBlocker {
-    private static final String TAG = AdBlocker.class.getSimpleName();
+public class DomainBlocker {
+    private static final String TAG = DomainBlocker.class.getSimpleName();
 
     // R.raw.blocklist → src/main/res/raw/blocklist.gz
     private static final int DNS_PORT = 53;
@@ -49,9 +49,32 @@ public class AdBlocker {
 
     private final Set<String> blockedDomains;
 
-    public AdBlocker(Context context) {
-        blockedDomains = loadBlocklist(context);
+    public DomainBlocker(Context context, boolean adBlockEnabled, String domainBlacklist) {
+        blockedDomains = new HashSet<>();
+        if (adBlockEnabled) {
+            blockedDomains.addAll(loadBlocklist(context));
+        }
+        blockedDomains.addAll(parseDomainBlacklist(domainBlacklist));
         XLog.tag(TAG).i("Blocklist DNS loaded [domains=%d]", blockedDomains.size());
+    }
+
+    // Parses a user-entered domain list: newline/comma separated, optional
+    // "domain:" prefix (fptn desktop config format), invalid entries ignored.
+    private static Set<String> parseDomainBlacklist(String text) {
+        Set<String> domains = new HashSet<>();
+        if (text == null) {
+            return domains;
+        }
+        for (String entry : text.split("[\\n,]")) {
+            String domain = entry.trim().toLowerCase();
+            if (domain.startsWith("domain:")) {
+                domain = domain.substring("domain:".length()).trim();
+            }
+            if (domain.contains(".")) {
+                domains.add(domain);
+            }
+        }
+        return domains;
     }
 
     // Port of DnsPtr() + DnsPayloadPtr() from ip_packet.h.
