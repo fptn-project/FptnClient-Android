@@ -42,10 +42,12 @@ public class AppInfoListAdapter extends RecyclerView.Adapter<AppInfoListAdapter.
     private List<AppInfo> displayApps = new ArrayList<>();
     private PerAppVpnMode perAppVpnMode;
     private String searchQuery = "";
+    private final Runnable onSelectionChanged;
 
-    public AppInfoListAdapter(List<AppInfo> apps, PerAppVpnMode perAppVpnMode) {
+    public AppInfoListAdapter(List<AppInfo> apps, PerAppVpnMode perAppVpnMode, Runnable onSelectionChanged) {
         this.allApps = apps;
         this.perAppVpnMode = perAppVpnMode;
+        this.onSelectionChanged = onSelectionChanged;
         refreshDisplay();
     }
 
@@ -109,6 +111,7 @@ public class AppInfoListAdapter extends RecyclerView.Adapter<AppInfoListAdapter.
                 app.setDisallowed(!app.isDisallowed());
             }
             refreshDisplay();
+            onSelectionChanged.run();
         });
     }
 

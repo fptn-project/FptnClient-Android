@@ -11,7 +11,7 @@
         android:layout_height="0dp"
         android:layout_marginBottom="10dp"
         android:fadeScrollbars="false"
-        app:layout_constraintBottom_toTopOf="@id/buttons_layout"
+        app:layout_constraintBottom_toTopOf="@id/bottomNavBar"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
@@ -207,9 +207,9 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:paddingLeft="10dp"
-                    android:paddingTop="8dp"
+                    android:paddingTop="4dp"
                     android:paddingRight="10dp"
-                    android:paddingBottom="10dp"
+                    android:paddingBottom="5dp"
                     android:text="@string/sni_text_description"
                     android:textColor="@color/gray"
                     android:textSize="12sp" />
@@ -463,47 +463,6 @@
             </LinearLayout>
         </LinearLayout>
     </ScrollView>
-
-    <LinearLayout
-        android:id="@+id/buttons_layout"
-        style="?android:attr/buttonBarStyle"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:orientation="horizontal"
-        android:padding="10dp"
-        app:layout_constraintBottom_toTopOf="@id/bottomNavBar"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent">
-
-        <Button
-            android:id="@+id/cancel_button"
-            style="?android:attr/buttonBarButtonStyle"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="8dp"
-            android:layout_weight="1"
-            android:background="@drawable/round_back_secondary_cancel_100"
-            android:padding="8dp"
-            android:text="@string/cancel_button"
-            android:textAllCaps="false"
-            android:textColor="@color/primary"
-            android:textSize="16sp" />
-
-        <Button
-            android:id="@+id/save_button"
-            style="?android:attr/buttonBarButtonStyle"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_weight="1"
-            android:background="@drawable/round_back_secondary_100"
-            android:padding="8dp"
-            android:text="@string/save_button"
-            android:textAllCaps="false"
-            android:textColor="@color/primary"
-            android:textSize="16sp" />
-    </LinearLayout>
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNavBar"

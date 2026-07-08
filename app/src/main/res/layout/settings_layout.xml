@@ -22,7 +22,8 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:paddingBottom="20dp">
 
             <ImageView
                 android:layout_width="80dp"
@@ -38,8 +39,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:layout_marginTop="10dp"
-                android:text="@string/app_version"
-                android:textStyle="bold" />
+                android:text="@string/app_version" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -125,9 +125,9 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:paddingLeft="10dp"
-                        android:paddingTop="10dp"
+                        android:paddingTop="5dp"
                         android:paddingRight="10dp"
-                        android:paddingBottom="10dp"
+                        android:paddingBottom="5dp"
                         android:text="@string/settings_token_info_html"
                         android:textColor="@color/gray"
                         android:textSize="12sp" />
@@ -194,9 +194,9 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:paddingLeft="10dp"
-                        android:paddingTop="10dp"
+                        android:paddingTop="5dp"
                         android:paddingRight="10dp"
-                        android:paddingBottom="10dp"
+                        android:paddingBottom="5dp"
                         android:text="@string/bypass_methods_info"
                         android:textColor="@color/gray"
                         android:textSize="12sp" />
@@ -263,9 +263,9 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:paddingLeft="10dp"
-                        android:paddingTop="10dp"
+                        android:paddingTop="5dp"
                         android:paddingRight="10dp"
-                        android:paddingBottom="10dp"
+                        android:paddingBottom="5dp"
                         android:text="@string/per_app_vpn_mode_info"
                         android:textColor="@color/gray"
                         android:textSize="12sp" />
@@ -332,9 +332,9 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:paddingLeft="10dp"
-                        android:paddingTop="10dp"
+                        android:paddingTop="5dp"
                         android:paddingRight="10dp"
-                        android:paddingBottom="10dp"
+                        android:paddingBottom="5dp"
                         android:text="@string/experimental_features_info"
                         android:textColor="@color/gray"
                         android:textSize="12sp" />
@@ -641,15 +641,84 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:paddingLeft="10dp"
-                        android:paddingTop="10dp"
+                        android:paddingTop="5dp"
                         android:paddingRight="10dp"
-                        android:paddingBottom="10dp"
+                        android:paddingBottom="5dp"
                         android:text="@string/view_and_copy_application_logs"
                         android:textColor="@color/gray"
                         android:textSize="12sp" />
                 </RelativeLayout>
             </LinearLayout>
 
+
+            <!-- Settings backups -->
+            <LinearLayout
+                android:id="@+id/backup_settings_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="20dp"
+                android:layout_marginEnd="20dp"
+                android:background="@drawable/round_settings_back_white10_20"
+                android:orientation="vertical"
+                android:padding="10dp"
+                android:paddingBottom="0dp">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <ImageView
+                        android:id="@+id/backup_settings_icon"
+                        android:layout_width="wrap_content"
+                        android:layout_height="32dp"
+                        android:importantForAccessibility="no"
+                        android:paddingLeft="12dp"
+                        android:paddingRight="12dp"
+                        android:src="@drawable/cloud_back_up_24" />
+
+                    <TextView
+                        android:id="@+id/backup_settings_label"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:layout_toStartOf="@id/backup_settings_arrow"
+                        android:layout_toEndOf="@id/backup_settings_icon"
+                        android:text="@string/backups_title"
+                        android:textColor="@color/white"
+                        android:textStyle="bold" />
+
+                    <ImageView
+                        android:id="@+id/backup_settings_arrow"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentTop="true"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:importantForAccessibility="no"
+                        android:src="@drawable/ic_outline_arrow_forward_ios_16"
+                        android:textColor="@color/white"
+                        android:textStyle="bold" />
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="0dp">
+
+                    <TextView
+                        android:id="@+id/backup_settings_info"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:paddingLeft="10dp"
+                        android:paddingTop="5dp"
+                        android:paddingRight="10dp"
+                        android:paddingBottom="5dp"
+                        android:text="@string/backups_info"
+                        android:textColor="@color/gray"
+                        android:textSize="12sp" />
+                </RelativeLayout>
+            </LinearLayout>
 
             <!-- LOGOUT -->
             <RelativeLayout

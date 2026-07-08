@@ -127,7 +127,7 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="battery_optimization_request_dialog_title">غیرفعال‌سازی بهینه‌سازی باتری</string>
     <string name="battery_optimization_request_dialog_text">برای اتصال پایدار، لطفاً مجوز غیرفعال‌سازی بهینه‌سازی مصرف انرژی برای این برنامه را ارائه دهید</string>
     <string name="background_setup_title">کارکرد پایدار در پس‌زمینه</string>
-    <string name="background_setup_text">برای اتصال پایدار، این موارد را تنظیم کنید:</string>
+    <string name="background_setup_text">برای عملکرد پایدار، این موارد را تنظیم کنید:</string>
     <string name="background_setup_notifications_title">فعال‌سازی اعلان‌ها</string>
     <string name="background_setup_battery_title">مصرف باتری</string>
     <string name="background_setup_battery_desc">روی «بدون محدودیت» تنظیم کنید</string>
@@ -270,5 +270,21 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="vpn_setup_error_title">خطای تنظیمات VPN</string>
     <string name="vpn_setup_error_message">برای اتصال به FPTN VPN باید:\n\n- به برنامه اجازه دهید به شبکه VPN متصل شود\n- ویژگی «VPN همیشه فعال» را برای تمام برنامه‌های VPN دیگر در تنظیمات سیستم غیرفعال کنید</string>
     <string name="open_vpn_settings">باز کردن تنظیمات VPN</string>
+
+    <string name="backups_title">پشتیبان‌گیری از تنظیمات</string>
+    <string name="backups_info">ذخیره تمام تنظیمات FPTN در فایل و بازیابی آن‌ها از فایل پشتیبان</string>
+    <string name="backup_save_title">ذخیره تنظیمات</string>
+    <string name="backup_save_description">خروجی گرفتن از تمام تنظیمات (روش‌های دور زدن، SNI، تونل‌سازی، VPN برنامه‌ها، تنظیمات اضافی) در یک فایل JSON. می‌توانید آن را در دستگاه ذخیره یا به اشتراک بگذارید.</string>
+    <string name="backup_save_button">ذخیره</string>
+    <string name="backup_share_button">اشتراک‌گذاری</string>
+    <string name="backup_restore_title">بازیابی تنظیمات</string>
+    <string name="backup_restore_description">بارگذاری تنظیمات از فایل ذخیره‌شده قبلی. تنظیمات فعلی بازنویسی خواهند شد.</string>
+    <string name="backup_restore_button">بارگذاری از فایل</string>
+    <string name="backup_saved_success">تنظیمات در فایل ذخیره شد</string>
+    <string name="backup_save_error">ذخیره تنظیمات ناموفق بود</string>
+    <string name="backup_restore_success">تنظیمات بازیابی شد</string>
+    <string name="backup_restore_error">بارگذاری تنظیمات ناموفق بود: فایل پشتیبان نامعتبر است</string>
+    <string name="backup_restore_confirm_title">بازیابی تنظیمات؟</string>
+    <string name="backup_restore_confirm_message">تنظیمات فعلی با تنظیمات فایل انتخاب‌شده جایگزین خواهند شد.</string>
 
 </resources>

@@ -69,7 +69,9 @@ public class UpdateTokenActivity extends AppCompatActivity {
 
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavBar);
         bottomNavigationView.setSelectedItemId(R.id.menuSettings);
-        bottomNavigationView.setOnItemSelectedListener(new CustomBottomNavigationListener(this, R.id.menuSettings));
+        CustomBottomNavigationListener bottomNavigationListener = new CustomBottomNavigationListener(this, R.id.menuSettings);
+        bottomNavigationView.setOnItemSelectedListener(bottomNavigationListener);
+        bottomNavigationView.setOnItemReselectedListener(bottomNavigationListener);
 
         TextView errorTextView = findViewById(R.id.errorTextView);
         viewModel.getErrorTextLiveData().observe(this, errorTextView::setText);

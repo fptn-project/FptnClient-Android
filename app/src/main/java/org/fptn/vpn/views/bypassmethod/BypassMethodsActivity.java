@@ -144,7 +144,9 @@ public class BypassMethodsActivity extends AppCompatActivity {
 
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavBar);
         bottomNavigationView.setSelectedItemId(R.id.menuSettings);
-        bottomNavigationView.setOnItemSelectedListener(new CustomBottomNavigationListener(this, R.id.menuSettings));
+        CustomBottomNavigationListener bottomNavigationListener = new CustomBottomNavigationListener(this, R.id.menuSettings);
+        bottomNavigationView.setOnItemSelectedListener(bottomNavigationListener);
+        bottomNavigationView.setOnItemReselectedListener(bottomNavigationListener);
 
         // Setup RadioGroup listener
         RadioGroup protocolRadioGroup = findViewById(R.id.bypass_method_radio_button_group);
@@ -232,23 +234,6 @@ public class BypassMethodsActivity extends AppCompatActivity {
         View editSniLayout = findViewById(R.id.edit_sni_layout);
         editSniLayout.setOnClickListener(this::onEditSNIServer);
 
-        // Save and Cancel buttons
-        Button cancelButton = findViewById(R.id.cancel_button);
-        cancelButton.setOnClickListener(v -> {
-            XLog.tag(TAG).i("Bypass settings cancelled");
-
-            finish();
-        });
-
-        Button saveButton = findViewById(R.id.save_button);
-        saveButton.setOnClickListener(v -> {
-            XLog.tag(TAG).i("Bypass settings saved [method=%s]", viewModel.getBypassCensorshipMethodMutableLiveData().getValue());
-
-            viewModel.saveBypassMethod();
-
-            finish();
-        });
-
         // SNI Auto
         TextView sniCountLabel = findViewById(R.id.loaded_sni_count_label);
 
@@ -284,21 +269,16 @@ public class BypassMethodsActivity extends AppCompatActivity {
         TextView checkingServerTextView = findViewById(R.id.selected_server_text);
         viewModel.getSelectedServer().observe(this, server -> checkingServerTextView.setText(server.getServerInfo()));
 
-        View cancelSaveButtonsView = findViewById(R.id.buttons_layout);
         View checkingInProgressView = findViewById(R.id.checking_in_progress_view);
 
         // todo: disable navigation bar when sni checking active
         //View settingsMenuItem = findViewById(R.id.menuSettings);
         viewModel.getServiceState().observe(this, serviceState -> {
             if (serviceState == SniCheckerServiceState.ACTIVE) {
-                ViewUtils.hideView(cancelSaveButtonsView);
-
                 ViewUtils.showView(checkingInProgressView);
 
                 startStopCheckingSniButton.setChecked(true);
             } else {
-                ViewUtils.showView(cancelSaveButtonsView);
-
                 ViewUtils.hideView(checkingInProgressView);
 
                 startStopCheckingSniButton.setChecked(false);

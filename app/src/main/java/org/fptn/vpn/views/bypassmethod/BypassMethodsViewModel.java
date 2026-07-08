@@ -115,20 +115,12 @@ public class BypassMethodsViewModel extends AndroidViewModel {
 
     public void setBypassMethod(BypassCensorshipMethod bypassMethod) {
         bypassCensorshipMethodMutableLiveData.postValue(bypassMethod);
+        SharedPrefUtils.saveBypassCensorshipMethod(getApplication(), bypassMethod);
     }
 
     public void setSniSpoofingMode(SniSpoofingMode sniSpoofingMode) {
         sniSpoofingModeMutableLiveData.postValue(sniSpoofingMode);
-    }
-
-    public void saveBypassMethod() {
-        BypassCensorshipMethod bypassCensorshipMethod = bypassCensorshipMethodMutableLiveData.getValue();
-        if (bypassCensorshipMethod != null) {
-            SharedPrefUtils.saveBypassCensorshipMethod(getApplication(), bypassCensorshipMethod);
-            if (bypassCensorshipMethod == BypassCensorshipMethod.SNI_REALITY) {
-                SharedPrefUtils.saveSniSpoofingMode(getApplication(), sniSpoofingModeMutableLiveData.getValue());
-            }
-        }
+        SharedPrefUtils.saveSniSpoofingMode(getApplication(), sniSpoofingMode);
     }
 
     public void validateAndSetSni(String newSni) {

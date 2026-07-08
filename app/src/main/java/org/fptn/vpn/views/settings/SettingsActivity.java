@@ -48,6 +48,7 @@ import org.fptn.vpn.R;
 import org.fptn.vpn.utils.PermissionsUtils;
 import org.fptn.vpn.utils.SharedPrefUtils;
 import org.fptn.vpn.views.CustomBottomNavigationListener;
+import org.fptn.vpn.views.backup.BackupSettingsActivity;
 import org.fptn.vpn.views.experimentalsettings.ExperimentalSettingsActivity;
 import org.fptn.vpn.views.log.LogsActivity;
 import org.fptn.vpn.views.splash.SplashActivity;
@@ -149,6 +150,13 @@ public class SettingsActivity extends AppCompatActivity {
                 startActivity(intent);
             });
         }
+
+        // Backups
+        View backupSettingsLayout = findViewById(R.id.backup_settings_layout);
+        backupSettingsLayout.setOnClickListener(v -> {
+            Intent intent = new Intent(SettingsActivity.this, BackupSettingsActivity.class);
+            startActivity(intent);
+        });
     }
 
     @Override

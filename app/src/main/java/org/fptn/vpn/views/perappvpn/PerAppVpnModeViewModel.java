@@ -69,10 +69,12 @@ public class PerAppVpnModeViewModel extends AndroidViewModel {
 
     public void setPerAppVpnMode(PerAppVpnMode perAppVpnMode) {
         perAppVpnModeMutableLiveData.postValue(perAppVpnMode);
+        SharedPrefUtils.savePerAppVPNMode(getApplication(), perAppVpnMode);
     }
 
     public void setShowSystemApps(boolean show) {
         showSystemApps = show;
+        SharedPrefUtils.saveShowSystemApps(getApplication(), show);
         List<AppInfo> filtered = allLoadedApps.stream()
                 .filter(app -> showSystemApps || !app.isSystemApp())
                 .collect(Collectors.toList());
@@ -118,34 +120,15 @@ public class PerAppVpnModeViewModel extends AndroidViewModel {
         }).start();
     }
 
-    public boolean hasSelectedApps() {
-        PerAppVpnMode mode = perAppVpnModeMutableLiveData.getValue();
-        if (mode == PerAppVpnMode.ONLY_ALLOWED) {
-            return allLoadedApps.stream().anyMatch(AppInfo::isAllowed);
-        }
-        return true;
-    }
-
-    public void saveAllSettings() {
-        savePerAppVpnMode();
-        saveSelectedApps();
-        SharedPrefUtils.saveShowSystemApps(getApplication(), showSystemApps);
-    }
-
-    private void savePerAppVpnMode() {
-        PerAppVpnMode perAppVPNMode = perAppVpnModeMutableLiveData.getValue();
-        if (perAppVPNMode != null) {
-            SharedPrefUtils.savePerAppVPNMode(getApplication(), perAppVPNMode);
-        }
-    }
-
     public void saveSelectedApps() {
         PerAppVpnMode perAppVPNMode = perAppVpnModeMutableLiveData.getValue();
         // save app list only if selected mode
         if (perAppVPNMode == PerAppVpnMode.EXCEPT_DISALLOWED
                 || perAppVPNMode == PerAppVpnMode.ONLY_ALLOWED) {
+            // use the full list: appListMutableLiveData is filtered by showSystemApps,
+            // saving it would drop rules for hidden system apps
+            List<AppInfo> appInfoList = allLoadedApps;
             new Thread(() -> {
-                List<AppInfo> appInfoList = getAppListMutableLiveData().getValue();
                 if (appInfoList != null && !appInfoList.isEmpty()) {
                     List<AppInfoEntity> entities = appInfoList.stream()
                             .map(app -> AppInfoEntity.builder()
