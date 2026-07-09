@@ -53,7 +53,7 @@ import androidx.lifecycle.Observer;
 import com.elvishew.xlog.XLog;
 
 import org.fptn.vpn.R;
-import org.fptn.vpn.adblock.AdBlocker;
+import org.fptn.vpn.domainblocker.DomainBlocker;
 import org.fptn.vpn.core.common.Constants;
 import org.fptn.vpn.database.AppDatabase;
 import org.fptn.vpn.database.entity.ServerEntity;
@@ -885,7 +885,10 @@ public class FptnService extends VpnService {
                 .collect(Collectors.toList());
 
         boolean adBlockEnabled = SharedPrefUtils.getAdBlockEnabled(this);
-        AdBlocker adBlocker = adBlockEnabled ? new AdBlocker(this) : null;
+        boolean domainBlacklistEnabled = SharedPrefUtils.getDomainBlacklistEnabled(this);
+        String domainBlacklist = domainBlacklistEnabled ? SharedPrefUtils.getDomainBlacklistDomains(this) : null;
+        DomainBlocker domainBlocker = (adBlockEnabled || domainBlacklistEnabled)
+                ? new DomainBlocker(this, adBlockEnabled, domainBlacklist) : null;
 
         boolean customDnsEnabled = SharedPrefUtils.getCustomDnsEnabled(this);
         String customDnsIpv4 = customDnsEnabled ? SharedPrefUtils.getCustomDnsIpv4(this) : null;
@@ -910,7 +913,7 @@ public class FptnService extends VpnService {
                 appInfos,
                 preFetchedToken,
                 connectivityManager,
-                adBlocker,
+                domainBlocker,
                 customDnsIpv4,
                 preFetchedDnsServers
         );

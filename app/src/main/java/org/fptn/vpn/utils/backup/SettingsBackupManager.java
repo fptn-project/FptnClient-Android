@@ -65,6 +65,8 @@ public final class SettingsBackupManager {
         String perAppVpnMode;
         Boolean showSystemApps;
         Boolean adBlockEnabled;
+        Boolean domainBlacklistEnabled;
+        String domainBlacklist;
         Boolean customDnsEnabled;
         String customDnsIpv4;
         Boolean reconnectOnChangeNetworkType;
@@ -97,6 +99,8 @@ public final class SettingsBackupManager {
         settings.perAppVpnMode = SharedPrefUtils.getPerAppVPNMode(context).name();
         settings.showSystemApps = SharedPrefUtils.getShowSystemApps(context);
         settings.adBlockEnabled = SharedPrefUtils.getAdBlockEnabled(context);
+        settings.domainBlacklistEnabled = SharedPrefUtils.getDomainBlacklistEnabled(context);
+        settings.domainBlacklist = SharedPrefUtils.getDomainBlacklistDomains(context);
         settings.customDnsEnabled = SharedPrefUtils.getCustomDnsEnabled(context);
         settings.customDnsIpv4 = SharedPrefUtils.getCustomDnsIpv4(context);
         settings.reconnectOnChangeNetworkType = SharedPrefUtils.getReconnectOnChangeNetworkTypeEnabled(context);
@@ -155,6 +159,12 @@ public final class SettingsBackupManager {
         }
         if (settings.adBlockEnabled != null) {
             SharedPrefUtils.saveAdBlockEnabled(context, settings.adBlockEnabled);
+        }
+        if (settings.domainBlacklistEnabled != null) {
+            SharedPrefUtils.saveDomainBlacklistEnabled(context, settings.domainBlacklistEnabled);
+        }
+        if (settings.domainBlacklist != null) {
+            SharedPrefUtils.saveDomainBlacklistDomains(context, settings.domainBlacklist);
         }
         if (settings.customDnsEnabled != null) {
             SharedPrefUtils.saveCustomDnsEnabled(context, settings.customDnsEnabled);

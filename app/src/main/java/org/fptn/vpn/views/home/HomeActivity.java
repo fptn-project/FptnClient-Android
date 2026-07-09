@@ -47,6 +47,8 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.ViewModelProvider;
@@ -107,6 +109,7 @@ public class HomeActivity extends AppCompatActivity {
     private AlertDialog backgroundSetupDialog;
     private ImageView notificationsStateIcon;
     private ImageView batteryStateIcon;
+    private ImageView pinStateIcon;
     private Button backgroundSetupContinueButton;
     // Notifications/battery are gated on the real grant state; only the Xiaomi "lock in Security"
     // step (which can't be read back) is gated on the user having opened it.
@@ -275,6 +278,13 @@ public class HomeActivity extends AppCompatActivity {
         permissionWarningFrame = findViewById(R.id.home_permission_warning_frame);
         // Re-entry point: tapping the warning re-opens the checklist (without forcing a connect).
         permissionWarningFrame.setOnClickListener(v -> showBackgroundSetupDialog(false));
+        final int warningBasePadding = permissionWarningFrame.getPaddingTop();
+        ViewCompat.setOnApplyWindowInsetsListener(permissionWarningFrame, (v, insets) -> {
+            int statusBarTop = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top;
+            v.setPadding(v.getPaddingLeft(), warningBasePadding + statusBarTop,
+                    v.getPaddingRight(), v.getPaddingBottom());
+            return insets;
+        });
 
         // hide
         disconnectedStateUiItems();
@@ -341,6 +351,8 @@ public class HomeActivity extends AppCompatActivity {
             refreshBackgroundSetupStates();
         }
 
+        updatePermissionWarning();
+
         // The setting may have changed while this activity was paused (advanced settings screen).
         applyTrafficChartVisibility();
 
@@ -390,22 +402,29 @@ public class HomeActivity extends AppCompatActivity {
         ViewUtils.showView(serverInfoFrame);
         ViewUtils.showView(homeTrafficFrame);
 
-        // Show the warning banner on exactly the same condition the checklist opens on, so the two
-        // never disagree (and tapping the banner can actually clear it).
-        if (needsBackgroundSetup()) {
-            ViewUtils.showView(permissionWarningFrame);
-        }
+        updatePermissionWarning();
 
         ViewUtils.hideView(spinnerServers);
     }
 
+    private void updatePermissionWarning() {
+        ConnectionState state = Optional.ofNullable(viewModel.getServiceStateMutableLiveData().getValue())
+                .map(FptnServiceState::getConnectionState)
+                .orElse(ConnectionState.DISCONNECTED);
+        if (state == ConnectionState.CONNECTED && needsBackgroundSetup()) {
+            ViewUtils.showView(permissionWarningFrame);
+        } else {
+            ViewUtils.hideView(permissionWarningFrame);
+        }
+    }
+
     // Single source of truth for "background setup incomplete": notifications + battery on every
-    // device, plus the Xiaomi "lock in Security" step (persisted once opened, since it can't be
-    // read back). Used by both the connect gate and the home warning banner.
+    // device. The Xiaomi "lock in Security" step is optional guidance only — it never gates here,
+    // since MIUI exposes no way to read it back and we don't want to nag users who already pinned.
+    // Used by both the connect gate and the home warning banner.
     private boolean needsBackgroundSetup() {
         return !PermissionsUtils.checkNotificationEnabled(this)
-                || !PermissionsUtils.checkBatteryOptimizations(this)
-                || (PermissionsUtils.isXiaomi() && !SharedPrefUtils.isXiaomiPinDone(this));
+                || !PermissionsUtils.checkBatteryOptimizations(this);
     }
 
     public void onClickToStartStop(View v) {
@@ -467,6 +486,7 @@ public class HomeActivity extends AppCompatActivity {
         View rowPin = dialogView.findViewById(R.id.row_pin);
         notificationsStateIcon = dialogView.findViewById(R.id.row_notifications_state);
         batteryStateIcon = dialogView.findViewById(R.id.row_battery_state);
+        pinStateIcon = dialogView.findViewById(R.id.row_pin_state);
 
         // Notifications and battery apply to every device; the "lock in Security" step is Xiaomi-only.
         rowPin.setVisibility(PermissionsUtils.isXiaomi() ? View.VISIBLE : View.GONE);
@@ -499,13 +519,15 @@ public class HomeActivity extends AppCompatActivity {
             backgroundSetupDialog = null;
             notificationsStateIcon = null;
             batteryStateIcon = null;
+            pinStateIcon = null;
             backgroundSetupContinueButton = null;
         });
         backgroundSetupDialog.show();
     }
 
-    // Notifications and battery are gated on the REAL grant state (honest check marks); the Xiaomi
-    // pin step is gated on the user having opened it, since MIUI exposes no way to read it back.
+    // Notifications and battery are gated on the REAL grant state (honest check marks). The Xiaomi
+    // pin step is optional: its check mark reflects whether the user has opened it (persisted, since
+    // MIUI exposes no way to read it back), but it never blocks the Continue button.
     // Called again on resume so state updates after returning from a system screen.
     private void refreshBackgroundSetupStates() {
         boolean notificationsDone = PermissionsUtils.checkNotificationEnabled(this);
@@ -520,8 +542,12 @@ public class HomeActivity extends AppCompatActivity {
             batteryStateIcon.setImageResource(batteryDone
                     ? R.drawable.ic_check_16 : R.drawable.ic_outline_arrow_forward_ios_16);
         }
+        if (pinStateIcon != null) {
+            pinStateIcon.setImageResource(pinDone
+                    ? R.drawable.ic_check_16 : R.drawable.ic_outline_arrow_forward_ios_16);
+        }
         if (backgroundSetupContinueButton != null) {
-            backgroundSetupContinueButton.setEnabled(notificationsDone && batteryDone && pinDone);
+            backgroundSetupContinueButton.setEnabled(notificationsDone && batteryDone);
         }
     }
 

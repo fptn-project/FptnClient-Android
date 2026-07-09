@@ -171,8 +171,14 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="settings_reset_server_on_exception">تنظیم مجدد سرور فقط در صورت بروز خطاهای اتصال</string>
     <string name="searching_for_server">جستجوی سرور...</string>
     <string name="ad_block_title">مسدودسازی تبلیغات:</string>
-    <string name="ad_block_description">تبلیغات و ردیاب‌ها را در سطح DNS برای تمام برنامه‌ها مسدود می‌کند.</string>
+    <string name="ad_block_description">تبلیغات و ردیاب‌ها را در سطح DNS برای تمام برنامه‌ها مسدود می‌کند. ممکن است نیازمند خاموش کردن DNS خصوصی (DoH) در تنظیمات سیستم باشد — در غیر این صورت درخواست‌های DNS از فیلتر عبور می‌کنند.</string>
     <string name="ad_block_enable">مسدودسازی تبلیغات و ردیاب‌ها</string>
+
+    <string name="domain_blacklist_title">لیست سیاه دامنه‌ها:</string>
+    <string name="domain_blacklist_description">اتصال به دامنه‌های فهرست‌شده و زیردامنه‌های آن‌ها را مسدود می‌کند. هر دامنه در یک خط. ممکن است نیازمند خاموش کردن DNS خصوصی (DoH) در تنظیمات سیستم باشد — در غیر این صورت درخواست‌های DNS از فیلتر عبور می‌کنند.</string>
+    <string name="domain_blacklist_enable">مسدودسازی دامنه‌های فهرست</string>
+    <string name="domain_blacklist_enable_link">فهرست</string>
+    <string name="domain_blacklist_hint">example.com</string>
 
     <string name="custom_dns_title">DNS سفارشی:</string>
     <string name="custom_dns_description">استفاده از DNS سفارشی.</string>

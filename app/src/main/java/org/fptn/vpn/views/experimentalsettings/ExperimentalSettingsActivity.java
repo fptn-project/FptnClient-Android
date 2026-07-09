@@ -21,16 +21,25 @@
 package org.fptn.vpn.views.experimentalsettings;
 
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
 import android.app.StatusBarManager;
 import android.content.ComponentName;
 import android.graphics.drawable.Icon;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.Editable;
+import android.text.InputType;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.TextPaint;
 import android.text.TextWatcher;
 import android.text.method.DigitsKeyListener;
+import android.text.method.LinkMovementMethod;
+import android.text.style.ClickableSpan;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -44,6 +53,7 @@ import com.elvishew.xlog.XLog;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import org.fptn.vpn.R;
+import org.fptn.vpn.core.common.Constants;
 import org.fptn.vpn.services.tile.FptnTileService;
 import org.fptn.vpn.utils.SharedPrefUtils;
 import org.fptn.vpn.views.CustomBottomNavigationListener;
@@ -69,6 +79,7 @@ public class ExperimentalSettingsActivity extends AppCompatActivity {
     private SwitchCompat showSpeedInNotificationSwitch;
     private SwitchCompat showTrafficChartSwitch;
     private SwitchCompat adBlockSwitch;
+    private SwitchCompat domainBlacklistSwitch;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -125,6 +136,14 @@ public class ExperimentalSettingsActivity extends AppCompatActivity {
         adBlockSwitch.setChecked(SharedPrefUtils.getAdBlockEnabled(this));
         adBlockSwitch.setOnCheckedChangeListener(
                 (buttonView, isChecked) -> SharedPrefUtils.saveAdBlockEnabled(this, isChecked));
+
+        domainBlacklistSwitch = findViewById(R.id.domain_blacklist_switch);
+        domainBlacklistSwitch.setChecked(SharedPrefUtils.getDomainBlacklistEnabled(this));
+        domainBlacklistSwitch.setOnCheckedChangeListener(
+                (buttonView, isChecked) -> SharedPrefUtils.saveDomainBlacklistEnabled(this, isChecked));
+
+        linkifySubstring(findViewById(R.id.domain_blacklist_label),
+                getString(R.string.domain_blacklist_enable_link), this::showDomainBlacklistDialog);
 
         switchNetworkType = findViewById(R.id.reconnect_on_change_network_type_switch);
         switchNetworkType.setChecked(SharedPrefUtils.getReconnectOnChangeNetworkTypeEnabled(this));
@@ -259,6 +278,7 @@ public class ExperimentalSettingsActivity extends AppCompatActivity {
         showSpeedInNotificationSwitch.setChecked(false);
         showTrafficChartSwitch.setChecked(true);
         adBlockSwitch.setChecked(true);
+        domainBlacklistSwitch.setChecked(true);
         switchNetworkType.setChecked(true);
         switchIPAddress.setChecked(true);
         seekBarAttemptsCount.setProgress(2); // default 35
@@ -273,6 +293,8 @@ public class ExperimentalSettingsActivity extends AppCompatActivity {
         SharedPrefUtils.saveShowSpeedInNotification(this, false);
         SharedPrefUtils.saveShowTrafficChart(this, true);
         SharedPrefUtils.saveAdBlockEnabled(this, true);
+        SharedPrefUtils.saveDomainBlacklistEnabled(this, true);
+        SharedPrefUtils.saveDomainBlacklistDomains(this, Constants.DOMAIN_BLACKLIST_DEFAULT);
         SharedPrefUtils.saveReconnectOnChangeNetworkTypeEnabled(this, true);
         SharedPrefUtils.saveReconnectOnChangeIPEnabled(this, true);
         SharedPrefUtils.saveReconnectAttemptsCount(this, ATTEMPTS_COUNT_VALUES[2]);
@@ -288,6 +310,55 @@ public class ExperimentalSettingsActivity extends AppCompatActivity {
 
     private void updateCustomDnsInputVisibility(boolean isEnabled) {
         customDnsInput.setVisibility(isEnabled ? View.VISIBLE : View.GONE);
+    }
+
+    // Turns the given substring of a TextView's text into an inline clickable link, styled like the
+    // other links on this screen (white at 70% alpha, underlined). No-op if the substring is absent.
+    private void linkifySubstring(TextView textView, String linkText, Runnable onClick) {
+        CharSequence fullText = textView.getText();
+        int linkStart = fullText.toString().indexOf(linkText);
+        if (linkStart < 0) {
+            return;
+        }
+        SpannableString spannable = new SpannableString(fullText);
+        spannable.setSpan(new ClickableSpan() {
+            @Override
+            public void onClick(View widget) {
+                onClick.run();
+            }
+
+            @Override
+            public void updateDrawState(TextPaint ds) {
+                ds.setColor(0xB3FFFFFF); // white at 70% alpha, like other links on this screen
+                ds.setUnderlineText(true);
+            }
+        }, linkStart, linkStart + linkText.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        textView.setText(spannable);
+        textView.setMovementMethod(LinkMovementMethod.getInstance());
+    }
+
+    private void showDomainBlacklistDialog() {
+        EditText input = new EditText(this);
+        input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
+        input.setGravity(Gravity.TOP | Gravity.START);
+        input.setMinLines(6);
+        input.setMaxLines(10);
+        input.setVerticalScrollBarEnabled(true);
+        input.setHint(R.string.domain_blacklist_hint);
+        input.setText(SharedPrefUtils.getDomainBlacklistDomains(this));
+
+        FrameLayout container = new FrameLayout(this);
+        int padding = (int) (16 * getResources().getDisplayMetrics().density);
+        container.setPadding(padding, 0, padding, 0);
+        container.addView(input);
+
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.domain_blacklist_title)
+                .setView(container)
+                .setPositiveButton(R.string.save_button, (dialog, which) ->
+                        SharedPrefUtils.saveDomainBlacklistDomains(this, input.getText().toString()))
+                .setNegativeButton(R.string.cancel_button, (dialog, which) -> dialog.dismiss())
+                .show();
     }
 
     private void updateExceptionVisibility(boolean isVisible) {

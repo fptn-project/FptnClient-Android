@@ -38,7 +38,7 @@ import android.os.ParcelFileDescriptor;
 
 import com.elvishew.xlog.XLog;
 
-import org.fptn.vpn.adblock.AdBlocker;
+import org.fptn.vpn.domainblocker.DomainBlocker;
 import org.fptn.vpn.database.entity.ServerEntity;
 import org.fptn.vpn.enums.BypassCensorshipMethod;
 import org.fptn.vpn.enums.ConnectionState;
@@ -131,7 +131,7 @@ public class FptnConnection extends Thread {
     private final PerAppVpnMode perAppVpnMode;
     private final List<AppInfo> appInfos;
     private final ConnectivityManager connectivityManager;
-    private final AdBlocker adBlocker; // null when ad blocking is disabled
+    private final DomainBlocker domainBlocker; // null when ad blocking and domain blacklist are disabled
     private final String customDnsIpv4; // null when custom DNS is disabled
 
     public FptnConnection(final FptnService service,
@@ -150,7 +150,7 @@ public class FptnConnection extends Thread {
                           final List<AppInfo> appInfos,
                           final String preFetchedToken,
                           final ConnectivityManager connectivityManager,
-                          final AdBlocker adBlocker,
+                          final DomainBlocker domainBlocker,
                           final String customDnsIpv4,
                           final DnsServers preFetchedDnsServers) {
         this.service = service;
@@ -162,7 +162,7 @@ public class FptnConnection extends Thread {
         this.perAppVpnMode = perAppVpnMode;
         this.appInfos = appInfos;
         this.connectivityManager = connectivityManager;
-        this.adBlocker = adBlocker;
+        this.domainBlocker = domainBlocker;
         this.customDnsIpv4 = customDnsIpv4;
         this.maxReconnectCount = maxReconnectCount;
         this.fallbackThreshold = fallbackThreshold;
@@ -251,8 +251,8 @@ public class FptnConnection extends Thread {
             while (!currentThread.isInterrupted()) {
                 int length = inputStream.read(byteBuffer);
 
-                if (adBlocker != null && AdBlocker.isDnsPacket(byteBuffer, length)) {
-                    byte[] blockedResponse = adBlocker.processPacket(byteBuffer, length);
+                if (domainBlocker != null && DomainBlocker.isDnsPacket(byteBuffer, length)) {
+                    byte[] blockedResponse = domainBlocker.processPacket(byteBuffer, length);
                     if (blockedResponse != null) {
                         if (outputStream != null) {
                             outputStream.write(blockedResponse);

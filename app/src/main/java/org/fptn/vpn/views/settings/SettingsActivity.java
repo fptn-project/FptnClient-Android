@@ -31,9 +31,6 @@ import android.provider.Settings;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ListAdapter;
-import android.widget.ListView;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
@@ -52,15 +49,12 @@ import org.fptn.vpn.views.backup.BackupSettingsActivity;
 import org.fptn.vpn.views.experimentalsettings.ExperimentalSettingsActivity;
 import org.fptn.vpn.views.log.LogsActivity;
 import org.fptn.vpn.views.splash.SplashActivity;
-import org.fptn.vpn.views.adapter.ServerEntityAdapter;
 import org.fptn.vpn.views.bypassmethod.BypassMethodsActivity;
 import org.fptn.vpn.views.perappvpn.PerAppVpnModeActivity;
 import org.fptn.vpn.views.updatetoken.UpdateTokenActivity;
 
 public class SettingsActivity extends AppCompatActivity {
     private final String TAG = this.getClass().getSimpleName();
-
-    private ListView serverListView;
 
     private SettingsViewModel viewModel;
 
@@ -84,14 +78,6 @@ public class SettingsActivity extends AppCompatActivity {
 
 
         viewModel = new ViewModelProvider(this).get(SettingsViewModel.class);
-        viewModel.loadServersList();
-        viewModel.getServerDtoListLiveData().observe(this, serverEntities -> {
-            if (serverEntities != null && !serverEntities.isEmpty()) {
-                serverListView.setAdapter(new ServerEntityAdapter(serverEntities, R.layout.settings_server_list_item));
-                setListViewHeightBasedOnChildren(serverListView);
-            }
-        });
-        serverListView = findViewById(R.id.settings_servers_list);
 
         try {
             PackageInfo pInfo = this.getPackageManager().getPackageInfo(this.getPackageName(), 0);
@@ -252,22 +238,4 @@ public class SettingsActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
-    private static void setListViewHeightBasedOnChildren(ListView listView) {
-        ListAdapter listAdapter = listView.getAdapter();
-        if (listAdapter == null) {
-            return;
-        }
-
-        int totalHeight = 0;
-        for (int i = 0; i < listAdapter.getCount(); i++) {
-            View listItem = listAdapter.getView(i, null, listView);
-            listItem.measure(0, 0);
-            totalHeight += listItem.getMeasuredHeight();
-        }
-
-        ViewGroup.LayoutParams params = listView.getLayoutParams();
-        params.height = totalHeight + (listView.getDividerHeight() * (listAdapter.getCount() - 1));
-        listView.setLayoutParams(params);
-        listView.requestLayout();
-    }
 }
