@@ -58,6 +58,7 @@ import org.fptn.vpn.core.common.Constants;
 import org.fptn.vpn.database.AppDatabase;
 import org.fptn.vpn.database.entity.ServerEntity;
 import org.fptn.vpn.enums.BypassCensorshipMethod;
+import org.fptn.vpn.enums.ConnectionStrategy;
 import org.fptn.vpn.enums.ConnectionState;
 import org.fptn.vpn.enums.NetworkType;
 import org.fptn.vpn.enums.PerAppVpnMode;
@@ -856,6 +857,8 @@ public class FptnService extends VpnService {
         if (bypassCensorshipMethod == BypassCensorshipMethod.SNI_REALITY) {
             sniSpoofingMode = SharedPrefUtils.getSniSpoofingMode(this);
         }
+
+        ConnectionStrategy connectionStrategy = SharedPrefUtils.getConnectionStrategy(this);
         XLog.tag(TAG).i("Connection params [bypass=%s, spoofingMode=%s, maxRetries=%d, fallbackThreshold=%d, retryDelay=%ds, watchIP=%b, watchNetwork=%b]",
                 bypassCensorshipMethod,
                 sniSpoofingMode,
@@ -909,6 +912,7 @@ public class FptnService extends VpnService {
                 sniHostname,
                 bypassCensorshipMethod,
                 sniSpoofingMode,
+                connectionStrategy,
                 perAppVpnMode,
                 appInfos,
                 preFetchedToken,

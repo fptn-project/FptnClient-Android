@@ -85,7 +85,8 @@ Java_org_fptn_vpn_services_websocket_NativeWebSocketClientImpl_nativeCreate(
     jstring sni_param,
     jstring access_token_param,
     jstring expected_md5_fingerprint_param,
-    jstring censorship_strategy_name_param) {
+    jstring censorship_strategy_name_param,
+    jstring connection_strategy_name_param) {
   fptn::wrapper::init_logger();  // will call only once
 
   auto server_ip = fptn::wrapper::ConvertToCString(env, server_ip_param);
@@ -147,6 +148,21 @@ Java_org_fptn_vpn_services_websocket_NativeWebSocketClientImpl_nativeCreate(
 
   SPDLOG_INFO("Censorship strategy selected: {}", censorship_strategy_name);
 
+  const auto connection_strategy_name =
+      fptn::wrapper::ConvertToCString(env, connection_strategy_name_param);
+  namespace strategies = fptn::protocol::connection::strategies;
+  auto connection_strategy = strategies::ConnectionStrategy::kPersistentTunnel;
+  if (connection_strategy_name == "rolling-tunnel") {
+    connection_strategy = strategies::ConnectionStrategy::kRollingTunnel;
+  } else if (connection_strategy_name == "dual-rolling-tunnel") {
+    connection_strategy = strategies::ConnectionStrategy::kDualTunnel;
+  } else if (connection_strategy_name == "triple-rolling-tunnel") {
+    connection_strategy = strategies::ConnectionStrategy::kTripleTunnel;
+  } else if (connection_strategy_name == "browser-mimicry") {
+    connection_strategy = strategies::ConnectionStrategy::kBrowserMimicry;
+  }
+  SPDLOG_INFO("Connection strategy selected: {}", connection_strategy_name);
+
   jobject global_object_ref = env->NewWeakGlobalRef(thiz);
   auto* websocket_client = new WrapperWebsocketClient(
       global_object_ref,
@@ -157,7 +173,8 @@ Java_org_fptn_vpn_services_websocket_NativeWebSocketClientImpl_nativeCreate(
       std::move(sni),
       std::move(access_token),
       std::move(expected_md5_fingerprint),
-      censorship_strategy
+      censorship_strategy,
+      connection_strategy
   );
 
   auto jobj_client = reinterpret_cast<jlong>(websocket_client);

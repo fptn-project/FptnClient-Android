@@ -38,6 +38,7 @@ import org.fptn.vpn.database.AppDatabase;
 import org.fptn.vpn.database.entity.ServerEntity;
 import org.fptn.vpn.database.entity.SniEntity;
 import org.fptn.vpn.enums.BypassCensorshipMethod;
+import org.fptn.vpn.enums.ConnectionStrategy;
 import org.fptn.vpn.enums.SniSpoofingMode;
 import org.fptn.vpn.services.snichecker.SniCheckerService;
 import org.fptn.vpn.views.home.HomeActivityViewModel;
@@ -81,6 +82,9 @@ public class BypassMethodsViewModel extends AndroidViewModel {
     private final MutableLiveData<SniSpoofingMode> sniSpoofingModeMutableLiveData;
 
     @Getter
+    private final MutableLiveData<ConnectionStrategy> connectionStrategyMutableLiveData;
+
+    @Getter
     private final MutableLiveData<String> foundedSniEvent = new MutableLiveData<>();
 
     private final AppDatabase appDatabase = AppDatabase.getInstance(getApplication());
@@ -92,6 +96,7 @@ public class BypassMethodsViewModel extends AndroidViewModel {
         sniMutableLiveData = new MutableLiveData<>(SharedPrefUtils.getSniHostname(application));
         bypassCensorshipMethodMutableLiveData = new MutableLiveData<>(SharedPrefUtils.getBypassCensorshipMethod(application));
         sniSpoofingModeMutableLiveData = new MutableLiveData<>(SharedPrefUtils.getSniSpoofingMode(application));
+        connectionStrategyMutableLiveData = new MutableLiveData<>(SharedPrefUtils.getConnectionStrategy(application));
 
         refreshSniCount();
     }
@@ -121,6 +126,11 @@ public class BypassMethodsViewModel extends AndroidViewModel {
     public void setSniSpoofingMode(SniSpoofingMode sniSpoofingMode) {
         sniSpoofingModeMutableLiveData.postValue(sniSpoofingMode);
         SharedPrefUtils.saveSniSpoofingMode(getApplication(), sniSpoofingMode);
+    }
+
+    public void setConnectionStrategy(ConnectionStrategy connectionStrategy) {
+        connectionStrategyMutableLiveData.postValue(connectionStrategy);
+        SharedPrefUtils.saveConnectionStrategy(getApplication(), connectionStrategy);
     }
 
     public void validateAndSetSni(String newSni) {

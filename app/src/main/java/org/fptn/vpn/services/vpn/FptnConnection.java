@@ -41,6 +41,7 @@ import com.elvishew.xlog.XLog;
 import org.fptn.vpn.domainblocker.DomainBlocker;
 import org.fptn.vpn.database.entity.ServerEntity;
 import org.fptn.vpn.enums.BypassCensorshipMethod;
+import org.fptn.vpn.enums.ConnectionStrategy;
 import org.fptn.vpn.enums.ConnectionState;
 import org.fptn.vpn.enums.NetworkType;
 import org.fptn.vpn.enums.PerAppVpnMode;
@@ -146,6 +147,7 @@ public class FptnConnection extends Thread {
                           final String sniHostName,
                           final BypassCensorshipMethod censorshipStrategy,
                           final SniSpoofingMode sniSpoofingMode,
+                          final ConnectionStrategy connectionStrategy,
                           final PerAppVpnMode perAppVpnMode,
                           final List<AppInfo> appInfos,
                           final String preFetchedToken,
@@ -177,6 +179,7 @@ public class FptnConnection extends Thread {
                 sniHostName,
                 censorshipStrategy,
                 sniSpoofingMode,
+                connectionStrategy,
                 preFetchedToken,
                 preFetchedDnsServers
         );

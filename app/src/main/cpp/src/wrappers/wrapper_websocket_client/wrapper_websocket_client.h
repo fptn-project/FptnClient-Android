@@ -25,6 +25,7 @@
 #include <jni.h>
 
 #define FPTN_IP_ADDRESS_WITHOUT_PCAP
+#include "fptn-protocol-lib/connection/strategies/base_strategy_connection.h"
 #include "fptn-protocol-lib/https/websocket_client/websocket_client.h"
 
 namespace fptn::wrapper {
@@ -39,7 +40,9 @@ class WrapperWebsocketClient final {
       std::string sni,
       std::string access_token,
       std::string expected_md5_fingerprint,
-      fptn::protocol::https::CensorshipStrategy censorship_strategy);
+      fptn::protocol::https::CensorshipStrategy censorship_strategy,
+      fptn::protocol::connection::strategies::ConnectionStrategy
+          connection_strategy);
 
   ~WrapperWebsocketClient();
 
@@ -86,8 +89,10 @@ class WrapperWebsocketClient final {
   const std::string access_token_;
   const std::string expected_md5_fingerprint_;
   const fptn::protocol::https::CensorshipStrategy censorship_strategy_;
+  const fptn::protocol::connection::strategies::ConnectionStrategy
+      connection_strategy_;
 
-  fptn::protocol::https::WebsocketClientSPtr client_;
+  fptn::protocol::connection::strategies::StrategyConnectionPtr client_;
 
   fptn::common::network::IPv4Address ipv4_address_;
   fptn::common::network::IPv6Address ipv6_address_;

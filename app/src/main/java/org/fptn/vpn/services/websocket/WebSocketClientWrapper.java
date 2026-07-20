@@ -25,6 +25,7 @@ import com.google.gson.Gson;
 
 import org.fptn.vpn.database.entity.ServerEntity;
 import org.fptn.vpn.enums.BypassCensorshipMethod;
+import org.fptn.vpn.enums.ConnectionStrategy;
 import org.fptn.vpn.enums.SniSpoofingMode;
 import org.fptn.vpn.services.websocket.callback.OnFailureCallback;
 import org.fptn.vpn.services.websocket.callback.OnMessageReceivedCallback;
@@ -52,6 +53,7 @@ public class WebSocketClientWrapper {
     private final String sniHostName;
     private final BypassCensorshipMethod censorshipStrategy;
     private final SniSpoofingMode sniSpoofingMode;
+    private final ConnectionStrategy connectionStrategy;
 
     private NativeWebSocketClientImpl nativeWebSocketClient;
     private String cachedAccessToken = null;
@@ -69,6 +71,7 @@ public class WebSocketClientWrapper {
                                   String sniHostName,
                                   BypassCensorshipMethod censorshipStrategy,
                                   SniSpoofingMode sniSpoofingMode,
+                                  ConnectionStrategy connectionStrategy,
                                   String preFetchedToken,
                                   DnsServers preFetchedDnsServers) {
         this.serverEntity = serverEntity;
@@ -82,6 +85,7 @@ public class WebSocketClientWrapper {
         this.sniHostName = sniHostName;
         this.censorshipStrategy = censorshipStrategy;
         this.sniSpoofingMode = sniSpoofingMode;
+        this.connectionStrategy = connectionStrategy;
 
         this.cachedAccessToken = preFetchedToken;
         this.cachedDnsServers = preFetchedDnsServers;
@@ -132,7 +136,8 @@ public class WebSocketClientWrapper {
                 onFailureCallback,
                 sniHostName,
                 censorshipStrategy,
-                sniSpoofingMode
+                sniSpoofingMode,
+                connectionStrategy
         );
 
         XLog.d(getTag(), "WebSocket start dispatched [thread=" + Thread.currentThread().getId() + "]");

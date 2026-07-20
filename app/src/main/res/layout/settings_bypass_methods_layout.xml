@@ -39,6 +39,68 @@
                 android:textSize="16sp"
                 android:textStyle="bold" />
 
+            <!--Connection strategy-->
+            <LinearLayout
+                android:id="@+id/connection_strategy_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="20dp"
+                android:layout_marginEnd="20dp"
+                android:background="@drawable/round_settings_back_white10_20"
+                android:orientation="vertical"
+                android:padding="10dp"
+                android:paddingBottom="0dp">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <ImageView
+                        android:id="@+id/connection_strategy_image_view"
+                        android:layout_width="wrap_content"
+                        android:layout_height="32dp"
+                        android:layout_gravity="center"
+                        android:importantForAccessibility="no"
+                        android:paddingStart="4dp"
+                        android:paddingEnd="12dp"
+                        android:src="@drawable/ic_logo_24" />
+
+                    <TextView
+                        android:id="@+id/connection_strategy_label"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:layout_toEndOf="@id/connection_strategy_image_view"
+                        android:text="@string/connection_strategy_title"
+                        android:textColor="@color/white"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+                </RelativeLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingLeft="10dp"
+                    android:paddingTop="4dp"
+                    android:paddingRight="10dp"
+                    android:paddingBottom="4dp">
+
+                    <Spinner
+                        android:id="@+id/connection_strategy_spinner"
+                        android:layout_width="match_parent"
+                        android:layout_height="40dp"
+                        android:background="@drawable/round_back_spinner_down"
+                        android:gravity="center_vertical|start"
+                        android:minHeight="0dp"
+                        android:paddingHorizontal="8dp"
+                        android:paddingVertical="0dp"
+                        android:popupBackground="@drawable/spinner_background_up"
+                        android:spinnerMode="dropdown" />
+                </LinearLayout>
+            </LinearLayout>
+
             <!--Method bypass censorship-->
             <LinearLayout
                 android:id="@+id/bypass_method_layout"

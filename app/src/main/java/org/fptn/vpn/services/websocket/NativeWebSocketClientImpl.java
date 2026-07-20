@@ -24,6 +24,7 @@ package org.fptn.vpn.services.websocket;
 import com.elvishew.xlog.XLog;
 
 import org.fptn.vpn.enums.BypassCensorshipMethod;
+import org.fptn.vpn.enums.ConnectionStrategy;
 import org.fptn.vpn.enums.SniSpoofingMode;
 import org.fptn.vpn.services.websocket.callback.OnFailureCallback;
 import org.fptn.vpn.services.websocket.callback.OnMessageReceivedCallback;
@@ -80,7 +81,8 @@ public class NativeWebSocketClientImpl {
             OnFailureCallback onFailureCallback,
             String sniHostName,
             BypassCensorshipMethod censorshipStrategy,
-            SniSpoofingMode sniSpoofingMode) throws PVNClientException {
+            SniSpoofingMode sniSpoofingMode,
+            ConnectionStrategy connectionStrategy) throws PVNClientException {
         this.onOpenCallback = onOpenCallback;
         this.onMessageReceivedCallback = onMessageReceivedCallback;
         this.onFailureCallback = onFailureCallback;
@@ -102,7 +104,8 @@ public class NativeWebSocketClientImpl {
                 sniHostName,
                 accessToken,
                 md5ServerFingerprint,
-                censorshipStrategyName
+                censorshipStrategyName,
+                connectionStrategy.getNativeName()
         );
 
         this.serialNum = SERIAL_NUM.getAndIncrement();
@@ -198,7 +201,8 @@ public class NativeWebSocketClientImpl {
                                      String sni,
                                      String access_token,
                                      String expected_md5_fingerprint,
-                                     String censorship_strategy_name);
+                                     String censorship_strategy_name,
+                                     String connection_strategy_name);
 
     private native void nativeDestroy(long nativeHandle);
 

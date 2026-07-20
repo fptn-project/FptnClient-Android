@@ -26,6 +26,7 @@ import android.content.SharedPreferences;
 import org.fptn.vpn.R;
 import org.fptn.vpn.core.common.Constants;
 import org.fptn.vpn.enums.BypassCensorshipMethod;
+import org.fptn.vpn.enums.ConnectionStrategy;
 import org.fptn.vpn.enums.PerAppVpnMode;
 import org.fptn.vpn.enums.SniSpoofingMode;
 
@@ -202,6 +203,22 @@ public class SharedPrefUtils {
     public static void saveSniSpoofingMode(Context context, SniSpoofingMode mode) {
         SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
         sharedPreferences.edit().putString(Constants.SNI_SPOOFING_MODE_SHARED_PREF_KEY, mode.toString()).apply();
+    }
+
+    public static ConnectionStrategy getConnectionStrategy(Context context) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        String strategyName = sharedPreferences.getString(Constants.CONNECTION_STRATEGY_SHARED_PREF_KEY, null);
+        for (ConnectionStrategy value : ConnectionStrategy.values()) {
+            if (Objects.equals(strategyName, value.name())) {
+                return value;
+            }
+        }
+        return ConnectionStrategy.PERSISTENT_TUNNEL;
+    }
+
+    public static void saveConnectionStrategy(Context context, ConnectionStrategy strategy) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        sharedPreferences.edit().putString(Constants.CONNECTION_STRATEGY_SHARED_PREF_KEY, strategy.toString()).apply();
     }
 
     /* Per-app VPN settings */
