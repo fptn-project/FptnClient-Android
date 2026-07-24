@@ -76,4 +76,7 @@ object Constants {
     // Default matches blacklist_domains in the fptn desktop client (settingsmodel.cpp)
     const val DOMAIN_BLACKLIST_DEFAULT: String =
         "solovev-live.ru\nria.ru\ntass.ru\n1tv.ru\nntv.ru\nrt.com"
+
+    const val TRUSTED_WIFI_ENABLED_PREF_KEY: String = "TRUSTED_WIFI_ENABLED_V1"
+    const val TRUSTED_WIFI_SSIDS_PREF_KEY: String = "TRUSTED_WIFI_SSIDS_V1"
 }

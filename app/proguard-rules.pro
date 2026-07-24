@@ -19,3 +19,7 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# Preserve JNI methods and classes for fptn
+-keep class org.fptn.** { *; }
+-keepclassmembers class org.fptn.** { *; }

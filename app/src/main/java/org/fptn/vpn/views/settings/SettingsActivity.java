@@ -117,6 +117,14 @@ public class SettingsActivity extends AppCompatActivity {
         View experimentalFeaturesLayout = findViewById(R.id.experimental_features_layout);
         experimentalFeaturesLayout.setOnClickListener(this::onExperimentalSettings);
 
+        View trustedWifiLayout = findViewById(R.id.trusted_wifi_layout);
+        if (trustedWifiLayout != null) {
+            trustedWifiLayout.setOnClickListener(v -> {
+                Intent intent = new Intent(SettingsActivity.this, org.fptn.vpn.views.trustedwifi.TrustedWifiActivity.class);
+                startActivity(intent);
+            });
+        }
+
         View logoutLayout = findViewById(R.id.logout_layout);
         logoutLayout.setOnClickListener(this::onLogout);
 

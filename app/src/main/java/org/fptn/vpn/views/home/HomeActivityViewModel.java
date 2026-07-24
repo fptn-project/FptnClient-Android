@@ -125,6 +125,12 @@ public class HomeActivityViewModel extends AndroidViewModel {
                             statusTextLiveData.postValue(getApplication().getString(R.string.connecting));
                     case CONNECTED ->
                             statusTextLiveData.postValue(getApplication().getString(R.string.connected));
+                    case PAUSED_TRUSTED_WIFI -> {
+                        String wifiSsid = fptnServiceState.getServerInfo();
+                        String label = getApplication().getString(R.string.state_paused_trusted_wifi)
+                                + (wifiSsid != null && !wifiSsid.isEmpty() ? ": " + wifiSsid : "");
+                        statusTextLiveData.postValue(label);
+                    }
                     case RECONNECTING -> {} // text comes from exception below
                 }
 

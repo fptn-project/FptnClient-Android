@@ -13,6 +13,7 @@
 
     <string name="menu_home">Home</string>
     <string name="menu_settings">Settings</string>
+    <string name="menu_trusted_wifi">Trusted Wi-Fi Networks</string>
     <string name="menu_share">Share</string>
 
     <string name="your_servers">Your VPN servers</string>
@@ -374,4 +375,17 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="backup_restore_confirm_title">Restore settings?</string>
     <string name="backup_restore_confirm_message">Current settings will be replaced with the settings from the selected file.</string>
 
+    <!-- Trusted Wi-Fi Networks -->
+    <string name="trusted_wifi_title">Trusted Wi-Fi Networks</string>
+    <string name="trusted_wifi_enable_title">Auto-disconnect on trusted Wi-Fi</string>
+    <string name="trusted_wifi_enable_summary">Automatically pause VPN when connected to a trusted Wi-Fi network and resume when leaving it</string>
+    <string name="trusted_wifi_current_network">Current Wi-Fi network</string>
+    <string name="trusted_wifi_add_current">Add current Wi-Fi (%s)</string>
+    <string name="trusted_wifi_already_added">Current Wi-Fi (%s) is trusted</string>
+    <string name="trusted_wifi_not_connected">Not connected to Wi-Fi</string>
+    <string name="trusted_wifi_list_header">Saved trusted networks</string>
+    <string name="trusted_wifi_empty">No trusted Wi-Fi networks added yet</string>
+    <string name="trusted_wifi_paused_title">VPN Paused</string>
+    <string name="trusted_wifi_paused_msg">Connected to trusted Wi-Fi: %s</string>
+    <string name="state_paused_trusted_wifi">Paused (Trusted Wi-Fi)</string>
 </resources>

@@ -189,8 +189,8 @@ public class FptnConnection extends Thread {
         try {
             sendConnectionStateToService(ConnectionState.CONNECTING);
 
-            setupTun();
             webSocketClient.startWebSocket();
+            setupTun();
             configureConnectionTimeSpeedScheduler();
 
             byte[] byteBuffer = new byte[MAX_PACKET_SIZE];
@@ -231,6 +231,20 @@ public class FptnConnection extends Thread {
         builder.setMtu(MAX_PACKET_SIZE);
         builder.setBlocking(true);
         builder.setConfigureIntent(configureVpnIntent);
+
+        try {
+            android.net.ConnectivityManager cm = (android.net.ConnectivityManager) service.getSystemService(android.content.Context.CONNECTIVITY_SERVICE);
+            if (cm != null) {
+                android.net.Network activeNetwork = cm.getActiveNetwork();
+                if (activeNetwork != null) {
+                    builder.setUnderlyingNetworks(new android.net.Network[]{activeNetwork});
+                    XLog.tag(TAG).i("[id=%d] Set underlying physical network: %s", connectionId, activeNetwork);
+                }
+            }
+        } catch (Exception e) {
+            XLog.tag(TAG).w("[id=%d] Failed to set underlying network: %s", connectionId, e.getMessage());
+        }
+
         configurePerAppMode(builder);
         configureAddressesAndRoutes(builder);
 
@@ -287,18 +301,18 @@ public class FptnConnection extends Thread {
     }
 
     private void configurePerAppMode(VpnService.Builder builder) {
-        // Per-app routing
-        if (perAppVpnMode == PerAppVpnMode.OFF) {
-            String thisAppPackageName = service.getPackageName();
+        String thisAppPackageName = service.getPackageName();
+        if (perAppVpnMode == PerAppVpnMode.OFF || perAppVpnMode == PerAppVpnMode.EXCEPT_DISALLOWED) {
             try {
-                builder.addDisallowedApplication(thisAppPackageName); // todo: MAYBE something wrong with routes
+                builder.addDisallowedApplication(thisAppPackageName);
             } catch (PackageManager.NameNotFoundException e) {
                 XLog.tag(TAG).w("[id=%d] Package not found, skipping [pkg=%s]", connectionId, thisAppPackageName);
             }
-        } else if (perAppVpnMode == PerAppVpnMode.ONLY_ALLOWED) {
+        }
+
+        if (perAppVpnMode == PerAppVpnMode.ONLY_ALLOWED) {
             if (appInfos.isEmpty()) {
                 // No apps selected: add self to allowed list so no user traffic is tunneled
-                String thisAppPackageName = service.getPackageName();
                 try {
                     builder.addAllowedApplication(thisAppPackageName);
                 } catch (PackageManager.NameNotFoundException e) {
@@ -317,6 +331,7 @@ public class FptnConnection extends Thread {
         } else if (perAppVpnMode == PerAppVpnMode.EXCEPT_DISALLOWED) {
             for (AppInfo appInfo : appInfos) {
                 String packageName = appInfo.getPackageName();
+                if (packageName.equals(thisAppPackageName)) continue;
                 try {
                     builder.addDisallowedApplication(packageName);
                 } catch (PackageManager.NameNotFoundException e) {
@@ -384,27 +399,19 @@ public class FptnConnection extends Thread {
         builder.addAddress(TUN_ADDRESS.getIpV4Address(), IP_V4_PREFIX_LENGTH);
         builder.addRoute(dnsServers.getIpv4(), IP_V4_PREFIX_LENGTH);
 
-        // IPv6
-        builder.addDnsServer(dnsServers.getIpv6());
-        builder.addAddress(TUN_ADDRESS.getIpV6Address(), IP_V6_PREFIX_LENGTH);
-        builder.addRoute(dnsServers.getIpv6(), IP_V6_PREFIX_LENGTH);
+        // IPv6 (добавляем только при действительно наличии IPv6 DNS от сервера)
+        if (dnsServers.getIpv6() != null && !dnsServers.getIpv6().trim().isEmpty()) {
+            try {
+                builder.addDnsServer(dnsServers.getIpv6());
+                builder.addAddress(TUN_ADDRESS.getIpV6Address(), IP_V6_PREFIX_LENGTH);
+                builder.addRoute(dnsServers.getIpv6(), IP_V6_PREFIX_LENGTH);
+            } catch (Exception e) {
+                XLog.tag(TAG).w("[id=%d] Skip invalid IPv6 DNS configuration: %s", connectionId, e.getMessage());
+            }
+        }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            for (String host : allServerHosts) {
-                try {
-                    builder.excludeRoute(new IpPrefix(InetAddress.getByName(host), IP_V4_PREFIX_LENGTH));
-                } catch (UnknownHostException e) {
-                    XLog.tag(TAG).w("[id=%d] Cannot exclude server from TUN routing: %s", connectionId, host);
-                }
-            }
-            builder.excludeRoute(LOCAL_TUN_INTERFACE_SUBNET.getAsIpV4Prefix());
-            builder.excludeRoute(LOCAL_TUN_INTERFACE_SUBNET.getAsIpV6Prefix());
-            builder.excludeRoute(FPTN_SERVER_SUBNET.getAsIpV4Prefix());
-            builder.excludeRoute(FPTN_SERVER_SUBNET.getAsIpV6Prefix());
-            builder.excludeRoute(LOCAL_SUBNET.getAsIpV4Prefix());
-            builder.excludeRoute(LOCAL_SUBNET.getAsIpV6Prefix());
-            builder.addRoute(ALL_SUBNET.getIpV4Address(), ALL_SUBNET.getV4prefix());
-            builder.addRoute(ALL_SUBNET.getIpV6Address(), ALL_SUBNET.getV6prefix());
+            builder.addRoute("0.0.0.0", 0);
         } else {
             // IPv4
             IPAddress rootSubnetV4 = new IPAddressString(ALL_SUBNET.getAsIpV4PrefixAsString()).getAddress();
@@ -427,38 +434,12 @@ public class FptnConnection extends Thread {
                 XLog.tag(TAG).d("[id=%d] IPv4 route added [subnet=%s/%s]", connectionId, hostIp, networkPrefixLength);
                 builder.addRoute(hostIp, networkPrefixLength != null ? networkPrefixLength : IP_V4_PREFIX_LENGTH);
             }
-
-            // IPv6
-            IPAddress rootSubnetV6 = new IPAddressString(ALL_SUBNET.getAsIpV6PrefixAsString()).getAddress();
-            XLog.tag(TAG).d("[id=%d] IPv6 root subnet [subnet=%s]", connectionId, rootSubnetV6);
-            List<IPAddress> subnetsToExcludeV6 = Stream.of(
-                            LOCAL_TUN_INTERFACE_SUBNET.getAsIpV6PrefixAsString(),
-                            FPTN_SERVER_SUBNET.getAsIpV6PrefixAsString(),
-                            LOCAL_SUBNET.getAsIpV6PrefixAsString()
-                    )
-                    .map(sub -> new IPAddressString(sub).getAddress())
-                    .collect(Collectors.toList());
-
-            List<IPAddress> subnetsToIncludeV6 = new ArrayList<>();
-            IPUtils.exclude(rootSubnetV6, subnetsToExcludeV6, subnetsToIncludeV6, IP_V6_PREFIX_LENGTH);
-            for (IPAddress ipAddress : subnetsToIncludeV6) {
-                String hostIp = ipAddress.getLower().toAddressString().getHostAddress().toString();
-                Integer networkPrefixLength = ipAddress.getLower().toAddressString().getNetworkPrefixLength();
-                XLog.tag(TAG).d("[id=%d] IPv6 route added [subnet=%s/%s]", connectionId, hostIp, networkPrefixLength);
-                builder.addRoute(hostIp, networkPrefixLength != null ? networkPrefixLength : IP_V6_PREFIX_LENGTH);
-            }
         }
     }
 
     private void onConnectionOpen() {
         XLog.tag(TAG).i("[id=%d] WebSocket connected [reconnectCount=%d]",
                 connectionId, reconnectCount.get());
-        if (!isTunInterfaceValid(vpnInterface)) {
-            XLog.tag(TAG).i("[id=%d] WebSocket opened but TUN is gone — VPN revoked, disconnecting", connectionId);
-            webSocketClient.stopWebSocket();
-            service.disconnectSilently(connectionId);
-            return;
-        }
         reconnectCount.set(0);
         if (!currentThread.isInterrupted()) {
             sendConnectionStateToService(ConnectionState.CONNECTED);
@@ -486,6 +467,10 @@ public class FptnConnection extends Thread {
     }
 
     public void onConnectionFailure() {
+        if (isUserOrPauseStopped) {
+            XLog.tag(TAG).i("[id=%d] Connection stopped intentionally — suppressing failure handling", connectionId);
+            return;
+        }
         boolean tunValid = isTunInterfaceValid(vpnInterface);
         XLog.tag(TAG).w("[id=%d] Connection failure detected [wsStarted=%b, tunValid=%b, reconnectActive=%b]",
                 connectionId,
@@ -548,6 +533,13 @@ public class FptnConnection extends Thread {
         } catch (RejectedExecutionException exception) {
             XLog.tag(TAG).e("[id=%d] Reconnect task rejected by scheduler — connection lost", connectionId);
         }
+    }
+
+    private volatile boolean isUserOrPauseStopped = false;
+
+    public void stopConnection() {
+        isUserOrPauseStopped = true;
+        onFailureInterrupt();
     }
 
     private void onFailureInterrupt() {

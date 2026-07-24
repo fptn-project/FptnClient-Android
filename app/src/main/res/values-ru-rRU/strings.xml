@@ -12,6 +12,7 @@
 
     <string name="menu_home">Главная</string>
     <string name="menu_settings">Настройки</string>
+    <string name="menu_trusted_wifi">Доверенные Wi-Fi сети</string>
     <string name="menu_share">Поделиться</string>
 
     <string name="your_servers">Ваши VPN сервера</string>
@@ -290,4 +291,17 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="backup_restore_confirm_title">Загрузить настройки?</string>
     <string name="backup_restore_confirm_message">Текущие настройки будут заменены настройками из выбранного файла.</string>
 
+    <!-- Доверенные Wi-Fi сети -->
+    <string name="trusted_wifi_title">Доверенные Wi-Fi сети</string>
+    <string name="trusted_wifi_enable_title">Автоотключение в доверенных сетях</string>
+    <string name="trusted_wifi_enable_summary">Приостанавливать VPN при подключении к доверенной Wi-Fi сети и возобновлять при выходе из неё</string>
+    <string name="trusted_wifi_current_network">Текущая Wi-Fi сеть</string>
+    <string name="trusted_wifi_add_current">Добавить текущую сеть (%s)</string>
+    <string name="trusted_wifi_already_added">Сеть (%s) в доверенных</string>
+    <string name="trusted_wifi_not_connected">Нет подключения к Wi-Fi</string>
+    <string name="trusted_wifi_list_header">Сохраненные доверенные сети</string>
+    <string name="trusted_wifi_empty">Список доверенных сетей пуст</string>
+    <string name="trusted_wifi_paused_title">VPN Приостановлен</string>
+    <string name="trusted_wifi_paused_msg">Подключено к доверенной Wi-Fi сети: %s</string>
+    <string name="state_paused_trusted_wifi">Пауза (Доверенная Wi-Fi)</string>
 </resources>

@@ -28,14 +28,16 @@ public enum ConnectionState {
     CONNECTING,
     CONNECTED,
     RECONNECTING,
-    WAITING_FOR_NETWORK;
+    WAITING_FOR_NETWORK,
+    PAUSED_TRUSTED_WIFI;
 
     private final static Set<ConnectionState> ACTIVE_STATES = Set.of(
             CONNECTING,
             CONNECTED,
             RECONNECTING,
             SEARCH_SNI,
-            WAITING_FOR_NETWORK
+            WAITING_FOR_NETWORK,
+            PAUSED_TRUSTED_WIFI
     );
 
     public boolean isActiveState() {

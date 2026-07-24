@@ -306,4 +306,52 @@ public class SharedPrefUtils {
         sharedPreferences.edit().putBoolean(Constants.SHOW_TRAFFIC_CHART_PREF_KEY, show).apply();
     }
 
+    /* Trusted Wi-Fi */
+    public static boolean getTrustedWifiEnabled(Context context) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        return sharedPreferences.getBoolean(Constants.TRUSTED_WIFI_ENABLED_PREF_KEY, false);
+    }
+
+    public static void saveTrustedWifiEnabled(Context context, boolean enabled) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        sharedPreferences.edit().putBoolean(Constants.TRUSTED_WIFI_ENABLED_PREF_KEY, enabled).apply();
+    }
+
+    public static java.util.Set<String> getTrustedWifiSsids(Context context) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        java.util.Set<String> ssids = sharedPreferences.getStringSet(Constants.TRUSTED_WIFI_SSIDS_PREF_KEY, null);
+        return ssids != null ? new java.util.HashSet<>(ssids) : new java.util.HashSet<>();
+    }
+
+    public static void saveTrustedWifiSsids(Context context, java.util.Set<String> ssids) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        sharedPreferences.edit().putStringSet(Constants.TRUSTED_WIFI_SSIDS_PREF_KEY, ssids).apply();
+    }
+
+    public static void addTrustedWifiSsid(Context context, String ssid) {
+        if (ssid == null || ssid.isBlank()) return;
+        java.util.Set<String> ssids = getTrustedWifiSsids(context);
+        ssids.add(ssid.replace("\"", "").trim());
+        saveTrustedWifiSsids(context, ssids);
+    }
+
+    public static void removeTrustedWifiSsid(Context context, String ssid) {
+        if (ssid == null) return;
+        java.util.Set<String> ssids = getTrustedWifiSsids(context);
+        ssids.remove(ssid.replace("\"", "").trim());
+        saveTrustedWifiSsids(context, ssids);
+    }
+
+    public static boolean isWifiSsidTrusted(Context context, String ssid) {
+        if (ssid == null || ssid.isBlank()) return false;
+        String cleanSsid = ssid.replace("\"", "").trim();
+        java.util.Set<String> ssids = getTrustedWifiSsids(context);
+        for (String s : ssids) {
+            if (s.replace("\"", "").trim().equalsIgnoreCase(cleanSsid)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 }

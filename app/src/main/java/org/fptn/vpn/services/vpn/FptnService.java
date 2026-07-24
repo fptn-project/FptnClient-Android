@@ -29,12 +29,15 @@ import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.ServiceInfo;
 import android.net.ConnectivityManager;
+import android.net.wifi.WifiManager;
 import android.net.Network;
 import android.net.NetworkCapabilities;
 import android.net.VpnService;
@@ -141,6 +144,41 @@ public class FptnService extends VpnService {
     private ConnectivityManager connectivityManager;
     private volatile String pendingRevokeReason = null;
 
+    private volatile boolean shouldBeConnectedForTrustedWifi = false;
+    private volatile String pausedTrustedSsid = null;
+    private BroadcastReceiver wifiStateReceiver;
+
+    private synchronized void registerWifiStateReceiver() {
+        if (wifiStateReceiver != null) return;
+        wifiStateReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                XLog.tag(TAG).i("Wifi Broadcast received [%s] — checking trusted state", intent.getAction());
+                checkTrustedWifi(null);
+            }
+        };
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(WifiManager.NETWORK_STATE_CHANGED_ACTION);
+        filter.addAction(WifiManager.WIFI_STATE_CHANGED_ACTION);
+        filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(wifiStateReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
+        } else {
+            registerReceiver(wifiStateReceiver, filter);
+        }
+    }
+
+    private synchronized void unregisterWifiStateReceiver() {
+        if (wifiStateReceiver != null) {
+            try {
+                unregisterReceiver(wifiStateReceiver);
+            } catch (Exception e) {
+                XLog.tag(TAG).w("Error unregistering wifiStateReceiver: %s", e.getMessage());
+            }
+            wifiStateReceiver = null;
+        }
+    }
+
     @Getter
     private final MutableLiveData<FptnServiceState> serviceStateMutableLiveData = new MutableLiveData<>(FptnServiceState.INITIAL);
     @Getter
@@ -200,6 +238,12 @@ public class FptnService extends VpnService {
     public void disconnectSilently(int senderConnectionId) {
         FptnConnection current = activeConnection.get();
         if (current == null || current.getConnectionId() != senderConnectionId) {
+            return;
+        }
+        ConnectionState currentState = Optional.ofNullable(serviceStateMutableLiveData.getValue())
+                .map(FptnServiceState::getConnectionState).orElse(null);
+        if (currentState == ConnectionState.PAUSED_TRUSTED_WIFI) {
+            XLog.tag(TAG).i("Silent disconnect ignored: connection currently paused for trusted Wi-Fi [connectionId=%d]", senderConnectionId);
             return;
         }
         XLog.tag(TAG).w("DISCONNECT REASON: silent disconnect requested [connectionId=%d] — TUN gone or foreign VPN detected", senderConnectionId);
@@ -381,6 +425,8 @@ public class FptnService extends VpnService {
         serviceStateMutableLiveData.observeForever(serviceStateObserver);
         //send initial value
         FptnTileService.getServiceStateMutableLiveData().setValue(serviceStateMutableLiveData.getValue().getConnectionState());
+
+        registerWifiStateReceiver();
     }
 
     @Override
@@ -475,6 +521,10 @@ public class FptnService extends VpnService {
     public void onDestroy() {
         XLog.tag(TAG).i("Service destroyed [state=%s]", serviceStateMutableLiveData.getValue().getConnectionState());
 
+        unregisterWifiStateReceiver();
+        unregisterNetworkCallback();
+        unregisterNetworkWaitCallback();
+
         // Sync tile synchronously before cleanup — postValue inside disconnect() won't reach
         // the observer once it's removed below (both run on main thread).
         FptnTileService.getServiceStateMutableLiveData().setValue(ConnectionState.DISCONNECTED);
@@ -539,6 +589,31 @@ public class FptnService extends VpnService {
                         }
                     }
                 }
+                checkTrustedWifi(networkCapabilities);
+            }
+
+            @Override
+            public void onAvailable(@NonNull Network network) {
+                super.onAvailable(network);
+                checkTrustedWifi(connectivityManager.getNetworkCapabilities(network));
+            }
+
+            @Override
+            public void onLost(@NonNull Network network) {
+                super.onLost(network);
+                checkTrustedWifi(null);
+                if (!NetworkUtils.isOnline(connectivityManager)) {
+                    ConnectionState currentState = Optional.ofNullable(serviceStateMutableLiveData.getValue())
+                            .map(FptnServiceState::getConnectionState).orElse(ConnectionState.DISCONNECTED);
+                    if (currentState == ConnectionState.CONNECTED || currentState == ConnectionState.CONNECTING || currentState == ConnectionState.RECONNECTING) {
+                        FptnConnection currentConnection = activeConnection.get();
+                        int serverId = currentConnection != null && currentConnection.getServerEntity() != null
+                                ? currentConnection.getServerEntity().getId()
+                                : SELECTED_SERVER_ID_AUTO;
+                        XLog.tag(TAG).i("Network completely lost — entering WAITING_FOR_NETWORK state [serverId=%d]", serverId);
+                        enterWaitingForNetwork(serverId);
+                    }
+                }
             }
         };
 
@@ -549,6 +624,90 @@ public class FptnService extends VpnService {
         if (networkCallback != null) {
             connectivityManager.unregisterNetworkCallback(networkCallback);
             networkCallback = null;
+        }
+    }
+
+    public static String getCurrentWifiSsid(Context context) {
+        try {
+            android.net.wifi.WifiManager wifiManager = (android.net.wifi.WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+            if (wifiManager != null) {
+                android.net.wifi.WifiInfo info = wifiManager.getConnectionInfo();
+                if (info != null && info.getSSID() != null && !info.getSSID().contains("unknown")) {
+                    String ssid = info.getSSID().replace("\"", "").trim();
+                    if (!ssid.isEmpty()) {
+                        return ssid;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            XLog.tag(TAG).w("Error getting Wifi SSID: %s", e.getMessage());
+        }
+        return null;
+    }
+
+    public synchronized void checkTrustedWifi(NetworkCapabilities networkCapabilities) {
+        boolean trustedWifiEnabled = SharedPrefUtils.getTrustedWifiEnabled(this);
+        if (!trustedWifiEnabled) {
+            if (serviceStateMutableLiveData.getValue() != null
+                    && serviceStateMutableLiveData.getValue().getConnectionState() == ConnectionState.PAUSED_TRUSTED_WIFI
+                    && shouldBeConnectedForTrustedWifi) {
+                XLog.tag(TAG).i("Trusted Wi-Fi feature disabled — resuming connection");
+                resumeVpnFromTrustedWifi();
+            }
+            return;
+        }
+
+        Network activeNetwork = connectivityManager.getActiveNetwork();
+        NetworkCapabilities activeCaps = activeNetwork != null ? connectivityManager.getNetworkCapabilities(activeNetwork) : networkCapabilities;
+
+        boolean isWifiConnected = activeCaps != null && activeCaps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI);
+        String currentSsid = isWifiConnected ? getCurrentWifiSsid(this) : null;
+        boolean isTrusted = isWifiConnected && currentSsid != null && SharedPrefUtils.isWifiSsidTrusted(this, currentSsid);
+
+        ConnectionState currentState = Optional.ofNullable(serviceStateMutableLiveData.getValue())
+                .map(FptnServiceState::getConnectionState).orElse(ConnectionState.DISCONNECTED);
+
+        if (isTrusted) {
+            if (currentState == ConnectionState.CONNECTED || currentState == ConnectionState.CONNECTING || currentState == ConnectionState.RECONNECTING) {
+                XLog.tag(TAG).i("Connected to trusted Wi-Fi [%s] — pausing VPN connection", currentSsid);
+                shouldBeConnectedForTrustedWifi = true;
+                pausedTrustedSsid = currentSsid;
+                pauseVpnForTrustedWifi(currentSsid);
+            }
+        } else {
+            if (currentState == ConnectionState.PAUSED_TRUSTED_WIFI && shouldBeConnectedForTrustedWifi) {
+                XLog.tag(TAG).i("Left trusted Wi-Fi (isWifiConnected=%b, ssid=%s) — resuming VPN connection", isWifiConnected, currentSsid);
+                resumeVpnFromTrustedWifi();
+            }
+        }
+    }
+
+    private void pauseVpnForTrustedWifi(String ssid) {
+        FptnConnection current = activeConnection.get();
+        if (current != null) {
+            current.stopConnection();
+            setActiveConnection(null);
+        }
+        String title = getString(R.string.trusted_wifi_paused_title);
+        String message = String.format(getString(R.string.trusted_wifi_paused_msg), ssid != null ? ssid : "");
+        updateNotificationWithMessage(title, message);
+        serviceStateMutableLiveData.postValue(FptnServiceState.builder()
+                .connectionState(ConnectionState.PAUSED_TRUSTED_WIFI)
+                .serverInfo(ssid)
+                .build());
+    }
+
+    private void resumeVpnFromTrustedWifi() {
+        shouldBeConnectedForTrustedWifi = false;
+        pausedTrustedSsid = null;
+        restoringSession = true;
+
+        if (NetworkUtils.isOnline(connectivityManager)) {
+            updateNotificationWithMessage(getString(R.string.connecting), "");
+            startConnectionAttempt(SELECTED_SERVER_ID_AUTO);
+        } else {
+            XLog.tag(TAG).i("Network not online right after leaving trusted Wi-Fi — entering WAITING_FOR_NETWORK");
+            enterWaitingForNetwork(SELECTED_SERVER_ID_AUTO);
         }
     }
 
@@ -654,6 +813,16 @@ public class FptnService extends VpnService {
     }
 
     private void startConnectionAttempt(int initialServerId) {
+        boolean trustedWifiEnabled = SharedPrefUtils.getTrustedWifiEnabled(this);
+        String currentSsid = getCurrentWifiSsid(this);
+        if (trustedWifiEnabled && currentSsid != null && SharedPrefUtils.isWifiSsidTrusted(this, currentSsid)) {
+            XLog.tag(TAG).i("Connection attempt aborted: currently connected to trusted Wi-Fi [%s]", currentSsid);
+            shouldBeConnectedForTrustedWifi = true;
+            pausedTrustedSsid = currentSsid;
+            pauseVpnForTrustedWifi(currentSsid);
+            return;
+        }
+
         submittedConnectionAttempt = executorService.submit(() -> {
             try {
                 setConnectionState(ConnectionState.CONNECTING, null);
@@ -703,20 +872,8 @@ public class FptnService extends VpnService {
                         setSelectedServer(server.getId());
                         connect(server, sniHostname, loginResult.getAccessToken());
                     } catch (PVNClientException e) {
-                        // During a reconnect episode a failed scan is not terminal: the network may
-                        // have just come back and not be usable yet. Keep recovering — only a cold
-                        // user-initiated connect is allowed to fail hard.
-                        if (restoringSession) {
-                            XLog.tag(TAG).w("Auto-select failed during reconnect: %s — continuing recovery", e.getMessage());
-                            if (!NetworkUtils.isOnline(connectivityManager)) {
-                                enterWaitingForNetwork(SELECTED_SERVER_ID_AUTO);
-                            } else {
-                                submittedConnectionAttempt = executorService.submit(this::handleFallbackToAllServers);
-                            }
-                            return;
-                        }
-                        XLog.tag(TAG).e("Auto-select failed — all servers unreachable: %s", e.getMessage());
-                        disconnect(e);
+                        XLog.tag(TAG).w("Auto-select failed (%s) — entering WAITING_FOR_NETWORK to wait for stable route", e.getMessage());
+                        enterWaitingForNetwork(SELECTED_SERVER_ID_AUTO);
                     }
                 } else {
                     XLog.tag(TAG).i("Connecting to server [id=%d]", serverId);
@@ -730,8 +887,8 @@ public class FptnService extends VpnService {
                 if (Thread.currentThread().isInterrupted()) {
                     return;
                 }
-                XLog.tag(TAG).e("Unexpected error during connect setup: %s", e.getMessage());
-                disconnect(new PVNClientException(e.getMessage()));
+                XLog.tag(TAG).e("Unexpected error during connect setup: %s — entering WAITING_FOR_NETWORK", e.getMessage());
+                enterWaitingForNetwork(SELECTED_SERVER_ID_AUTO);
             }
         });
     }
@@ -751,6 +908,15 @@ public class FptnService extends VpnService {
             }
             case CONNECTING -> setConnectionState(ConnectionState.CONNECTING, null);
             case CONNECTED -> {
+                boolean trustedWifiEnabled = SharedPrefUtils.getTrustedWifiEnabled(this);
+                String currentSsid = getCurrentWifiSsid(this);
+                if (trustedWifiEnabled && currentSsid != null && SharedPrefUtils.isWifiSsidTrusted(this, currentSsid)) {
+                    XLog.tag(TAG).i("CONNECTED state ignored: currently on trusted Wi-Fi [%s]", currentSsid);
+                    shouldBeConnectedForTrustedWifi = true;
+                    pausedTrustedSsid = currentSsid;
+                    pauseVpnForTrustedWifi(currentSsid);
+                    break;
+                }
                 // Success fully closes the recovery episode: clear the restore flag, zero the
                 // attempt counters, refill the budget and drop any pending restore work.
                 restoringSession = false;
@@ -822,6 +988,16 @@ public class FptnService extends VpnService {
     }
 
     private void connectInternal(ServerEntity serverEntity, String sniHostname, String preFetchedToken, int maxReconnectCount, int fallbackThreshold) throws UnknownHostException {
+        boolean trustedWifiEnabled = SharedPrefUtils.getTrustedWifiEnabled(this);
+        String currentSsid = getCurrentWifiSsid(this);
+        if (trustedWifiEnabled && currentSsid != null && SharedPrefUtils.isWifiSsidTrusted(this, currentSsid)) {
+            XLog.tag(TAG).i("connectInternal aborted: currently connected to trusted Wi-Fi [%s]", currentSsid);
+            shouldBeConnectedForTrustedWifi = true;
+            pausedTrustedSsid = currentSsid;
+            pauseVpnForTrustedWifi(currentSsid);
+            return;
+        }
+
         XLog.tag(TAG).i("Connecting to [%s] at %s:%d via sni=[%s]",
                 serverEntity.getServerInfo(), serverEntity.getHost(), serverEntity.getPort(), sniHostname);
         updateNotificationWithMessage(getString(R.string.connecting_to) + serverEntity.getServerInfo(), "");
