@@ -375,9 +375,7 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="backup_restore_confirm_message">Current settings will be replaced with the settings from the selected file.</string>
 
     <string name="connection_strategy_title">Connection strategy</string>
-    <string name="connection_strategy_persistent">Persistent tunnel</string>
     <string name="connection_strategy_rolling">Rolling tunnel</string>
     <string name="connection_strategy_dual">Dual rolling tunnel</string>
     <string name="connection_strategy_triple">Triple rolling tunnel</string>
-    <string name="connection_strategy_browser">Browser mimicry (experimental)</string>
 </resources>

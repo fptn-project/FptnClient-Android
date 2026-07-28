@@ -528,11 +528,9 @@ public class BypassMethodsActivity extends AppCompatActivity {
 
     private String getConnectionStrategyFriendlyName(ConnectionStrategy strategy) {
         return switch (strategy) {
-            case PERSISTENT_TUNNEL -> getString(R.string.connection_strategy_persistent);
-            case ROLLING_TUNNEL -> getString(R.string.connection_strategy_rolling);
             case DUAL_TUNNEL -> getString(R.string.connection_strategy_dual);
+            case ROLLING_TUNNEL -> getString(R.string.connection_strategy_rolling);
             case TRIPLE_TUNNEL -> getString(R.string.connection_strategy_triple);
-            case BROWSER_MIMICRY -> getString(R.string.connection_strategy_browser);
         };
     }
 

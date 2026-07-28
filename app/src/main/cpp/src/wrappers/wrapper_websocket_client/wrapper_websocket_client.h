@@ -64,6 +64,8 @@ class WrapperWebsocketClient final {
 
   void onConnectedCallback();
 
+  void onSocketOpened(int socket_fd);
+
   void onIpAssignedCallback(const fptn::common::network::IPv4Address& ipv4,
                             const fptn::common::network::IPv6Address& ipv6);
 

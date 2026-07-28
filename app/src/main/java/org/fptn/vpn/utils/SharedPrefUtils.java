@@ -213,7 +213,7 @@ public class SharedPrefUtils {
                 return value;
             }
         }
-        return ConnectionStrategy.PERSISTENT_TUNNEL;
+        return ConnectionStrategy.DUAL_TUNNEL;
     }
 
     public static void saveConnectionStrategy(Context context, ConnectionStrategy strategy) {

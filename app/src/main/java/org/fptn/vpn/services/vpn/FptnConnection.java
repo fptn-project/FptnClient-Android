@@ -176,6 +176,7 @@ public class FptnConnection extends Thread {
                 this::onConnectionOpen,
                 this::onMessageReceived,
                 this::onConnectionFailure,
+                this::protectSocket,
                 sniHostName,
                 censorshipStrategy,
                 sniSpoofingMode,
@@ -234,6 +235,9 @@ public class FptnConnection extends Thread {
         builder.setMtu(MAX_PACKET_SIZE);
         builder.setBlocking(true);
         builder.setConfigureIntent(configureVpnIntent);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            builder.setMetered(false);
+        }
         configurePerAppMode(builder);
         configureAddressesAndRoutes(builder);
 
@@ -388,9 +392,12 @@ public class FptnConnection extends Thread {
         builder.addRoute(dnsServers.getIpv4(), IP_V4_PREFIX_LENGTH);
 
         // IPv6
-        builder.addDnsServer(dnsServers.getIpv6());
-        builder.addAddress(TUN_ADDRESS.getIpV6Address(), IP_V6_PREFIX_LENGTH);
-        builder.addRoute(dnsServers.getIpv6(), IP_V6_PREFIX_LENGTH);
+        String ipv6Dns = dnsServers.getIpv6();
+        if (ipv6Dns != null && !ipv6Dns.trim().isEmpty()) {
+            builder.addDnsServer(ipv6Dns);
+            builder.addAddress(TUN_ADDRESS.getIpV6Address(), IP_V6_PREFIX_LENGTH);
+            builder.addRoute(ipv6Dns, IP_V6_PREFIX_LENGTH);
+        }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             for (String host : allServerHosts) {
@@ -589,6 +596,12 @@ public class FptnConnection extends Thread {
 
     private boolean isTunInterfaceValid(ParcelFileDescriptor vpnInterface) {
         return vpnInterface != null && vpnInterface.getFileDescriptor() != null && vpnInterface.getFileDescriptor().valid();
+    }
+
+    private void protectSocket(int fd) {
+        if (!service.protect(fd)) {
+            XLog.tag(TAG).w("[id=%d] VpnService.protect failed [fd=%d]", connectionId, fd);
+        }
     }
 
     public void onNetworkChanged() {
