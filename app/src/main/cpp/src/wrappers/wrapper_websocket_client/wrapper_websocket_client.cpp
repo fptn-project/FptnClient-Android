@@ -27,6 +27,11 @@
 #include "spdlog/spdlog.h"
 #include "wrapper_websocket_client.h"
 
+#include "fptn-protocol-lib/connection/strategies/browser_mimicry/browser_mimicry.h"
+#include "fptn-protocol-lib/connection/strategies/parallel_tunnels/parallel_tunnels.h"
+#include "fptn-protocol-lib/connection/strategies/persistent_tunnel/persistent_tunnel.h"
+#include "fptn-protocol-lib/connection/strategies/rolling_tunnel/rolling_tunnel.h"
+
 #ifndef FPTN_CLIENT_DEFAULT_ADDRESS_IP6
 #define FPTN_CLIENT_DEFAULT_ADDRESS_IP6 "fd00::1"
 #endif
@@ -41,7 +46,9 @@ WrapperWebsocketClient::WrapperWebsocketClient(jobject wrapper,
     std::string sni,
     std::string access_token,
     std::string expected_md5_fingerprint,
-    fptn::protocol::https::CensorshipStrategy censorship_strategy)
+    fptn::protocol::https::CensorshipStrategy censorship_strategy,
+    fptn::protocol::connection::strategies::ConnectionStrategy
+        connection_strategy)
     : running_(false),
       reconnection_attempts_(kMaxReconnectionAttempts_),
       wrapper_(wrapper),
@@ -52,7 +59,8 @@ WrapperWebsocketClient::WrapperWebsocketClient(jobject wrapper,
       tun_ipv6_(tun_ipv6),
       access_token_(std::move(access_token)),
       expected_md5_fingerprint_(std::move(expected_md5_fingerprint)),
-      censorship_strategy_(censorship_strategy)
+      censorship_strategy_(censorship_strategy),
+      connection_strategy_(connection_strategy)
       {}
 
 WrapperWebsocketClient::~WrapperWebsocketClient() { Stop(); }
@@ -137,26 +145,44 @@ void WrapperWebsocketClient::Run() {
             &WrapperWebsocketClient::onIPPacket, this, std::placeholders::_1);
         const auto on_connected_callback =
             std::bind(&WrapperWebsocketClient::onConnectedCallback, this);
-        const auto on_ip_assigned_callback =
-            std::bind(&WrapperWebsocketClient::onIpAssignedCallback, this,
-                            std::placeholders::_1, std::placeholders::_2);
-        client_ = std::make_shared<fptn::protocol::https::WebsocketClient>(
-          fptn::protocol::https::WebsocketClient::Config{
-              .server_ip=server_ip_addr,
-              .server_port=server_port_,
-              .tun_interface_address_ipv4=fptn::common::network::IPv4Address(tun_ipv4_),
-              .tun_interface_address_ipv6=fptn::common::network::IPv6Address(tun_ipv6_),
-              .sni=sni_,
-              .access_token=access_token_,
-              .expected_md5_fingerprint=expected_md5_fingerprint_,
-              .censorship_strategy=censorship_strategy_,
-              .on_connected_callback=on_connected_callback,
-              .new_ip_pkt_callback=new_ip_pkt_callback,
-            }
-        );
+        const fptn::protocol::https::ConnectionConfig config{
+            .common = {
+                .server_ip = server_ip_addr,
+                .server_port = static_cast<std::uint16_t>(server_port_),
+                .sni = sni_,
+                .md5_fingerprint = expected_md5_fingerprint_,
+                .censorship_strategy = censorship_strategy_,
+                .tun_interface_address_ipv4 =
+                    fptn::common::network::IPv4Address(tun_ipv4_),
+                .tun_interface_address_ipv6 =
+                    fptn::common::network::IPv6Address(tun_ipv6_),
+                .on_connected_callback = on_connected_callback,
+                .recv_ip_packet_callback = new_ip_pkt_callback,
+            }};
+
+        namespace strategies = fptn::protocol::connection::strategies;
+        switch (connection_strategy_) {
+          case strategies::ConnectionStrategy::kRollingTunnel:
+            client_ = strategies::RollingTunnel::Create(access_token_, config);
+            break;
+          case strategies::ConnectionStrategy::kDualTunnel:
+            client_ = strategies::DualTunnel::Create(access_token_, config);
+            break;
+          case strategies::ConnectionStrategy::kTripleTunnel:
+            client_ = strategies::TripleTunnel::Create(access_token_, config);
+            break;
+          case strategies::ConnectionStrategy::kBrowserMimicry:
+            client_ = strategies::BrowserMimicry::Create(access_token_, config);
+            break;
+          case strategies::ConnectionStrategy::kPersistentTunnel:
+          default:
+            client_ =
+                strategies::PersistentTunnel::Create(access_token_, config);
+            break;
+        }
       }
       if (running_ && client_) {
-        client_->Run();
+        client_->Start();
       }
     } catch (const std::exception& ex) {
       SPDLOG_ERROR("Exception during client run: {}", ex.what());

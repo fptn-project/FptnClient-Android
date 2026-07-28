@@ -290,4 +290,10 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="backup_restore_confirm_title">Загрузить настройки?</string>
     <string name="backup_restore_confirm_message">Текущие настройки будут заменены настройками из выбранного файла.</string>
 
+    <string name="connection_strategy_title">Стратегия подключения</string>
+    <string name="connection_strategy_persistent">Постоянный туннель</string>
+    <string name="connection_strategy_rolling">Скользящий туннель</string>
+    <string name="connection_strategy_dual">Двойной скользящий туннель</string>
+    <string name="connection_strategy_triple">Тройной скользящий туннель</string>
+    <string name="connection_strategy_browser">Имитация браузера (экспериментально)</string>
 </resources>

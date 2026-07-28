@@ -67,6 +67,7 @@ import com.google.common.util.concurrent.Futures;
 import org.fptn.vpn.R;
 import org.fptn.vpn.database.entity.ServerEntity;
 import org.fptn.vpn.enums.BypassCensorshipMethod;
+import org.fptn.vpn.enums.ConnectionStrategy;
 import org.fptn.vpn.enums.SniSpoofingMode;
 import org.fptn.vpn.services.snichecker.SniCheckerService;
 import org.fptn.vpn.services.snichecker.SniCheckerServiceState;
@@ -147,6 +148,49 @@ public class BypassMethodsActivity extends AppCompatActivity {
         CustomBottomNavigationListener bottomNavigationListener = new CustomBottomNavigationListener(this, R.id.menuSettings);
         bottomNavigationView.setOnItemSelectedListener(bottomNavigationListener);
         bottomNavigationView.setOnItemReselectedListener(bottomNavigationListener);
+
+        Spinner connectionStrategySpinner = findViewById(R.id.connection_strategy_spinner);
+        ArrayAdapter<ConnectionStrategy> connectionStrategyAdapter = new ArrayAdapter<>(
+                this,
+                R.layout.sni_mode_spinner_item,
+                R.id.sni_mode_label,
+                ConnectionStrategy.values()
+        ) {
+            @Override
+            public View getView(int position, View convertView, ViewGroup parent) {
+                TextView textView = (TextView) super.getView(position, convertView, parent);
+                textView.setText(getConnectionStrategyFriendlyName(getItem(position)));
+                return textView;
+            }
+
+            @Override
+            public View getDropDownView(int position, View convertView, ViewGroup parent) {
+                TextView textView = (TextView) super.getDropDownView(position, convertView, parent);
+                textView.setText(getConnectionStrategyFriendlyName(getItem(position)));
+                return textView;
+            }
+        };
+        connectionStrategySpinner.setAdapter(connectionStrategyAdapter);
+
+        viewModel.getConnectionStrategyMutableLiveData().observe(this, strategy -> {
+            int position = connectionStrategyAdapter.getPosition(strategy);
+            if (position >= 0) {
+                connectionStrategySpinner.setSelection(position);
+            }
+        });
+
+        connectionStrategySpinner.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(android.widget.AdapterView<?> parent, View view, int position, long id) {
+                ConnectionStrategy selected = (ConnectionStrategy) parent.getItemAtPosition(position);
+                XLog.tag(TAG).i("Connection strategy selected [strategy=%s]", selected);
+                viewModel.setConnectionStrategy(selected);
+            }
+
+            @Override
+            public void onNothingSelected(android.widget.AdapterView<?> parent) {
+            }
+        });
 
         // Setup RadioGroup listener
         RadioGroup protocolRadioGroup = findViewById(R.id.bypass_method_radio_button_group);
@@ -480,6 +524,16 @@ public class BypassMethodsActivity extends AppCompatActivity {
             XLog.tag(TAG).e("Failed to read SNI suggestions file: %s", e.getMessage());
         }
         return list;
+    }
+
+    private String getConnectionStrategyFriendlyName(ConnectionStrategy strategy) {
+        return switch (strategy) {
+            case PERSISTENT_TUNNEL -> getString(R.string.connection_strategy_persistent);
+            case ROLLING_TUNNEL -> getString(R.string.connection_strategy_rolling);
+            case DUAL_TUNNEL -> getString(R.string.connection_strategy_dual);
+            case TRIPLE_TUNNEL -> getString(R.string.connection_strategy_triple);
+            case BROWSER_MIMICRY -> getString(R.string.connection_strategy_browser);
+        };
     }
 
     private String getSniSpoofingModeFriendlyName(SniSpoofingMode mode) {
