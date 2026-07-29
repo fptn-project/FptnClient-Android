@@ -25,8 +25,8 @@ jobs:
     - name: Set dev version environment variables
       if: github.event_name != 'release'
       run: |
-        echo "RELEASE_VERSION=0.0.0.1" >> $GITHUB_ENV
-        echo "RELEASE_VERSION_NAME=$(date +'%Y-%m-%d__%H-%M-%S')-dev" >> $GITHUB_ENV
+        echo "RELEASE_VERSION=0.0.0.${{ github.run_number }}" >> $GITHUB_ENV
+        echo "RELEASE_VERSION_NAME=0.0.0.${{ github.run_number }}-$(echo "${GITHUB_REF_NAME}" | tr '/' '-')-$(git rev-parse --short HEAD)-dev" >> $GITHUB_ENV
 
     - name: Set environment variables
       run: |
@@ -56,9 +56,26 @@ jobs:
         echo "Release Version: $RELEASE_VERSION"
 
     - name: Build project
-      run: ./gradlew assembleDebug
+      run: ./gradlew assembleRelease
     - name: Run tests
       run: ./gradlew test
+
+    - name: Collect dev APKs
+      if: github.event_name != 'release'
+      run: |
+        mkdir -p dev-apks
+        for f in app/build/outputs/apk/release/*.apk; do
+          [ -f "$f" ] || continue
+          suffix=$(basename "$f")
+          cp -v "$f" "dev-apks/fptn-android-${RELEASE_VERSION_NAME}-${suffix#app-}"
+        done
+    - name: Upload dev APK artifact
+      if: github.event_name != 'release'
+      uses: actions/upload-artifact@v5
+      with:
+        name: fptn-dev-${{ env.RELEASE_VERSION_NAME }}
+        path: dev-apks/*.apk
+        if-no-files-found: error
     - name: Build APK and AAB
       if: github.event_name == 'release'
       run: |
