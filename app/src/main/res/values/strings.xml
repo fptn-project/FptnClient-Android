@@ -277,6 +277,8 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
 
     <string name="home_screen_settings_title">Home screen:</string>
     <string name="show_traffic_chart_label">Show speed chart</string>
+    <string name="orientation_settings_title">Screen orientation:</string>
+    <string name="allow_landscape_label">Auto-rotate screen</string>
 
     <string name="auto_fallback_title">Auto-fallback to available servers:</string>
     <string name="auto_fallback_enable">Switch server on connection loss</string>

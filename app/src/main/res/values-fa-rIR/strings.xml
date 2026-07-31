@@ -192,6 +192,8 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
 
     <string name="home_screen_settings_title">صفحه اصلی:</string>
     <string name="show_traffic_chart_label">نمایش نمودار سرعت</string>
+    <string name="orientation_settings_title">جهت صفحه:</string>
+    <string name="allow_landscape_label">چرخش خودکار صفحه</string>
 
     <string name="auto_fallback_title">تغییر خودکار به سرورهای موجود:</string>
     <string name="auto_fallback_enable">تغییر سرور در صورت قطع ارتباط</string>

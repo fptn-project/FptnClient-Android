@@ -24,6 +24,7 @@ import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.StatusBarManager;
 import android.content.ComponentName;
+import android.content.pm.ActivityInfo;
 import android.graphics.drawable.Icon;
 import android.os.Build;
 import android.os.Bundle;
@@ -78,6 +79,7 @@ public class ExperimentalSettingsActivity extends AppCompatActivity {
     private SeekBar seekBarFallbackThreshold;
     private SwitchCompat showSpeedInNotificationSwitch;
     private SwitchCompat showTrafficChartSwitch;
+    private SwitchCompat allowLandscapeSwitch;
     private SwitchCompat adBlockSwitch;
     private SwitchCompat domainBlacklistSwitch;
 
@@ -131,6 +133,15 @@ public class ExperimentalSettingsActivity extends AppCompatActivity {
         showTrafficChartSwitch.setChecked(SharedPrefUtils.getShowTrafficChart(this));
         showTrafficChartSwitch.setOnCheckedChangeListener(
                 (buttonView, isChecked) -> SharedPrefUtils.saveShowTrafficChart(this, isChecked));
+
+        allowLandscapeSwitch = findViewById(R.id.allow_landscape_switch);
+        allowLandscapeSwitch.setChecked(SharedPrefUtils.getAllowLandscape(this));
+        allowLandscapeSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            SharedPrefUtils.saveAllowLandscape(this, isChecked);
+            setRequestedOrientation(isChecked
+                    ? ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+                    : ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        });
 
         adBlockSwitch = findViewById(R.id.ad_block_switch);
         adBlockSwitch.setChecked(SharedPrefUtils.getAdBlockEnabled(this));

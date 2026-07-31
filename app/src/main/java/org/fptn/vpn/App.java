@@ -20,7 +20,15 @@
 
 package org.fptn.vpn;
 
+import android.app.Activity;
 import android.app.Application;
+import android.content.pm.ActivityInfo;
+import android.os.Bundle;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import org.fptn.vpn.utils.SharedPrefUtils;
 
 import com.elvishew.xlog.LogConfiguration;
 import com.elvishew.xlog.LogLevel;
@@ -39,6 +47,41 @@ public class App extends Application {
     public void onCreate() {
         super.onCreate();
         initXLog();
+        registerOrientationController();
+    }
+
+    // Portrait is the manifest baseline; on tablets (or when the user opts in) we
+    // relax it to free rotation for every activity from a single place.
+    private void registerOrientationController() {
+        registerActivityLifecycleCallbacks(new ActivityLifecycleCallbacks() {
+            @Override
+            public void onActivityCreated(@NonNull Activity activity, @Nullable Bundle savedInstanceState) {
+                applyOrientation(activity);
+            }
+
+            // Re-apply on resume so a settings change takes effect on already-created
+            // screens (onActivityCreated fires only once, at creation).
+            @Override public void onActivityResumed(@NonNull Activity activity) {
+                applyOrientation(activity);
+            }
+
+            @Override public void onActivityStarted(@NonNull Activity activity) {}
+            @Override public void onActivityPaused(@NonNull Activity activity) {}
+            @Override public void onActivityStopped(@NonNull Activity activity) {}
+            @Override public void onActivitySaveInstanceState(@NonNull Activity activity, @NonNull Bundle outState) {}
+            @Override public void onActivityDestroyed(@NonNull Activity activity) {}
+        });
+    }
+
+    private void applyOrientation(@NonNull Activity activity) {
+        final int orientation = SharedPrefUtils.getAllowLandscape(activity)
+                ? ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+                : ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
+        try {
+            activity.setRequestedOrientation(orientation);
+        } catch (IllegalStateException ignored) {
+            // API 26 forbids setRequestedOrientation on translucent activities.
+        }
     }
 
     private void initXLog() {
