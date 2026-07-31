@@ -190,6 +190,8 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
 
     <string name="home_screen_settings_title">Главный экран:</string>
     <string name="show_traffic_chart_label">Показывать график скорости</string>
+    <string name="orientation_settings_title">Ориентация экрана:</string>
+    <string name="allow_landscape_label">Автоповорот экрана</string>
 
     <string name="auto_fallback_title">Авто-переключение на доступные серверы:</string>
     <string name="auto_fallback_enable">Менять сервер при потере связи</string>

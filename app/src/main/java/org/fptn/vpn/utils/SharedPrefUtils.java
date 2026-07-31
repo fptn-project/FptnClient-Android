@@ -323,4 +323,16 @@ public class SharedPrefUtils {
         sharedPreferences.edit().putBoolean(Constants.SHOW_TRAFFIC_CHART_PREF_KEY, show).apply();
     }
 
+    /* Landscape orientation. Default is device-dependent: true on tablets (sw600dp), false on phones. */
+    public static boolean getAllowLandscape(Context context) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        boolean deviceDefault = context.getResources().getBoolean(R.bool.allow_landscape_default);
+        return sharedPreferences.getBoolean(Constants.ALLOW_LANDSCAPE_PREF_KEY, deviceDefault);
+    }
+
+    public static void saveAllowLandscape(Context context, boolean allow) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        sharedPreferences.edit().putBoolean(Constants.ALLOW_LANDSCAPE_PREF_KEY, allow).apply();
+    }
+
 }
