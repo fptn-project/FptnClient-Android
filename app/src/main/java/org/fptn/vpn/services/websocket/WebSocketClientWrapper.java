@@ -30,6 +30,7 @@ import org.fptn.vpn.enums.SniSpoofingMode;
 import org.fptn.vpn.services.websocket.callback.OnFailureCallback;
 import org.fptn.vpn.services.websocket.callback.OnMessageReceivedCallback;
 import org.fptn.vpn.services.websocket.callback.OnOpenCallback;
+import org.fptn.vpn.services.websocket.callback.OnSocketOpenedCallback;
 import org.fptn.vpn.vpnclient.exception.ErrorCode;
 import org.fptn.vpn.vpnclient.exception.PVNClientException;
 import org.json.JSONException;
@@ -49,6 +50,7 @@ public class WebSocketClientWrapper {
     private final OnOpenCallback onOpenCallback;
     private final OnMessageReceivedCallback onMessageReceivedCallback;
     private final OnFailureCallback onFailureCallback;
+    private final OnSocketOpenedCallback onSocketOpenedCallback;
     private final NativeHttpsClientImpl nativeHttpsClient;
     private final String sniHostName;
     private final BypassCensorshipMethod censorshipStrategy;
@@ -68,6 +70,7 @@ public class WebSocketClientWrapper {
                                   OnOpenCallback onOpenCallback,
                                   OnMessageReceivedCallback onMessageReceivedCallback,
                                   OnFailureCallback onFailureCallback,
+                                  OnSocketOpenedCallback onSocketOpenedCallback,
                                   String sniHostName,
                                   BypassCensorshipMethod censorshipStrategy,
                                   SniSpoofingMode sniSpoofingMode,
@@ -80,6 +83,7 @@ public class WebSocketClientWrapper {
         this.onOpenCallback = onOpenCallback;
         this.onMessageReceivedCallback = onMessageReceivedCallback;
         this.onFailureCallback = onFailureCallback;
+        this.onSocketOpenedCallback = onSocketOpenedCallback;
 
         // this is SNI spoofing
         this.sniHostName = sniHostName;
@@ -134,6 +138,7 @@ public class WebSocketClientWrapper {
                 onOpenCallback,
                 onMessageReceivedCallback,
                 onFailureCallback,
+                onSocketOpenedCallback,
                 sniHostName,
                 censorshipStrategy,
                 sniSpoofingMode,

@@ -18,20 +18,8 @@
  * Website: https://fptn.org
  */
 
-package org.fptn.vpn.enums;
+package org.fptn.vpn.services.websocket.callback;
 
-public enum ConnectionStrategy {
-    ROLLING_TUNNEL("rolling-tunnel"),
-    DUAL_TUNNEL("dual-rolling-tunnel"),
-    TRIPLE_TUNNEL("triple-rolling-tunnel");
-
-    private final String nativeName;
-
-    ConnectionStrategy(String nativeName) {
-        this.nativeName = nativeName;
-    }
-
-    public String getNativeName() {
-        return nativeName;
-    }
+public interface OnSocketOpenedCallback {
+    void onSocketOpened(int fd);
 }

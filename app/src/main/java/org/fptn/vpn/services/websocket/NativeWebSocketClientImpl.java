@@ -29,6 +29,7 @@ import org.fptn.vpn.enums.SniSpoofingMode;
 import org.fptn.vpn.services.websocket.callback.OnFailureCallback;
 import org.fptn.vpn.services.websocket.callback.OnMessageReceivedCallback;
 import org.fptn.vpn.services.websocket.callback.OnOpenCallback;
+import org.fptn.vpn.services.websocket.callback.OnSocketOpenedCallback;
 import org.fptn.vpn.vpnclient.exception.ErrorCode;
 import org.fptn.vpn.vpnclient.exception.PVNClientException;
 
@@ -66,6 +67,7 @@ public class NativeWebSocketClientImpl {
     private final OnOpenCallback onOpenCallback;
     private final OnMessageReceivedCallback onMessageReceivedCallback;
     private final OnFailureCallback onFailureCallback;
+    private final OnSocketOpenedCallback onSocketOpenedCallback;
 
     private long nativeHandle;
 
@@ -79,6 +81,7 @@ public class NativeWebSocketClientImpl {
             OnOpenCallback onOpenCallback,
             OnMessageReceivedCallback onMessageReceivedCallback,
             OnFailureCallback onFailureCallback,
+            OnSocketOpenedCallback onSocketOpenedCallback,
             String sniHostName,
             BypassCensorshipMethod censorshipStrategy,
             SniSpoofingMode sniSpoofingMode,
@@ -86,6 +89,7 @@ public class NativeWebSocketClientImpl {
         this.onOpenCallback = onOpenCallback;
         this.onMessageReceivedCallback = onMessageReceivedCallback;
         this.onFailureCallback = onFailureCallback;
+        this.onSocketOpenedCallback = onSocketOpenedCallback;
 
         String censorshipStrategyName = "SNI";
         if (censorshipStrategy == BypassCensorshipMethod.SNI_REALITY && sniSpoofingMode == SniSpoofingMode.SNI) {
@@ -177,6 +181,12 @@ public class NativeWebSocketClientImpl {
     public void onMessageImpl(byte[] msg) {
         if (this.onMessageReceivedCallback != null) {
             this.onMessageReceivedCallback.onMessageReceived(msg);
+        }
+    }
+
+    public void onSocketOpenedImpl(int fd) {
+        if (this.onSocketOpenedCallback != null) {
+            this.onSocketOpenedCallback.onSocketOpened(fd);
         }
     }
 

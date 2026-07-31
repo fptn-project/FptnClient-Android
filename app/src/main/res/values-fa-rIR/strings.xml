@@ -294,9 +294,7 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="backup_restore_confirm_message">تنظیمات فعلی با تنظیمات فایل انتخاب‌شده جایگزین خواهند شد.</string>
 
     <string name="connection_strategy_title">راهبرد اتصال</string>
-    <string name="connection_strategy_persistent">تونل دائمی</string>
     <string name="connection_strategy_rolling">تونل چرخشی</string>
     <string name="connection_strategy_dual">تونل چرخشی دوگانه</string>
     <string name="connection_strategy_triple">تونل چرخشی سه‌گانه</string>
-    <string name="connection_strategy_browser">تقلید مرورگر (آزمایشی)</string>
 </resources>

@@ -145,6 +145,8 @@ void WrapperWebsocketClient::Run() {
             &WrapperWebsocketClient::onIPPacket, this, std::placeholders::_1);
         const auto on_connected_callback =
             std::bind(&WrapperWebsocketClient::onConnectedCallback, this);
+        const auto on_socket_opened_callback = std::bind(
+            &WrapperWebsocketClient::onSocketOpened, this, std::placeholders::_1);
         const fptn::protocol::https::ConnectionConfig config{
             .common = {
                 .server_ip = server_ip_addr,
@@ -158,6 +160,7 @@ void WrapperWebsocketClient::Run() {
                     fptn::common::network::IPv6Address(tun_ipv6_),
                 .on_connected_callback = on_connected_callback,
                 .recv_ip_packet_callback = new_ip_pkt_callback,
+                .on_socket_opened_callback = on_socket_opened_callback,
             }};
 
         namespace strategies = fptn::protocol::connection::strategies;
@@ -364,6 +367,35 @@ void WrapperWebsocketClient::onConnectedCallback() {
     }
   } else {
     SPDLOG_ERROR("Failed to find method ID for onOpenImpl()");
+  }
+  env->DeleteLocalRef(cls);
+}
+
+void WrapperWebsocketClient::onSocketOpened(int socket_fd) {
+  JNIEnv* env = getJniEnv();
+  if (!env) {
+    SPDLOG_ERROR("Failed to get JNI environment in onSocketOpened");
+    return;
+  }
+
+  jclass cls = env->GetObjectClass(wrapper_);
+  if (!cls) {
+    SPDLOG_ERROR("Failed to get Java class from wrapper_ in onSocketOpened");
+    return;
+  }
+
+  jmethodID on_socket_opened_impl =
+      env->GetMethodID(cls, "onSocketOpenedImpl", "(I)V");
+  if (on_socket_opened_impl) {
+    env->CallVoidMethod(
+        wrapper_, on_socket_opened_impl, static_cast<jint>(socket_fd));
+    if (env->ExceptionCheck()) {
+      SPDLOG_ERROR("JNI Exception in CallVoidMethod for onSocketOpenedImpl(I)V");
+      env->ExceptionDescribe();
+      env->ExceptionClear();
+    }
+  } else {
+    SPDLOG_ERROR("Failed to find method ID for onSocketOpenedImpl(I)V");
   }
   env->DeleteLocalRef(cls);
 }
