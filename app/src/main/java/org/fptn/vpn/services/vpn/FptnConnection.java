@@ -88,6 +88,16 @@ public class FptnConnection extends Thread {
      */
     private static final int MAX_PACKET_SIZE = 1500;
 
+    /**
+     * Google apps (YouTube, Gmail, ...) rely on these companion packages; without
+     * them in the tunnel they break in allowed-only mode. Tunneled implicitly.
+     */
+    private static final String[] GOOGLE_SERVICE_PACKAGES = {
+            "com.google.android.gms",   // Play Services
+            "com.google.android.gsf",   // Services Framework
+            "com.android.vending"       // Play Store
+    };
+
     @Getter
     private final int connectionId;
     private final FptnService service;
@@ -312,6 +322,15 @@ public class FptnConnection extends Thread {
                     XLog.tag(TAG).w("[id=%d] Package not found, skipping [pkg=%s]", connectionId, thisAppPackageName);
                 }
             } else {
+                // Implicitly tunnel Google's companion services so Google apps
+                // (YouTube, Gmail, ...) don't break in allowed-only mode.
+                for (String googlePackage : GOOGLE_SERVICE_PACKAGES) {
+                    try {
+                        builder.addAllowedApplication(googlePackage);
+                    } catch (PackageManager.NameNotFoundException e) {
+                        XLog.tag(TAG).d("[id=%d] Google service not installed, skipping [pkg=%s]", connectionId, googlePackage);
+                    }
+                }
                 for (AppInfo appInfo : appInfos) {
                     String packageName = appInfo.getPackageName();
                     try {
