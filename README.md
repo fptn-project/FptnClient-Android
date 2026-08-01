@@ -1,4 +1,15 @@
 ## Setup
+### Java
+
+JDK 17 is required (`app/build.gradle.kts` sets the Java toolchain to 17). Debian 13 has no `openjdk-17` package, so install Eclipse Temurin 17 manually from [Adoptium](https://adoptium.net/temurin/releases/):
+
+```bash
+wget -O temurin17.tar.gz "https://api.adoptium.net/v3/binary/latest/17/ga/linux/x64/jdk/hotspot/normal/eclipse?project=jdk"
+mkdir -p ~/jdks
+tar -xzf temurin17.tar.gz -C ~/jdks
+```
+Set `JAVA_HOME` to the unpacked directory and select JDK 17 as the Gradle JDK in Android Studio (`Settings -> Build, Execution, Deployment -> Build Tools -> Gradle -> Gradle JDK`). **Using a newer JDK (e.g. 21) breaks the build with class file has wrong version 65.0, should be 61.0.**
+
 ### Formatting
 - Install ktlint plugin
 - For automated formatting, Install Ktlint plugin to IDEA then you can go to `Settings -> Tools -> KtLint -> Distract free`.
