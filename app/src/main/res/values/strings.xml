@@ -8,6 +8,7 @@
     <string name="state_disconnect">Disconnected</string>
 
     <string name="login_button">Login</string>
+    <string name="paste_button">Paste</string>
     <string name="logout_button">Logout</string>
     <string name="update_token_button">Update token</string>
 

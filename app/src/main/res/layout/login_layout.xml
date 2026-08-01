@@ -44,10 +44,22 @@
         android:textSize="16sp" />
 
     <Button
-        android:id="@+id/fptn_login_button"
+        android:id="@+id/fptn_paste_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="32dp"
+        android:background="@drawable/round_back_secondary_100"
+        android:padding="8dp"
+        android:text="@string/paste_button"
+        android:textAllCaps="false"
+        android:textColor="@color/primary"
+        android:textSize="16sp" />
+
+    <Button
+        android:id="@+id/fptn_login_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
         android:background="@drawable/round_back_secondary_100"
         android:padding="8dp"
         android:text="@string/login_button"

@@ -22,6 +22,9 @@ package org.fptn.vpn.views.login;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.os.Bundle;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
@@ -77,6 +80,9 @@ public class LoginActivity extends AppCompatActivity {
         Button loginButton = findViewById(R.id.fptn_login_button);
         loginButton.setOnClickListener((v) -> onLogin());
 
+        Button pasteButton = findViewById(R.id.fptn_paste_button);
+        pasteButton.setOnClickListener((v) -> onPaste());
+
         // hide keyboard
         linkEditText.setTextIsSelectable(true);
         linkEditText.setShowSoftInputOnFocus(false);
@@ -118,6 +124,16 @@ public class LoginActivity extends AppCompatActivity {
             XLog.tag(TAG).e("Token parsing failed at login: %s", e.getMessage());
             Toast.makeText(getApplicationContext(), R.string.token_saving_failed, Toast.LENGTH_SHORT).show();
             viewModel.getErrorTextLiveData().postValue(getString(R.string.token_saving_failed));
+        }
+    }
+
+    private void onPaste() {
+        ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+        if (clipboard != null && clipboard.hasPrimaryClip() && clipboard.getPrimaryClip() != null) {
+            ClipData.Item item = clipboard.getPrimaryClip().getItemAt(0);
+            if (item != null && item.getText() != null) {
+                linkEditText.setText(item.getText().toString());
+            }
         }
     }
 
