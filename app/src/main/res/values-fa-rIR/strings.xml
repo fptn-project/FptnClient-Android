@@ -119,6 +119,7 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="try_number">"اتصال مجدد: تلاش "</string>
     <string name="try_number_fallback">"جستجوی سرور: تلاش "</string>
     <string name="download_upload_speed_pattern">دانلود: %s آپلود: %s</string>
+    <string name="download_upload_traffic_pattern">دریافت: %s ارسال: %s</string>
     <string name="refresh_token">به‌روزرسانی توکن...</string>
     <string name="close_button_text">بستن</string>
     <string name="share_via_message">اشتراک‌گذاری از طریق پیام</string>
@@ -195,6 +196,7 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="reset_to_default_success">تنظیمات پیشرفته به حالت پیش‌فرض بازنشانی شد</string>
     <string name="speed_notification_title">اعلان:</string>
     <string name="speed_notification_enable">سرعت اتصال در نوار وضعیت</string>
+    <string name="traffic_notification_enable">ترافیک اتصال در نوار وضعیت</string>
 
     <string name="home_screen_settings_title">صفحه اصلی:</string>
     <string name="show_traffic_chart_label">نمایش نمودار سرعت</string>

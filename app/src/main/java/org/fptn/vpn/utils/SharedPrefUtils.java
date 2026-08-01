@@ -361,6 +361,17 @@ public class SharedPrefUtils {
         sharedPreferences.edit().putBoolean(Constants.SHOW_SPEED_IN_NOTIFICATION_PREF_KEY, show).apply();
     }
 
+    /* Traffic in notification */
+    public static boolean getShowTrafficInNotification(Context context) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        return sharedPreferences.getBoolean(Constants.SHOW_TRAFFIC_IN_NOTIFICATION_PREF_KEY, false);
+    }
+
+    public static void saveShowTrafficInNotification(Context context, boolean show) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        sharedPreferences.edit().putBoolean(Constants.SHOW_TRAFFIC_IN_NOTIFICATION_PREF_KEY, show).apply();
+    }
+
     /* Traffic chart on home screen */
     public static boolean getShowTrafficChart(Context context) {
         SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);

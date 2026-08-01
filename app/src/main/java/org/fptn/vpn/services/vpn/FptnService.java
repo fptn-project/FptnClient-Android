@@ -51,6 +51,7 @@ import android.os.Looper;
 import android.os.ParcelFileDescriptor;
 import android.os.PowerManager;
 import android.service.quicksettings.TileService;
+import android.text.format.Formatter;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.MutableLiveData;
@@ -195,10 +196,24 @@ public class FptnService extends VpnService {
 
     public void updateSpeedInfo(String downloadSpeed, String uploadSpeed, long duration, long totalDownload, long totalUpload, long downloadBps, long uploadBps) {
         if (serviceStateMutableLiveData.getValue().getConnectionState() == ConnectionState.CONNECTED) {
-            if (SharedPrefUtils.getShowSpeedInNotification(getApplication())) {
+            boolean showSpeed = SharedPrefUtils.getShowSpeedInNotification(getApplication());
+            boolean showTraffic = SharedPrefUtils.getShowTrafficInNotification(getApplication());
+            if (showSpeed || showTraffic) {
+                StringBuilder message = new StringBuilder();
+                if (showSpeed) {
+                    message.append(String.format(getString(R.string.download_upload_speed_pattern), downloadSpeed, uploadSpeed));
+                }
+                if (showTraffic) {
+                    if (message.length() > 0) {
+                        message.append("\n");
+                    }
+                    message.append(String.format(getString(R.string.download_upload_traffic_pattern),
+                            Formatter.formatFileSize(getApplication(), totalDownload),
+                            Formatter.formatFileSize(getApplication(), totalUpload)));
+                }
                 updateNotificationWithMessage(
                         String.format("%s %s", getString(R.string.connected_to), getActionConnectServerInfo()),
-                        String.format(getString(R.string.download_upload_speed_pattern), downloadSpeed, uploadSpeed)
+                        message.toString()
                 );
             }
 
@@ -1251,6 +1266,7 @@ public class FptnService extends VpnService {
                 .setSmallIcon(R.drawable.ic_logo)
                 .setContentTitle(title)
                 .setContentText(message)
+                .setStyle(new Notification.BigTextStyle().bigText(message))
                 .setVisibility(Notification.VISIBILITY_PUBLIC) // Show this notification in its entirety on all lockscreens and while screen sharing.
                 .setOnlyAlertOnce(true) // so when data is updated don't make sound and alert in android 8.0+
                 .setAutoCancel(false) // for not remove notification after press it

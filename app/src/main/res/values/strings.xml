@@ -128,6 +128,7 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="try_number">"Reconnecting: attempt "</string>
     <string name="try_number_fallback">"Searching server: attempt "</string>
     <string name="download_upload_speed_pattern">Download: %s Upload: %s</string>
+    <string name="download_upload_traffic_pattern">Received: %s Sent: %s</string>
     <string name="refresh_token">Refresh token...</string>
     <string name="play_market_link" translatable="false">https://play.google.com/store/apps/details?id=org.fptn.vpn</string>
     <string name="close_button_text">Close</string>
@@ -282,6 +283,7 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
 
     <string name="speed_notification_title">Notification:</string>
     <string name="speed_notification_enable">Connection speed in status bar</string>
+    <string name="traffic_notification_enable">Connection traffic in status bar</string>
 
     <string name="home_screen_settings_title">Home screen:</string>
     <string name="show_traffic_chart_label">Show speed chart</string>

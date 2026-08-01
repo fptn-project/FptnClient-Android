@@ -83,6 +83,7 @@ public class ExperimentalSettingsActivity extends AppCompatActivity {
     private View autoFallbackThresholdLayout;
     private SeekBar seekBarFallbackThreshold;
     private SwitchCompat showSpeedInNotificationSwitch;
+    private SwitchCompat showTrafficInNotificationSwitch;
     private SwitchCompat showTrafficChartSwitch;
     private SwitchCompat allowLandscapeSwitch;
     private SwitchCompat adBlockSwitch;
@@ -146,6 +147,11 @@ public class ExperimentalSettingsActivity extends AppCompatActivity {
         showSpeedInNotificationSwitch.setChecked(SharedPrefUtils.getShowSpeedInNotification(this));
         showSpeedInNotificationSwitch.setOnCheckedChangeListener(
                 (buttonView, isChecked) -> SharedPrefUtils.saveShowSpeedInNotification(this, isChecked));
+
+        showTrafficInNotificationSwitch = findViewById(R.id.show_traffic_in_notification_switch);
+        showTrafficInNotificationSwitch.setChecked(SharedPrefUtils.getShowTrafficInNotification(this));
+        showTrafficInNotificationSwitch.setOnCheckedChangeListener(
+                (buttonView, isChecked) -> SharedPrefUtils.saveShowTrafficInNotification(this, isChecked));
 
         showTrafficChartSwitch = findViewById(R.id.show_traffic_chart_switch);
         showTrafficChartSwitch.setChecked(SharedPrefUtils.getShowTrafficChart(this));
@@ -306,6 +312,7 @@ public class ExperimentalSettingsActivity extends AppCompatActivity {
         customDnsSwitch.setChecked(false);
         customDnsInput.setText("");
         showSpeedInNotificationSwitch.setChecked(false);
+        showTrafficInNotificationSwitch.setChecked(false);
         showTrafficChartSwitch.setChecked(true);
         adBlockSwitch.setChecked(true);
         domainBlacklistSwitch.setChecked(true);
@@ -322,6 +329,7 @@ public class ExperimentalSettingsActivity extends AppCompatActivity {
         SharedPrefUtils.saveCustomDnsEnabled(this, false);
         SharedPrefUtils.saveCustomDnsIpv4(this, "");
         SharedPrefUtils.saveShowSpeedInNotification(this, false);
+        SharedPrefUtils.saveShowTrafficInNotification(this, false);
         SharedPrefUtils.saveShowTrafficChart(this, true);
         SharedPrefUtils.saveAdBlockEnabled(this, true);
         SharedPrefUtils.saveDomainBlacklistEnabled(this, true);

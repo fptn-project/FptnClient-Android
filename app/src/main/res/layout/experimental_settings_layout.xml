@@ -251,6 +251,15 @@
                     android:text="@string/speed_notification_enable"
                     android:textSize="14sp" />
 
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/show_traffic_in_notification_switch"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp"
+                    android:text="@string/traffic_notification_enable"
+                    android:textSize="14sp" />
+
             </LinearLayout>
 
             <!--Home screen-->
