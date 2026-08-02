@@ -110,6 +110,17 @@ public class SettingsActivity extends AppCompatActivity {
         TextView textView = findViewById(R.id.sponsors_list);
         textView.setText(Html.fromHtml(getString(R.string.sponsors_usernames)));
 
+        TextView headerView = findViewById(R.id.sponsors_header);
+        String sponsorsTitle = getString(R.string.sponsors_text);
+        headerView.setText(sponsorsTitle + "  ▼");
+
+        View sponsorsRow = findViewById(R.id.sponsors_row);
+        sponsorsRow.setOnClickListener(v -> {
+            boolean willShow = textView.getVisibility() != View.VISIBLE;
+            textView.setVisibility(willShow ? View.VISIBLE : View.GONE);
+            headerView.setText(willShow ? sponsorsTitle + "  ▲" : sponsorsTitle + "  ▼");
+        });
+
         // Set on click listeners
         View updateTokenLayout = findViewById(R.id.update_token_layout);
         updateTokenLayout.setOnClickListener(this::onUpdateToken);
