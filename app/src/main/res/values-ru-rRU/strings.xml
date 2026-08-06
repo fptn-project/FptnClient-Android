@@ -236,6 +236,11 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="per_app_vpn_no_apps_selected_title">Не выбрано ни одного приложения</string>
     <string name="per_app_vpn_no_apps_selected_message">Ни одно приложение не выбрано для туннелирования. VPN будет активен, но ни один трафик не пройдёт через туннель.\n\nВыберите хотя бы одно приложение или смените режим.</string>
     <string name="save_anyway">Всё равно сохранить</string>
+    <string name="settings_exclude_detector_apps_title">Скрывать VPN</string>
+    <string name="settings_exclude_detector_apps">Исключать известные российские приложения из VPN</string>
+    <string name="settings_exclude_detector_apps_warning_title">Отключить защиту?</string>
+    <string name="settings_exclude_detector_apps_warning_message">Часть приложений может работать некорректно. Менять не рекомендуется.</string>
+    <string name="settings_exclude_detector_apps_warning_confirm">Всё равно отключить</string>
     <string name="settings_reset_server_title">Выбор сервера:</string>
     <string name="settings_reset_server_on_disconnect">Сброс на Auto после отключения</string>
 

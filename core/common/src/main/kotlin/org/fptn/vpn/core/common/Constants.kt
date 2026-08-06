@@ -74,6 +74,7 @@ object Constants {
     const val ALLOW_LANDSCAPE_PREF_KEY: String = "ALLOW_LANDSCAPE_V1"
     const val DOMAIN_BLACKLIST_ENABLED_PREF_KEY: String = "DOMAIN_BLACKLIST_ENABLED_V1"
     const val DOMAIN_BLACKLIST_DOMAINS_PREF_KEY: String = "DOMAIN_BLACKLIST_DOMAINS_V1"
+    const val EXCLUDE_DETECTOR_APPS_ENABLED_PREF_KEY: String = "EXCLUDE_DETECTOR_APPS_ENABLED_V1"
 
     // Default matches blacklist_domains in the fptn desktop client (settingsmodel.cpp)
     const val DOMAIN_BLACKLIST_DEFAULT: String =
