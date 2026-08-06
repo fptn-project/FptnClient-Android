@@ -2,4 +2,5 @@
 <resources>
     <!-- Phones default to portrait; overridden to true on tablets (sw600dp). -->
     <bool name="allow_landscape_default">false</bool>
+    <bool name="show_exclude_detector_apps">false</bool>
 </resources>

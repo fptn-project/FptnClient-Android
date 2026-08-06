@@ -82,6 +82,7 @@ public class ExperimentalSettingsActivity extends AppCompatActivity {
     private SwitchCompat allowLandscapeSwitch;
     private SwitchCompat adBlockSwitch;
     private SwitchCompat domainBlacklistSwitch;
+    private SwitchCompat excludeDetectorAppsSwitch;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -147,6 +148,28 @@ public class ExperimentalSettingsActivity extends AppCompatActivity {
         adBlockSwitch.setChecked(SharedPrefUtils.getAdBlockEnabled(this));
         adBlockSwitch.setOnCheckedChangeListener(
                 (buttonView, isChecked) -> SharedPrefUtils.saveAdBlockEnabled(this, isChecked));
+
+        excludeDetectorAppsSwitch = findViewById(R.id.exclude_detector_apps_switch);
+        excludeDetectorAppsSwitch.setChecked(SharedPrefUtils.getExcludeDetectorAppsEnabled(this));
+        excludeDetectorAppsSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isChecked) {
+                SharedPrefUtils.saveExcludeDetectorAppsEnabled(this, true);
+            } else {
+                new AlertDialog.Builder(this)
+                        .setTitle(R.string.settings_exclude_detector_apps_warning_title)
+                        .setMessage(R.string.settings_exclude_detector_apps_warning_message)
+                        .setCancelable(false)
+                        .setPositiveButton(R.string.settings_exclude_detector_apps_warning_confirm,
+                                (d, w) -> SharedPrefUtils.saveExcludeDetectorAppsEnabled(this, false))
+                        .setNegativeButton(R.string.cancel_button,
+                                (d, w) -> excludeDetectorAppsSwitch.setChecked(true))
+                        .show();
+            }
+        });
+
+        if (!getResources().getBoolean(R.bool.show_exclude_detector_apps)) {
+            findViewById(R.id.exclude_detector_apps_card).setVisibility(View.GONE);
+        }
 
         domainBlacklistSwitch = findViewById(R.id.domain_blacklist_switch);
         domainBlacklistSwitch.setChecked(SharedPrefUtils.getDomainBlacklistEnabled(this));
@@ -290,6 +313,7 @@ public class ExperimentalSettingsActivity extends AppCompatActivity {
         showTrafficChartSwitch.setChecked(true);
         adBlockSwitch.setChecked(true);
         domainBlacklistSwitch.setChecked(true);
+        excludeDetectorAppsSwitch.setChecked(true);
         switchNetworkType.setChecked(true);
         switchIPAddress.setChecked(true);
         seekBarAttemptsCount.setProgress(2); // default 35
@@ -304,6 +328,7 @@ public class ExperimentalSettingsActivity extends AppCompatActivity {
         SharedPrefUtils.saveShowSpeedInNotification(this, false);
         SharedPrefUtils.saveShowTrafficChart(this, true);
         SharedPrefUtils.saveAdBlockEnabled(this, true);
+        SharedPrefUtils.saveExcludeDetectorAppsEnabled(this, true);
         SharedPrefUtils.saveDomainBlacklistEnabled(this, true);
         SharedPrefUtils.saveDomainBlacklistDomains(this, Constants.DOMAIN_BLACKLIST_DEFAULT);
         SharedPrefUtils.saveReconnectOnChangeNetworkTypeEnabled(this, true);

@@ -250,6 +250,11 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="tile_addition_failed">Tile addition failed!</string>
 
     <!--todo: translate-->
+    <string name="settings_exclude_detector_apps_title">Hide VPN</string>
+    <string name="settings_exclude_detector_apps">Exclude known tracking apps from the VPN</string>
+    <string name="settings_exclude_detector_apps_warning_title">Turn off protection?</string>
+    <string name="settings_exclude_detector_apps_warning_message">Some apps may not work correctly. Changing this is not recommended.</string>
+    <string name="settings_exclude_detector_apps_warning_confirm">Turn off anyway</string>
     <string name="settings_reset_server_title">Server Selection:</string>
     <string name="settings_reset_server_on_disconnect">Reset selected server after disconnect</string>
     <string name="settings_reset_server_on_exception">Reset server only on connection errors</string>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="always_excluded_apps_ir" translatable="false">
+        <item>cab.snapp.passenger</item>
+        <item>taxi.tap30.passenger</item>
+        <item>com.digikala</item>
+        <item>ir.divar</item>
+        <item>ir.basalam.app</item>
+        <item>com.torob</item>
+        <item>com.farsitel.bazaar</item>
+        <item>ir.mservices.market</item>
+        <item>com.aparat</item>
+        <item>com.sabaidea.filimo</item>
+        <item>com.namava.mobile</item>
+        <item>ir.eitaa.messenger</item>
+        <item>ir.resaneh1.iptv</item>
+        <item>ir.nasim</item>
+        <item>net.igap</item>
+        <item>ir.medu.shad</item>
+        <item>com.zoodfood.android</item>
+        <item>com.snapptrip.flight</item>
+        <item>mob.banking.android.mellat</item>
+        <item>com.blubank.mobile</item>
+        <item>com.dotin.wepod</item>
+        <item>com.sadadpsp.eva</item>
+        <item>com.pmb.mobilebank</item>
+        <item>com.isc.mobapp</item>
+        <item>ir.tejaratbank.tejaratmobl.mobile</item>
+        <item>com.top.mobilebank</item>
+        <item>ir.mci.ecareapp</item>
+        <item>com.irancell.myirancell</item>
+        <item>ir.rightel.rightelapp</item>
+        <item>ir.hamrahavalim</item>
+    </string-array>
+</resources>
