@@ -78,7 +78,7 @@ public class UpdateTokenActivity extends AppCompatActivity {
 
         // Show HTML
         TextView label = findViewById(R.id.fptn_login_html_label);
-        label.setText(Html.fromHtml(getString(R.string.telegram_bot_html), Html.FROM_HTML_MODE_LEGACY));
+        label.setText(Html.fromHtml(getString(R.string.settings_token_info_html), Html.FROM_HTML_MODE_LEGACY));
         label.setMovementMethod(LinkMovementMethod.getInstance());
 
         // HIDE KEYBOARD

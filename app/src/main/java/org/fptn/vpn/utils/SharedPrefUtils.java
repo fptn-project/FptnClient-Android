@@ -280,6 +280,22 @@ public class SharedPrefUtils {
         sharedPreferences.edit().putString(Constants.DOMAIN_BLACKLIST_DOMAINS_PREF_KEY, domains).apply();
     }
 
+    /* Token freshness reminder */
+    public static long getTokenUpdatedDate(Context context) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        long value = sharedPreferences.getLong(Constants.TOKEN_UPDATED_DATE_PREF_KEY, 0L);
+        if (value == 0L) {
+            value = System.currentTimeMillis();
+            sharedPreferences.edit().putLong(Constants.TOKEN_UPDATED_DATE_PREF_KEY, value).apply();
+        }
+        return value;
+    }
+
+    public static void saveTokenUpdatedDate(Context context, long millis) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        sharedPreferences.edit().putLong(Constants.TOKEN_UPDATED_DATE_PREF_KEY, millis).apply();
+    }
+
     /* Exclude VPN-detector apps from the tunnel */
     public static boolean getExcludeDetectorAppsEnabled(Context context) {
         SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);

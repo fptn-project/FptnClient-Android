@@ -26,6 +26,8 @@
         To update the server list, enter a new token.
         <br/>
         The token works like a password: once updated, it will no longer be valid on any devices where it was previously used.
+        <br/><br/>
+        Get a new token from <a href="https://t.me/fptn_bot">@fptn_bot</a> with the <b><font color="#03DAC5">/token</font></b> command.
         ]]>
     </string>
 
@@ -89,6 +91,10 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="reconnect_action">Reconnect</string>
 
     <string name="token_was_updated">Token was updated!</string>
+    <string name="token_reminder_title">Update your token</string>
+    <string name="token_reminder_message"><![CDATA[Your token has not been updated in a long time.<br/><br/>Get a fresh one from <a href="https://t.me/fptn_bot">@fptn_bot</a> with the <b><font color="#03DAC5">/token</font></b> command, then paste it here.]]></string>
+    <string name="token_reminder_update">Update token</string>
+    <string name="token_reminder_later">Later</string>
     <string name="token_saving_failed">Invalid link format!</string>
 
     <string name="telegram_bot_link" translatable="false">https://t.me/fptn_bot</string>

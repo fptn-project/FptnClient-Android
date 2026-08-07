@@ -31,6 +31,7 @@ import com.google.common.util.concurrent.MoreExecutors;
 
 import org.fptn.vpn.database.AppDatabase;
 import org.fptn.vpn.database.entity.ServerEntity;
+import org.fptn.vpn.utils.SharedPrefUtils;
 import org.fptn.vpn.utils.token.TokenUtils;
 import org.fptn.vpn.vpnclient.exception.PVNClientException;
 
@@ -56,6 +57,7 @@ public class LoginActivityViewModel extends AndroidViewModel {
         List<ServerEntity> serverEntities = TokenUtils.parseToken(token);
         return MoreExecutors.listeningDecorator(executorService).submit(() -> {
             appDatabase.serverDAO().deleteAndInsert(serverEntities);
+            SharedPrefUtils.saveTokenUpdatedDate(getApplication(), System.currentTimeMillis());
             return null;
         });
     }
