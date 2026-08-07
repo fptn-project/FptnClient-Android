@@ -369,17 +369,15 @@ public class FptnConnection extends Thread {
     }
 
     private static final String[] EXCLUDED_PACKAGE_PREFIXES = {
-            "ru.", "ir.",
+            "ru.",
             "com.vk.", "com.vkontakte.", "com.yandex.", "com.kaspersky.",
             "com.avito.", "com.idamob.", "com.wildberries.", "com.uma.",
+            "com.drweb.", "com.sdkit.",
     };
 
     private Set<String> alwaysExcludedPackages() {
         Set<String> packages = new HashSet<>();
         for (String packageName : service.getResources().getStringArray(R.array.always_excluded_apps_ru)) {
-            packages.add(packageName.toLowerCase(Locale.ROOT));
-        }
-        for (String packageName : service.getResources().getStringArray(R.array.always_excluded_apps_ir)) {
             packages.add(packageName.toLowerCase(Locale.ROOT));
         }
         packages.add(service.getPackageName().toLowerCase(Locale.ROOT));
