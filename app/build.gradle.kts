@@ -7,8 +7,22 @@ import kotlin.concurrent.thread
 
 plugins {
     id("pvnclient.android.application")
-    id("com.google.gms.google-services")
-    alias(libs.plugins.crashlytics)
+    // Google/Firebase plugins are applied conditionally below — only when a `gms`
+    // variant is built. This keeps the `foss` APK free of Firebase/Crashlytics and
+    // means `foss` builds don't require google-services.json.
+    id("com.google.gms.google-services") apply false
+    alias(libs.plugins.crashlytics) apply false
+}
+
+// Apply the Google/Firebase plugins only when a `gms` variant is being built
+// (e.g. `bundleGmsRelease` -> AAB for Google Play). `foss` builds
+// (e.g. `assembleFossRelease` -> APK for sideloading) skip them entirely.
+val isGmsBuild = gradle.startParameter.taskRequests.any { request ->
+    request.args.any { it.contains("Gms", ignoreCase = true) }
+}
+if (isGmsBuild) {
+    apply(plugin = "com.google.gms.google-services")
+    apply(plugin = "com.google.firebase.crashlytics")
 }
 
 val keystorePropertiesFile: File = rootProject.file("keystore.properties")
@@ -94,6 +108,20 @@ android {
             signingConfig = signingConfigs.getByName("debug")
         }
     }
+    flavorDimensions += "distribution"
+    productFlavors {
+        // With Google/Firebase (Analytics + Crashlytics). Build the AAB from this
+        // flavor for Google Play: `bundleGmsRelease`.
+        create("gms") {
+            dimension = "distribution"
+        }
+        // No Google/Firebase code at all. Build the APK from this flavor for
+        // sideloading / non-GMS devices: `assembleFossRelease`.
+        create("foss") {
+            dimension = "distribution"
+        }
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -120,7 +148,10 @@ android {
 }
 
 dependencies {
-    implementation(platform(libs.firebase.bom))
+    // Firebase only in the `gms` flavor (AAB). The `foss` flavor (APK) has none of it.
+    "gmsImplementation"(platform(libs.firebase.bom))
+    "gmsImplementation"(libs.firebase.analytics)
+    "gmsImplementation"(libs.firebase.crashlytics.ndk)
     implementation(project(":core:common"))
     implementation(project(":vpnclient"))
     implementation(libs.androidx.activity)
@@ -131,8 +162,6 @@ dependencies {
     implementation(libs.androidx.room.guava)
     implementation(libs.androidx.room.runtime)
     implementation(libs.decoding)
-    implementation(libs.firebase.analytics)
-    implementation(libs.firebase.crashlytics.ndk)
     implementation(libs.guava)
     implementation(libs.ipaddress)
     implementation(libs.jackson.databind)
