@@ -36,4 +36,5 @@ public class AppInfo {
     private boolean allowed;
     private boolean disallowed;
     private boolean systemApp;
+    private boolean forcedExcluded;
 }

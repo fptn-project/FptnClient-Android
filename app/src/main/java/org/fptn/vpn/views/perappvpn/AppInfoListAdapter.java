@@ -27,6 +27,7 @@ import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.SwitchCompat;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import org.fptn.vpn.R;
@@ -76,6 +77,7 @@ public class AppInfoListAdapter extends RecyclerView.Adapter<AppInfoListAdapter.
     }
 
     private boolean isActive(AppInfo app) {
+        if (app.isForcedExcluded()) return true;
         if (perAppVpnMode == PerAppVpnMode.ONLY_ALLOWED) return app.isAllowed();
         if (perAppVpnMode == PerAppVpnMode.EXCEPT_DISALLOWED) return app.isDisallowed();
         return false;
@@ -95,6 +97,17 @@ public class AppInfoListAdapter extends RecyclerView.Adapter<AppInfoListAdapter.
         holder.checkBox.setOnCheckedChangeListener(null);
         holder.checkBox.setText(app.getLabel());
         holder.appIcon.setImageDrawable(app.getIcon());
+
+        if (app.isForcedExcluded()) {
+            holder.checkBox.setChecked(perAppVpnMode == PerAppVpnMode.EXCEPT_DISALLOWED);
+            holder.checkBox.setEnabled(false);
+            holder.checkBox.setOnClickListener(null);
+            holder.checkBox.setTextColor(ContextCompat.getColor(holder.itemView.getContext(), R.color.teal_200));
+            return;
+        }
+
+        holder.checkBox.setEnabled(true);
+        holder.checkBox.setTextColor(ContextCompat.getColor(holder.itemView.getContext(), R.color.white));
 
         if (perAppVpnMode == PerAppVpnMode.ONLY_ALLOWED) {
             holder.checkBox.setChecked(app.isAllowed());

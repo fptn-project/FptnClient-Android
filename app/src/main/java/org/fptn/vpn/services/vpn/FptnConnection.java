@@ -40,6 +40,7 @@ import android.os.ParcelFileDescriptor;
 import com.elvishew.xlog.XLog;
 
 import org.fptn.vpn.R;
+import org.fptn.vpn.utils.AppExclusion;
 import org.fptn.vpn.utils.SharedPrefUtils;
 import org.fptn.vpn.domainblocker.DomainBlocker;
 import org.fptn.vpn.database.entity.ServerEntity;
@@ -339,13 +340,10 @@ public class FptnConnection extends Thread {
                         XLog.tag(TAG).d("[id=%d] Google service not installed, skipping [pkg=%s]", connectionId, googlePackage);
                     }
                 }
-                Set<String> alwaysExcluded = SharedPrefUtils.getExcludeDetectorAppsEnabled(service)
-                        ? alwaysExcludedPackages() : Collections.<String>emptySet();
+                AppExclusion exclusion = new AppExclusion(service);
                 for (AppInfo appInfo : appInfos) {
                     String packageName = appInfo.getPackageName();
-                    String lowerPackageName = packageName.toLowerCase(Locale.ROOT);
-                    if (!alwaysExcluded.isEmpty()
-                            && (alwaysExcluded.contains(lowerPackageName) || matchesExcludedPrefix(lowerPackageName))) {
+                    if (exclusion.isExcluded(packageName)) {
                         continue;
                     }
                     try {
@@ -368,30 +366,10 @@ public class FptnConnection extends Thread {
         }
     }
 
-    private static final String[] EXCLUDED_PACKAGE_PREFIXES = {
-            "ru.",
-            "com.vk.", "com.vkontakte.", "com.yandex.", "com.kaspersky.",
-            "com.avito.", "com.idamob.", "com.wildberries.", "com.uma.",
-            "com.drweb.", "com.sdkit.",
-    };
-
-    private Set<String> alwaysExcludedPackages() {
-        Set<String> packages = new HashSet<>();
-        for (String packageName : service.getResources().getStringArray(R.array.always_excluded_apps_ru)) {
-            packages.add(packageName.toLowerCase(Locale.ROOT));
-        }
-        packages.add(service.getPackageName().toLowerCase(Locale.ROOT));
-        return packages;
-    }
-
     private void addAlwaysExcludedApps(VpnService.Builder builder) {
-        if (!SharedPrefUtils.getExcludeDetectorAppsEnabled(service)) {
-            return;
-        }
-        Set<String> excluded = alwaysExcludedPackages();
+        AppExclusion exclusion = new AppExclusion(service);
         for (ApplicationInfo appInfo : service.getPackageManager().getInstalledApplications(0)) {
-            String packageName = appInfo.packageName.toLowerCase(Locale.ROOT);
-            if (!excluded.contains(packageName) && !matchesExcludedPrefix(packageName)) {
+            if (!exclusion.isExcluded(appInfo.packageName)) {
                 continue;
             }
             try {
@@ -400,15 +378,6 @@ public class FptnConnection extends Thread {
                 XLog.tag(TAG).w("[id=%d] Package not found, skipping [pkg=%s]", connectionId, appInfo.packageName);
             }
         }
-    }
-
-    private boolean matchesExcludedPrefix(String packageName) {
-        for (String prefix : EXCLUDED_PACKAGE_PREFIXES) {
-            if (packageName.startsWith(prefix)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     public void shutdown() {
