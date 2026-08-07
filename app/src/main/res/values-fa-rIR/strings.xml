@@ -24,6 +24,8 @@
         برای به‌روزرسانی فهرست سرورها، یک توکن جدید وارد کنید.
         <br/>
         توکن مانند گذرواژه عمل می‌کند: با به‌روزرسانی آن، در تمام دستگاه‌هایی که قبلاً استفاده شده بود غیرفعال می‌شود.
+        <br/><br/>
+        یک توکن جدید از <a href="https://t.me/fptn_bot">@fptn_bot</a> با دستور <b><font color="#03DAC5">/token</font></b> دریافت کنید.
         ]]>
     </string>
     <string name="share_title">اشتراک‌گذاری از طریق</string>
@@ -82,6 +84,10 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
 
     <string name="reconnect_action">اتصال مجدد</string>
     <string name="token_was_updated">توکن به‌روزرسانی شد!</string>
+    <string name="token_reminder_title">توکن خود را به‌روزرسانی کنید</string>
+    <string name="token_reminder_message"><![CDATA[توکن شما مدت زیادی است که به‌روزرسانی نشده است.<br/><br/>یک توکن جدید از <a href="https://t.me/fptn_bot">@fptn_bot</a> با دستور <b><font color="#03DAC5">/token</font></b> بگیرید و آن را وارد کنید.]]></string>
+    <string name="token_reminder_update">به‌روزرسانی توکن</string>
+    <string name="token_reminder_later">بعداً</string>
     <string name="token_saving_failed">فرمت توکن نامعتبر است!</string>
 
 

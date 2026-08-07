@@ -35,6 +35,8 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.provider.Settings;
+import android.text.Html;
+import android.text.method.LinkMovementMethod;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Button;
@@ -67,6 +69,7 @@ import org.fptn.vpn.utils.ViewUtils;
 import org.fptn.vpn.views.CustomBottomNavigationListener;
 import org.fptn.vpn.views.adapter.ServerEntityAdapter;
 import org.fptn.vpn.services.vpn.FptnService;
+import org.fptn.vpn.views.updatetoken.UpdateTokenActivity;
 import org.fptn.vpn.vpnclient.exception.ErrorCode;
 import org.fptn.vpn.vpnclient.exception.PVNClientException;
 
@@ -292,6 +295,31 @@ public class HomeActivity extends AppCompatActivity {
         requestAddTileService();
     }
 
+    private static final long TOKEN_MAX_AGE_MS = 14L * 24 * 60 * 60 * 1000;
+
+    private boolean maybeShowTokenReminder() {
+        long age = System.currentTimeMillis() - SharedPrefUtils.getTokenUpdatedDate(this);
+        if (age < TOKEN_MAX_AGE_MS) {
+            return false;
+        }
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setTitle(R.string.token_reminder_title)
+                .setMessage(Html.fromHtml(getString(R.string.token_reminder_message), Html.FROM_HTML_MODE_LEGACY))
+                .setCancelable(false)
+                .setPositiveButton(R.string.token_reminder_update, (d, w) -> {
+                    startStopButton.setChecked(false);
+                    startActivity(new Intent(this, UpdateTokenActivity.class));
+                })
+                .setNegativeButton(R.string.token_reminder_later, (d, w) -> connectVpn())
+                .create();
+        dialog.show();
+        TextView messageView = dialog.findViewById(android.R.id.message);
+        if (messageView != null) {
+            messageView.setMovementMethod(LinkMovementMethod.getInstance());
+        }
+        return true;
+    }
+
     private void adjustButtonVerticalBias() {
         int screenHeightDp = (int) (getResources().getDisplayMetrics().heightPixels
                 / getResources().getDisplayMetrics().density);
@@ -452,6 +480,9 @@ public class HomeActivity extends AppCompatActivity {
         if (PermissionsUtils.isAlwaysOnVpnEnabledByAnotherApp(this)) {
             startStopButton.setChecked(false);
             showVpnSwitchDialog();
+            return;
+        }
+        if (maybeShowTokenReminder()) {
             return;
         }
         connectVpn();

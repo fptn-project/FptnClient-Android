@@ -24,6 +24,8 @@
         Чтобы обновить список серверов, введите новый токен.
         <br/>
         Токен работает как пароль: при его обновлении он перестанет действовать на всех устройствах, где использовался ранее.
+        <br/><br/>
+        Получите новый токен у <a href="https://t.me/fptn_bot">@fptn_bot</a> командой <b><font color="#03DAC5">/token</font></b>.
         ]]>
     </string>
     <string name="share_title">Поделиться через</string>
@@ -83,6 +85,10 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
 
     <string name="reconnect_action">Переподключиться</string>
     <string name="token_was_updated">Токен был обновлен!</string>
+    <string name="token_reminder_title">Обновите токен</string>
+    <string name="token_reminder_message"><![CDATA[Токен давно не обновлялся.<br/><br/>Получите новый у <a href="https://t.me/fptn_bot">@fptn_bot</a> командой <b><font color="#03DAC5">/token</font></b> и вставьте его.]]></string>
+    <string name="token_reminder_update">Обновить токен</string>
+    <string name="token_reminder_later">Позже</string>
     <string name="token_saving_failed">Неверный формат токена!</string>
 
     <!--Сообщения об ошибках-->
