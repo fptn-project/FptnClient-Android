@@ -296,17 +296,6 @@ public class SharedPrefUtils {
         sharedPreferences.edit().putLong(Constants.TOKEN_UPDATED_DATE_PREF_KEY, millis).apply();
     }
 
-    /* Exclude VPN-detector apps from the tunnel */
-    public static boolean getExcludeDetectorAppsEnabled(Context context) {
-        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
-        return sharedPreferences.getBoolean(Constants.EXCLUDE_DETECTOR_APPS_ENABLED_PREF_KEY, true);
-    }
-
-    public static void saveExcludeDetectorAppsEnabled(Context context, boolean enabled) {
-        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
-        sharedPreferences.edit().putBoolean(Constants.EXCLUDE_DETECTOR_APPS_ENABLED_PREF_KEY, enabled).apply();
-    }
-
     /* Custom DNS */
     public static boolean getCustomDnsEnabled(Context context) {
         SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);

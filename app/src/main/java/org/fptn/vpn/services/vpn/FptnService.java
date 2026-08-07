@@ -890,9 +890,7 @@ public class FptnService extends VpnService {
         boolean adBlockEnabled = SharedPrefUtils.getAdBlockEnabled(this);
         boolean domainBlacklistEnabled = SharedPrefUtils.getDomainBlacklistEnabled(this);
         String domainBlacklist = domainBlacklistEnabled ? SharedPrefUtils.getDomainBlacklistDomains(this) : null;
-        boolean blockDetectorDomains = SharedPrefUtils.getExcludeDetectorAppsEnabled(this);
-        DomainBlocker domainBlocker = (adBlockEnabled || domainBlacklistEnabled || blockDetectorDomains)
-                ? new DomainBlocker(this, adBlockEnabled, domainBlacklist, blockDetectorDomains) : null;
+        DomainBlocker domainBlocker = new DomainBlocker(this, adBlockEnabled, domainBlacklist, true);
 
         boolean customDnsEnabled = SharedPrefUtils.getCustomDnsEnabled(this);
         String customDnsIpv4 = customDnsEnabled ? SharedPrefUtils.getCustomDnsIpv4(this) : null;

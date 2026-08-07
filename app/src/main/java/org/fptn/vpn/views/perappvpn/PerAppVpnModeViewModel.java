@@ -30,6 +30,7 @@ import androidx.lifecycle.MutableLiveData;
 
 import org.fptn.vpn.database.AppDatabase;
 import org.fptn.vpn.database.dao.AppInfoDAO;
+import org.fptn.vpn.utils.AppExclusion;
 import org.fptn.vpn.database.entity.AppInfoEntity;
 import org.fptn.vpn.enums.PerAppVpnMode;
 import org.fptn.vpn.utils.SharedPrefUtils;
@@ -99,6 +100,7 @@ public class PerAppVpnModeViewModel extends AndroidViewModel {
             List<ApplicationInfo> packages = getApplication().getPackageManager().getInstalledApplications(PackageManager.GET_META_DATA);
 
             String thisAppPackageName = getApplication().getPackageName();
+            AppExclusion exclusion = new AppExclusion(getApplication());
 
             for (ApplicationInfo appInfo : packages) {
                 if (thisAppPackageName.equalsIgnoreCase(appInfo.packageName)) continue;
@@ -107,6 +109,7 @@ public class PerAppVpnModeViewModel extends AndroidViewModel {
                 app.setIcon(appInfo.loadIcon(pm));
                 app.setLabel(appInfo.loadLabel(pm).toString());
                 app.setSystemApp(pm.getLaunchIntentForPackage(appInfo.packageName) == null);
+                app.setForcedExcluded(exclusion.isExcluded(appInfo.packageName));
 
                 apps.add(app);
             }
