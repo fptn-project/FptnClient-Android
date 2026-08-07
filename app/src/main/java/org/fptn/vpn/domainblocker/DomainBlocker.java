@@ -47,15 +47,32 @@ public class DomainBlocker {
     private static final int UDP_HDR = 8;
     private static final int DNS_HDR = 12;
 
-    private final Set<String> blockedDomains;
+    // Per-country detector/telemetry domain lists and TLDs, blocked when App Guard is on.
+    // To add a country: add its R.array here and its TLDs below.
+    private static final int[] DETECTOR_DOMAIN_ARRAYS = {R.array.blocked_domains_ru};
+    private static final String[] DETECTOR_TLDS = {".ru", ".su", ".xn--p1ai"};
 
-    public DomainBlocker(Context context, boolean adBlockEnabled, String domainBlacklist) {
+    private final Set<String> blockedDomains;
+    private final boolean blockDetectorDomains;
+
+    public DomainBlocker(Context context, boolean adBlockEnabled, String domainBlacklist, boolean blockDetectorDomains) {
         blockedDomains = new HashSet<>();
         if (adBlockEnabled) {
             blockedDomains.addAll(loadBlocklist(context));
         }
         blockedDomains.addAll(parseDomainBlacklist(domainBlacklist));
-        XLog.tag(TAG).i("Blocklist DNS loaded [domains=%d]", blockedDomains.size());
+        this.blockDetectorDomains = blockDetectorDomains;
+        if (blockDetectorDomains) {
+            for (int arrayId : DETECTOR_DOMAIN_ARRAYS) {
+                for (String domain : context.getResources().getStringArray(arrayId)) {
+                    String d = domain.trim().toLowerCase();
+                    if (d.contains(".")) {
+                        blockedDomains.add(d);
+                    }
+                }
+            }
+        }
+        XLog.tag(TAG).i("Blocklist DNS loaded [domains=%d, detector=%b]", blockedDomains.size(), blockDetectorDomains);
     }
 
     // Parses a user-entered domain list: newline/comma separated, optional
@@ -190,11 +207,21 @@ public class DomainBlocker {
     // e.g. "sub.ads.example.com" matches if "ads.example.com" or "example.com" is blocked.
     private boolean isDomainBlocked(String domain) {
         if (domain == null) return false;
+        if (blockDetectorDomains && matchesDetectorTld(domain)) return true;
         String d = domain;
         while (d.contains(".")) {
             if (blockedDomains.contains(d)) return true;
             int dot = d.indexOf('.');
             d = d.substring(dot + 1);
+        }
+        return false;
+    }
+
+    private static boolean matchesDetectorTld(String domain) {
+        for (String tld : DETECTOR_TLDS) {
+            if (domain.endsWith(tld)) {
+                return true;
+            }
         }
         return false;
     }
