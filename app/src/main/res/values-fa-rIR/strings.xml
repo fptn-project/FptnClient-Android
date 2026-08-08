@@ -181,10 +181,10 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="ad_block_enable">مسدودسازی تبلیغات و ردیاب‌ها</string>
 
     <string name="domain_blacklist_title">لیست سیاه دامنه‌ها:</string>
-    <string name="domain_blacklist_description">اتصال به دامنه‌های فهرست‌شده و زیردامنه‌های آن‌ها را مسدود می‌کند. هر دامنه در یک خط. ممکن است نیازمند خاموش کردن DNS خصوصی (DoH) در تنظیمات سیستم باشد — در غیر این صورت درخواست‌های DNS از فیلتر عبور می‌کنند.</string>
-    <string name="domain_blacklist_enable">مسدودسازی دامنه‌های فهرست</string>
+    <string name="domain_blacklist_description">اتصال به دامنه‌های فهرست‌شده، زیردامنه‌های آن‌ها یا کل ناحیه‌ها را مسدود می‌کند. هر مورد در یک خط. نمونه‌ها: "ixbt.com"، "google.com"، "ru" (کل ناحیه)، "рф" (ناحیه سیریلیک)، "суточно.ру". ممکن است نیازمند خاموش کردن DNS خصوصی (DoH) در تنظیمات سیستم باشد — در غیر این صورت درخواست‌های DNS از فیلتر عبور می‌کنند.</string>
+    <string name="domain_blacklist_enable">مسدودسازی دامنه‌های موجود در فهرست</string>
     <string name="domain_blacklist_enable_link">فهرست</string>
-    <string name="domain_blacklist_hint">example.com</string>
+    <string name="domain_blacklist_hint">example.com\nru\nрф\nсуточно.ру</string>
 
     <string name="custom_dns_title">DNS سفارشی:</string>
     <string name="custom_dns_description">استفاده از DNS سفارشی.</string>

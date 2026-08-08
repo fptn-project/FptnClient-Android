@@ -30,6 +30,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.IDN;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -72,7 +73,11 @@ public class DomainBlocker {
     }
 
     // Parses a user-entered domain list: newline/comma separated, optional
-    // "domain:" prefix (fptn desktop config format), invalid entries ignored.
+    // "domain:" prefix (fptn desktop config format).
+    // Supports:
+    //   - full domains: "ixbt.com", "суточно.ру"
+    //   - whole zones: "ru", "by", "kz", "рф" (or ".ru" with leading dot)
+    //   - Cyrillic domains/zones are converted to Punycode (IDN)
     private static Set<String> parseDomainBlacklist(String text) {
         Set<String> domains = new HashSet<>();
         if (text == null) {
@@ -80,10 +85,29 @@ public class DomainBlocker {
         }
         for (String entry : text.split("[\\n,]")) {
             String domain = entry.trim().toLowerCase();
+            if (domain.isEmpty()) {
+                continue;
+            }
             if (domain.startsWith("domain:")) {
                 domain = domain.substring("domain:".length()).trim();
             }
-            if (domain.contains(".")) {
+            // Allow leading dot for zones: ".ru" → "ru"
+            if (domain.startsWith(".")) {
+                domain = domain.substring(1);
+            }
+            if (domain.isEmpty()) {
+                continue;
+            }
+            // Convert Cyrillic to Punycode: "суточно.ру" → "xn--80akhb1ah.xn--p1acf"
+            //                                 "рф" → "xn--p1ai"
+            try {
+                domain = IDN.toASCII(domain, IDN.ALLOW_UNASSIGNED);
+            } catch (IllegalArgumentException e) {
+                // Invalid domain, skip
+                continue;
+            }
+            // Accept both full domains (with dot) AND bare zones (without dot)
+            if (!domain.isEmpty()) {
                 domains.add(domain);
             }
         }
@@ -199,8 +223,9 @@ public class DomainBlocker {
         return name.toString();
     }
 
-    // Checks domain and all parent domains against blocklist.
-    // e.g. "sub.ads.example.com" matches if "ads.example.com" or "example.com" is blocked.
+    // Checks domain, all parent domains, AND the bare TLD against blocklist.
+    // e.g. "sub.ads.example.com" matches if "ads.example.com", "example.com", or "com" is blocked.
+    // "суточно.ру" arrives as "xn--80akhb1ah.xn--p1acf" and matches "xn--p1acf" (i.e. ".ру" zone).
     private boolean isDomainBlocked(String domain) {
         if (domain == null) return false;
         String d = domain;
@@ -209,7 +234,8 @@ public class DomainBlocker {
             int dot = d.indexOf('.');
             d = d.substring(dot + 1);
         }
-        return false;
+        // Also check the bare TLD (last label) — enables blocking whole zones
+        return blockedDomains.contains(d);
     }
 
     // Port of GetDnsDomain() from ip_packet.h.

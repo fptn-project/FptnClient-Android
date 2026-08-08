@@ -273,10 +273,10 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="ad_block_enable">Block ads and trackers</string>
 
     <string name="domain_blacklist_title">Domain Blacklist:</string>
-    <string name="domain_blacklist_description">Blocks connections to the listed domains and their subdomains. One domain per line. May require turning off Private DNS (DoH) in system settings — otherwise DNS queries bypass filtering.</string>
+    <string name="domain_blacklist_description">Blocks connections to the listed domains, their subdomains, or entire zones. One entry per line. Examples: "ixbt.com", "google.com", "ru" (whole zone), "рф" (Cyrillic zone), "суточно.ру". May require turning off Private DNS (DoH) in system settings — otherwise DNS queries bypass filtering.</string>
     <string name="domain_blacklist_enable">Block domains from the list</string>
     <string name="domain_blacklist_enable_link">the list</string>
-    <string name="domain_blacklist_hint">example.com</string>
+    <string name="domain_blacklist_hint">example.com\nru\nрф\nсуточно.ру</string>
 
     <string name="speed_notification_title">Notification:</string>
     <string name="speed_notification_enable">Connection speed in status bar</string>
