@@ -320,6 +320,7 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="sni_reality_radio_button_label_additional_info">Requires a real existing domain (otherwise errors may occur)</string>
     <string name="connecting_auto">Selecting the best server...</string>
 
+    <string name="settings_per_app_russian_notice"><![CDATA[For security and stable service operation, known spy apps always bypass the VPN and cannot be returned to the tunnel. The full list of <a href="https://github.com/fptn-project/FptnClient-Android/blob/develop/app/src/main/res/values/always_excluded_apps_ru.xml">excluded apps</a> and <a href="https://github.com/fptn-project/FptnClient-Android/blob/develop/app/src/main/res/values/blocked_domains_ru.xml">their domains</a> is available on GitHub.]]></string>
     <string name="per_app_vpn_mode_title">Per-app VPN mode</string>
     <string name="per_app_vpn_mode_info">Here you can configure per-app VPN mode: enable vpn for apps (default) or allow/disallow VPN for specific apps.</string>
     <string name="per_app_vpn_settings_title">Per-app VPN mode</string>

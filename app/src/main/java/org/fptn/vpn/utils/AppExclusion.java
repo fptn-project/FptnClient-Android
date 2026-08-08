@@ -31,21 +31,33 @@ import java.util.Set;
 public final class AppExclusion {
 
     private final Set<String> excluded = new HashSet<>();
+    private final Set<String> exceptions = new HashSet<>();
 
     public AppExclusion(Context context) {
         for (String packageName : context.getResources().getStringArray(R.array.always_excluded_apps_ru)) {
             excluded.add(packageName.toLowerCase(Locale.ROOT));
         }
         excluded.add(context.getPackageName().toLowerCase(Locale.ROOT));
+        for (String packageName : context.getResources().getStringArray(R.array.app_exclusion_exceptions_ru)) {
+            exceptions.add(packageName.toLowerCase(Locale.ROOT));
+        }
     }
 
     public boolean isExcluded(String packageName) {
         if (packageName == null) {
             return false;
         }
-        String prefix = packageName.toLowerCase(Locale.ROOT);
+        String pkg = packageName.toLowerCase(Locale.ROOT);
+        if (matches(exceptions, pkg)) {
+            return false;
+        }
+        return matches(excluded, pkg);
+    }
+
+    private static boolean matches(Set<String> set, String packageName) {
+        String prefix = packageName;
         while (prefix.contains(".")) {
-            if (excluded.contains(prefix)) {
+            if (set.contains(prefix)) {
                 return true;
             }
             prefix = prefix.substring(0, prefix.lastIndexOf('.'));

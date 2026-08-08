@@ -29,8 +29,11 @@ import android.text.TextWatcher;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ProgressBar;
+import android.text.Html;
+import android.text.method.LinkMovementMethod;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
@@ -73,6 +76,11 @@ public class PerAppVpnModeActivity extends AppCompatActivity {
 
         selectAppsListLayout = findViewById(R.id.select_apps_list_layout);
 
+        TextView russianNotice = findViewById(R.id.per_app_russian_notice);
+        russianNotice.setText(Html.fromHtml(getString(R.string.settings_per_app_russian_notice), Html.FROM_HTML_MODE_LEGACY));
+        russianNotice.setMovementMethod(LinkMovementMethod.getInstance());
+        russianNotice.setVisibility(View.VISIBLE);
+
         searchAppsEditText = findViewById(R.id.search_apps_edit_text);
         searchAppsEditText.addTextChangedListener(new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
@@ -93,10 +101,7 @@ public class PerAppVpnModeActivity extends AppCompatActivity {
         // Setup RadioGroup listener
         RadioGroup protocolRadioGroup = findViewById(R.id.per_app_vpn_mode_radio_button_group);
         protocolRadioGroup.setOnCheckedChangeListener((group, checkedId) -> {
-            if (checkedId == R.id.all_app_mode_radio_button) {
-                XLog.tag(TAG).i("Per-app VPN mode changed [mode=OFF]");
-                viewModel.setPerAppVpnMode(PerAppVpnMode.OFF);
-            } else if (checkedId == R.id.allowed_apps_mode_radio_button) {
+            if (checkedId == R.id.allowed_apps_mode_radio_button) {
                 XLog.tag(TAG).i("Per-app VPN mode changed [mode=ONLY_ALLOWED]");
                 viewModel.setPerAppVpnMode(PerAppVpnMode.ONLY_ALLOWED);
             } else if (checkedId == R.id.disallowed_apps_mode_radio_button) {
@@ -105,15 +110,10 @@ public class PerAppVpnModeActivity extends AppCompatActivity {
             }
         });
 
-        RadioButton perAppVpnModeOffRadioButton = findViewById(R.id.all_app_mode_radio_button);
         RadioButton onlyAllowedAppsRadioButton = findViewById(R.id.allowed_apps_mode_radio_button);
         RadioButton exceptDisAllowedRadioButton = findViewById(R.id.disallowed_apps_mode_radio_button);
         viewModel.getPerAppVpnModeMutableLiveData().observe(this, perAppVpnMode -> {
             switch (perAppVpnMode) {
-                case OFF:
-                    perAppVpnModeOffRadioButton.setChecked(true);
-                    hideView(selectAppsListLayout);
-                    break;
                 case ONLY_ALLOWED:
                     onlyAllowedAppsRadioButton.setChecked(true);
                     showView(selectAppsListLayout);

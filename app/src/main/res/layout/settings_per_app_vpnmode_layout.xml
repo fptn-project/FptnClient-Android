@@ -42,6 +42,18 @@
                 android:textSize="16sp"
                 android:textStyle="bold" />
 
+            <TextView
+                android:id="@+id/per_app_russian_notice"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="12dp"
+                android:layout_marginEnd="20dp"
+                android:text="@string/settings_per_app_russian_notice"
+                android:textColor="@color/gray"
+                android:textSize="12sp"
+                android:visibility="gone" />
+
             <!--Method per_app_vpn censorship-->
             <LinearLayout
                 android:id="@+id/per_app_vpn_method_layout"
@@ -87,33 +99,6 @@
                     android:layout_height="match_parent"
                     android:paddingStart="8dp"
                     android:paddingEnd="12dp">
-
-                    <RadioButton
-                        android:id="@+id/all_app_mode_radio_button"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        android:layout_marginEnd="12dp"
-                        android:text="@string/all_app_mode_radio_button_label"
-                        android:textSize="14sp"
-                        android:textStyle="bold" />
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="3dp"
-                        android:layout_marginEnd="12dp"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="30dp"
-                            android:layout_marginTop="0dp"
-                            android:text="@string/all_app_mode_radio_button_label_additional_info"
-                            android:textColor="@color/gray"
-                            android:textSize="12sp" />
-                    </LinearLayout>
 
                     <RadioButton
                         android:id="@+id/allowed_apps_mode_radio_button"

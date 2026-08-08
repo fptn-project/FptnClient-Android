@@ -230,6 +230,7 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
 
     <string name="sni_reality_radio_button_label_additional_info">Требуется реальный существующий домен (иначе возможны ошибки)</string>
 
+    <string name="settings_per_app_russian_notice"><![CDATA[В целях безопасности и стабильной работы сервиса известные приложения-шпионы всегда работают в обход VPN и не могут быть возвращены в туннель. Полный список <a href="https://github.com/fptn-project/FptnClient-Android/blob/develop/app/src/main/res/values/always_excluded_apps_ru.xml">исключённых приложений</a> и <a href="https://github.com/fptn-project/FptnClient-Android/blob/develop/app/src/main/res/values/blocked_domains_ru.xml">их доменов</a> доступен на GitHub.]]></string>
     <string name="per_app_vpn_mode_title">Настройки туннелирования для приложений</string>
     <string name="per_app_vpn_mode_info">Здесь вы можете настроить выборочный VPN: использовать VPN для всех приложений (по умолчанию) или разрешить/запретить доступ для конкретных программ.</string>
     <string name="per_app_vpn_settings_title">Настройки туннелирования для приложений</string>
