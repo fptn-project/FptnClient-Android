@@ -2,5 +2,8 @@
 <resources>
     <string-array name="app_exclusion_exceptions_ru" translatable="false">
         <item>com.mycompany.app.soulbrowser</item>
+        <item>com.perm.kate_new_6</item>
+        <item>io.github</item>
+        <item>ru.radioplayer</item>
     </string-array>
 </resources>
