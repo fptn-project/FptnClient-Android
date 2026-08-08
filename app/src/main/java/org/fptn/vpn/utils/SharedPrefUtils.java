@@ -226,11 +226,11 @@ public class SharedPrefUtils {
         SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
         String modeName = sharedPreferences.getString(Constants.PER_APP_VPN_MODE_SHARED_PREF_KEY, null);
         for (PerAppVpnMode value : PerAppVpnMode.values()) {
-            if (Objects.equals(modeName, value.name())) {
+            if (value != PerAppVpnMode.OFF && Objects.equals(modeName, value.name())) {
                 return value;
             }
         }
-        return PerAppVpnMode.OFF;
+        return PerAppVpnMode.EXCEPT_DISALLOWED;
     }
 
     public static void savePerAppVPNMode(Context context, PerAppVpnMode perAppVPNMode) {

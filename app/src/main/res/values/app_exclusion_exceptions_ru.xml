@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="app_exclusion_exceptions_ru" translatable="false">
+        <item>com.mycompany.app.soulbrowser</item>
+    </string-array>
+</resources>
