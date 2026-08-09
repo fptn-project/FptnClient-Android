@@ -76,6 +76,10 @@ object Constants {
     const val DOMAIN_BLACKLIST_DOMAINS_PREF_KEY: String = "DOMAIN_BLACKLIST_DOMAINS_V1"
     const val TOKEN_UPDATED_DATE_PREF_KEY: String = "TOKEN_UPDATED_DATE_V1"
 
+    const val REMOTE_EXCLUDED_APPS_PREF_KEY: String = "REMOTE_EXCLUDED_APPS_V1"
+    const val REMOTE_BLOCKED_DOMAINS_PREF_KEY: String = "REMOTE_BLOCKED_DOMAINS_V1"
+    const val REMOTE_LISTS_LAST_SYNC_DATE_PREF_KEY: String = "REMOTE_LISTS_LAST_SYNC_DATE_V1"
+
     // Default matches blacklist_domains in the fptn desktop client (settingsmodel.cpp)
     const val DOMAIN_BLACKLIST_DEFAULT: String =
         "solovev-live.ru\nria.ru\ntass.ru\n1tv.ru\nntv.ru\nrt.com"

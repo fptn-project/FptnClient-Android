@@ -34,11 +34,14 @@ public final class AppExclusion {
     private final Set<String> exceptions = new HashSet<>();
 
     public AppExclusion(Context context) {
-        for (String packageName : context.getResources().getStringArray(R.array.always_excluded_apps_ru)) {
+        for (String packageName : context.getResources().getStringArray(R.array.always_excluded_apps)) {
+            excluded.add(packageName.toLowerCase(Locale.ROOT));
+        }
+        for (String packageName : SharedPrefUtils.getRemoteExcludedApps(context)) {
             excluded.add(packageName.toLowerCase(Locale.ROOT));
         }
         excluded.add(context.getPackageName().toLowerCase(Locale.ROOT));
-        for (String packageName : context.getResources().getStringArray(R.array.app_exclusion_exceptions_ru)) {
+        for (String packageName : context.getResources().getStringArray(R.array.app_exclusion_exceptions)) {
             exceptions.add(packageName.toLowerCase(Locale.ROOT));
         }
     }

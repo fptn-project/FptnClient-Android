@@ -67,6 +67,7 @@ import org.fptn.vpn.services.tile.FptnTileService;
 import org.fptn.vpn.services.websocket.DnsServers;
 import org.fptn.vpn.utils.NetworkUtils;
 import org.fptn.vpn.utils.NotificationUtils;
+import org.fptn.vpn.utils.RemoteExclusionListSync;
 import org.fptn.vpn.utils.SharedPrefUtils;
 import org.fptn.vpn.views.perappvpn.AppInfo;
 import org.fptn.vpn.services.speedtest.SpeedTestResult;
@@ -765,6 +766,8 @@ public class FptnService extends VpnService {
                         .connectionState(ConnectionState.CONNECTED)
                         .serverInfo(serverInfo)
                         .build());
+
+                RemoteExclusionListSync.syncIfDue(this);
             }
             case RECONNECTING -> {
                 String title = getString(R.string.reconnection_to) + getActionConnectServerInfo();

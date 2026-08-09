@@ -30,7 +30,9 @@ import org.fptn.vpn.enums.ConnectionStrategy;
 import org.fptn.vpn.enums.PerAppVpnMode;
 import org.fptn.vpn.enums.SniSpoofingMode;
 
+import java.util.Collections;
 import java.util.Objects;
+import java.util.Set;
 
 public class SharedPrefUtils {
     /* SNI */
@@ -294,6 +296,37 @@ public class SharedPrefUtils {
     public static void saveTokenUpdatedDate(Context context, long millis) {
         SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
         sharedPreferences.edit().putLong(Constants.TOKEN_UPDATED_DATE_PREF_KEY, millis).apply();
+    }
+
+    /* Remote exclusion lists (synced from GitHub, see RemoteExclusionListSync) */
+    public static Set<String> getRemoteExcludedApps(Context context) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        return sharedPreferences.getStringSet(Constants.REMOTE_EXCLUDED_APPS_PREF_KEY, Collections.emptySet());
+    }
+
+    public static void saveRemoteExcludedApps(Context context, Set<String> packages) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        sharedPreferences.edit().putStringSet(Constants.REMOTE_EXCLUDED_APPS_PREF_KEY, packages).apply();
+    }
+
+    public static Set<String> getRemoteBlockedDomains(Context context) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        return sharedPreferences.getStringSet(Constants.REMOTE_BLOCKED_DOMAINS_PREF_KEY, Collections.emptySet());
+    }
+
+    public static void saveRemoteBlockedDomains(Context context, Set<String> domains) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        sharedPreferences.edit().putStringSet(Constants.REMOTE_BLOCKED_DOMAINS_PREF_KEY, domains).apply();
+    }
+
+    public static long getRemoteListsLastSyncDate(Context context) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        return sharedPreferences.getLong(Constants.REMOTE_LISTS_LAST_SYNC_DATE_PREF_KEY, 0L);
+    }
+
+    public static void saveRemoteListsLastSyncDate(Context context, long millis) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        sharedPreferences.edit().putLong(Constants.REMOTE_LISTS_LAST_SYNC_DATE_PREF_KEY, millis).apply();
     }
 
     /* Custom DNS */

@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string-array name="blocked_domains_ru" translatable="false">
+    <string-array name="blocked_domains" translatable="false">
+        <!-- ===== RU ===== -->
         <item>1917live.red</item>
         <item>1prime.ru</item>
         <item>21-school.ru</item>
-        <item>24h.tv</item>
         <item>2gis.ae</item>
         <item>2gis.am</item>
         <item>2gis.az</item>
@@ -19,17 +19,10 @@
         <item>2gis.tech</item>
         <item>2gis.tj</item>
         <item>2gis.uz</item>
-        <item>2w.ru</item>
-        <item>3dnews.ru</item>
-        <item>3ebra.net</item>
-        <item>4c.ru</item>
-        <item>4epenaxa.com</item>
         <item>5ka.ru</item>
-        <item>72.ru</item>
         <item>abonementx5.ru</item>
         <item>abr.ru</item>
         <item>absolutbank.ru</item>
-        <item>acmvid.com</item>
         <item>actualidad-rt.com</item>
         <item>ad-cdek.ru</item>
         <item>ad.mail.ru</item>
@@ -37,53 +30,34 @@
         <item>admetrica.ru</item>
         <item>adriver.ru</item>
         <item>ads.yandex</item>
-        <item>adygeya.ru</item>
         <item>afisha.ru</item>
-        <item>aiesa.ru</item>
         <item>akbars.ru</item>
         <item>alfa.me</item>
         <item>alfabank.ru</item>
         <item>alfabank.st</item>
         <item>alfadirect.ru</item>
-        <item>altai.ru</item>
         <item>altaiobr04.ru</item>
         <item>amediateka.ru</item>
-        <item>amic.ru</item>
-        <item>amur.ru</item>
         <item>an.yandex.ru</item>
         <item>ankb.ru</item>
         <item>antiphishing.nl</item>
         <item>antiphishing.ru</item>
-        <item>aodahl.com</item>
         <item>apiauto.ru</item>
         <item>apiok.ru</item>
         <item>appmetrica.yandex.ru</item>
         <item>appsmail.ru</item>
-        <item>apptracer.ru</item>
-        <item>apptrackpets.com</item>
         <item>apteka-april.ru</item>
         <item>apteka.ru</item>
-        <item>aptekiplus.ru</item>
         <item>arabicrt.ru</item>
-        <item>arctic.ru</item>
-        <item>arkhangelsk.ru</item>
-        <item>artel.watch</item>
-        <item>arteldoc.com</item>
-        <item>arteldoc.tv</item>
-        <item>asia-pay.ru</item>
-        <item>asiangooglenetwork.com</item>
-        <item>astrakhan.ru</item>
         <item>atb.su</item>
         <item>atomyze.ru</item>
         <item>atomyze.tech</item>
         <item>attachmail.ru</item>
         <item>attachmy.com</item>
         <item>auchan.ru</item>
-        <item>audiohead.ru</item>
         <item>auto.ru</item>
         <item>autokreditbank.ru</item>
         <item>autoru.me</item>
-        <item>av.ru</item>
         <item>avangard.ru</item>
         <item>aversbank.ru</item>
         <item>aviasales.com</item>
@@ -91,69 +65,36 @@
         <item>avito.ru</item>
         <item>avito.st</item>
         <item>avto.ru</item>
-        <item>avtovokzaly.ru</item>
         <item>azbukainterneta.ru</item>
-        <item>b17.ru</item>
-        <item>b2c-digest.ru</item>
-        <item>b37mrtl.ru</item>
-        <item>babki.ru</item>
         <item>baltnews.com</item>
         <item>baltnews.lt</item>
-        <item>bananacall.ru</item>
         <item>bank-arzamas.ru</item>
         <item>bank-credit-suisse-moscow.ru</item>
         <item>bank131.com</item>
-        <item>bankermak.ru</item>
         <item>banki.ru</item>
         <item>bankline.ru</item>
-        <item>baranky.com</item>
-        <item>bargipsy.com</item>
-        <item>bashkiria.ru</item>
-        <item>bbr.ru</item>
         <item>bcs-bank.ru</item>
         <item>bcs.ru</item>
         <item>beeline.ru</item>
         <item>beeline.tv</item>
-        <item>beesbfl.ru</item>
-        <item>beescrm.ru</item>
         <item>beget.com</item>
         <item>beget.ru</item>
-        <item>belgorod.ru</item>
-        <item>berizaryad.ru</item>
         <item>best2pay.net</item>
         <item>betboom.ru</item>
-        <item>bfa.ru</item>
-        <item>bimsaas.ru</item>
-        <item>bir.ru</item>
         <item>bizmrg.com</item>
         <item>bk.ru</item>
-        <item>bk6bba-resources.com</item>
-        <item>bk6bba-resources.ru</item>
         <item>blablacar.ru</item>
-        <item>blanc.ru</item>
         <item>bm-bank.ru</item>
-        <item>book-catalog.ru</item>
         <item>book1917.live</item>
-        <item>booking-tec.ru</item>
-        <item>boom.ru</item>
-        <item>botmechanic.io</item>
         <item>bps-sberbank.by</item>
         <item>bristol.ru</item>
-        <item>broker.ru</item>
-        <item>bryansk.ru</item>
         <item>bspb.ru</item>
-        <item>buryatia.ru</item>
-        <item>callbackkiller.com</item>
-        <item>cap.ru</item>
-        <item>capitalt.ru</item>
         <item>cardsmobile.ru</item>
         <item>carrot-mail.io</item>
         <item>carrotquest-mail.io</item>
         <item>carrotquest.app</item>
         <item>carrotquest.io</item>
         <item>carrottrack.app</item>
-        <item>cbg.ru</item>
-        <item>cbkiller.com</item>
         <item>cbr.ru</item>
         <item>cdek.ru</item>
         <item>cdek.shopping</item>
@@ -163,17 +104,10 @@
         <item>cdnmail.ru</item>
         <item>cdnvideo.ru</item>
         <item>centraluniversity.ru</item>
-        <item>ceosummit.ru</item>
         <item>cert-gib.com</item>
         <item>cert-gib.ru</item>
-        <item>chel.ru</item>
         <item>chelyabinsk-sgo-edu-74.ru</item>
-        <item>chelyabinsk.ru</item>
-        <item>chipcore.ru</item>
-        <item>chita.ru</item>
         <item>chizhik.club</item>
-        <item>chukotka.ru</item>
-        <item>chuvashia.ru</item>
         <item>cian.ru</item>
         <item>cian.site</item>
         <item>ciangroup.ru</item>
@@ -183,36 +117,12 @@
         <item>clck.ru</item>
         <item>cloud.ru</item>
         <item>cloudru.cn</item>
-        <item>clstorage.net</item>
         <item>clubx5.ru</item>
-        <item>cnconf.ru</item>
         <item>cnews.ru</item>
         <item>cnewsforum.ru</item>
-        <item>code-class.ru</item>
         <item>commerzbank.ru</item>
-        <item>comss.club</item>
-        <item>comss.info</item>
-        <item>comss.me</item>
-        <item>comss.net</item>
-        <item>comss.news</item>
-        <item>comss.one</item>
-        <item>comss.online</item>
-        <item>comss.org</item>
-        <item>comss.ru</item>
-        <item>coolera.ru</item>
-        <item>cplsb.ru</item>
-        <item>crazedns.ru</item>
-        <item>credistory.ru</item>
         <item>credit-zenit.ru</item>
-        <item>crimea.ru</item>
-        <item>cu.ru</item>
-        <item>custody.ru</item>
-        <item>cxhub.ru</item>
         <item>cybercrimecon.com</item>
-        <item>cybersport.ru</item>
-        <item>dagestan.ru</item>
-        <item>dahl.su</item>
-        <item>dahlmessenger.com</item>
         <item>dashly.app</item>
         <item>dashly.help</item>
         <item>dashly.io</item>
@@ -220,7 +130,6 @@
         <item>dashlytrack.app</item>
         <item>data-tscbank.ru</item>
         <item>datacloudmy.com</item>
-        <item>dbmoscow.ru</item>
         <item>de-rt.com</item>
         <item>de-rt.org</item>
         <item>de-rtnews.com</item>
@@ -236,11 +145,9 @@
         <item>digital-wb.ru</item>
         <item>digitalwb.ru</item>
         <item>dixy.ru</item>
-        <item>dmir.ru</item>
         <item>dmp.sberbank.ru</item>
         <item>dns-com.ru</item>
         <item>dns-shop.ru</item>
-        <item>doctorhead.ru</item>
         <item>dodopizza.ru</item>
         <item>dolyame.ru</item>
         <item>dom.ru</item>
@@ -260,30 +167,22 @@
         <item>drweb.ru</item>
         <item>drweb.uz</item>
         <item>dtf.ru</item>
-        <item>durovscode.com</item>
         <item>dzen.ru</item>
         <item>dzeninfra.ru</item>
         <item>e-yakutia.ru</item>
-        <item>e1.ru</item>
-        <item>e5.ru</item>
         <item>eadaily.com</item>
         <item>eadaily.info</item>
         <item>eadaily.net</item>
         <item>eadaily.org</item>
         <item>eadaily.su</item>
         <item>eapteka.ru</item>
-        <item>ebs.ru</item>
         <item>edna.io</item>
         <item>edu-74.ru</item>
         <item>edu.ru</item>
-        <item>efin.ru</item>
-        <item>ekat.ru</item>
-        <item>ekburg.ru</item>
         <item>elama.ru</item>
         <item>electronicsignature.ru</item>
         <item>emias.info</item>
         <item>emias.ru</item>
-        <item>enterly.ru</item>
         <item>envybox.company</item>
         <item>envybox.family</item>
         <item>envybox.io</item>
@@ -293,7 +192,6 @@
         <item>envycdp.ru</item>
         <item>envycrm.com</item>
         <item>envyday.ru</item>
-        <item>era-invest.ru</item>
         <item>es-rt.com</item>
         <item>esforce.com</item>
         <item>esforce.ru</item>
@@ -304,7 +202,6 @@
         <item>esrt.tech</item>
         <item>esrt.website</item>
         <item>etna.ai</item>
-        <item>etradebook.ru</item>
         <item>eurasiadaily.su</item>
         <item>express.ms</item>
         <item>f6.dev</item>
@@ -313,42 +210,28 @@
         <item>facct.email</item>
         <item>facct.ru</item>
         <item>farmlend.ru</item>
-        <item>fasten.ru</item>
-        <item>ferra.ru</item>
         <item>finambank.ru</item>
         <item>finuslugi.ru</item>
         <item>fivepost.ru</item>
         <item>fix-price.com</item>
-        <item>forshtadt.ru</item>
-        <item>foto-planeta.com</item>
         <item>freeassange.tech</item>
         <item>funpay.com</item>
         <item>funpay.ru</item>
-        <item>fut.ru</item>
-        <item>future-cs.ru</item>
         <item>g-ib.ae</item>
         <item>g-ib.ru</item>
         <item>g-ib.sg</item>
         <item>g-ib.us</item>
-        <item>gainstech.ru</item>
-        <item>gamescup.ru</item>
-        <item>gatewaytorussia.ru</item>
         <item>gazeta.ru</item>
         <item>gazetarussa.com.br</item>
         <item>gazfond-pn.ru</item>
         <item>gazprombank.com</item>
         <item>gazprombank.investments</item>
         <item>gazprombank.ru</item>
-        <item>gb.ru</item>
         <item>genotek.ru</item>
-        <item>geobasket.ru</item>
-        <item>gerwin.io</item>
-        <item>getsynapse.io</item>
         <item>gib-global.com</item>
         <item>gib.sg</item>
         <item>gibdev.net</item>
         <item>gibtds.ru</item>
-        <item>gid.ru</item>
         <item>giga.chat</item>
         <item>gismeteo.by</item>
         <item>gismeteo.com</item>
@@ -357,7 +240,6 @@
         <item>gismeteo.st</item>
         <item>gitverse.ru</item>
         <item>goicq.org</item>
-        <item>gorodpay.ru</item>
         <item>gorzdrav.org</item>
         <item>gorzdrav.spb.ru</item>
         <item>gosdolgi.ru</item>
@@ -366,10 +248,6 @@
         <item>gov.ru</item>
         <item>government.ru</item>
         <item>gpb.ru</item>
-        <item>gptunnel.ru</item>
-        <item>gramotei.online</item>
-        <item>greywallpass.com</item>
-        <item>grfc.ru</item>
         <item>group-ib.ae</item>
         <item>group-ib.co.uk</item>
         <item>group-ib.com</item>
@@ -381,19 +259,9 @@
         <item>groupib.ae</item>
         <item>groupib.sg</item>
         <item>groupib.us</item>
-        <item>grozny.ru</item>
-        <item>gu-st.ru</item>
-        <item>hacksoft.ru</item>
-        <item>haicomdc.com</item>
-        <item>haicomdc.ru</item>
-        <item>haicomgroup.ru</item>
-        <item>hardware.ru</item>
         <item>hh.ru</item>
         <item>hhcdn.ru</item>
         <item>homecredit.ru</item>
-        <item>hrtek.ru</item>
-        <item>i-ola.ru</item>
-        <item>ibamoscow.ru</item>
         <item>icq-download.com</item>
         <item>icq-mobile.com</item>
         <item>icq-online.com</item>
@@ -440,21 +308,9 @@
         <item>ideco.ru</item>
         <item>idecosoftware.ru</item>
         <item>idx5.ru</item>
-        <item>iguides.ru</item>
-        <item>ilovesakura.ru</item>
         <item>imgsmail.ru</item>
         <item>inbox.ru</item>
         <item>inosmi.ru</item>
-        <item>inplat.ru</item>
-        <item>insideok.ru</item>
-        <item>internet.ru</item>
-        <item>irk.ru</item>
-        <item>irkutsk.ru</item>
-        <item>it-katok.ru</item>
-        <item>it-picnic.ru</item>
-        <item>it-piknik.ru</item>
-        <item>itirex.ru</item>
-        <item>ivanovo.ru</item>
         <item>ivi.ru</item>
         <item>ixbt.com</item>
         <item>ixbt.games</item>
@@ -466,11 +322,6 @@
         <item>ixbt.site</item>
         <item>ixbt.video</item>
         <item>izbirkom.ru</item>
-        <item>izhevsk.ru</item>
-        <item>jamal.ru</item>
-        <item>jar.ru</item>
-        <item>jfn.su</item>
-        <item>jinrieluosi.cn</item>
         <item>jira-tcsbank.ru</item>
         <item>jivo.chat</item>
         <item>jivo.ru</item>
@@ -488,18 +339,7 @@
         <item>jivosite.com</item>
         <item>jivosite.ru</item>
         <item>jpmorgan.ru</item>
-        <item>jumpwork.ru</item>
-        <item>justveryok.com</item>
         <item>jx5.ru</item>
-        <item>kakpishem.ru</item>
-        <item>kalmykia.ru</item>
-        <item>kaluga.ru</item>
-        <item>kamchatka.ru</item>
-        <item>kanzlerdaddy.ru</item>
-        <item>karelia.ru</item>
-        <item>karmahelp.ru</item>
-        <item>karta-banka-rf.ru</item>
-        <item>kartaslov.ru</item>
         <item>kaspersky-labs.com</item>
         <item>kaspersky.be</item>
         <item>kaspersky.ca</item>
@@ -536,69 +376,37 @@
         <item>kaspersky.rs</item>
         <item>kaspersky.ru</item>
         <item>kaspersky.se</item>
-        <item>kazan.ru</item>
         <item>kazanexpress.ru</item>
-        <item>kchgov.ru</item>
-        <item>kchr.ru</item>
-        <item>kemerovo.ru</item>
-        <item>keyboardmen.com</item>
         <item>keyx5.ru</item>
-        <item>khabarovsk.ru</item>
-        <item>khakassia.ru</item>
-        <item>khangar.net</item>
-        <item>khv.ru</item>
-        <item>killercb.ru</item>
         <item>kinescopecdn.net</item>
         <item>kinopoisk.ru</item>
         <item>kinorium.com</item>
         <item>kion.ru</item>
-        <item>kirov.ru</item>
-        <item>klinikabudzdorov.ru</item>
-        <item>knightspeak.com</item>
-        <item>kod.ru</item>
-        <item>koddobra.ru</item>
-        <item>koenig.ru</item>
         <item>kontur-inc.com</item>
         <item>kontur.host</item>
         <item>kontur.ru</item>
         <item>korona.com</item>
         <item>koshelek.app</item>
-        <item>kostroma.ru</item>
-        <item>krasnodar.su</item>
         <item>krasnoeibeloe.ru</item>
-        <item>krasnoyarsk.ru</item>
         <item>kremlin.ru</item>
-        <item>kuban.ru</item>
         <item>kubankredit.ru</item>
         <item>kuper.ru</item>
-        <item>kurgan.ru</item>
-        <item>kursk.ru</item>
         <item>lamoda.ru</item>
         <item>lenta.com</item>
         <item>lenta.tech</item>
-        <item>lerna.ru</item>
-        <item>lifestyle-tec.ru</item>
-        <item>ligadobra.ru</item>
         <item>ligastavok-csr.ru</item>
         <item>ligastavok.ru</item>
-        <item>lipetsk.ru</item>
         <item>list.ru</item>
         <item>litres.ru</item>
-        <item>magadan.ru</item>
         <item>magnit.com</item>
         <item>magnit.ru</item>
         <item>mail-carrotquest.io</item>
         <item>mail.ru</item>
         <item>mailicq.org</item>
-        <item>malotogo.ru</item>
-        <item>mari-el.ru</item>
-        <item>mari.ru</item>
-        <item>marine.ru</item>
         <item>max-tcs.ru</item>
         <item>max.ru</item>
         <item>mc.yandex.ru</item>
         <item>mediator.mail.ru</item>
-        <item>mediumquality.ru</item>
         <item>medsi-premium.ru</item>
         <item>medsi.ru</item>
         <item>megafon.com</item>
@@ -617,12 +425,8 @@
         <item>metro-cc.ru</item>
         <item>metro.spb.ru</item>
         <item>mfa.center</item>
-        <item>mfk-bank.ru</item>
         <item>mfk-t-finance.ru</item>
-        <item>mgfn.ru</item>
         <item>mgfoms.ru</item>
-        <item>mhcb.ru</item>
-        <item>mhcbr.ru</item>
         <item>mil.ru</item>
         <item>mind-box.ru</item>
         <item>mindbox-notifications.ru</item>
@@ -635,22 +439,17 @@
         <item>mironline.ru</item>
         <item>mirpayonline.ru</item>
         <item>mkb.ru</item>
-        <item>mlbootcamp.ru</item>
-        <item>mm.ru</item>
-        <item>mnogolososya.ru</item>
         <item>mobile-icq.com</item>
         <item>mobile.yandexadexchange.net</item>
         <item>mobileicq.com</item>
         <item>moex.com</item>
         <item>mofoms.ru</item>
-        <item>mordovia.ru</item>
         <item>more.tv</item>
         <item>mos.ru</item>
         <item>mosgorzdrav.ru</item>
         <item>mosmetro.ru</item>
         <item>mosmetro.tech</item>
         <item>mosreg.ru</item>
-        <item>mpgw-my.com</item>
         <item>mradx.net</item>
         <item>mrgcdn.ru</item>
         <item>mts-ws.net</item>
@@ -659,26 +458,20 @@
         <item>mtsdengi.ru</item>
         <item>mtsmedia.ru</item>
         <item>multifactor.ru</item>
-        <item>murmansk.ru</item>
         <item>mvideo.ru</item>
         <item>mvk.com</item>
         <item>mvs-bank.ru</item>
-        <item>my-manager-account.com</item>
         <item>my-tbank.ru</item>
         <item>my.com</item>
         <item>my.games</item>
         <item>myadx.net</item>
-        <item>myapelsin.ru</item>
         <item>mycdn.me</item>
         <item>myenvy.ru</item>
         <item>mymts.ru</item>
         <item>myoffice.ru</item>
         <item>myoffice.team</item>
-        <item>myspar.ru</item>
-        <item>mytopf.com</item>
         <item>mytracker.mail.ru</item>
         <item>mytrk.link</item>
-        <item>nalchik.ru</item>
         <item>nalog.ru</item>
         <item>narod.ru</item>
         <item>naydex.net</item>
@@ -687,27 +480,14 @@
         <item>netcraze.link</item>
         <item>netcraze.pro</item>
         <item>netcraze.ru</item>
-        <item>netmonet.co</item>
         <item>netschool.website</item>
         <item>ngenix.net</item>
         <item>nic.ru</item>
         <item>nichost.ru</item>
-        <item>nn.ru</item>
         <item>noosferabank.ru</item>
         <item>noticias-rt.com</item>
-        <item>notik.ru</item>
-        <item>nov.ru</item>
-        <item>novosibirsk.ru</item>
-        <item>nplus1.ru</item>
-        <item>nsk.ru</item>
         <item>nspk.ru</item>
-        <item>o-courier.ru</item>
-        <item>o-uchi.ru</item>
-        <item>o3.ru</item>
-        <item>o3t.ru</item>
-        <item>o3team.ru</item>
         <item>obr03.ru</item>
-        <item>ocourier.ru</item>
         <item>odkl.ru</item>
         <item>odnoklasniki.by</item>
         <item>odnoklasniki.ua</item>
@@ -717,35 +497,17 @@
         <item>odnoklassniki.lv</item>
         <item>odnoklassniki.ru</item>
         <item>odnoklassniki.tj</item>
-        <item>ognihome.com</item>
         <item>ok.me</item>
         <item>ok.ru</item>
         <item>okcdn.ru</item>
         <item>okko.sport</item>
         <item>okko.tv</item>
         <item>okkoapi.tv</item>
-        <item>oknovrossiu.ru</item>
-        <item>oktech.ru</item>
-        <item>omsk.ru</item>
-        <item>on-media.ru</item>
         <item>oneme.ru</item>
-        <item>onlyjobs.ru</item>
-        <item>ooc-school.ru</item>
-        <item>opennet.dev</item>
-        <item>opennet.ru</item>
-        <item>orb.ru</item>
-        <item>oryol.ru</item>
         <item>oskelly.co</item>
         <item>oskelly.ru</item>
         <item>ostrovok.ru</item>
-        <item>otello.ru</item>
         <item>otpbank.ru</item>
-        <item>ovcl.ru</item>
-        <item>overclock.ru</item>
-        <item>overclocker.ru</item>
-        <item>overclockers.ru</item>
-        <item>overclocking.ru</item>
-        <item>overi.ru</item>
         <item>ozon-credit.ru</item>
         <item>ozon-dostavka.ru</item>
         <item>ozon-tech.ru</item>
@@ -781,64 +543,32 @@
         <item>ozonsport.ru</item>
         <item>ozonstatus.ru</item>
         <item>ozonusercontent.com</item>
-        <item>payecom.ru</item>
-        <item>payment.ru</item>
         <item>paywb.com</item>
         <item>paywb.ru</item>
-        <item>penza.ru</item>
         <item>perekrestok.com</item>
         <item>perekrestok.ru</item>
-        <item>perm.ru</item>
-        <item>phoenix-ca.ru</item>
         <item>pikabu.ru</item>
-        <item>pishi-pravilno.ru</item>
-        <item>planetazdorovo.ru</item>
-        <item>platiecom.ru</item>
-        <item>playfamily.ru</item>
         <item>pobeda.page</item>
         <item>pochta.ru</item>
         <item>pochtabank.ru</item>
         <item>podorozhnik.spb.ru</item>
-        <item>polyclinika.ru</item>
-        <item>polza.ai</item>
-        <item>ponyexpress.ru</item>
-        <item>popmechanic.ru</item>
-        <item>pravilno-pishem.ru</item>
         <item>premier.one</item>
         <item>pressria.ru</item>
         <item>prim-edu.ru</item>
         <item>primbank.ru</item>
-        <item>private-banking.ru</item>
         <item>prod-my.games</item>
-        <item>prodota.ru</item>
-        <item>promodj.com</item>
         <item>prvbank.ru</item>
         <item>psb-ocenka.ru</item>
         <item>psb.ru</item>
         <item>psbank.ru</item>
-        <item>psk.ru</item>
         <item>pskb.ru</item>
-        <item>pskov.ru</item>
-        <item>ptcloud.ru</item>
-        <item>ptz.ru</item>
-        <item>pushgrow.io</item>
         <item>pvubank.com</item>
-        <item>qms.ru</item>
-        <item>quizlink.ru</item>
         <item>r.mail.ru</item>
         <item>r01.ru</item>
         <item>radiosputnik.ru</item>
         <item>raiffeisen-media.ru</item>
         <item>raiffeisen.ru</item>
         <item>rambler.ru</item>
-        <item>randomgodbot.com</item>
-        <item>rbcollect.ru</item>
-        <item>rbcredit.ru</item>
-        <item>rbsgate.com</item>
-        <item>rbsuat.com</item>
-        <item>rdrom.ru</item>
-        <item>realtyverif.ru</item>
-        <item>reaviz.ru</item>
         <item>reg.cloud</item>
         <item>reg.com</item>
         <item>reg.ru</item>
@@ -849,15 +579,9 @@
         <item>report.appmetrica.yandex.net</item>
         <item>reso-med.com</item>
         <item>reso-med.ru</item>
-        <item>restnproducts.ru</item>
-        <item>restream.ru</item>
-        <item>rf-sim-mobile.ru</item>
         <item>ria.ru</item>
         <item>rkomi.ru</item>
-        <item>rncoluminis.ru</item>
-        <item>rnd.ru</item>
         <item>ro-edu.ru</item>
-        <item>robotext.io</item>
         <item>rocketozon.by</item>
         <item>roistat.com</item>
         <item>rosbank-auto.ru</item>
@@ -869,7 +593,6 @@
         <item>rossiyasegodnya.com</item>
         <item>rostelecom.ru</item>
         <item>rostics.ru</item>
-        <item>rrtp.ru</item>
         <item>rs.mail.ru</item>
         <item>rshb.ru</item>
         <item>rt-school.online</item>
@@ -938,7 +661,6 @@
         <item>russiatoday.ru</item>
         <item>russiatoday.tv</item>
         <item>russieactuelle.fr</item>
-        <item>russoutdoor.ru</item>
         <item>rustore.ru</item>
         <item>rutube.ru</item>
         <item>rutube.sport</item>
@@ -947,16 +669,9 @@
         <item>rwbautomation.ru</item>
         <item>rwbautomation.tech</item>
         <item>rwbgeo.ru</item>
-        <item>ryazan.ru</item>
         <item>rzd-bonus.ru</item>
         <item>rzd.ru</item>
-        <item>saas-support.com</item>
-        <item>safeliner.tech</item>
-        <item>sage-observability.tech</item>
-        <item>sakhalin.ru</item>
-        <item>samara.ru</item>
         <item>samokat.ru</item>
-        <item>saratov.ru</item>
         <item>sber-bank.by</item>
         <item>sber.pro</item>
         <item>sber.ru</item>
@@ -987,7 +702,6 @@
         <item>sbrf.ru</item>
         <item>scartel.ru</item>
         <item>scripts-for-ucoz.ru</item>
-        <item>seb.ru</item>
         <item>securitylab.ru</item>
         <item>selcdn.net</item>
         <item>selectel.academy</item>
@@ -1001,16 +715,12 @@
         <item>selectelix.ru</item>
         <item>selectelpro.ru</item>
         <item>selkombank.ru</item>
-        <item>servernews.ru</item>
         <item>servicepipe.ru</item>
         <item>servicepipe.tech</item>
         <item>setevoygorodkrasnodar.ru</item>
-        <item>setka.ru</item>
-        <item>sevastopol.ru</item>
         <item>sferum-dev.ru</item>
         <item>sferum.ru</item>
         <item>sfunpay.com</item>
-        <item>sgcheck.ru</item>
         <item>sgo-egov66.ru</item>
         <item>sgo12.ru</item>
         <item>sgo171.ru</item>
@@ -1018,7 +728,6 @@
         <item>sgoedu74.ru</item>
         <item>shedevrum.ai</item>
         <item>shop-rt.com</item>
-        <item>simbirsk.ru</item>
         <item>sinara.ru</item>
         <item>sistema-capital.com</item>
         <item>skillbox.pro</item>
@@ -1028,20 +737,17 @@
         <item>slavbank.ru</item>
         <item>smailru.net</item>
         <item>smbcr-bank.ru</item>
-        <item>smolensk.ru</item>
         <item>smotreshka.tv</item>
         <item>sokolov.io</item>
         <item>sokolov.ru</item>
         <item>solid.ru</item>
         <item>sourcecraft.dev</item>
         <item>sovcombank.ru</item>
-        <item>sozvezdie-dobra.ru</item>
         <item>spasibo.digital</item>
         <item>spasibo.market</item>
         <item>spasibobonus.ru</item>
         <item>spasibosb.ru</item>
         <item>spasibosberbank.ru</item>
-        <item>spb.ru</item>
         <item>spboms.ru</item>
         <item>sportmail.ru</item>
         <item>sputnikglobe.com</item>
@@ -1049,20 +755,10 @@
         <item>sputnikmediabank.com</item>
         <item>sputniknews.com</item>
         <item>spvb.ru</item>
-        <item>ssb.msk.ru</item>
         <item>start.ru</item>
         <item>startup.mobile.yandex.net</item>
-        <item>static-storage.net</item>
         <item>staticmy.com</item>
-        <item>stavropol.ru</item>
         <item>stolichki.ru</item>
-        <item>stv.ru</item>
-        <item>summerstage.ru</item>
-        <item>summitceo.ru</item>
-        <item>support-uber.com</item>
-        <item>surgut.ru</item>
-        <item>sushiwok.ru</item>
-        <item>sweb.ru</item>
         <item>t-access.ru</item>
         <item>t-bank-app.ru</item>
         <item>t-bank-app.su</item>
@@ -1090,30 +786,24 @@
         <item>t2.ru</item>
         <item>tagbank.ru</item>
         <item>talantix.ru</item>
-        <item>tambov.ru</item>
         <item>tamtam.chat</item>
         <item>tarantool.io</item>
         <item>tarantoolplus.ru</item>
-        <item>targetads.io</item>
-        <item>tatarstan.ru</item>
         <item>tatsotsbank.ru</item>
         <item>taxsee.com</item>
         <item>tb-esim.ru</item>
         <item>tbank.ru</item>
-        <item>tconf.ru</item>
         <item>tcsbank.ru</item>
         <item>tech-mail.ru</item>
         <item>tele2.ru</item>
         <item>telega.info</item>
         <item>telega.me</item>
-        <item>tetrika-school.ru</item>
         <item>tilda.cc</item>
         <item>tilda.ru</item>
         <item>tilda.ws</item>
         <item>tildaapi.com</item>
         <item>tildacdn.com</item>
         <item>tildacdn.net</item>
-        <item>time-messenger.ru</item>
         <item>timeweb.cloud</item>
         <item>timeweb.com</item>
         <item>tinkoff-edu.ru</item>
@@ -1127,37 +817,20 @@
         <item>tinkoffmobile.com</item>
         <item>tinsurance.ru</item>
         <item>tinsurancefuture.ru</item>
-        <item>tischenko.su</item>
         <item>tkbbank.ru</item>
-        <item>tmiaf.ru</item>
         <item>tochka-tech.com</item>
         <item>tochka.com</item>
-        <item>tok.media</item>
-        <item>tokenator.top</item>
-        <item>tom.ru</item>
         <item>tomedu.ru</item>
-        <item>tomsk.ru</item>
         <item>top-fwz1.mail.ru</item>
         <item>top.mail.ru</item>
         <item>tpension.ru</item>
-        <item>trace-flow.ru</item>
         <item>tracker.my.com</item>
         <item>trackings.my.com</item>
-        <item>travel-tec.ru</item>
-        <item>tsaritsyn.ru</item>
-        <item>tsk.ru</item>
-        <item>tula.ru</item>
         <item>turbopages.org</item>
-        <item>tusco.ru</item>
         <item>tutu.ru</item>
-        <item>tuva.ru</item>
-        <item>tver.ru</item>
         <item>tvigle.ru</item>
-        <item>tvobr.ru</item>
         <item>twcstorage.ru</item>
-        <item>tyumen.ru</item>
         <item>uchi.ru</item>
-        <item>uchilk.ru</item>
         <item>ucoz.ae</item>
         <item>ucoz.club</item>
         <item>ucoz.co</item>
@@ -1183,17 +856,11 @@
         <item>ucozmedia.com</item>
         <item>ucozmedia.ru</item>
         <item>ucoztemplates.com</item>
-        <item>udm.ru</item>
-        <item>udmurtia.ru</item>
-        <item>uguide.ru</item>
-        <item>uguide.su</item>
         <item>ukit.ai</item>
         <item>ukit.com</item>
         <item>ukit.group</item>
         <item>ukit.me</item>
-        <item>ukoz.ru</item>
         <item>ukraina.ru</item>
-        <item>ulan-ude.ru</item>
         <item>ulyanovsk-sgo-cit73.ru</item>
         <item>uma.media</item>
         <item>unidraw.io</item>
@@ -1201,15 +868,12 @@
         <item>uralsib.ru</item>
         <item>userapi.ru</item>
         <item>uteka.ru</item>
-        <item>uweb.ru</item>
-        <item>vamzakaz.ru</item>
         <item>vc.ru</item>
         <item>vedomosti.ru</item>
         <item>velberis.ru</item>
         <item>viju.ru</item>
         <item>vildberis.ru</item>
         <item>vimu.tv</item>
-        <item>vipmed.ru</item>
         <item>viqeo.tv</item>
         <item>viqeotv.com</item>
         <item>vk-analytics.ru</item>
@@ -1266,30 +930,16 @@
         <item>vkusvill.ru</item>
         <item>vkvideo.ru</item>
         <item>vkworkspace.kz</item>
-        <item>vl.ru</item>
-        <item>vladikavkaz.ru</item>
-        <item>vladimir.ru</item>
-        <item>vladivostok.ru</item>
-        <item>vlb100.ru</item>
-        <item>vlg.ru</item>
         <item>vmailru.net</item>
-        <item>volgograd.ru</item>
-        <item>vologda.ru</item>
-        <item>voronezh.ru</item>
-        <item>vrn.ru</item>
         <item>vscale.blog</item>
         <item>vscale.io</item>
         <item>vscale.ru</item>
-        <item>vsemrabota.ru</item>
         <item>vtb-direct.com</item>
         <item>vtb.ru</item>
         <item>vtbglobalperspectives.com</item>
-        <item>vyatka.ru</item>
-        <item>waildberies.ru</item>
         <item>waldberies.ru</item>
         <item>waldberis.ru</item>
         <item>walderis.ru</item>
-        <item>wallberis.ru</item>
         <item>watchingthehawks.com</item>
         <item>wb-bank.ru</item>
         <item>wb-basket.ru</item>
@@ -1314,48 +964,18 @@
         <item>wbstatic.ru</item>
         <item>wbtek.ru</item>
         <item>wbwh.ru</item>
-        <item>weildberries.ru</item>
         <item>welberris.ru</item>
         <item>weldberies.ru</item>
         <item>weldberres.ru</item>
         <item>weldberric.ru</item>
-        <item>wellberes.ru</item>
-        <item>wellberies.ru</item>
         <item>westernunion.ru</item>
         <item>whoosh-bike.ru</item>
         <item>whoosh.bike</item>
-        <item>wibes.com</item>
-        <item>wibes.ru</item>
         <item>widberri.ru</item>
         <item>widberris.ru</item>
         <item>wieldberris.ru</item>
-        <item>wilberes.ru</item>
-        <item>wilberies.ru</item>
-        <item>wilberris.ru</item>
-        <item>wilberry.ru</item>
         <item>wildbaries.ru</item>
         <item>wildbarries.ru</item>
-        <item>wildbeeries.ru</item>
-        <item>wildberdes.ru</item>
-        <item>wildberiss.ru</item>
-        <item>wildberr.ru</item>
-        <item>wildberries.am</item>
-        <item>wildberries.by</item>
-        <item>wildberries.co.il</item>
-        <item>wildberries.es</item>
-        <item>wildberries.eu</item>
-        <item>wildberries.ge</item>
-        <item>wildberries.kg</item>
-        <item>wildberries.kz</item>
-        <item>wildberries.lt</item>
-        <item>wildberries.ru</item>
-        <item>wildberries.tj</item>
-        <item>wildberries.tm</item>
-        <item>wildberries.uz</item>
-        <item>wildberriess.ru</item>
-        <item>wildberrise.ru</item>
-        <item>wildbiries.ru</item>
-        <item>wildbirris.ru</item>
         <item>wildbress.ru</item>
         <item>wildbries.ru</item>
         <item>wildbrris.ru</item>
@@ -1371,7 +991,6 @@
         <item>winlinebet.ru</item>
         <item>wldberris.ru</item>
         <item>wolfberries.ru</item>
-        <item>worldcuprussia.com</item>
         <item>x5.ai</item>
         <item>x5.com</item>
         <item>x5.digital</item>
@@ -1387,61 +1006,10 @@
         <item>x5paket.ru</item>
         <item>x5q.ru</item>
         <item>x5w.ru</item>
-        <item>xlnk.ms</item>
-        <item>xmail.ru</item>
-        <item>xn-----6kc7adj0c9esa.com</item>
-        <item>xn----7sbaba0dc6cdn7cxcj.com</item>
-        <item>xn----7sbabae2a0bnvtsfr4loc.com</item>
-        <item>xn----7sbbab6bregnh7b8if5b.com</item>
-        <item>xn----7sbbamm1bv2bh7i.com</item>
-        <item>xn----7sbhmncai5a0arm7c1e.xn--p1ai</item>
-        <item>xn----8sbahiqzthbd0bn.xn--p1ai</item>
-        <item>xn----8sbaroledu6bi7j.com</item>
-        <item>xn----8sbeoy5bze.com</item>
-        <item>xn----8sbkfzespdwig.xn--p1ai</item>
-        <item>xn----8sbwjbxyd.xn--p1ai</item>
-        <item>xn----otbzjdu.xn--p1ai</item>
-        <item>xn--80a9a4b.xn--p1ai</item>
-        <item>xn--80aaafbpzn5blfby1p.xn--p1ai</item>
-        <item>xn--80aaeib8abrryx4k.xn--p1ai</item>
-        <item>xn--80aafgovrgbc7am.xn--p1ai</item>
-        <item>xn--80acbjgmges7ca.xn--p1ai</item>
-        <item>xn--80acbjgsdq2cl.xn--p1ai</item>
-        <item>xn--80acgfbsl1azdqr.xn--p1ai</item>
-        <item>xn--80aglfyfk.xn--p1ai</item>
-        <item>xn--80aglzei.xn--p1ai</item>
-        <item>xn--80aj3b.xn--p1ai</item>
-        <item>xn--80ajghhoc2aj1c8b.xn--p1ai</item>
-        <item>xn--80aqcf7a6do.com</item>
-        <item>xn--80arpq.xn--p1ai</item>
-        <item>xn--80asgb.xn--p1ai</item>
-        <item>xn--90ab.com</item>
-        <item>xn--90absjljw3g.xn--p1ai</item>
-        <item>xn--90aifd0az.shop</item>
-        <item>xn--90aifd0azb.xn--p1acf</item>
-        <item>xn--90aivcdt6dxbc.xn--p1ai</item>
-        <item>xn--b1aechhj6bof8g5a.site</item>
-        <item>xn--b1afabzvcegckfhg.xn--p1ai</item>
-        <item>xn--b1agatafrepfl.xn--p1ai</item>
-        <item>xn--b1agpaeoen.xn--p1ai</item>
-        <item>xn--b1agzk.xn--p1ai</item>
-        <item>xn--b1agzk9c.xn--p1ai</item>
-        <item>xn--c1acbl2abdlkab1og.xn--p1ai</item>
-        <item>xn--d1abkf4ap.fun</item>
-        <item>xn--d1acchc3adyj9k.xn--p1ai</item>
-        <item>xn--d1acpjx3f.xn--p1ai</item>
-        <item>xn--d1aqf.xn--p1ai</item>
-        <item>xn--e1adjldbbpv.xn--90ais</item>
-        <item>xn--e1aigb.xn--p1ai</item>
-        <item>xn--h1ao.site</item>
         <item>ya.cc</item>
         <item>ya.ru</item>
         <item>yabs.yandex.ru</item>
-        <item>yads.tech</item>
         <item>yaklass.ru</item>
-        <item>yakutia.ru</item>
-        <item>yamal.ru</item>
-        <item>yanao.ru</item>
         <item>yandex-bank.net</item>
         <item>yandex-metrica.ru</item>
         <item>yandex-net.ru</item>
@@ -1503,10 +1071,6 @@
         <item>yango.taxi</item>
         <item>yango.tech</item>
         <item>yangofellowship.com</item>
-        <item>yap.ru</item>
-        <item>yapfiles.ru</item>
-        <item>yaplakal.com</item>
-        <item>yaroslavl.ru</item>
         <item>yastat.net</item>
         <item>yastatic-net.ru</item>
         <item>yastatic.net</item>
@@ -1524,6 +1088,5 @@
         <item>zenit-card.ru</item>
         <item>zenit.ru</item>
         <item>ziraatbank.ru</item>
-        <item>zub.ru</item>
     </string-array>
 </resources>
