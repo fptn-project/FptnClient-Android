@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string-array name="always_excluded_apps_ru" translatable="false">
+    <string-array name="always_excluded_apps" translatable="false">
+        <!-- ===== RU ===== -->
         <item>aero.pobeda.twa</item>
         <item>agent.rko.psb.finstar.online</item>
         <item>alfa.life.mapp</item>
@@ -89,6 +90,7 @@
         <item>com.kms</item>
         <item>com.kontur.bank</item>
         <item>com.kontur_elba</item>
+        <item>com.kp</item>
         <item>com.lamoda</item>
         <item>com.lenta</item>
         <item>com.logistic</item>
@@ -120,6 +122,7 @@
         <item>com.octopod</item>
         <item>com.octopod.russianpost.client.android</item>
         <item>com.oplatagosuslug</item>
+        <item>com.platfomni</item>
         <item>com.pobeda</item>
         <item>com.pobeda.anniversary</item>
         <item>com.pogoda</item>
@@ -152,6 +155,7 @@
         <item>com.sshex.sberometr</item>
         <item>com.ssspeed.huawei</item>
         <item>com.tadiuzzz.tadius.mysalary.rustore</item>
+        <item>com.taxipoehali</item>
         <item>com.tdm</item>
         <item>com.uchebnik_tj</item>
         <item>com.uma</item>
@@ -225,8 +229,10 @@
         <item>ru.aliexpress</item>
         <item>ru.alrosa</item>
         <item>ru.altarix</item>
+        <item>ru.apteka</item>
         <item>ru.askona.android.rustore</item>
         <item>ru.avangard</item>
+        <item>ru.aviasales</item>
         <item>ru.bankuralsib.mb.android</item>
         <item>ru.barusalinda.cheqly</item>
         <item>ru.basegibdd.v2</item>
@@ -243,6 +249,7 @@
         <item>ru.centrinvest</item>
         <item>ru.chelyabinvestbank</item>
         <item>ru.cian</item>
+        <item>ru.citilink</item>
         <item>ru.compass</item>
         <item>ru.crpt</item>
         <item>ru.crptech</item>
@@ -257,8 +264,10 @@
         <item>ru.etalon.gt</item>
         <item>ru.evotor.evotormobile</item>
         <item>ru.fanid</item>
+        <item>ru.farpost</item>
         <item>ru.fdoctor</item>
         <item>ru.filit</item>
+        <item>ru.fns</item>
         <item>ru.foodfox</item>
         <item>ru.gazprombank</item>
         <item>ru.gazprompay</item>
@@ -275,6 +284,7 @@
         <item>ru.infolio.zvezdatv</item>
         <item>ru.ingos.ingomobile</item>
         <item>ru.inovatek.azssmartpos</item>
+        <item>ru.instamart</item>
         <item>ru.intech</item>
         <item>ru.involta.metro</item>
         <item>ru.it.mobile.gosuslugi24</item>
@@ -286,6 +296,7 @@
         <item>ru.lenta.lentochka</item>
         <item>ru.leroymerlin</item>
         <item>ru.lesegais.mobile</item>
+        <item>ru.letu</item>
         <item>ru.lifepay</item>
         <item>ru.litres</item>
         <item>ru.livelib</item>
@@ -359,6 +370,7 @@
         <item>ru.renlife.lk</item>
         <item>ru.resortsoft</item>
         <item>ru.rgs.lk</item>
+        <item>ru.rian</item>
         <item>ru.rigla.client.android</item>
         <item>ru.ritmmedia</item>
         <item>ru.robokassa.pwa.twa</item>
@@ -396,6 +408,7 @@
         <item>ru.sogaz</item>
         <item>ru.soglasie.client</item>
         <item>ru.sovcombank</item>
+        <item>ru.sportmaster</item>
         <item>ru.sravni</item>
         <item>ru.sravnizaim.app</item>
         <item>ru.supgetter.android</item>

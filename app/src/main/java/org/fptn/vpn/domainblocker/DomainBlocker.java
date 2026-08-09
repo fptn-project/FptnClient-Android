@@ -25,6 +25,7 @@ import android.content.res.Resources;
 
 import com.elvishew.xlog.XLog;
 import org.fptn.vpn.R;
+import org.fptn.vpn.utils.SharedPrefUtils;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -47,7 +48,7 @@ public class DomainBlocker {
     private static final int UDP_HDR = 8;
     private static final int DNS_HDR = 12;
 
-    private static final int[] DETECTOR_DOMAIN_ARRAYS = {R.array.blocked_domains_ru};
+    private static final int[] DETECTOR_DOMAIN_ARRAYS = {R.array.blocked_domains};
 
     private final Set<String> blockedDomains;
 
@@ -65,6 +66,12 @@ public class DomainBlocker {
                     if (d.contains(".")) {
                         blockedDomains.add(d);
                     }
+                }
+            }
+            for (String domain : SharedPrefUtils.getRemoteBlockedDomains(context)) {
+                String d = domain.trim().toLowerCase();
+                if (d.contains(".")) {
+                    blockedDomains.add(d);
                 }
             }
         }
