@@ -25,12 +25,16 @@
 
 #include "common/logger/logger.h"
 
+#include "fptn-protocol-lib/time/time_provider.h"
+
 bool fptn::wrapper::init_logger() {
   static std::once_flag flag;
   static bool initialized = false;
 
-  std::call_once(
-      flag, []() { initialized = fptn::logger::init("fptn-android-client"); });
+  std::call_once(flag, []() {
+    initialized = fptn::logger::init("fptn-android-client");
+    fptn::time::TimeProvider::Instance();
+  });
 
   return initialized;
 }

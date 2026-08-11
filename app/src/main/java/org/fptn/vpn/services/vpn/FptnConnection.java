@@ -523,16 +523,24 @@ public class FptnConnection extends Thread {
         }
     }
 
-    private void onMessageReceived(byte[] data) {
+    private void onMessageReceived(byte[][] packets) {
+        int written = 0;
         try {
             if (outputStream != null) {
-                downloadRate.update(data.length);
-                totalDownloadBytes.addAndGet(data.length);
-                outputStream.write(data);
+                for (byte[] data : packets) {
+                    if (data == null) {
+                        continue;
+                    }
+                    outputStream.write(data);
+                    written += data.length;
+                }
+                // Counted once per batch: both are hot on the receive path.
+                downloadRate.update(written);
+                totalDownloadBytes.addAndGet(written);
             }
         } catch (Exception e) {
-            XLog.tag(TAG).w("[id=%d] Failed to write %d-byte packet to TUN: %s",
-                    connectionId, data.length, e.getMessage());
+            XLog.tag(TAG).w("[id=%d] Failed to write packet batch to TUN after %d bytes: %s",
+                    connectionId, written, e.getMessage());
             if (!tunNeedsRecreate && !currentThread.isInterrupted()) {
                 tunNeedsRecreate = true;
                 if (vpnInterface != null) {
