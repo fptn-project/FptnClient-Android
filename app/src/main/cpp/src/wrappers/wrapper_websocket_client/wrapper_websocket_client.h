@@ -60,7 +60,11 @@ class WrapperWebsocketClient final {
  protected:
   void Run();
 
-  void onIPPacket(fptn::common::network::IPPacketPtr);
+  void onIPPackets(fptn::common::network::BatchIPPacketPtr packets);
+
+  // Resolves and caches onMessageImpl once: GetObjectClass and
+  // GetMethodID are string lookups inside the JVM.
+  bool ResolveMessageCallback(JNIEnv* env);
 
   void onConnectedCallback();
 
@@ -82,6 +86,9 @@ class WrapperWebsocketClient final {
   std::atomic<bool> has_opened_{false};
 
   const jobject wrapper_;
+
+  jclass byte_array_class_ = nullptr;
+  jmethodID on_message_impl_ = nullptr;
 
   const std::string server_ip_;
   const int server_port_;

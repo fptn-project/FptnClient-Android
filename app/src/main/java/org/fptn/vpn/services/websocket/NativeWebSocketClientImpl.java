@@ -178,9 +178,9 @@ public class NativeWebSocketClientImpl {
         XLog.tag(TAG).d("onFailureImpl scheduled [serial=%d]", serialNum);
     }
 
-    public void onMessageImpl(byte[] msg) {
+    public void onMessageImpl(byte[][] packets) {
         if (this.onMessageReceivedCallback != null) {
-            this.onMessageReceivedCallback.onMessageReceived(msg);
+            this.onMessageReceivedCallback.onMessageReceived(packets);
         }
     }
 

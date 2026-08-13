@@ -28,8 +28,6 @@
 #include "wrapper_websocket_client.h"
 
 #include "fptn-protocol-lib/connection/strategies/browser_mimicry/browser_mimicry.h"
-#include "fptn-protocol-lib/connection/strategies/parallel_tunnels/parallel_tunnels.h"
-#include "fptn-protocol-lib/connection/strategies/persistent_tunnel/persistent_tunnel.h"
 #include "fptn-protocol-lib/connection/strategies/rolling_tunnel/rolling_tunnel.h"
 
 #ifndef FPTN_CLIENT_DEFAULT_ADDRESS_IP6
@@ -63,7 +61,15 @@ WrapperWebsocketClient::WrapperWebsocketClient(jobject wrapper,
       connection_strategy_(connection_strategy)
       {}
 
-WrapperWebsocketClient::~WrapperWebsocketClient() { Stop(); }
+WrapperWebsocketClient::~WrapperWebsocketClient() {
+  Stop();
+  if (byte_array_class_) {
+    if (JNIEnv* env = getJniEnv()) {
+      env->DeleteGlobalRef(byte_array_class_);
+    }
+    byte_array_class_ = nullptr;
+  }
+}
 
 bool WrapperWebsocketClient::Start() {
   const std::unique_lock<std::mutex> lock(mutex_);
@@ -142,7 +148,8 @@ void WrapperWebsocketClient::Run() {
         const std::unique_lock<std::mutex> lock(mutex_);  // mutex
 
         const auto new_ip_pkt_callback = std::bind(
-            &WrapperWebsocketClient::onIPPacket, this, std::placeholders::_1);
+            &WrapperWebsocketClient::onIPPackets, this,
+            std::placeholders::_1);
         const auto on_connected_callback =
             std::bind(&WrapperWebsocketClient::onConnectedCallback, this);
         const auto on_socket_opened_callback = std::bind(
@@ -159,28 +166,27 @@ void WrapperWebsocketClient::Run() {
                 .tun_interface_address_ipv6 =
                     fptn::common::network::IPv6Address(tun_ipv6_),
                 .on_connected_callback = on_connected_callback,
-                .recv_ip_packet_callback = new_ip_pkt_callback,
+                .recv_ip_packet_batch_callback = new_ip_pkt_callback,
                 .on_socket_opened_callback = on_socket_opened_callback,
             }};
 
         namespace strategies = fptn::protocol::connection::strategies;
         switch (connection_strategy_) {
-          case strategies::ConnectionStrategy::kRollingTunnel:
-            client_ = strategies::RollingTunnel::Create(access_token_, config);
+          case strategies::ConnectionStrategy::kDualRollingTunnel:
+            client_ =
+                strategies::DualRollingTunnel::Create(access_token_, config);
             break;
-          case strategies::ConnectionStrategy::kDualTunnel:
-            client_ = strategies::DualTunnel::Create(access_token_, config);
-            break;
-          case strategies::ConnectionStrategy::kTripleTunnel:
-            client_ = strategies::TripleTunnel::Create(access_token_, config);
+          case strategies::ConnectionStrategy::kTripleRollingTunnel:
+            client_ =
+                strategies::TripleRollingTunnel::Create(access_token_, config);
             break;
           case strategies::ConnectionStrategy::kBrowserMimicry:
             client_ = strategies::BrowserMimicry::Create(access_token_, config);
             break;
-          case strategies::ConnectionStrategy::kPersistentTunnel:
+          case strategies::ConnectionStrategy::kSingleRollingTunnel:
           default:
             client_ =
-                strategies::PersistentTunnel::Create(access_token_, config);
+                strategies::SingleRollingTunnel::Create(access_token_, config);
             break;
         }
       }
@@ -256,76 +262,108 @@ void WrapperWebsocketClient::Run() {
   }
 }
 
-void WrapperWebsocketClient::onIPPacket(
-    fptn::common::network::IPPacketPtr packet) {
-  if (!packet || !running_) {
+bool WrapperWebsocketClient::ResolveMessageCallback(JNIEnv* env) {
+  if (on_message_impl_ && byte_array_class_) {
+    return true;
+  }
+
+  jclass cls = env->GetObjectClass(wrapper_);
+  if (!cls) {
+    SPDLOG_ERROR("Failed to get object class");
+    return false;
+  }
+  on_message_impl_ = env->GetMethodID(cls, "onMessageImpl", "([[B)V");
+  env->DeleteLocalRef(cls);
+  if (!on_message_impl_) {
+    SPDLOG_ERROR("Failed to get method ID: onMessageImpl([[B)V");
+    return false;
+  }
+
+  jclass byte_array_cls = env->FindClass("[B");
+  if (!byte_array_cls) {
+    SPDLOG_ERROR("Failed to find byte[] class");
+    on_message_impl_ = nullptr;
+    return false;
+  }
+  // Global: the method id stays valid only while its class is alive.
+  byte_array_class_ = static_cast<jclass>(env->NewGlobalRef(byte_array_cls));
+  env->DeleteLocalRef(byte_array_cls);
+  return byte_array_class_ != nullptr;
+}
+
+void WrapperWebsocketClient::onIPPackets(
+    fptn::common::network::BatchIPPacketPtr packets) {
+  if (packets.empty() || !running_) {
     return;
   }
 
   JNIEnv* env = getJniEnv();
   if (!env) {
-    SPDLOG_ERROR("Failed to get JNI environment in onIPPacket");
+    SPDLOG_ERROR("Failed to get JNI environment in onIPPackets");
+    return;
+  }
+  if (!ResolveMessageCallback(env)) {
     return;
   }
 
-  jbyteArray jpacket = nullptr;
-  jclass cls = nullptr;
+  jsize count = 0;
+  for (const auto& packet : packets) {
+    if (packet && !packet->Data().empty()) {
+      ++count;
+    }
+  }
+  if (count == 0) {
+    return;
+  }
 
+  jobjectArray jpackets = nullptr;
   try {
-    const auto& data = packet->Data();
-    const auto len = data.size();
-
-    if (!len || data.empty()) {
-      SPDLOG_ERROR("Serialized packet is empty");
+    jpackets = env->NewObjectArray(count, byte_array_class_, nullptr);
+    if (!jpackets) {
+      SPDLOG_ERROR("Failed to allocate jobjectArray");
       return;
     }
 
-    jpacket = env->NewByteArray(len);
-    if (!jpacket) {
-      SPDLOG_ERROR("Failed to allocate jbyteArray");
-      return;
+    jsize index = 0;
+    for (const auto& packet : packets) {
+      if (!packet || packet->Data().empty()) {
+        continue;
+      }
+      const auto& data = packet->Data();
+      const auto len = static_cast<jsize>(data.size());
+
+      jbyteArray jpacket = env->NewByteArray(len);
+      if (!jpacket) {
+        SPDLOG_ERROR("Failed to allocate jbyteArray");
+        break;
+      }
+      env->SetByteArrayRegion(
+          jpacket, 0, len, reinterpret_cast<const jbyte*>(data.data()));
+      env->SetObjectArrayElement(jpackets, index++, jpacket);
+      // Released right away so a large batch cannot exhaust the local table.
+      env->DeleteLocalRef(jpacket);
     }
 
-    env->SetByteArrayRegion(
-        jpacket, 0, len, reinterpret_cast<const jbyte*>(data.data()));
     if (env->ExceptionCheck()) {
-      SPDLOG_ERROR("JNI Exception in SetByteArrayRegion");
+      SPDLOG_ERROR("JNI Exception while building the packet array");
       env->ExceptionDescribe();
       env->ExceptionClear();
-      return;
-    }
-
-    cls = env->GetObjectClass(wrapper_);
-    if (!cls) {
-      SPDLOG_ERROR("Failed to get object class");
-      return;
-    }
-
-    jmethodID on_message_impl = env->GetMethodID(cls, "onMessageImpl", "([B)V");
-    if (!on_message_impl) {
-      SPDLOG_ERROR("Failed to get method ID: onMessageImpl([B)V");
-      return;
-    }
-
-    // Call java method
-    env->CallVoidMethod(wrapper_, on_message_impl, jpacket);
-    if (env->ExceptionCheck()) {
-      SPDLOG_ERROR("JNI Exception in CallVoidMethod");
-      env->ExceptionDescribe();
-      env->ExceptionClear();
+    } else {
+      env->CallVoidMethod(wrapper_, on_message_impl_, jpackets);
+      if (env->ExceptionCheck()) {
+        SPDLOG_ERROR("JNI Exception in CallVoidMethod");
+        env->ExceptionDescribe();
+        env->ExceptionClear();
+      }
     }
   } catch (const std::exception& ex) {
-    SPDLOG_ERROR("Exception in onIPPacket: {}", ex.what());
+    SPDLOG_ERROR("Exception in onIPPackets: {}", ex.what());
   } catch (...) {
-    SPDLOG_ERROR("Unknown exception in onIPPacket");
+    SPDLOG_ERROR("Unknown exception in onIPPackets");
   }
 
-  // Clean up
-  if (jpacket) {
-    env->DeleteLocalRef(jpacket);
-  }
-  if (cls) {
-    env->DeleteLocalRef(cls);
+  if (jpackets) {
+    env->DeleteLocalRef(jpackets);
   }
 }
 

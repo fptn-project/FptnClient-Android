@@ -151,13 +151,12 @@ Java_org_fptn_vpn_services_websocket_NativeWebSocketClientImpl_nativeCreate(
   const auto connection_strategy_name =
       fptn::wrapper::ConvertToCString(env, connection_strategy_name_param);
   namespace strategies = fptn::protocol::connection::strategies;
-  auto connection_strategy = strategies::ConnectionStrategy::kPersistentTunnel;
-  if (connection_strategy_name == "rolling-tunnel") {
-    connection_strategy = strategies::ConnectionStrategy::kRollingTunnel;
-  } else if (connection_strategy_name == "dual-rolling-tunnel") {
-    connection_strategy = strategies::ConnectionStrategy::kDualTunnel;
+  auto connection_strategy =
+      strategies::ConnectionStrategy::kSingleRollingTunnel;
+  if (connection_strategy_name == "dual-rolling-tunnel") {
+    connection_strategy = strategies::ConnectionStrategy::kDualRollingTunnel;
   } else if (connection_strategy_name == "triple-rolling-tunnel") {
-    connection_strategy = strategies::ConnectionStrategy::kTripleTunnel;
+    connection_strategy = strategies::ConnectionStrategy::kTripleRollingTunnel;
   } else if (connection_strategy_name == "browser-mimicry") {
     connection_strategy = strategies::ConnectionStrategy::kBrowserMimicry;
   }
