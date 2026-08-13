@@ -885,11 +885,6 @@ public class FptnService extends VpnService {
             appInfos.addAll(packages);
         }
 
-        List<String> allServerHosts = appDatabase.serverDAO().getServerList(false)
-                .stream()
-                .map(ServerEntity::getHost)
-                .collect(Collectors.toList());
-
         boolean adBlockEnabled = SharedPrefUtils.getAdBlockEnabled(this);
         boolean domainBlacklistEnabled = SharedPrefUtils.getDomainBlacklistEnabled(this);
         String domainBlacklist = domainBlacklistEnabled ? SharedPrefUtils.getDomainBlacklistDomains(this) : null;
@@ -905,7 +900,6 @@ public class FptnService extends VpnService {
                 this,
                 nextConnectionId.getAndIncrement(),
                 serverEntity,
-                allServerHosts,
                 currentIPAddress,
                 networkType,
                 maxReconnectCount,

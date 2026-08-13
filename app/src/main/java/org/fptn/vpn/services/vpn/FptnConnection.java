@@ -32,7 +32,6 @@ import android.app.PendingIntent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
-import android.net.IpPrefix;
 import android.net.VpnService;
 import android.os.Build;
 import android.os.ParcelFileDescriptor;
@@ -63,7 +62,6 @@ import org.fptn.vpn.vpnclient.exception.PVNClientException;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.time.Duration;
 import java.time.Instant;
@@ -143,7 +141,6 @@ public class FptnConnection extends Thread {
     @Setter
     private NetworkType currentNetworkType;
 
-    private final List<String> allServerHosts;
     private final int maxReconnectCount;
     private final int fallbackThreshold; // 0 = disabled
     private final int delayBetweenAttempts;
@@ -156,7 +153,6 @@ public class FptnConnection extends Thread {
     public FptnConnection(final FptnService service,
                           final int connectionId,
                           final ServerEntity serverEntity,
-                          final List<String> allServerHosts,
                           final String currentIPAddress,
                           final NetworkType currentNetworkType,
                           final int maxReconnectCount,
@@ -176,7 +172,6 @@ public class FptnConnection extends Thread {
         this.service = service;
         this.connectionId = connectionId;
         this.serverEntity = serverEntity;
-        this.allServerHosts = allServerHosts;
         this.currentIPAddress = currentIPAddress;
         this.currentNetworkType = currentNetworkType;
         this.perAppVpnMode = perAppVpnMode;
@@ -323,12 +318,13 @@ public class FptnConnection extends Thread {
             addAlwaysExcludedApps(builder);
         } else if (perAppVpnMode == PerAppVpnMode.ONLY_ALLOWED) {
             if (appInfos.isEmpty()) {
-                // No apps selected: add self to allowed list so no user traffic is tunneled
-                String thisAppPackageName = service.getPackageName();
-                try {
-                    builder.addAllowedApplication(thisAppPackageName);
-                } catch (PackageManager.NameNotFoundException e) {
-                    XLog.tag(TAG).w("[id=%d] Package not found, skipping [pkg=%s]", connectionId, thisAppPackageName);
+                // No apps selected: disallow every installed app so no user traffic is tunneled
+                for (ApplicationInfo appInfo : service.getPackageManager().getInstalledApplications(0)) {
+                    try {
+                        builder.addDisallowedApplication(appInfo.packageName);
+                    } catch (PackageManager.NameNotFoundException e) {
+                        XLog.tag(TAG).w("[id=%d] Package not found, skipping [pkg=%s]", connectionId, appInfo.packageName);
+                    }
                 }
             } else {
                 // Implicitly tunnel Google's companion services so Google apps
@@ -447,13 +443,6 @@ public class FptnConnection extends Thread {
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            for (String host : allServerHosts) {
-                try {
-                    builder.excludeRoute(new IpPrefix(InetAddress.getByName(host), IP_V4_PREFIX_LENGTH));
-                } catch (UnknownHostException e) {
-                    XLog.tag(TAG).w("[id=%d] Cannot exclude server from TUN routing: %s", connectionId, host);
-                }
-            }
             builder.excludeRoute(LOCAL_TUN_INTERFACE_SUBNET.getAsIpV4Prefix());
             builder.excludeRoute(LOCAL_TUN_INTERFACE_SUBNET.getAsIpV6Prefix());
             builder.excludeRoute(FPTN_SERVER_SUBNET.getAsIpV4Prefix());
@@ -465,13 +454,10 @@ public class FptnConnection extends Thread {
         } else {
             // IPv4
             IPAddress rootSubnetV4 = new IPAddressString(ALL_SUBNET.getAsIpV4PrefixAsString()).getAddress();
-            List<IPAddress> subnetsToExcludeV4 = Stream.concat(
-                            allServerHosts.stream().map(host -> String.format("%s/%s", host, IP_V4_PREFIX_LENGTH)),
-                            Stream.of(
-                                    LOCAL_TUN_INTERFACE_SUBNET.getAsIpV4PrefixAsString(),
-                                    FPTN_SERVER_SUBNET.getAsIpV4PrefixAsString(),
-                                    LOCAL_SUBNET.getAsIpV4PrefixAsString()
-                            )
+            List<IPAddress> subnetsToExcludeV4 = Stream.of(
+                            LOCAL_TUN_INTERFACE_SUBNET.getAsIpV4PrefixAsString(),
+                            FPTN_SERVER_SUBNET.getAsIpV4PrefixAsString(),
+                            LOCAL_SUBNET.getAsIpV4PrefixAsString()
                     )
                     .map(sub -> new IPAddressString(sub).getAddress())
                     .collect(Collectors.toList());
