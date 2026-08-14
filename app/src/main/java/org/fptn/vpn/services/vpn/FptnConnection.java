@@ -38,9 +38,7 @@ import android.os.ParcelFileDescriptor;
 
 import com.elvishew.xlog.XLog;
 
-import org.fptn.vpn.R;
 import org.fptn.vpn.utils.AppExclusion;
-import org.fptn.vpn.utils.SharedPrefUtils;
 import org.fptn.vpn.domainblocker.DomainBlocker;
 import org.fptn.vpn.database.entity.ServerEntity;
 import org.fptn.vpn.enums.BypassCensorshipMethod;
@@ -66,11 +64,7 @@ import java.net.UnknownHostException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
-import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
@@ -239,10 +233,6 @@ public class FptnConnection extends Thread {
             try { outputStream.close(); } catch (IOException ignored) {}
             outputStream = null;
         }
-        if (vpnInterface != null) {
-            try { vpnInterface.close(); } catch (IOException ignored) {}
-            vpnInterface = null;
-        }
 
         VpnService.Builder builder = service.new Builder();
         builder.setMtu(MAX_PACKET_SIZE);
@@ -254,8 +244,13 @@ public class FptnConnection extends Thread {
         configurePerAppMode(builder);
         configureAddressesAndRoutes(builder);
 
+        ParcelFileDescriptor previous;
         synchronized (service) {
+            previous = vpnInterface;
             vpnInterface = builder.establish();
+        }
+        if (previous != null) {
+            try { previous.close(); } catch (IOException ignored) {}
         }
 
         XLog.tag(TAG).i("[id=%d] TUN interface established [fd=%s]", connectionId, vpnInterface);
@@ -393,8 +388,16 @@ public class FptnConnection extends Thread {
                 XLog.tag(TAG).d("Unable to close output stream", e);
             }
         }
-        service.retainTun(vpnInterface);
-        vpnInterface = null;
+        synchronized (service) {
+            if (vpnInterface != null) {
+                try {
+                    vpnInterface.close();
+                } catch (IOException e) {
+                    XLog.tag(TAG).d("Unable to close interface", e);
+                }
+                vpnInterface = null;
+            }
+        }
         webSocketClient.shutdown();
         scheduler.shutdown();
 

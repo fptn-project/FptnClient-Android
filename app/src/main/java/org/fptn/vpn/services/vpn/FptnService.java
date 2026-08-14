@@ -23,6 +23,10 @@ package org.fptn.vpn.services.vpn;
 import static org.fptn.vpn.core.common.Constants.SELECTED_SERVER;
 import static org.fptn.vpn.core.common.Constants.SELECTED_SERVER_ID_AUTO;
 import static org.fptn.vpn.core.common.Constants.START_FROM_TILE_AUTO;
+import static org.fptn.vpn.enums.ConnectionSubnets.ALL_SUBNET;
+import static org.fptn.vpn.enums.ConnectionSubnets.IP_V4_PREFIX_LENGTH;
+import static org.fptn.vpn.enums.ConnectionSubnets.IP_V6_PREFIX_LENGTH;
+import static org.fptn.vpn.enums.ConnectionSubnets.TUN_ADDRESS;
 import static org.fptn.vpn.utils.ResourcesUtils.getStringResourceByName;
 
 import android.annotation.SuppressLint;
@@ -33,6 +37,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.pm.PackageManager;
 import android.content.pm.ServiceInfo;
 import android.net.ConnectivityManager;
 import android.net.Network;
@@ -109,7 +114,7 @@ public class FptnService extends VpnService {
     public static final String DISCONNECT_REASON_CLOSED_UNEXPECTEDLY = "reason:closed_unexpectedly";
     public static final String DISCONNECT_REASON_UNEXPECTED_ERROR = "reason:unexpected_error";
 
-    private ParcelFileDescriptor retainedTun;
+    private ParcelFileDescriptor blockingTun;
 
     private final AtomicReference<FptnConnection> activeConnection = new AtomicReference<>();
     private final AtomicInteger nextConnectionId = new AtomicInteger(1);
@@ -764,7 +769,7 @@ public class FptnService extends VpnService {
                 restoreRetryCount.set(0);
                 remainingFallbackBudget.set(SharedPrefUtils.getReconnectAttemptsCount(this));
                 restoreHandler.removeCallbacksAndMessages(null);
-                closeRetainedTun();
+                closeBlockingTun();
                 String serverInfo = getActionConnectServerInfo();
                 updateNotificationWithMessage(getString(R.string.connected_to) + serverInfo, "");
 
@@ -924,9 +929,8 @@ public class FptnService extends VpnService {
                 preFetchedDnsServers
         );
         connection.setConfigureVpnIntent(launchMainActivityPendingIntent);
-        connection.start();
-
         setActiveConnection(connection);
+        connection.start();
     }
 
     private void handleFallbackToAllServers() {
@@ -1054,36 +1058,63 @@ public class FptnService extends VpnService {
     }
 
     private void setActiveConnection(FptnConnection connection) {
+        setActiveConnection(connection, true);
+    }
+
+    private void setActiveConnection(FptnConnection connection, boolean blockTraffic) {
         FptnConnection oldConnection = activeConnection.getAndSet(connection);
         if (oldConnection != null) {
-            XLog.tag(TAG).i("Tearing down previous connection [id=%d]", oldConnection.getConnectionId());
+            XLog.tag(TAG).i("Tearing down previous connection [id=%d, blockTraffic=%b]",
+                    oldConnection.getConnectionId(), blockTraffic);
+            if (blockTraffic) {
+                raiseBlockingTun();
+            }
             oldConnection.shutdown();
         }
     }
 
-    synchronized void retainTun(ParcelFileDescriptor tun) {
-        if (tun == null || tun == retainedTun) {
-            return;
+    private synchronized void raiseBlockingTun() {
+        ParcelFileDescriptor previous = blockingTun;
+        Builder builder = new Builder();
+        builder.setConfigureIntent(launchMainActivityPendingIntent);
+        builder.addAddress(TUN_ADDRESS.getIpV4Address(), IP_V4_PREFIX_LENGTH);
+        builder.addAddress(TUN_ADDRESS.getIpV6Address(), IP_V6_PREFIX_LENGTH);
+        builder.addRoute(ALL_SUBNET.getIpV4Address(), ALL_SUBNET.getV4prefix());
+        builder.addRoute(ALL_SUBNET.getIpV6Address(), ALL_SUBNET.getV6prefix());
+        try {
+            builder.addDisallowedApplication(getPackageName());
+        } catch (PackageManager.NameNotFoundException e) {
+            XLog.tag(TAG).w("Package not found, skipping [pkg=%s]", getPackageName());
         }
-        closeRetainedTun();
-        retainedTun = tun;
-        XLog.tag(TAG).i("TUN retained between attempts [fd=%s]", retainedTun);
+        blockingTun = builder.establish();
+        if (previous != null) {
+            try {
+                previous.close();
+            } catch (IOException e) {
+                XLog.tag(TAG).d("Unable to close previous blocking TUN", e);
+            }
+        }
+        if (blockingTun == null) {
+            XLog.tag(TAG).e("Can't raise blocking TUN — VPN permission revoked");
+        } else {
+            XLog.tag(TAG).i("Blocking TUN raised [fd=%s]", blockingTun);
+        }
     }
 
-    private synchronized void closeRetainedTun() {
-        if (retainedTun == null) {
+    private synchronized void closeBlockingTun() {
+        if (blockingTun == null) {
             return;
         }
         try {
-            retainedTun.close();
+            blockingTun.close();
         } catch (IOException e) {
-            XLog.tag(TAG).d("Unable to close retained TUN", e);
+            XLog.tag(TAG).d("Unable to close blocking TUN", e);
         }
-        retainedTun = null;
+        blockingTun = null;
     }
 
-    private synchronized boolean hasRetainedTun() {
-        return retainedTun != null;
+    private synchronized boolean hasBlockingTun() {
+        return blockingTun != null;
     }
 
     private void disconnect() {
@@ -1125,12 +1156,13 @@ public class FptnService extends VpnService {
             XLog.tag(TAG).w("DISCONNECT REASON: error [code=%s, message=%s]",
                     exception.errorCode, exception.errorMessage);
         }
-        // stop and null existed connection
-        setActiveConnection(null);
         boolean involuntary = exception != null
                 || DISCONNECT_REASON_CLOSED_UNEXPECTEDLY.equals(disconnectReasonKey)
                 || DISCONNECT_REASON_UNEXPECTED_ERROR.equals(disconnectReasonKey);
-        boolean killSwitchHold = involuntary && hasRetainedTun() && SharedPrefUtils.getKillSwitchEnabled(this);
+        boolean blockTraffic = involuntary && SharedPrefUtils.getKillSwitchEnabled(this);
+        // stop and null existed connection
+        setActiveConnection(null, blockTraffic);
+        boolean killSwitchHold = blockTraffic && hasBlockingTun();
         ConnectionState finalState = killSwitchHold ? ConnectionState.BLOCKED : ConnectionState.DISCONNECTED;
         String errorText = null;
         if (exception != null) {
@@ -1142,7 +1174,7 @@ public class FptnService extends VpnService {
             String reason = errorText != null ? errorText : disconnectReason;
             updateNotificationWithMessage(getString(R.string.kill_switch_blocked), reason != null ? reason : "");
         } else {
-            closeRetainedTun();
+            closeBlockingTun();
             // remove service from foreground - and remove notification
             stopForeground(STOP_FOREGROUND_REMOVE);
             // sometimes need to remove notification explicitly
