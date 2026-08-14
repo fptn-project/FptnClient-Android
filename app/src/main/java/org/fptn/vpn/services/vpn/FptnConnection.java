@@ -123,6 +123,7 @@ public class FptnConnection extends Thread {
     private FileOutputStream outputStream;
 
     private volatile boolean tunNeedsRecreate = false;
+    private volatile boolean connectedOnce = false;
     private volatile String pendingShutdownReason = null;
 
     @Getter
@@ -508,6 +509,7 @@ public class FptnConnection extends Thread {
             return;
         }
         reconnectCount.set(0);
+        connectedOnce = true;
         if (!currentThread.isInterrupted()) {
             sendConnectionStateToService(ConnectionState.CONNECTED);
             cancelReconnectTask();
@@ -551,6 +553,12 @@ public class FptnConnection extends Thread {
         if (!tunValid) {
             XLog.tag(TAG).i("[id=%d] Disconnecting silently [tunValid=%b]", connectionId, tunValid);
             service.disconnectSilently(connectionId);
+            return;
+        }
+        if (!connectedOnce) {
+            XLog.tag(TAG).e("[id=%d] Connection never established — giving up", connectionId);
+            sendExceptionToService(new PVNClientException(ErrorCode.CONNECT_TO_SERVER_ERROR));
+            onFailureInterrupt();
             return;
         }
         cancelReconnectTask();
