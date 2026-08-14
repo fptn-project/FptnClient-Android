@@ -119,6 +119,7 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="try_number">"Переподключение: попытка "</string>
     <string name="try_number_fallback">"Поиск сервера: попытка "</string>
     <string name="download_upload_speed_pattern">Загрузка: %s Выгрузка: %s</string>
+    <string name="download_upload_traffic_pattern">Получено: %s Отправлено: %s</string>
     <string name="refresh_token">Обновить токен...</string>
     <string name="close_button_text">Закрыть</string>
     <string name="share_via_message">Поделиться в сообщении</string>
@@ -193,6 +194,7 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="reset_to_default_success">Дополнительные настройки сброшены по умолчанию</string>
     <string name="speed_notification_title">Уведомления:</string>
     <string name="speed_notification_enable">Скорость подключения в статус-баре</string>
+    <string name="traffic_notification_enable">Трафик подключения в статус-баре</string>
 
     <string name="home_screen_settings_title">Главный экран:</string>
     <string name="show_traffic_chart_label">Показывать график скорости</string>
