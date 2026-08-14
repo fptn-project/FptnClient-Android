@@ -24,10 +24,12 @@ import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.StatusBarManager;
 import android.content.ComponentName;
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.graphics.drawable.Icon;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.SpannableString;
@@ -55,7 +57,9 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import org.fptn.vpn.R;
 import org.fptn.vpn.core.common.Constants;
+import org.fptn.vpn.enums.ConnectionState;
 import org.fptn.vpn.services.tile.FptnTileService;
+import org.fptn.vpn.services.vpn.FptnService;
 import org.fptn.vpn.utils.SharedPrefUtils;
 import org.fptn.vpn.views.CustomBottomNavigationListener;
 
@@ -65,6 +69,7 @@ public class ExperimentalSettingsActivity extends AppCompatActivity {
     private static final int[] ATTEMPTS_COUNT_VALUES = {5, 15, 35, Integer.MAX_VALUE};
     private static final int[] FALLBACK_THRESHOLD_VALUES = {3, 6, 10, 15};
 
+    private SwitchCompat killSwitchSwitch;
     private SwitchCompat customDnsSwitch;
     private EditText customDnsInput;
 
@@ -98,6 +103,19 @@ public class ExperimentalSettingsActivity extends AppCompatActivity {
         CustomBottomNavigationListener bottomNavigationListener = new CustomBottomNavigationListener(this, R.id.menuSettings);
         bottomNavigationView.setOnItemSelectedListener(bottomNavigationListener);
         bottomNavigationView.setOnItemReselectedListener(bottomNavigationListener);
+
+        killSwitchSwitch = findViewById(R.id.kill_switch_switch);
+        killSwitchSwitch.setChecked(SharedPrefUtils.getKillSwitchEnabled(this));
+        killSwitchSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            SharedPrefUtils.saveKillSwitchEnabled(this, isChecked);
+            if (!isChecked && FptnTileService.getServiceStateMutableLiveData().getValue() == ConnectionState.BLOCKED) {
+                FptnService.startToDisconnect(this);
+            }
+        });
+
+        TextView systemKillSwitchLink = findViewById(R.id.kill_switch_system_button);
+        systemKillSwitchLink.setPaintFlags(systemKillSwitchLink.getPaintFlags() | android.graphics.Paint.UNDERLINE_TEXT_FLAG);
+        systemKillSwitchLink.setOnClickListener(v -> startActivity(new Intent(Settings.ACTION_VPN_SETTINGS)));
 
         customDnsSwitch = findViewById(R.id.custom_dns_switch);
         customDnsInput = findViewById(R.id.custom_dns_input);
@@ -284,6 +302,7 @@ public class ExperimentalSettingsActivity extends AppCompatActivity {
     }
 
     private void resetToDefault() {
+        killSwitchSwitch.setChecked(false);
         customDnsSwitch.setChecked(false);
         customDnsInput.setText("");
         showSpeedInNotificationSwitch.setChecked(false);
@@ -299,6 +318,7 @@ public class ExperimentalSettingsActivity extends AppCompatActivity {
         autoFallbackSwitch.setChecked(true);
         seekBarFallbackThreshold.setProgress(3); // default 15
 
+        SharedPrefUtils.saveKillSwitchEnabled(this, false);
         SharedPrefUtils.saveCustomDnsEnabled(this, false);
         SharedPrefUtils.saveCustomDnsIpv4(this, "");
         SharedPrefUtils.saveShowSpeedInNotification(this, false);

@@ -79,6 +79,7 @@ public final class SettingsBackupManager {
         Integer autoFallbackThreshold;
         Boolean showSpeedInNotification;
         Boolean showTrafficChart;
+        Boolean killSwitchEnabled;
     }
 
     private static class BackupAppRule {
@@ -113,6 +114,7 @@ public final class SettingsBackupManager {
         settings.autoFallbackThreshold = SharedPrefUtils.getAutoFallbackThreshold(context);
         settings.showSpeedInNotification = SharedPrefUtils.getShowSpeedInNotification(context);
         settings.showTrafficChart = SharedPrefUtils.getShowTrafficChart(context);
+        settings.killSwitchEnabled = SharedPrefUtils.getKillSwitchEnabled(context);
         backup.settings = settings;
 
         backup.perAppVpnApps = AppDatabase.getInstance(context).appInfoDAO().getAll().stream()
@@ -201,6 +203,9 @@ public final class SettingsBackupManager {
         }
         if (settings.showTrafficChart != null) {
             SharedPrefUtils.saveShowTrafficChart(context, settings.showTrafficChart);
+        }
+        if (settings.killSwitchEnabled != null) {
+            SharedPrefUtils.saveKillSwitchEnabled(context, settings.killSwitchEnabled);
         }
 
         if (backup.perAppVpnApps != null) {

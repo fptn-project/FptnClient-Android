@@ -201,6 +201,13 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="orientation_settings_title">جهت صفحه:</string>
     <string name="allow_landscape_label">چرخش خودکار صفحه</string>
 
+    <string name="kill_switch_title">کلید قطع (Kill-switch):</string>
+    <string name="kill_switch_description">اگر اتصال VPN قطع شود، تا زمانی که VPN را به‌صورت دستی خاموش نکنید اینترنت کار نخواهد کرد.</string>
+    <string name="kill_switch_enable">مسدود کردن ترافیک بدون VPN</string>
+    <string name="kill_switch_system_hint">تا زمانی کار می‌کند که فرایند برنامه زنده باشد: اگر اندروید فرایند را ببندد، رابط TUN برداشته می‌شود و ترافیک مستقیم عبور می‌کند. Always-on VPN (VPN دائمی) را خود اندروید اعمال می‌کند — آن را در تنظیمات همراه با مسدودسازی ترافیک فعال کنید.</string>
+    <string name="kill_switch_system_button">باز کردن تنظیمات VPN اندروید</string>
+    <string name="kill_switch_blocked">Kill-switch فعال شد: ترافیک مسدود است</string>
+
     <string name="auto_fallback_title">تغییر خودکار به سرورهای موجود:</string>
     <string name="auto_fallback_enable">تغییر سرور در صورت قطع ارتباط</string>
     <string name="auto_fallback_threshold_label">تلاش‌ها قبل از تغییر سرور:</string>

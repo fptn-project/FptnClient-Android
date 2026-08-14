@@ -125,7 +125,7 @@ public class FptnConnection extends Thread {
     @Setter
     private PendingIntent configureVpnIntent;
 
-    private ParcelFileDescriptor vpnInterface;
+    private volatile ParcelFileDescriptor vpnInterface;
     private FileOutputStream outputStream;
 
     private volatile boolean tunNeedsRecreate = false;
@@ -267,7 +267,11 @@ public class FptnConnection extends Thread {
     }
 
     private boolean runTunReadLoop(byte[] byteBuffer) throws InterruptedException, WebSocketAlreadyShutdownException {
-        try (FileInputStream inputStream = new FileInputStream(vpnInterface.getFileDescriptor())) {
+        ParcelFileDescriptor tunInterface = vpnInterface;
+        if (tunInterface == null) {
+            return false;
+        }
+        try (FileInputStream inputStream = new FileInputStream(tunInterface.getFileDescriptor())) {
             while (!currentThread.isInterrupted()) {
                 int length = inputStream.read(byteBuffer);
 
@@ -389,13 +393,8 @@ public class FptnConnection extends Thread {
                 XLog.tag(TAG).d("Unable to close output stream", e);
             }
         }
-        if (vpnInterface != null) {
-            try {
-                vpnInterface.close();
-            } catch (IOException e) {
-                XLog.tag(TAG).d("Unable to close interface", e);
-            }
-        }
+        service.retainTun(vpnInterface);
+        vpnInterface = null;
         webSocketClient.shutdown();
         scheduler.shutdown();
 

@@ -199,6 +199,13 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="orientation_settings_title">Ориентация экрана:</string>
     <string name="allow_landscape_label">Автоповорот экрана</string>
 
+    <string name="kill_switch_title">Kill-switch:</string>
+    <string name="kill_switch_description">Если соединение с VPN прервётся, интернет работать не будет, пока вы не отключите VPN вручную.</string>
+    <string name="kill_switch_enable">Блокировать трафик без VPN</string>
+    <string name="kill_switch_system_hint">Действует, пока жив процесс приложения: если Android завершит процесс, TUN-интерфейс снимется и трафик пойдёт напрямую. Always-on VPN (постоянный VPN) обеспечивает сам Android — включите его в настройках вместе с блокировкой трафика.</string>
+    <string name="kill_switch_system_button">Открыть настройки VPN в Android</string>
+    <string name="kill_switch_blocked">Сработал kill-switch: трафик заблокирован</string>
+
     <string name="auto_fallback_title">Авто-переключение на доступные серверы:</string>
     <string name="auto_fallback_enable">Менять сервер при потере связи</string>
     <string name="auto_fallback_threshold_label">Попыток до смены сервера:</string>

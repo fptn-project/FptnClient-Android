@@ -286,6 +286,13 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="orientation_settings_title">Screen orientation:</string>
     <string name="allow_landscape_label">Auto-rotate screen</string>
 
+    <string name="kill_switch_title">Kill-switch:</string>
+    <string name="kill_switch_description">If the VPN connection is lost, the internet will not work until you turn the VPN off manually.</string>
+    <string name="kill_switch_enable">Block traffic without VPN</string>
+    <string name="kill_switch_system_hint">Works while the app process is alive: if Android terminates the process, the TUN interface goes down and traffic flows directly. Always-on VPN is enforced by Android itself — enable it in settings together with blocking traffic without VPN.</string>
+    <string name="kill_switch_system_button">Open Android VPN settings</string>
+    <string name="kill_switch_blocked">Kill-switch triggered: traffic is blocked</string>
+
     <string name="auto_fallback_title">Auto-fallback to available servers:</string>
     <string name="auto_fallback_enable">Switch server on connection loss</string>
     <string name="auto_fallback_threshold_label">Attempts before switching server:</string>
