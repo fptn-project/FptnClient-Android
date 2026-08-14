@@ -338,7 +338,7 @@ public class FptnConnection extends Thread {
                 AppExclusion exclusion = new AppExclusion(service);
                 for (AppInfo appInfo : appInfos) {
                     String packageName = appInfo.getPackageName();
-                    if (exclusion.isExcluded(packageName)) {
+                    if (!serverEntity.isCensured() && exclusion.isExcluded(packageName)) {
                         continue;
                     }
                     try {
@@ -362,6 +362,9 @@ public class FptnConnection extends Thread {
     }
 
     private void addAlwaysExcludedApps(VpnService.Builder builder) {
+        if (serverEntity.isCensured()) {
+            return;
+        }
         AppExclusion exclusion = new AppExclusion(service);
         for (ApplicationInfo appInfo : service.getPackageManager().getInstalledApplications(0)) {
             if (!exclusion.isExcluded(appInfo.packageName)) {
