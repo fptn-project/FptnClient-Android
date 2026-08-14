@@ -116,6 +116,7 @@ public class FptnService extends VpnService {
     public static final String DISCONNECT_REASON_UNEXPECTED_ERROR = "reason:unexpected_error";
 
     private ParcelFileDescriptor blockingTun;
+    private volatile boolean sessionEstablished = false;
 
     private final AtomicReference<FptnConnection> activeConnection = new AtomicReference<>();
     private final AtomicInteger nextConnectionId = new AtomicInteger(1);
@@ -441,15 +442,11 @@ public class FptnService extends VpnService {
                 XLog.tag(TAG).w("Ignoring CONNECT — connection attempt already in progress [state=%s]", currentState);
                 return START_STICKY;
             }
+            sessionEstablished = false;
             startForegroundWithNotification(getString(R.string.connecting));
 
             if (!NetworkUtils.isOnline(connectivityManager)) {
                 XLog.tag(TAG).i("No internet — entering WAITING_FOR_NETWORK state");
-                // This IS the "reconnect on network loss" scenario the attempts setting is for:
-                // when the network returns half-alive, the first failed scan must go through the
-                // recovery cycle (retry/scan per the configured budget), not die with a terminal
-                // "all servers unreachable" — with restoringSession=false it did exactly that.
-                restoringSession = true;
                 remainingFallbackBudget.set(SharedPrefUtils.getReconnectAttemptsCount(this));
                 pendingServerId = intent.getIntExtra(SELECTED_SERVER, SELECTED_SERVER_ID_AUTO);
                 updateNotificationWithMessage(getString(R.string.waiting_for_network), "");
@@ -792,6 +789,7 @@ public class FptnService extends VpnService {
                 restoreRetryCount.set(0);
                 remainingFallbackBudget.set(SharedPrefUtils.getReconnectAttemptsCount(this));
                 restoreHandler.removeCallbacksAndMessages(null);
+                sessionEstablished = true;
                 closeBlockingTun();
                 String serverInfo = getActionConnectServerInfo();
                 updateNotificationWithMessage(getString(R.string.connected_to) + serverInfo, "");
@@ -922,7 +920,7 @@ public class FptnService extends VpnService {
         boolean adBlockEnabled = SharedPrefUtils.getAdBlockEnabled(this);
         boolean domainBlacklistEnabled = SharedPrefUtils.getDomainBlacklistEnabled(this);
         String domainBlacklist = domainBlacklistEnabled ? SharedPrefUtils.getDomainBlacklistDomains(this) : null;
-        DomainBlocker domainBlocker = new DomainBlocker(this, adBlockEnabled, domainBlacklist, true);
+        DomainBlocker domainBlocker = new DomainBlocker(this, adBlockEnabled, domainBlacklist, !serverEntity.isCensured());
 
         boolean customDnsEnabled = SharedPrefUtils.getCustomDnsEnabled(this);
         String customDnsIpv4 = customDnsEnabled ? SharedPrefUtils.getCustomDnsIpv4(this) : null;
@@ -1097,6 +1095,9 @@ public class FptnService extends VpnService {
     }
 
     private synchronized void raiseBlockingTun() {
+        if (!sessionEstablished) {
+            return;
+        }
         ParcelFileDescriptor previous = blockingTun;
         Builder builder = new Builder();
         builder.setConfigureIntent(launchMainActivityPendingIntent);
