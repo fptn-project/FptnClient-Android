@@ -474,66 +474,6 @@
                 </LinearLayout>
             </LinearLayout>
 
-            <!-- Sponsors -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="20dp"
-                android:layout_marginTop="20dp"
-                android:layout_marginEnd="20dp"
-                android:background="@drawable/round_settings_back_white10_20"
-                android:orientation="vertical"
-                android:padding="10dp">
-
-                <RelativeLayout
-                    android:id="@+id/sponsors_row"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:clickable="true"
-                    android:focusable="true">
-
-                    <ImageView
-                        android:id="@+id/sponsors_icon"
-                        android:layout_width="wrap_content"
-                        android:layout_height="32dp"
-                        android:layout_gravity="center"
-                        android:importantForAccessibility="no"
-                        android:paddingLeft="12dp"
-                        android:paddingRight="12dp"
-                        android:src="@drawable/ic_sponsors_update_24" />
-
-                    <TextView
-                        android:id="@+id/sponsors_header"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_centerVertical="true"
-                        android:layout_toEndOf="@id/sponsors_icon"
-                        android:text="@string/sponsors_text"
-                        android:textColor="@color/white"
-                        android:textStyle="normal" />
-                </RelativeLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="4dp"
-                    android:orientation="vertical"
-                    android:paddingLeft="12dp">
-
-                    <TextView
-                        android:id="@+id/sponsors_list"
-                        android:visibility="gone"
-                        android:layout_width="fill_parent"
-                        android:layout_height="wrap_content"
-                        android:lineSpacingExtra="8dp"
-                        android:scrollbars="vertical"
-                        android:text="@string/sponsors_usernames"
-                        android:textColor="@color/white"
-                        android:textStyle="normal" />
-                </LinearLayout>
-            </LinearLayout>
-
-
             <!-- Logs -->
             <LinearLayout
                 android:id="@+id/logs_viewer_layout"
@@ -671,6 +611,65 @@
                         android:textColor="@color/gray"
                         android:textSize="12sp" />
                 </RelativeLayout>
+            </LinearLayout>
+
+            <!-- Sponsors -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="20dp"
+                android:layout_marginEnd="20dp"
+                android:background="@drawable/round_settings_back_white10_20"
+                android:orientation="vertical"
+                android:padding="10dp">
+
+                <RelativeLayout
+                    android:id="@+id/sponsors_row"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <ImageView
+                        android:id="@+id/sponsors_icon"
+                        android:layout_width="wrap_content"
+                        android:layout_height="32dp"
+                        android:layout_gravity="center"
+                        android:importantForAccessibility="no"
+                        android:paddingLeft="12dp"
+                        android:paddingRight="12dp"
+                        android:src="@drawable/ic_sponsors_update_24" />
+
+                    <TextView
+                        android:id="@+id/sponsors_header"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:layout_toEndOf="@id/sponsors_icon"
+                        android:text="@string/sponsors_text"
+                        android:textColor="@color/white"
+                        android:textStyle="normal" />
+                </RelativeLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="4dp"
+                    android:orientation="vertical"
+                    android:paddingLeft="12dp">
+
+                    <TextView
+                        android:id="@+id/sponsors_list"
+                        android:visibility="gone"
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:lineSpacingExtra="8dp"
+                        android:scrollbars="vertical"
+                        android:text="@string/sponsors_usernames"
+                        android:textColor="@color/white"
+                        android:textStyle="normal" />
+                </LinearLayout>
             </LinearLayout>
 
             <!-- LOGOUT -->
