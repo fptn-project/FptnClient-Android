@@ -51,10 +51,18 @@ public class DomainBlocker {
     private static final int[] DETECTOR_DOMAIN_ARRAYS = {R.array.blocked_domains};
 
     private final Set<String> blockedDomains;
+    private final Set<String> allowedDomains;
 
     public DomainBlocker(Context context, boolean adBlockEnabled, String domainBlacklist,
             boolean blockDetectorDomains) {
         blockedDomains = new HashSet<>();
+        allowedDomains = new HashSet<>();
+        for (String domain : context.getResources().getStringArray(R.array.allowed_domains)) {
+            String d = domain.trim().toLowerCase();
+            if (d.contains(".")) {
+                allowedDomains.add(d);
+            }
+        }
         if (adBlockEnabled) {
             blockedDomains.addAll(loadBlocklist(context));
         }
@@ -75,7 +83,8 @@ public class DomainBlocker {
                 }
             }
         }
-        XLog.tag(TAG).i("Blocklist DNS loaded [domains=%d]", blockedDomains.size());
+        XLog.tag(TAG).i("Blocklist DNS loaded [domains=%d, allowed=%d]",
+                blockedDomains.size(), allowedDomains.size());
     }
 
     // Parses a user-entered domain list: newline/comma separated, optional
@@ -206,12 +215,15 @@ public class DomainBlocker {
         return name.toString();
     }
 
-    // Checks domain and all parent domains against blocklist.
+    // Checks domain and all parent domains against allowlist and blocklist.
     // e.g. "sub.ads.example.com" matches if "ads.example.com" or "example.com" is blocked.
+    // Allowlist is checked at each level first, so the most specific rule wins:
+    // allowing "example.com" still blocks "ads.example.com" if that is on the blocklist.
     private boolean isDomainBlocked(String domain) {
         if (domain == null) return false;
         String d = domain;
         while (d.contains(".")) {
+            if (allowedDomains.contains(d)) return false;
             if (blockedDomains.contains(d)) return true;
             int dot = d.indexOf('.');
             d = d.substring(dot + 1);
