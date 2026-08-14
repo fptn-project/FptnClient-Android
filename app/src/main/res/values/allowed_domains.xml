@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="allowed_domains" translatable="false">
+        <!-- ===== Google Play / Firebase app statistics ===== -->
+        <!-- Google Analytics for Firebase (GA4) event upload -->
+        <item>app-measurement.com</item>
+        <!-- Firebase Crashlytics: settings fetch and crash/ANR upload -->
+        <item>crashlytics.com</item>
+        <item>crashlyticsreports-pa.googleapis.com</item>
+        <!-- Firelog — transport for GA4, FCM and Performance Monitoring -->
+        <item>firebaselogging.googleapis.com</item>
+        <item>firebaselogging-pa.googleapis.com</item>
+        <!-- Google Play services client metrics -->
+        <item>clientmetrics-pa.googleapis.com</item>
+    </string-array>
+</resources>
