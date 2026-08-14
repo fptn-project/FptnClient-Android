@@ -372,6 +372,17 @@ public class SharedPrefUtils {
         sharedPreferences.edit().putBoolean(Constants.SHOW_TRAFFIC_CHART_PREF_KEY, show).apply();
     }
 
+    /* Kill-switch */
+    public static boolean getKillSwitchEnabled(Context context) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        return sharedPreferences.getBoolean(Constants.KILL_SWITCH_ENABLED_PREF_KEY, false);
+    }
+
+    public static void saveKillSwitchEnabled(Context context, boolean enabled) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        sharedPreferences.edit().putBoolean(Constants.KILL_SWITCH_ENABLED_PREF_KEY, enabled).apply();
+    }
+
     /* Landscape orientation. Default is device-dependent: true on tablets (sw600dp), false on phones. */
     public static boolean getAllowLandscape(Context context) {
         SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);

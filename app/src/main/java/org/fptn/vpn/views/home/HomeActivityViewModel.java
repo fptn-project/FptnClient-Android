@@ -125,11 +125,13 @@ public class HomeActivityViewModel extends AndroidViewModel {
                             statusTextLiveData.postValue(getApplication().getString(R.string.connecting));
                     case CONNECTED ->
                             statusTextLiveData.postValue(getApplication().getString(R.string.connected));
+                    case BLOCKED ->
+                            statusTextLiveData.postValue(getApplication().getString(R.string.kill_switch_blocked));
                     case RECONNECTING -> {} // text comes from exception below
                 }
 
                 PVNClientException exception = fptnServiceState.getException();
-                if (exception != null) {
+                if (exception != null && connectionState != ConnectionState.BLOCKED) {
                     handlePVNClientException(exception);
                 }
             }

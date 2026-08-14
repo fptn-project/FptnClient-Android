@@ -43,6 +43,7 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
+import android.os.ParcelFileDescriptor;
 import android.os.PowerManager;
 import android.service.quicksettings.TileService;
 
@@ -76,6 +77,7 @@ import org.fptn.vpn.views.splash.SplashActivity;
 import org.fptn.vpn.vpnclient.exception.ErrorCode;
 import org.fptn.vpn.vpnclient.exception.PVNClientException;
 
+import java.io.IOException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
@@ -106,6 +108,8 @@ public class FptnService extends VpnService {
     public static final String DISCONNECT_REASON_SYSTEM_REVOKED = "reason:system_revoked";
     public static final String DISCONNECT_REASON_CLOSED_UNEXPECTEDLY = "reason:closed_unexpectedly";
     public static final String DISCONNECT_REASON_UNEXPECTED_ERROR = "reason:unexpected_error";
+
+    private ParcelFileDescriptor retainedTun;
 
     private final AtomicReference<FptnConnection> activeConnection = new AtomicReference<>();
     private final AtomicInteger nextConnectionId = new AtomicInteger(1);
@@ -376,7 +380,7 @@ public class FptnService extends VpnService {
             // from being rate-limited/deduplicated by the system — which would cause the subsequent
             // DISCONNECTED call to be dropped and the tile to stay lit after a failed connection.
             if (newState == ConnectionState.CONNECTED || newState == ConnectionState.DISCONNECTED
-                    || newState == ConnectionState.WAITING_FOR_NETWORK) {
+                    || newState == ConnectionState.WAITING_FOR_NETWORK || newState == ConnectionState.BLOCKED) {
                 notifyTileListeningState();
             }
         };
@@ -404,9 +408,10 @@ public class FptnService extends VpnService {
 
         ConnectionState currentState = serviceStateMutableLiveData.getValue().getConnectionState();
         boolean isActiveState = currentState.isActiveState();
+        boolean acceptConnect = !isActiveState || currentState == ConnectionState.BLOCKED;
         XLog.tag(TAG).i("Received command [action=%s, state=%s]", intent.getAction(), currentState);
 
-        if (ACTION_CONNECT.equals(intent.getAction()) && !isActiveState) {
+        if (ACTION_CONNECT.equals(intent.getAction()) && acceptConnect) {
             restoringSession = false;
             restoreRetryCount.set(0);
             // Drop ALL pending restore work (grace runnable AND delayed retries) — a stale
@@ -759,6 +764,7 @@ public class FptnService extends VpnService {
                 restoreRetryCount.set(0);
                 remainingFallbackBudget.set(SharedPrefUtils.getReconnectAttemptsCount(this));
                 restoreHandler.removeCallbacksAndMessages(null);
+                closeRetainedTun();
                 String serverInfo = getActionConnectServerInfo();
                 updateNotificationWithMessage(getString(R.string.connected_to) + serverInfo, "");
 
@@ -1055,6 +1061,31 @@ public class FptnService extends VpnService {
         }
     }
 
+    synchronized void retainTun(ParcelFileDescriptor tun) {
+        if (tun == null || tun == retainedTun) {
+            return;
+        }
+        closeRetainedTun();
+        retainedTun = tun;
+        XLog.tag(TAG).i("TUN retained between attempts [fd=%s]", retainedTun);
+    }
+
+    private synchronized void closeRetainedTun() {
+        if (retainedTun == null) {
+            return;
+        }
+        try {
+            retainedTun.close();
+        } catch (IOException e) {
+            XLog.tag(TAG).d("Unable to close retained TUN", e);
+        }
+        retainedTun = null;
+    }
+
+    private synchronized boolean hasRetainedTun() {
+        return retainedTun != null;
+    }
+
     private void disconnect() {
         disconnect(null, null);
     }
@@ -1096,21 +1127,32 @@ public class FptnService extends VpnService {
         }
         // stop and null existed connection
         setActiveConnection(null);
-        // remove service from foreground - and remove notification
-        stopForeground(STOP_FOREGROUND_REMOVE);
-        // sometimes need to remove notification explicitly
-        removeForegroundNotification();
-        //send to UI activity that state is disconnected.
-        setConnectionState(ConnectionState.DISCONNECTED, exception, disconnectReason);
-
+        boolean involuntary = exception != null
+                || DISCONNECT_REASON_CLOSED_UNEXPECTEDLY.equals(disconnectReasonKey)
+                || DISCONNECT_REASON_UNEXPECTED_ERROR.equals(disconnectReasonKey);
+        boolean killSwitchHold = involuntary && hasRetainedTun() && SharedPrefUtils.getKillSwitchEnabled(this);
+        ConnectionState finalState = killSwitchHold ? ConnectionState.BLOCKED : ConnectionState.DISCONNECTED;
+        String errorText = null;
         if (exception != null) {
-            ErrorCode errorCode = exception.errorCode;
-            if (errorCode != ErrorCode.UNKNOWN_ERROR) {
-                String stringResourceByName = getStringResourceByName(getApplication(), errorCode.getValue());
-                showErrorNotification(stringResourceByName);
-            } else {
-                showErrorNotification(exception.errorMessage);
-            }
+            errorText = exception.errorCode != ErrorCode.UNKNOWN_ERROR
+                    ? getStringResourceByName(getApplication(), exception.errorCode.getValue())
+                    : exception.errorMessage;
+        }
+        if (killSwitchHold) {
+            String reason = errorText != null ? errorText : disconnectReason;
+            updateNotificationWithMessage(getString(R.string.kill_switch_blocked), reason != null ? reason : "");
+        } else {
+            closeRetainedTun();
+            // remove service from foreground - and remove notification
+            stopForeground(STOP_FOREGROUND_REMOVE);
+            // sometimes need to remove notification explicitly
+            removeForegroundNotification();
+        }
+        //send to UI activity that state is disconnected.
+        setConnectionState(finalState, exception, disconnectReason);
+
+        if (errorText != null) {
+            showErrorNotification(errorText);
         }
 
         // Release wakelock
@@ -1127,15 +1169,17 @@ public class FptnService extends VpnService {
                     resetSelectedServer();
 
                     //send to UI activity that state is disconnected.
-                    setConnectionState(ConnectionState.DISCONNECTED, exception, disconnectReason);
+                    setConnectionState(finalState, exception, disconnectReason);
                 } catch (ExecutionException | InterruptedException e) {
                     XLog.tag(TAG).e("Failed to reset selected server: %s", e.getMessage());
                 }
             });
         }
 
-        // stop service
-        stopSelf();
+        if (!killSwitchHold) {
+            // stop service
+            stopSelf();
+        }
     }
 
     private void removeForegroundNotification() {

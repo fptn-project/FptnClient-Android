@@ -217,6 +217,9 @@ public class HomeActivity extends AppCompatActivity {
                     }
 
                     break;
+                case BLOCKED:
+                    disconnectedStateUiItems();
+                    break;
                 default:
                     break;
             }
