@@ -1,3 +1,4 @@
+.vscode/
 app/gms/release/
 app/src/main/res/raw/blocklist.gz
 app/.classpath
