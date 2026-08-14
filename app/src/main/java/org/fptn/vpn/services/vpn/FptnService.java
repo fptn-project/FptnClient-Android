@@ -698,6 +698,15 @@ public class FptnService extends VpnService {
                     }
                 }
 
+                ServerEntity selectedServer = null;
+                if (serverId != SELECTED_SERVER_ID_AUTO) {
+                    selectedServer = appDatabase.serverDAO().getById(serverId);
+                    if (selectedServer == null) {
+                        XLog.tag(TAG).w("Server [id=%d] no longer exists — falling back to auto-select", serverId);
+                        serverId = SELECTED_SERVER_ID_AUTO;
+                    }
+                }
+
                 if (serverId == SELECTED_SERVER_ID_AUTO) {
                     try {
                         XLog.tag(TAG).i("Auto-selecting fastest server via login");
@@ -733,8 +742,7 @@ public class FptnService extends VpnService {
                 } else {
                     XLog.tag(TAG).i("Connecting to server [id=%d]", serverId);
                     setSelectedServer(serverId);
-                    ServerEntity server = getSelectedServer();
-                    connect(server, sniHostname, null);
+                    connect(selectedServer, sniHostname, null);
                 }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
