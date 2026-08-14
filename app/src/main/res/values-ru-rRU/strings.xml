@@ -152,7 +152,7 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="permission_warning_text">Для стабильной работы приложения предоставьте все разрешения на экране настроек</string>
 
 
-    <string name="sponsors_text">Спасибо нашим спонсорам</string>
+    <string name="sponsors_text">Спасибо нашим спонсорам ❤️</string>
     <string name="experimental_features_label">Дополнительные настройки</string>
     <string name="experimental_features_info">Тонкая настройка поведения подключения.</string>
     <string name="reconnect_on_change">Переподключение при изменении:</string>
