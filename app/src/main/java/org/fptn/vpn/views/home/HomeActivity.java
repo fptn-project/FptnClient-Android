@@ -196,6 +196,29 @@ public class HomeActivity extends AppCompatActivity {
             ((ServerEntityAdapter) spinnerServers.getAdapter()).setServerEntityList(serverEntities);
 
             spinnerServers.performClosedEvent(); // FIX SPINNER BACKGROUND
+            updateSpinnerSelection();
+        });
+
+        spinnerServers.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                if (!spinnerServers.hasBeenOpened()) {
+                    return;
+                }
+                if (spinnerServers.getAdapter() instanceof ServerEntityAdapter adapter) {
+                    List<ServerEntity> list = adapter.getServerEntityList();
+                    if (list != null && position < list.size()) {
+                        int serverId = list.get(position).getId();
+                        new Thread(() -> AppDatabase.getInstance(HomeActivity.this)
+                                .serverDAO()
+                                .setSelected(serverId)).start();
+                    }
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+            }
         });
 
         View settingsMenuItem = findViewById(R.id.menuSettings);
