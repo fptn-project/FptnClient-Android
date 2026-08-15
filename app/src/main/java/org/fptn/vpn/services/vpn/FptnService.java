@@ -1160,6 +1160,12 @@ public class FptnService extends VpnService {
     }
 
     private void disconnect(PVNClientException exception, String disconnectReasonKey) {
+        // onDestroy() вызывает disconnect() даже когда сервис был лишь привязан
+        // (пользователь просто открыл экран и ушёл) — это не «отключение»,
+        // и сбрасывать выбранный сервер в этом случае не нужно.
+        final boolean hadSession = activeConnection.get() != null
+                || sessionEstablished
+                || restoringSession;
         // Cancel any pending restore work so a scheduled retry can't resurrect a torn-down session.
         restoringSession = false;
         restoreRetryCount.set(0);
@@ -1218,8 +1224,9 @@ public class FptnService extends VpnService {
         unregisterNetworkWaitCallback();
         unregisterNetworkCallback();
 
-        if (SharedPrefUtils.getResetSelectedServerEnabled(this)
-                || (SharedPrefUtils.getResetSelectedServerOnExceptionEnabled(this) && exception != null)) {
+        if (hadSession
+                && (SharedPrefUtils.getResetSelectedServerEnabled(this)
+                || (SharedPrefUtils.getResetSelectedServerOnExceptionEnabled(this) && exception != null))) {
             executorService.submit(() -> {
                 try {
                     resetSelectedServer();
