@@ -235,34 +235,35 @@ tasks.register("downloadBlocklist") {
     doLast {
         outputFile.parentFile.mkdirs()
         val sources = listOf(
-            "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/domains/ultimate.txt",
+            "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/wildcard/ultimate-onlydomains.txt",
             "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts"
         )
-        var anySuccess = false
-        val tmpFile = File(outputFile.path + ".tmp")
-        GZIPOutputStream(tmpFile.outputStream()).bufferedWriter().use { writer ->
-            for (src in sources) {
+        val maxAttempts = 10
+        val retryDelayMs = 5_000L
+
+        val contents = sources.map { src ->
+            var content: String? = null
+            for (attempt in 1..maxAttempts) {
+                println("[blocklist] downloading $src (attempt $attempt/$maxAttempts)")
                 try {
-                    println("[blocklist] Downloading $src ...")
-                    URL(src).openStream().use { input: InputStream ->
-                        input.bufferedReader().forEachLine { line ->
-                            writer.write(line)
-                            writer.newLine()
-                        }
-                    }
-                    anySuccess = true
-                    println("[blocklist] OK: $src")
+                    content = URL(src).readText()
+                    break
                 } catch (e: Exception) {
-                    println("[blocklist] FAILED $src: ${e.message}")
+                    println("[blocklist] attempt $attempt failed: ${e.message}")
+                    if (attempt != maxAttempts) Thread.sleep(retryDelayMs)
                 }
             }
+            content ?: throw GradleException("[blocklist] failed $src after $maxAttempts attempts")
         }
-        if (!anySuccess) {
-            tmpFile.delete()
-            throw GradleException("[blocklist] All sources failed and no cached file found")
+
+        val tmpFile = File(outputFile.path + ".tmp")
+        GZIPOutputStream(tmpFile.outputStream()).bufferedWriter().use { writer ->
+            for (content in contents) {
+                writer.write(content)
+                if (!content.endsWith("\n")) writer.newLine()
+            }
         }
         tmpFile.renameTo(outputFile)
-        if (!anySuccess) throw GradleException("[blocklist] All sources failed and no cached file found")
         println("[blocklist] Saved to ${outputFile.path} (${outputFile.length() / 1024} KB)")
     }
 }
