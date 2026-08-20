@@ -85,6 +85,7 @@ Java_org_fptn_vpn_services_websocket_NativeWebSocketClientImpl_nativeCreate(
     jstring sni_param,
     jstring access_token_param,
     jstring expected_md5_fingerprint_param,
+    jstring client_version_param,
     jstring censorship_strategy_name_param,
     jstring connection_strategy_name_param) {
   fptn::wrapper::init_logger();  // will call only once
@@ -97,6 +98,8 @@ Java_org_fptn_vpn_services_websocket_NativeWebSocketClientImpl_nativeCreate(
   auto access_token = fptn::wrapper::ConvertToCString(env, access_token_param);
   auto expected_md5_fingerprint =
       fptn::wrapper::ConvertToCString(env, expected_md5_fingerprint_param);
+  auto client_version =
+      fptn::wrapper::ConvertToCString(env, client_version_param);
 
   const auto censorship_strategy_name =  fptn::wrapper::ConvertToCString(
             env,censorship_strategy_name_param);
@@ -172,6 +175,7 @@ Java_org_fptn_vpn_services_websocket_NativeWebSocketClientImpl_nativeCreate(
       std::move(sni),
       std::move(access_token),
       std::move(expected_md5_fingerprint),
+      std::move(client_version),
       censorship_strategy,
       connection_strategy
   );

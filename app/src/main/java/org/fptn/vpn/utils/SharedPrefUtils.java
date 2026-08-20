@@ -182,7 +182,7 @@ public class SharedPrefUtils {
                 return value;
             }
         }
-        return BypassCensorshipMethod.SNI_REALITY;
+        return BypassCensorshipMethod.TLS_OBFUSCATION;
     }
 
     public static void saveBypassCensorshipMethod(Context context, BypassCensorshipMethod method) {

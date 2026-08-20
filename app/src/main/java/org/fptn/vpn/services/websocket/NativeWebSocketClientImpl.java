@@ -23,6 +23,7 @@ package org.fptn.vpn.services.websocket;
 
 import com.elvishew.xlog.XLog;
 
+import org.fptn.vpn.BuildConfig;
 import org.fptn.vpn.enums.BypassCensorshipMethod;
 import org.fptn.vpn.enums.ConnectionStrategy;
 import org.fptn.vpn.enums.SniSpoofingMode;
@@ -108,6 +109,7 @@ public class NativeWebSocketClientImpl {
                 sniHostName,
                 accessToken,
                 md5ServerFingerprint,
+                BuildConfig.VERSION_NAME,
                 censorshipStrategyName,
                 connectionStrategy.getNativeName()
         );
@@ -211,6 +213,7 @@ public class NativeWebSocketClientImpl {
                                      String sni,
                                      String access_token,
                                      String expected_md5_fingerprint,
+                                     String client_version,
                                      String censorship_strategy_name,
                                      String connection_strategy_name);
 
