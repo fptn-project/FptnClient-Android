@@ -2,6 +2,12 @@
 <resources>
     <string-array name="always_excluded_apps" translatable="false">
         <!-- ===== RU ===== -->
+        <item>ru.yoo.money</item>
+        <item>com.yoo.money</item>
+        <item>ru.vkusvill</item>
+        <item>com.vkusvill</item>
+        <item>ru.apteki.plus</item>
+        <item>com.apteki.plus</item>
         <item>aero.pobeda.twa</item>
         <item>agent.rko.psb.finstar.online</item>
         <item>alfa.life.mapp</item>
@@ -120,7 +126,7 @@
         <item>com.ncloudtech</item>
         <item>com.notissimus</item>
         <item>com.octopod</item>
-        <item>com.octopod.russianpost.client.android</item>
+        <item>com.octopod.russianpost</item>
         <item>com.oplatagosuslug</item>
         <item>com.platfomni</item>
         <item>com.pobeda</item>

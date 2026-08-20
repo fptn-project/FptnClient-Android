@@ -44,6 +44,7 @@ WrapperWebsocketClient::WrapperWebsocketClient(jobject wrapper,
     std::string sni,
     std::string access_token,
     std::string expected_md5_fingerprint,
+    std::string client_version,
     fptn::protocol::https::CensorshipStrategy censorship_strategy,
     fptn::protocol::connection::strategies::ConnectionStrategy
         connection_strategy)
@@ -57,6 +58,7 @@ WrapperWebsocketClient::WrapperWebsocketClient(jobject wrapper,
       tun_ipv6_(tun_ipv6),
       access_token_(std::move(access_token)),
       expected_md5_fingerprint_(std::move(expected_md5_fingerprint)),
+      client_version_(std::move(client_version)),
       censorship_strategy_(censorship_strategy),
       connection_strategy_(connection_strategy)
       {}
@@ -160,6 +162,7 @@ void WrapperWebsocketClient::Run() {
                 .server_port = static_cast<std::uint16_t>(server_port_),
                 .sni = sni_,
                 .md5_fingerprint = expected_md5_fingerprint_,
+                .client_version = client_version_,
                 .censorship_strategy = censorship_strategy_,
                 .tun_interface_address_ipv4 =
                     fptn::common::network::IPv4Address(tun_ipv4_),

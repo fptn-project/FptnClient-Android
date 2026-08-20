@@ -40,6 +40,7 @@ class WrapperWebsocketClient final {
       std::string sni,
       std::string access_token,
       std::string expected_md5_fingerprint,
+      std::string client_version,
       fptn::protocol::https::CensorshipStrategy censorship_strategy,
       fptn::protocol::connection::strategies::ConnectionStrategy
           connection_strategy);
@@ -97,6 +98,7 @@ class WrapperWebsocketClient final {
   const std::string sni_;
   const std::string access_token_;
   const std::string expected_md5_fingerprint_;
+  const std::string client_version_;
   const fptn::protocol::https::CensorshipStrategy censorship_strategy_;
   const fptn::protocol::connection::strategies::ConnectionStrategy
       connection_strategy_;
