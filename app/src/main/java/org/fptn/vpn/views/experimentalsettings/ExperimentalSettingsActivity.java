@@ -79,6 +79,7 @@ public class ExperimentalSettingsActivity extends AppCompatActivity {
     private SeekBar seekBarDelayBetween;
     private SwitchCompat resetServerAfterDisconnectSwitch;
     private SwitchCompat resetServerAfterDisconnectOnException;
+    private SwitchCompat connectFailedHelpSwitch;
     private SwitchCompat autoFallbackSwitch;
     private View autoFallbackThresholdLayout;
     private SeekBar seekBarFallbackThreshold;
@@ -269,6 +270,12 @@ public class ExperimentalSettingsActivity extends AppCompatActivity {
             SharedPrefUtils.saveResetSelectedServerEnabled(this, isChecked);
         });
 
+        // Help after failed connections
+        connectFailedHelpSwitch = findViewById(R.id.connect_failed_help_switch);
+        connectFailedHelpSwitch.setChecked(SharedPrefUtils.getConnectFailedHelpEnabled(this));
+        connectFailedHelpSwitch.setOnCheckedChangeListener(
+                (buttonView, isChecked) -> SharedPrefUtils.saveConnectFailedHelpEnabled(this, isChecked));
+
         // Auto-fallback to all servers
         autoFallbackSwitch = findViewById(R.id.auto_fallback_switch);
         autoFallbackSwitch.setChecked(SharedPrefUtils.getAutoFallbackEnabled(this));
@@ -322,6 +329,7 @@ public class ExperimentalSettingsActivity extends AppCompatActivity {
         seekBarDelayBetween.setProgress(0); // default 1s
         resetServerAfterDisconnectSwitch.setChecked(true);
         resetServerAfterDisconnectOnException.setChecked(false);
+        connectFailedHelpSwitch.setChecked(true);
         autoFallbackSwitch.setChecked(true);
         seekBarFallbackThreshold.setProgress(3); // default 15
 
@@ -340,6 +348,7 @@ public class ExperimentalSettingsActivity extends AppCompatActivity {
         SharedPrefUtils.saveDelayBetweenReconnect(this, 1);
         SharedPrefUtils.saveResetSelectedServerEnabled(this, true);
         SharedPrefUtils.saveResetSelectedServerOnExceptionEnabled(this, false);
+        SharedPrefUtils.saveConnectFailedHelpEnabled(this, true);
         SharedPrefUtils.saveAutoFallbackEnabled(this, true);
         SharedPrefUtils.saveAutoFallbackThreshold(this, FALLBACK_THRESHOLD_VALUES[3]);
 

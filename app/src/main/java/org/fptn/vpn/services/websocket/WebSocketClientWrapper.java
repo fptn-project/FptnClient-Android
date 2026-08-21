@@ -41,6 +41,7 @@ import lombok.Getter;
 public class WebSocketClientWrapper {
     private static final String DNS_URL = "/api/v1/dns";
     private static final String LOGIN_URL = "/api/v1/login";
+    private static final int MAX_API_ATTEMPTS = 5;
 
     private final ServerEntity serverEntity;
 
@@ -187,8 +188,7 @@ public class WebSocketClientWrapper {
         );
         String requestBody = new Gson().toJson(loginRequest);
 
-        int maxAttempts = 7;
-        for (int attempt = 1; attempt <= maxAttempts; attempt++) {
+        for (int attempt = 1; attempt <= MAX_API_ATTEMPTS; attempt++) {
             if (isShutdown() || Thread.currentThread().isInterrupted()) {
                 throw new PVNClientException(ErrorCode.CONNECT_TO_SERVER_ERROR);
             }
@@ -208,8 +208,8 @@ public class WebSocketClientWrapper {
                     throw new PVNClientException(ErrorCode.ACCESS_TOKEN_ERROR);
                 }
             }
-            XLog.tag(getTag()).w("Access token request failed [attempt=%d/%d]", attempt, maxAttempts);
-            if (attempt < maxAttempts) {
+            XLog.tag(getTag()).w("Access token request failed [attempt=%d/%d]", attempt, MAX_API_ATTEMPTS);
+            if (attempt < MAX_API_ATTEMPTS) {
                 try {
                     Thread.sleep(300);
                 } catch (InterruptedException e) {
@@ -226,8 +226,7 @@ public class WebSocketClientWrapper {
             XLog.d(getTag(), "Re-using cached DNS servers (skipping /api/v1/dns request)");
             return cachedDnsServers;
         }
-        int maxAttempts = 7;
-        for (int attempt = 1; attempt <= maxAttempts; attempt++) {
+        for (int attempt = 1; attempt <= MAX_API_ATTEMPTS; attempt++) {
             if (isShutdown() || Thread.currentThread().isInterrupted()) {
                 throw new PVNClientException(ErrorCode.CONNECT_TO_SERVER_ERROR);
             }
@@ -238,8 +237,8 @@ public class WebSocketClientWrapper {
                 cachedDnsServers = dnsServers;
                 return dnsServers;
             }
-            XLog.tag(getTag()).w("DNS server request failed [attempt=%d/%d]", attempt, maxAttempts);
-            if (attempt < maxAttempts) {
+            XLog.tag(getTag()).w("DNS server request failed [attempt=%d/%d]", attempt, MAX_API_ATTEMPTS);
+            if (attempt < MAX_API_ATTEMPTS) {
                 try {
                     Thread.sleep(300);
                 } catch (InterruptedException e) {

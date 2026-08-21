@@ -97,6 +97,13 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="token_reminder_later">Later</string>
     <string name="token_saving_failed">Invalid link format!</string>
 
+    <string name="connect_failed_help_title">Couldn\'t connect</string>
+    <string name="connect_failed_help_message">Change the bypass blocking method, or get a new token if you haven\'t updated it for more than three days.</string>
+    <string name="connect_failed_help_message_token_stale">Change the bypass blocking method, or get a new token — yours has not been updated for more than three days.</string>
+    <string name="connect_failed_help_get_token">Get token</string>
+    <string name="connect_failed_help_bypass">Change bypass method</string>
+    <string name="connect_failed_help_skip">Skip</string>
+
     <string name="telegram_bot_link" translatable="false">https://t.me/fptn_bot</string>
 
     <!--Error codes strings-->
@@ -284,6 +291,10 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="speed_notification_title">Notification:</string>
     <string name="speed_notification_enable">Connection speed in status bar</string>
     <string name="traffic_notification_enable">Connection traffic in status bar</string>
+
+    <string name="connect_failed_help_settings_title">Failed connection hints:</string>
+    <string name="connect_failed_help_settings_description">If a connection from scratch fails twice in a row, a dialog offers to change the bypass blocking method or get a new token.</string>
+    <string name="connect_failed_help_enable">Show hints after failed connections</string>
 
     <string name="home_screen_settings_title">Home screen:</string>
     <string name="show_traffic_chart_label">Show speed chart</string>
