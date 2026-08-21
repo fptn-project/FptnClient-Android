@@ -46,8 +46,19 @@ enum class ErrorCode(
                 ACCESS_TOKEN_ERROR,
             )
 
+        private val serverUnreachableErrorCodes =
+            listOf(
+                ALL_SERVERS_UNREACHABLE,
+                FIND_FASTEST_SERVER_TIMEOUT,
+                CONNECT_TO_SERVER_ERROR,
+            )
+
         fun isNeedToOfferRefreshToken(errorCode: ErrorCode): Boolean {
             return errorCodesWithOfferingRefreshToken.contains(errorCode)
+        }
+
+        fun isServerUnreachable(errorCode: ErrorCode): Boolean {
+            return serverUnreachableErrorCodes.contains(errorCode)
         }
 
         fun getErrorCodeByValue(value: String): ErrorCode {

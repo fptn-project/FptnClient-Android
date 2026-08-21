@@ -69,6 +69,7 @@ import org.fptn.vpn.utils.ViewUtils;
 import org.fptn.vpn.views.CustomBottomNavigationListener;
 import org.fptn.vpn.views.adapter.ServerEntityAdapter;
 import org.fptn.vpn.services.vpn.FptnService;
+import org.fptn.vpn.views.bypassmethod.BypassMethodsActivity;
 import org.fptn.vpn.views.updatetoken.UpdateTokenActivity;
 import org.fptn.vpn.vpnclient.exception.ErrorCode;
 import org.fptn.vpn.vpnclient.exception.PVNClientException;
@@ -110,6 +111,7 @@ public class HomeActivity extends AppCompatActivity {
 
     // Background-setup checklist dialog (notifications / battery / pin), refreshed on resume
     private AlertDialog backgroundSetupDialog;
+    private AlertDialog connectFailedHelpDialog;
     private ImageView notificationsStateIcon;
     private ImageView batteryStateIcon;
     private ImageView pinStateIcon;
@@ -245,6 +247,9 @@ public class HomeActivity extends AppCompatActivity {
                         startActivity(browserIntent);
                     });
                     snackbar.show();
+                } else if (fptnServiceState.getConnectionState() == ConnectionState.DISCONNECTED
+                        && ErrorCode.Companion.isServerUnreachable(exception.errorCode)) {
+                    maybeShowConnectFailedHelpDialog();
                 }
             }
         });
@@ -299,6 +304,8 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     private static final long TOKEN_MAX_AGE_MS = 14L * 24 * 60 * 60 * 1000;
+    private static final long TOKEN_STALE_AGE_MS = 3L * 24 * 60 * 60 * 1000;
+    private static final int CONNECT_FAILURES_BEFORE_HELP = 2;
 
     private boolean maybeShowTokenReminder() {
         long age = System.currentTimeMillis() - SharedPrefUtils.getTokenUpdatedDate(this);
@@ -321,6 +328,43 @@ public class HomeActivity extends AppCompatActivity {
             messageView.setMovementMethod(LinkMovementMethod.getInstance());
         }
         return true;
+    }
+
+    private void maybeShowConnectFailedHelpDialog() {
+        if (!SharedPrefUtils.getConnectFailedHelpEnabled(this)
+                || SharedPrefUtils.getConnectFailuresInRow(this) < CONNECT_FAILURES_BEFORE_HELP) {
+            return;
+        }
+        SharedPrefUtils.saveConnectFailuresInRow(this, 0);
+        if (isFinishing() || isDestroyed()
+                || (connectFailedHelpDialog != null && connectFailedHelpDialog.isShowing())) {
+            return;
+        }
+
+        boolean tokenIsStale = System.currentTimeMillis() - SharedPrefUtils.getTokenUpdatedDate(this) > TOKEN_STALE_AGE_MS;
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_connect_failed_help, null);
+        ((TextView) dialogView.findViewById(R.id.connect_failed_help_message)).setText(tokenIsStale
+                ? R.string.connect_failed_help_message_token_stale
+                : R.string.connect_failed_help_message);
+
+        connectFailedHelpDialog = new AlertDialog.Builder(this)
+                .setView(dialogView)
+                .setCancelable(true)
+                .create();
+
+        dialogView.findViewById(R.id.connect_failed_help_get_token).setOnClickListener(v -> {
+            connectFailedHelpDialog.dismiss();
+            startActivity(new Intent(this, UpdateTokenActivity.class));
+        });
+        dialogView.findViewById(R.id.connect_failed_help_bypass).setOnClickListener(v -> {
+            connectFailedHelpDialog.dismiss();
+            startActivity(new Intent(this, BypassMethodsActivity.class));
+        });
+        dialogView.findViewById(R.id.connect_failed_help_skip)
+                .setOnClickListener(v -> connectFailedHelpDialog.dismiss());
+
+        connectFailedHelpDialog.setOnDismissListener(d -> connectFailedHelpDialog = null);
+        connectFailedHelpDialog.show();
     }
 
     private void adjustButtonVerticalBias() {

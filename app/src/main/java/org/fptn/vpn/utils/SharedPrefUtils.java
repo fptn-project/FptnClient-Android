@@ -298,6 +298,27 @@ public class SharedPrefUtils {
         sharedPreferences.edit().putLong(Constants.TOKEN_UPDATED_DATE_PREF_KEY, millis).apply();
     }
 
+    /* Help dialog after failed connections */
+    public static boolean getConnectFailedHelpEnabled(Context context) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        return sharedPreferences.getBoolean(Constants.CONNECT_FAILED_HELP_ENABLED_PREF_KEY, true);
+    }
+
+    public static void saveConnectFailedHelpEnabled(Context context, boolean enabled) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        sharedPreferences.edit().putBoolean(Constants.CONNECT_FAILED_HELP_ENABLED_PREF_KEY, enabled).apply();
+    }
+
+    public static int getConnectFailuresInRow(Context context) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        return sharedPreferences.getInt(Constants.CONNECT_FAILURES_IN_ROW_PREF_KEY, 0);
+    }
+
+    public static void saveConnectFailuresInRow(Context context, int count) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        sharedPreferences.edit().putInt(Constants.CONNECT_FAILURES_IN_ROW_PREF_KEY, count).apply();
+    }
+
     /* Remote exclusion lists (synced from GitHub, see RemoteExclusionListSync) */
     public static Set<String> getRemoteExcludedApps(Context context) {
         SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);

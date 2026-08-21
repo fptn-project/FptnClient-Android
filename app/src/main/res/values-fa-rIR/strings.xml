@@ -90,6 +90,12 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="token_reminder_later">بعداً</string>
     <string name="token_saving_failed">فرمت توکن نامعتبر است!</string>
 
+    <string name="connect_failed_help_title">اتصال برقرار نشد</string>
+    <string name="connect_failed_help_message">روش دور زدن محدودیت‌ها را تغییر دهید، یا اگر بیش از سه روز توکن خود را به‌روزرسانی نکرده‌اید، توکن جدید بگیرید.</string>
+    <string name="connect_failed_help_message_token_stale">روش دور زدن محدودیت‌ها را تغییر دهید، یا توکن جدید بگیرید — توکن شما بیش از سه روز است به‌روزرسانی نشده.</string>
+    <string name="connect_failed_help_get_token">دریافت توکن</string>
+    <string name="connect_failed_help_bypass">تغییر روش دور زدن</string>
+    <string name="connect_failed_help_skip">رد کردن</string>
 
     <!--Сообщения об ошибках-->
     <string name="server_list_is_empty">فهرست سرورها خالی است!</string>
@@ -197,6 +203,10 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="speed_notification_title">اعلان:</string>
     <string name="speed_notification_enable">سرعت اتصال در نوار وضعیت</string>
     <string name="traffic_notification_enable">ترافیک اتصال در نوار وضعیت</string>
+
+    <string name="connect_failed_help_settings_title">راهنما هنگام اتصال ناموفق:</string>
+    <string name="connect_failed_help_settings_description">اگر اتصال از ابتدا دو بار پشت سر هم ناموفق باشد، پنجره‌ای برای تغییر روش دور زدن محدودیت‌ها یا دریافت توکن جدید نمایش داده می‌شود.</string>
+    <string name="connect_failed_help_enable">نمایش راهنما پس از اتصال‌های ناموفق</string>
 
     <string name="home_screen_settings_title">صفحه اصلی:</string>
     <string name="show_traffic_chart_label">نمایش نمودار سرعت</string>

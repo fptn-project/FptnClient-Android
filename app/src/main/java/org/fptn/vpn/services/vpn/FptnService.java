@@ -117,6 +117,7 @@ public class FptnService extends VpnService {
 
     private ParcelFileDescriptor blockingTun;
     private volatile boolean sessionEstablished = false;
+    private volatile boolean coldConnectAttempt = false;
 
     private final AtomicReference<FptnConnection> activeConnection = new AtomicReference<>();
     private final AtomicInteger nextConnectionId = new AtomicInteger(1);
@@ -420,6 +421,7 @@ public class FptnService extends VpnService {
             // restore cycle instead of dying on the first failed scan — the network is often
             // not usable yet right after a process kill.
             restoringSession = true;
+            coldConnectAttempt = false;
             // Fresh process: the episode budget field is still 0 — fund the recovery episode,
             // otherwise the first escalation to a scan sees an exhausted budget and dies.
             remainingFallbackBudget.set(SharedPrefUtils.getReconnectAttemptsCount(this));
@@ -443,6 +445,7 @@ public class FptnService extends VpnService {
                 return START_STICKY;
             }
             sessionEstablished = false;
+            coldConnectAttempt = true;
             startForegroundWithNotification(getString(R.string.connecting));
 
             if (!NetworkUtils.isOnline(connectivityManager)) {
@@ -790,6 +793,8 @@ public class FptnService extends VpnService {
                 remainingFallbackBudget.set(SharedPrefUtils.getReconnectAttemptsCount(this));
                 restoreHandler.removeCallbacksAndMessages(null);
                 sessionEstablished = true;
+                coldConnectAttempt = false;
+                SharedPrefUtils.saveConnectFailuresInRow(this, 0);
                 closeBlockingTun();
                 String serverInfo = getActionConnectServerInfo();
                 updateNotificationWithMessage(getString(R.string.connected_to) + serverInfo, "");
@@ -1204,6 +1209,15 @@ public class FptnService extends VpnService {
             // sometimes need to remove notification explicitly
             removeForegroundNotification();
         }
+        if (exception != null && coldConnectAttempt && !sessionEstablished
+                && ErrorCode.Companion.isServerUnreachable(exception.errorCode)) {
+            coldConnectAttempt = false;
+            int failuresInRow = SharedPrefUtils.getConnectFailuresInRow(this) + 1;
+            SharedPrefUtils.saveConnectFailuresInRow(this, failuresInRow);
+            XLog.tag(TAG).w("Connect from scratch failed [code=%s, failuresInRow=%d]",
+                    exception.errorCode, failuresInRow);
+        }
+
         //send to UI activity that state is disconnected.
         setConnectionState(finalState, exception, disconnectReason);
 
