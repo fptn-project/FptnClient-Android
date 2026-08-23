@@ -236,7 +236,8 @@ tasks.register("downloadBlocklist") {
     doLast {
         outputFile.parentFile.mkdirs()
         val sources = listOf(
-            "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/wildcard/ultimate-onlydomains.txt",
+            // Disabled: hagezi ultimate adds ~257k domains on top! It causes memory issues
+            // "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/wildcard/ultimate-onlydomains.txt",
             "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts"
         )
         val maxAttempts = 10
