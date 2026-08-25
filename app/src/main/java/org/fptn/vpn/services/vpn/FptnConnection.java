@@ -32,6 +32,7 @@ import android.app.PendingIntent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
+import android.net.IpPrefix;
 import android.net.VpnService;
 import android.os.Build;
 import android.os.ParcelFileDescriptor;
@@ -39,14 +40,17 @@ import android.os.ParcelFileDescriptor;
 import com.elvishew.xlog.XLog;
 
 import org.fptn.vpn.utils.AppExclusion;
-import org.fptn.vpn.domainblocker.DomainBlocker;
+import org.fptn.vpn.network.DomainBlocker;
 import org.fptn.vpn.database.entity.ServerEntity;
 import org.fptn.vpn.enums.BypassCensorshipMethod;
+import org.fptn.vpn.enums.ConnectionSubnets;
 import org.fptn.vpn.enums.ConnectionStrategy;
 import org.fptn.vpn.enums.ConnectionState;
 import org.fptn.vpn.enums.NetworkType;
 import org.fptn.vpn.enums.PerAppVpnMode;
 import org.fptn.vpn.enums.SniSpoofingMode;
+import org.fptn.vpn.network.IPPacket;
+import org.fptn.vpn.network.Splitter;
 import org.fptn.vpn.services.websocket.DnsServers;
 import org.fptn.vpn.services.websocket.WebSocketAlreadyShutdownException;
 import org.fptn.vpn.services.websocket.WebSocketClientWrapper;
@@ -60,11 +64,15 @@ import org.fptn.vpn.vpnclient.exception.PVNClientException;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
@@ -72,21 +80,23 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import inet.ipaddr.IPAddress;
 import inet.ipaddr.IPAddressString;
 import lombok.Getter;
 import lombok.Setter;
 
-public class FptnConnection extends Thread {
+public class FptnConnection extends Thread implements Splitter.Bridge {
     private static final String TAG = FptnConnection.class.getSimpleName();
 
     /**
      * Maximum packet size is constrained by the MTU
      */
     private static final int MAX_PACKET_SIZE = 1500;
+
+    private static final ConnectionSubnets[] RESERVED_SUBNETS = {
+            LOCAL_TUN_INTERFACE_SUBNET, FPTN_SERVER_SUBNET, LOCAL_SUBNET
+    };
 
     /**
      * Google apps (YouTube, Gmail, ...) rely on these companion packages; without
@@ -143,7 +153,13 @@ public class FptnConnection extends Thread {
     private final List<AppInfo> appInfos;
     private final ConnectivityManager connectivityManager;
     private final DomainBlocker domainBlocker; // null when ad blocking and domain blacklist are disabled
+    private final Set<String> bypassDomains; // null when split tunneling is off
+    private final Map<Integer, Long> bypassAddresses; // outlives reconnects
+    private volatile Splitter splitter;
     private final String customDnsIpv4; // null when custom DNS is disabled
+
+    private List<String> allowedPackages;
+    private List<String> disallowedPackages;
 
     public FptnConnection(final FptnService service,
                           final int connectionId,
@@ -162,6 +178,8 @@ public class FptnConnection extends Thread {
                           final String preFetchedToken,
                           final ConnectivityManager connectivityManager,
                           final DomainBlocker domainBlocker,
+                          final Set<String> bypassDomains,
+                          final Map<Integer, Long> bypassAddresses,
                           final String customDnsIpv4,
                           final DnsServers preFetchedDnsServers) {
         this.service = service;
@@ -173,6 +191,8 @@ public class FptnConnection extends Thread {
         this.appInfos = appInfos;
         this.connectivityManager = connectivityManager;
         this.domainBlocker = domainBlocker;
+        this.bypassDomains = bypassDomains;
+        this.bypassAddresses = bypassAddresses;
         this.customDnsIpv4 = customDnsIpv4;
         this.maxReconnectCount = maxReconnectCount;
         this.fallbackThreshold = fallbackThreshold;
@@ -200,6 +220,10 @@ public class FptnConnection extends Thread {
                 connectionId, serverEntity.getServerInfo(), Thread.currentThread().getId());
         try {
             sendConnectionStateToService(ConnectionState.CONNECTING);
+
+            if (bypassDomains != null && !bypassDomains.isEmpty()) {
+                splitter = new Splitter(bypassDomains, bypassAddresses, this);
+            }
 
             setupTun();
             webSocketClient.startWebSocket();
@@ -267,12 +291,21 @@ public class FptnConnection extends Thread {
         if (tunInterface == null) {
             return false;
         }
+
         try (FileInputStream inputStream = new FileInputStream(tunInterface.getFileDescriptor())) {
             while (!currentThread.isInterrupted()) {
                 int length = inputStream.read(byteBuffer);
 
-                if (domainBlocker != null && DomainBlocker.isDnsPacket(byteBuffer, length)) {
-                    byte[] blockedResponse = domainBlocker.processPacket(byteBuffer, length);
+                IPPacket packet = new IPPacket(byteBuffer, length);
+                if (packet.isOk() && splitter != null && splitter.handleOutbound(packet)) {
+                    continue;
+                }
+
+                if (packet.isOk() && domainBlocker != null) {
+                    byte[] blockedResponse = domainBlocker.processPacket(packet);
+                    if (blockedResponse == null) {
+                        blockedResponse = domainBlocker.blockBySni(packet);
+                    }
                     if (blockedResponse != null) {
                         if (outputStream != null) {
                             outputStream.write(blockedResponse);
@@ -287,6 +320,7 @@ public class FptnConnection extends Thread {
                 // No blocking/waiting on the native layer's reconnect state; the read loop
                 // keeps draining the TUN interface regardless.
                 webSocketClient.send(byteBuffer, length);
+
             }
         } catch (IOException ex) {
             if (tunNeedsRecreate && !currentThread.isInterrupted()) {
@@ -307,74 +341,67 @@ public class FptnConnection extends Thread {
     }
 
     private void configurePerAppMode(VpnService.Builder builder) {
-        // Per-app routing
-        if (perAppVpnMode == PerAppVpnMode.OFF) {
-            String thisAppPackageName = service.getPackageName();
+        if (allowedPackages == null) {
+            resolvePerAppLists();
+        }
+        for (String packageName : allowedPackages) {
             try {
-                builder.addDisallowedApplication(thisAppPackageName); // todo: MAYBE something wrong with routes
+                builder.addAllowedApplication(packageName);
             } catch (PackageManager.NameNotFoundException e) {
-                XLog.tag(TAG).w("[id=%d] Package not found, skipping [pkg=%s]", connectionId, thisAppPackageName);
+                XLog.tag(TAG).w("[id=%d] Package not found, skipping [pkg=%s]", connectionId, packageName);
             }
-            addAlwaysExcludedApps(builder);
+        }
+        for (String packageName : disallowedPackages) {
+            try {
+                builder.addDisallowedApplication(packageName);
+            } catch (PackageManager.NameNotFoundException e) {
+                XLog.tag(TAG).w("[id=%d] Package not found, skipping [pkg=%s]", connectionId, packageName);
+            }
+        }
+    }
+
+    private void resolvePerAppLists() {
+        allowedPackages = new ArrayList<>();
+        disallowedPackages = new ArrayList<>();
+
+        if (perAppVpnMode == PerAppVpnMode.OFF) {
+            disallowedPackages.add(service.getPackageName());
+            addAlwaysExcludedApps();
         } else if (perAppVpnMode == PerAppVpnMode.ONLY_ALLOWED) {
             if (appInfos.isEmpty()) {
                 // No apps selected: disallow every installed app so no user traffic is tunneled
                 for (ApplicationInfo appInfo : service.getPackageManager().getInstalledApplications(0)) {
-                    try {
-                        builder.addDisallowedApplication(appInfo.packageName);
-                    } catch (PackageManager.NameNotFoundException e) {
-                        XLog.tag(TAG).w("[id=%d] Package not found, skipping [pkg=%s]", connectionId, appInfo.packageName);
-                    }
+                    disallowedPackages.add(appInfo.packageName);
                 }
             } else {
                 // Implicitly tunnel Google's companion services so Google apps
                 // (YouTube, Gmail, ...) don't break in allowed-only mode.
-                for (String googlePackage : GOOGLE_SERVICE_PACKAGES) {
-                    try {
-                        builder.addAllowedApplication(googlePackage);
-                    } catch (PackageManager.NameNotFoundException e) {
-                        XLog.tag(TAG).d("[id=%d] Google service not installed, skipping [pkg=%s]", connectionId, googlePackage);
-                    }
-                }
+                allowedPackages.addAll(Arrays.asList(GOOGLE_SERVICE_PACKAGES));
                 AppExclusion exclusion = new AppExclusion(service);
                 for (AppInfo appInfo : appInfos) {
                     String packageName = appInfo.getPackageName();
                     if (!serverEntity.isCensured() && exclusion.isExcluded(packageName)) {
                         continue;
                     }
-                    try {
-                        builder.addAllowedApplication(packageName);
-                    } catch (PackageManager.NameNotFoundException e) {
-                        XLog.tag(TAG).w("[id=%d] Package not found, skipping [pkg=%s]", connectionId, packageName);
-                    }
+                    allowedPackages.add(packageName);
                 }
             }
         } else if (perAppVpnMode == PerAppVpnMode.EXCEPT_DISALLOWED) {
             for (AppInfo appInfo : appInfos) {
-                String packageName = appInfo.getPackageName();
-                try {
-                    builder.addDisallowedApplication(packageName);
-                } catch (PackageManager.NameNotFoundException e) {
-                    XLog.tag(TAG).w("[id=%d] Package not found, skipping [pkg=%s]", connectionId, packageName);
-                }
+                disallowedPackages.add(appInfo.getPackageName());
             }
-            addAlwaysExcludedApps(builder);
+            addAlwaysExcludedApps();
         }
     }
 
-    private void addAlwaysExcludedApps(VpnService.Builder builder) {
+    private void addAlwaysExcludedApps() {
         if (serverEntity.isCensured()) {
             return;
         }
         AppExclusion exclusion = new AppExclusion(service);
         for (ApplicationInfo appInfo : service.getPackageManager().getInstalledApplications(0)) {
-            if (!exclusion.isExcluded(appInfo.packageName)) {
-                continue;
-            }
-            try {
-                builder.addDisallowedApplication(appInfo.packageName);
-            } catch (PackageManager.NameNotFoundException e) {
-                XLog.tag(TAG).w("[id=%d] Package not found, skipping [pkg=%s]", connectionId, appInfo.packageName);
+            if (exclusion.isExcluded(appInfo.packageName)) {
+                disallowedPackages.add(appInfo.packageName);
             }
         }
     }
@@ -402,6 +429,10 @@ public class FptnConnection extends Thread {
                 vpnInterface = null;
             }
         }
+        if (splitter != null) {
+            splitter.close();
+            splitter = null;
+        }
         webSocketClient.shutdown();
         scheduler.shutdown();
 
@@ -425,6 +456,15 @@ public class FptnConnection extends Thread {
     }
 
     private void configureAddressesAndRoutes(VpnService.Builder builder) throws UnknownHostException, PVNClientException {
+        configureDns(builder);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            addRoutesWithExclusions(builder);
+        } else {
+            addComplementRoutes(builder);
+        }
+    }
+
+    private void configureDns(VpnService.Builder builder) throws PVNClientException {
         final DnsServers dnsServers = webSocketClient.getDnsServers();
         service.cacheDnsServers(serverEntity.getId(), dnsServers);
 
@@ -435,68 +475,59 @@ public class FptnConnection extends Thread {
             builder.addRoute(customDnsIpv4, IP_V4_PREFIX_LENGTH);
         }
 
-        // IPv4
         builder.addDnsServer(dnsServers.getIpv4());
         builder.addAddress(TUN_ADDRESS.getIpV4Address(), IP_V4_PREFIX_LENGTH);
         builder.addRoute(dnsServers.getIpv4(), IP_V4_PREFIX_LENGTH);
 
-        // IPv6
         String ipv6Dns = dnsServers.getIpv6();
         if (ipv6Dns != null && !ipv6Dns.trim().isEmpty()) {
             builder.addDnsServer(ipv6Dns);
             builder.addAddress(TUN_ADDRESS.getIpV6Address(), IP_V6_PREFIX_LENGTH);
             builder.addRoute(ipv6Dns, IP_V6_PREFIX_LENGTH);
         }
+    }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            builder.excludeRoute(LOCAL_TUN_INTERFACE_SUBNET.getAsIpV4Prefix());
-            builder.excludeRoute(LOCAL_TUN_INTERFACE_SUBNET.getAsIpV6Prefix());
-            builder.excludeRoute(FPTN_SERVER_SUBNET.getAsIpV4Prefix());
-            builder.excludeRoute(FPTN_SERVER_SUBNET.getAsIpV6Prefix());
-            builder.excludeRoute(LOCAL_SUBNET.getAsIpV4Prefix());
-            builder.excludeRoute(LOCAL_SUBNET.getAsIpV6Prefix());
-            builder.addRoute(ALL_SUBNET.getIpV4Address(), ALL_SUBNET.getV4prefix());
-            builder.addRoute(ALL_SUBNET.getIpV6Address(), ALL_SUBNET.getV6prefix());
-        } else {
-            // IPv4
-            IPAddress rootSubnetV4 = new IPAddressString(ALL_SUBNET.getAsIpV4PrefixAsString()).getAddress();
-            List<IPAddress> subnetsToExcludeV4 = Stream.of(
-                            LOCAL_TUN_INTERFACE_SUBNET.getAsIpV4PrefixAsString(),
-                            FPTN_SERVER_SUBNET.getAsIpV4PrefixAsString(),
-                            LOCAL_SUBNET.getAsIpV4PrefixAsString()
-                    )
-                    .map(sub -> new IPAddressString(sub).getAddress())
-                    .collect(Collectors.toList());
-
-            List<IPAddress> subnetsToIncludeV4 = new ArrayList<>();
-            IPUtils.exclude(rootSubnetV4, subnetsToExcludeV4, subnetsToIncludeV4, IP_V4_PREFIX_LENGTH);
-            for (IPAddress ipAddress : subnetsToIncludeV4) {
-                String hostIp = ipAddress.getLower().toAddressString().getHostAddress().toString();
-                Integer networkPrefixLength = ipAddress.getLower().toAddressString().getNetworkPrefixLength();
-                XLog.tag(TAG).d("[id=%d] IPv4 route added [subnet=%s/%s]", connectionId, hostIp, networkPrefixLength);
-                builder.addRoute(hostIp, networkPrefixLength != null ? networkPrefixLength : IP_V4_PREFIX_LENGTH);
-            }
-
-            // IPv6
-            IPAddress rootSubnetV6 = new IPAddressString(ALL_SUBNET.getAsIpV6PrefixAsString()).getAddress();
-            XLog.tag(TAG).d("[id=%d] IPv6 root subnet [subnet=%s]", connectionId, rootSubnetV6);
-            List<IPAddress> subnetsToExcludeV6 = Stream.of(
-                            LOCAL_TUN_INTERFACE_SUBNET.getAsIpV6PrefixAsString(),
-                            FPTN_SERVER_SUBNET.getAsIpV6PrefixAsString(),
-                            LOCAL_SUBNET.getAsIpV6PrefixAsString()
-                    )
-                    .map(sub -> new IPAddressString(sub).getAddress())
-                    .collect(Collectors.toList());
-
-            List<IPAddress> subnetsToIncludeV6 = new ArrayList<>();
-            IPUtils.exclude(rootSubnetV6, subnetsToExcludeV6, subnetsToIncludeV6, IP_V6_PREFIX_LENGTH);
-            for (IPAddress ipAddress : subnetsToIncludeV6) {
-                String hostIp = ipAddress.getLower().toAddressString().getHostAddress().toString();
-                Integer networkPrefixLength = ipAddress.getLower().toAddressString().getNetworkPrefixLength();
-                XLog.tag(TAG).d("[id=%d] IPv6 route added [subnet=%s/%s]", connectionId, hostIp, networkPrefixLength);
-                builder.addRoute(hostIp, networkPrefixLength != null ? networkPrefixLength : IP_V6_PREFIX_LENGTH);
-            }
+    @androidx.annotation.RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
+    private void addRoutesWithExclusions(VpnService.Builder builder) throws UnknownHostException {
+        for (ConnectionSubnets subnet : RESERVED_SUBNETS) {
+            builder.excludeRoute(subnet.getAsIpV4Prefix());
+            builder.excludeRoute(subnet.getAsIpV6Prefix());
         }
+        builder.addRoute(ALL_SUBNET.getIpV4Address(), ALL_SUBNET.getV4prefix());
+        builder.addRoute(ALL_SUBNET.getIpV6Address(), ALL_SUBNET.getV6prefix());
+    }
+
+    private void addComplementRoutes(VpnService.Builder builder) {
+        List<String> excludedV4 = new ArrayList<>();
+        for (ConnectionSubnets subnet : RESERVED_SUBNETS) {
+            excludedV4.add(subnet.getAsIpV4PrefixAsString());
+        }
+        addComplement(builder, ALL_SUBNET.getAsIpV4PrefixAsString(), excludedV4, IP_V4_PREFIX_LENGTH);
+
+        List<String> excludedV6 = new ArrayList<>();
+        for (ConnectionSubnets subnet : RESERVED_SUBNETS) {
+            excludedV6.add(subnet.getAsIpV6PrefixAsString());
+        }
+        addComplement(builder, ALL_SUBNET.getAsIpV6PrefixAsString(), excludedV6, IP_V6_PREFIX_LENGTH);
+    }
+
+    private void addComplement(VpnService.Builder builder, String rootPrefix,
+            List<String> excludedPrefixes, int maxPrefixLength) {
+        IPAddress root = new IPAddressString(rootPrefix).getAddress();
+        List<IPAddress> excluded = new ArrayList<>();
+        for (String prefix : excludedPrefixes) {
+            excluded.add(new IPAddressString(prefix).getAddress());
+        }
+
+        List<IPAddress> included = new ArrayList<>();
+        IPUtils.exclude(root, excluded, included, maxPrefixLength);
+        for (IPAddress subnet : included) {
+            String hostIp = subnet.getLower().toAddressString().getHostAddress().toString();
+            Integer prefixLength = subnet.getLower().toAddressString().getNetworkPrefixLength();
+            builder.addRoute(hostIp, prefixLength != null ? prefixLength : maxPrefixLength);
+        }
+        XLog.tag(TAG).i("[id=%d] Routes computed [root=%s, excluded=%d, routes=%d]",
+                connectionId, rootPrefix, excluded.size(), included.size());
     }
 
     private void onConnectionOpen() {
@@ -518,19 +549,26 @@ public class FptnConnection extends Thread {
 
     private void onMessageReceived(byte[][] packets) {
         int written = 0;
+
         try {
-            if (outputStream != null) {
-                for (byte[] data : packets) {
-                    if (data == null) {
-                        continue;
-                    }
-                    outputStream.write(data);
-                    written += data.length;
+            for (byte[] data : packets) {
+                if (data == null) {
+                    continue;
                 }
-                // Counted once per batch: both are hot on the receive path.
-                downloadRate.update(written);
-                totalDownloadBytes.addAndGet(written);
+                IPPacket packet = new IPPacket(data, data.length);
+                if (packet.isOk() && splitter != null) {
+                    splitter.handleInbound(packet);
+                }
+                FileOutputStream stream = outputStream;
+                if (stream == null) {
+                    break;
+                }
+                stream.write(data);
+                written += data.length;
             }
+            // Counted once per batch: both are hot on the receive path.
+            downloadRate.update(written);
+            totalDownloadBytes.addAndGet(written);
         } catch (Exception e) {
             XLog.tag(TAG).w("[id=%d] Failed to write packet batch to TUN after %d bytes: %s",
                     connectionId, written, e.getMessage());
@@ -650,6 +688,29 @@ public class FptnConnection extends Thread {
 
     private boolean isTunInterfaceValid(ParcelFileDescriptor vpnInterface) {
         return vpnInterface != null && vpnInterface.getFileDescriptor() != null && vpnInterface.getFileDescriptor().valid();
+    }
+
+    @Override
+    public void toTun(byte[] packet) {
+        FileOutputStream stream = outputStream;
+        if (stream == null) {
+            return;
+        }
+        try {
+            stream.write(packet);
+        } catch (IOException e) {
+            XLog.tag(TAG).w("[id=%d] Failed to write relay packet to TUN: %s", connectionId, e.getMessage());
+        }
+    }
+
+    @Override
+    public boolean protect(java.net.Socket socket) {
+        return service.protect(socket);
+    }
+
+    @Override
+    public boolean protect(java.net.DatagramSocket socket) {
+        return service.protect(socket);
     }
 
     private void protectSocket(int fd) {

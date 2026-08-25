@@ -30,6 +30,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -39,7 +40,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-// Pulls always_excluded_apps / blocked_domains from GitHub so the exclusion lists can grow
+// Pulls always_excluded_apps from GitHub so the exclusion list can grow
 // between app releases. Runs off the VPN's own executor so a slow/unreachable fetch can never
 // delay connect/reconnect/disconnect; a fetched list only takes effect on the next connection,
 // never the one in progress.
@@ -49,8 +50,6 @@ public final class RemoteExclusionListSync {
 
     private static final String APPS_URL =
             "https://raw.githubusercontent.com/fptn-project/FptnClient-Android/refs/heads/develop/app/src/main/res/values/always_excluded_apps.xml";
-    private static final String DOMAINS_URL =
-            "https://raw.githubusercontent.com/fptn-project/FptnClient-Android/refs/heads/develop/app/src/main/res/values/blocked_domains.xml";
 
     private static final long MIN_SYNC_INTERVAL_MILLIS = TimeUnit.HOURS.toMillis(6);
     private static final int TIMEOUT_MILLIS = 15_000;
@@ -85,15 +84,22 @@ public final class RemoteExclusionListSync {
 
     private static void syncNow(Context context) {
         XLog.tag(TAG).i("Remote exclusion list sync started");
+        Set<String> apps = fetchOrEmpty(APPS_URL);
+        if (apps.isEmpty()) {
+            XLog.tag(TAG).w("Remote exclusion list sync failed, keeping previous cache");
+            return;
+        }
+        SharedPrefUtils.saveRemoteExcludedApps(context, apps);
+        SharedPrefUtils.saveRemoteListsLastSyncDate(context, System.currentTimeMillis());
+        XLog.tag(TAG).i("Remote exclusion list sync finished [apps=%d]", apps.size());
+    }
+
+    private static Set<String> fetchOrEmpty(String urlString) {
         try {
-            Set<String> apps = fetchItems(APPS_URL);
-            Set<String> domains = fetchItems(DOMAINS_URL);
-            SharedPrefUtils.saveRemoteExcludedApps(context, apps);
-            SharedPrefUtils.saveRemoteBlockedDomains(context, domains);
-            SharedPrefUtils.saveRemoteListsLastSyncDate(context, System.currentTimeMillis());
-            XLog.tag(TAG).i("Remote exclusion list sync finished OK [apps=%d, domains=%d]", apps.size(), domains.size());
+            return fetchItems(urlString);
         } catch (IOException e) {
-            XLog.tag(TAG).w("Remote exclusion list sync failed, keeping previous cache: %s", e.getMessage());
+            XLog.tag(TAG).w("Remote list unavailable [%s]: %s", urlString, e.getMessage());
+            return Collections.emptySet();
         }
     }
 

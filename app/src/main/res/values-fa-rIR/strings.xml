@@ -187,6 +187,10 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="ad_block_description">تبلیغات و ردیاب‌ها را در سطح DNS برای تمام برنامه‌ها مسدود می‌کند. ممکن است نیازمند خاموش کردن DNS خصوصی (DoH) در تنظیمات سیستم باشد — در غیر این صورت درخواست‌های DNS از فیلتر عبور می‌کنند.</string>
     <string name="ad_block_enable">مسدودسازی تبلیغات و ردیاب‌ها</string>
 
+    <string name="split_tunnel_title">تونل تفکیک‌شده:</string>
+    <string name="split_tunnel_enable">فعال‌سازی تونل تفکیک‌شده برای دامنه‌های فهرست</string>
+    <string name="split_tunnel_enable_link">فهرست</string>
+
     <string name="domain_blacklist_title">لیست سیاه دامنه‌ها:</string>
     <string name="domain_blacklist_description">اتصال به دامنه‌های فهرست‌شده و زیردامنه‌های آن‌ها را مسدود می‌کند. هر دامنه در یک خط. ممکن است نیازمند خاموش کردن DNS خصوصی (DoH) در تنظیمات سیستم باشد — در غیر این صورت درخواست‌های DNS از فیلتر عبور می‌کنند.</string>
     <string name="domain_blacklist_enable">مسدودسازی دامنه‌های فهرست</string>
@@ -256,7 +260,7 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
 
     <string name="per_app_vpn_mode_title">حالت VPN برای هر برنامه</string>
     <string name="per_app_vpn_mode_info">در اینجا می‌توانید VPN را برای هر برنامه پیکربندی کنید: فعال‌سازی برای همه برنامه‌ها (پیش‌فرض) یا مجاز/غیرمجاز کردن VPN برای برنامه‌های خاص.</string>
-    <string name="per_app_vpn_settings_title">VPN برای هر برنامه</string>
+    <string name="per_app_vpn_settings_title">تنظیمات تونل‌سازی</string>
     <string name="all_app_mode_radio_button_label">تمام برنامه‌ها مجاز هستند</string>
     <string name="all_app_mode_radio_button_label_additional_info">تمام برنامه‌ها از VPN استفاده می‌کنند</string>
     <string name="only_allowed_apps_mode_radio_button_label">فقط برنامه‌های مجاز</string>
@@ -324,5 +328,5 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="connection_strategy_rolling">تونل چرخشی</string>
     <string name="connection_strategy_dual">تونل چرخشی دوگانه</string>
     <string name="connection_strategy_triple">تونل چرخشی سه‌گانه</string>
-    <string name="settings_per_app_russian_notice"><![CDATA[به منظور امنیت و کارکرد پایدار سرویس، برنامه‌های جاسوس شناخته‌شده همیشه خارج از VPN کار می‌کنند و نمی‌توانند به تونل بازگردانده شوند. فهرست کامل <a href="https://github.com/fptn-project/FptnClient-Android/blob/develop/app/src/main/res/values/always_excluded_apps.xml">برنامه‌های حذف‌شده</a> و <a href="https://github.com/fptn-project/FptnClient-Android/blob/develop/app/src/main/res/values/blocked_domains.xml">دامنه‌های آن‌ها</a> در GitHub در دسترس است.]]></string>
+    <string name="settings_per_app_russian_notice"><![CDATA[به منظور امنیت و کارکرد پایدار سرویس، برنامه‌های جاسوس شناخته‌شده همیشه خارج از VPN کار می‌کنند و نمی‌توانند به تونل بازگردانده شوند. فهرست کامل <a href="https://github.com/fptn-project/FptnClient-Android/blob/develop/app/src/main/res/values/always_excluded_apps.xml">برنامه‌های حذف‌شده</a> و <a href="https://github.com/fptn-project/FptnClient-Android/blob/develop/app/src/main/res/values/split_tunnel_domains.xml">دامنه‌های آن‌ها</a> در GitHub در دسترس است.]]></string>
 </resources>

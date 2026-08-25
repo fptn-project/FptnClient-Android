@@ -65,6 +65,8 @@ public final class SettingsBackupManager {
         String perAppVpnMode;
         Boolean showSystemApps;
         Boolean adBlockEnabled;
+        Boolean splitTunnelDomainsEnabled;
+        String splitTunnelDomains;
         Boolean domainBlacklistEnabled;
         String domainBlacklist;
         Boolean customDnsEnabled;
@@ -100,6 +102,8 @@ public final class SettingsBackupManager {
         settings.perAppVpnMode = SharedPrefUtils.getPerAppVPNMode(context).name();
         settings.showSystemApps = SharedPrefUtils.getShowSystemApps(context);
         settings.adBlockEnabled = SharedPrefUtils.getAdBlockEnabled(context);
+        settings.splitTunnelDomainsEnabled = SharedPrefUtils.getSplitTunnelDomainsEnabled(context);
+        settings.splitTunnelDomains = SharedPrefUtils.getSplitTunnelDomains(context);
         settings.domainBlacklistEnabled = SharedPrefUtils.getDomainBlacklistEnabled(context);
         settings.domainBlacklist = SharedPrefUtils.getDomainBlacklistDomains(context);
         settings.customDnsEnabled = SharedPrefUtils.getCustomDnsEnabled(context);
@@ -161,6 +165,12 @@ public final class SettingsBackupManager {
         }
         if (settings.adBlockEnabled != null) {
             SharedPrefUtils.saveAdBlockEnabled(context, settings.adBlockEnabled);
+        }
+        if (settings.splitTunnelDomainsEnabled != null) {
+            SharedPrefUtils.saveSplitTunnelDomainsEnabled(context, settings.splitTunnelDomainsEnabled);
+        }
+        if (settings.splitTunnelDomains != null) {
+            SharedPrefUtils.saveSplitTunnelDomains(context, settings.splitTunnelDomains);
         }
         if (settings.domainBlacklistEnabled != null) {
             SharedPrefUtils.saveDomainBlacklistEnabled(context, settings.domainBlacklistEnabled);
