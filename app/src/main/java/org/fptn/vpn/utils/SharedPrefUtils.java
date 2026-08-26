@@ -330,16 +330,6 @@ public class SharedPrefUtils {
         sharedPreferences.edit().putStringSet(Constants.REMOTE_EXCLUDED_APPS_PREF_KEY, packages).apply();
     }
 
-    public static Set<String> getRemoteBlockedDomains(Context context) {
-        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
-        return sharedPreferences.getStringSet(Constants.REMOTE_BLOCKED_DOMAINS_PREF_KEY, Collections.emptySet());
-    }
-
-    public static void saveRemoteBlockedDomains(Context context, Set<String> domains) {
-        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
-        sharedPreferences.edit().putStringSet(Constants.REMOTE_BLOCKED_DOMAINS_PREF_KEY, domains).apply();
-    }
-
     public static long getRemoteListsLastSyncDate(Context context) {
         SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
         return sharedPreferences.getLong(Constants.REMOTE_LISTS_LAST_SYNC_DATE_PREF_KEY, 0L);
@@ -391,6 +381,32 @@ public class SharedPrefUtils {
     public static void saveShowTrafficInNotification(Context context, boolean show) {
         SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
         sharedPreferences.edit().putBoolean(Constants.SHOW_TRAFFIC_IN_NOTIFICATION_PREF_KEY, show).apply();
+    }
+
+    /* Split tunneling for domains */
+    public static boolean getSplitTunnelDomainsEnabled(Context context) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        return sharedPreferences.getBoolean(Constants.SPLIT_TUNNEL_DOMAINS_PREF_KEY, true);
+    }
+
+    public static void saveSplitTunnelDomainsEnabled(Context context, boolean enabled) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        sharedPreferences.edit().putBoolean(Constants.SPLIT_TUNNEL_DOMAINS_PREF_KEY, enabled).apply();
+    }
+
+    public static String getSplitTunnelDomainsDefault(Context context) {
+        return String.join("\n", context.getResources().getStringArray(R.array.split_tunnel_domains));
+    }
+
+    public static String getSplitTunnelDomains(Context context) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        String domains = sharedPreferences.getString(Constants.SPLIT_TUNNEL_DOMAINS_LIST_PREF_KEY, null);
+        return domains != null ? domains : getSplitTunnelDomainsDefault(context);
+    }
+
+    public static void saveSplitTunnelDomains(Context context, String domains) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        sharedPreferences.edit().putString(Constants.SPLIT_TUNNEL_DOMAINS_LIST_PREF_KEY, domains).apply();
     }
 
     /* Traffic chart on home screen */

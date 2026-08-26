@@ -186,6 +186,10 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="ad_block_description">Блокирует рекламу и трекеры на уровне DNS для всех приложений. Может потребовать отключения приватного DNS (DoH) в системных настройках — иначе DNS-запросы обходят фильтрацию.</string>
     <string name="ad_block_enable">Блокировать рекламу и трекеры</string>
 
+    <string name="split_tunnel_title">Раздельный туннель:</string>
+    <string name="split_tunnel_enable">Включить раздельное туннелирование для доменов из списка</string>
+    <string name="split_tunnel_enable_link">списка</string>
+
     <string name="domain_blacklist_title">Черный список доменов:</string>
     <string name="domain_blacklist_description">Блокирует подключения к указанным доменам и их поддоменам. Один домен на строку. Может потребовать отключения приватного DNS (DoH) в системных настройках — иначе DNS-запросы обходят фильтрацию.</string>
     <string name="domain_blacklist_enable">Блокировать домены из списка</string>
@@ -250,10 +254,10 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
 
     <string name="sni_reality_radio_button_label_additional_info">Требуется реальный существующий домен (иначе возможны ошибки)</string>
 
-    <string name="settings_per_app_russian_notice"><![CDATA[В целях безопасности и стабильной работы сервиса известные приложения-шпионы всегда работают в обход VPN и не могут быть возвращены в туннель. Полный список <a href="https://github.com/fptn-project/FptnClient-Android/blob/develop/app/src/main/res/values/always_excluded_apps.xml">исключенных приложений</a> и <a href="https://github.com/fptn-project/FptnClient-Android/blob/develop/app/src/main/res/values/blocked_domains.xml">их доменов</a> доступен на GitHub.]]></string>
+    <string name="settings_per_app_russian_notice"><![CDATA[В целях безопасности и стабильной работы сервиса известные приложения-шпионы всегда работают в обход VPN и не могут быть возвращены в туннель. Полный список <a href="https://github.com/fptn-project/FptnClient-Android/blob/develop/app/src/main/res/values/always_excluded_apps.xml">исключенных приложений</a> и <a href="https://github.com/fptn-project/FptnClient-Android/blob/develop/app/src/main/res/values/split_tunnel_domains.xml">их доменов</a> доступен на GitHub.]]></string>
     <string name="per_app_vpn_mode_title">Настройки туннелирования для приложений</string>
     <string name="per_app_vpn_mode_info">Здесь вы можете настроить выборочный VPN: использовать VPN для всех приложений (по умолчанию) или разрешить/запретить доступ для конкретных программ.</string>
-    <string name="per_app_vpn_settings_title">Настройки туннелирования для приложений</string>
+    <string name="per_app_vpn_settings_title">Настройки туннелирования</string>
     <string name="all_app_mode_radio_button_label">Все приложения разрешены</string>
     <string name="all_app_mode_radio_button_label_additional_info">Все приложения используют VPN</string>
     <string name="only_allowed_apps_mode_radio_button_label">Только разрешенные приложения</string>

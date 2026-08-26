@@ -60,7 +60,8 @@ import androidx.lifecycle.Observer;
 import com.elvishew.xlog.XLog;
 
 import org.fptn.vpn.R;
-import org.fptn.vpn.domainblocker.DomainBlocker;
+import org.fptn.vpn.network.DomainBlocker;
+import org.fptn.vpn.network.Splitter;
 import org.fptn.vpn.core.common.Constants;
 import org.fptn.vpn.database.AppDatabase;
 import org.fptn.vpn.database.entity.ServerEntity;
@@ -86,9 +87,13 @@ import org.fptn.vpn.vpnclient.exception.PVNClientException;
 import java.io.IOException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -128,6 +133,9 @@ public class FptnService extends VpnService {
 
     private volatile DnsServers cachedDnsServers = null;
     private volatile int cachedDnsServersServerId = -1;
+
+    private volatile Set<String> bypassDomains = null;
+    private final Map<Integer, Long> bypassAddresses = new ConcurrentHashMap<>();
 
     private volatile boolean restoringSession = false;
     // Number of reconnect attempts on the current server during a restore episode,
@@ -922,10 +930,25 @@ public class FptnService extends VpnService {
             appInfos.addAll(packages);
         }
 
+        boolean useDetectorDomains = !serverEntity.isCensured();
+        boolean splitTunnelEnabled = SharedPrefUtils.getSplitTunnelDomainsEnabled(this);
+        if (bypassDomains == null && useDetectorDomains && splitTunnelEnabled) {
+            Set<String> domains = new HashSet<>();
+            for (String domain : SharedPrefUtils.getSplitTunnelDomains(this).split("[\\n,]")) {
+                String d = domain.trim().toLowerCase();
+                if (d.contains(".")) {
+                    domains.add(d);
+                }
+            }
+            bypassDomains = domains;
+        }
+        Set<String> connectionDomains = (useDetectorDomains && splitTunnelEnabled) ? bypassDomains : null;
+
         boolean adBlockEnabled = SharedPrefUtils.getAdBlockEnabled(this);
         boolean domainBlacklistEnabled = SharedPrefUtils.getDomainBlacklistEnabled(this);
         String domainBlacklist = domainBlacklistEnabled ? SharedPrefUtils.getDomainBlacklistDomains(this) : null;
-        DomainBlocker domainBlocker = new DomainBlocker(this, adBlockEnabled, domainBlacklist, !serverEntity.isCensured());
+        DomainBlocker domainBlocker = new DomainBlocker(this, adBlockEnabled, domainBlacklist,
+                useDetectorDomains && connectionDomains == null);
 
         boolean customDnsEnabled = SharedPrefUtils.getCustomDnsEnabled(this);
         String customDnsIpv4 = customDnsEnabled ? SharedPrefUtils.getCustomDnsIpv4(this) : null;
@@ -951,6 +974,8 @@ public class FptnService extends VpnService {
                 preFetchedToken,
                 connectivityManager,
                 domainBlocker,
+                connectionDomains,
+                bypassAddresses,
                 customDnsIpv4,
                 preFetchedDnsServers
         );

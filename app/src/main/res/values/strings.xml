@@ -282,6 +282,10 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="ad_block_description">Blocks ads and trackers at the DNS level for all apps. May require turning off Private DNS (DoH) in system settings — otherwise DNS queries bypass filtering.</string>
     <string name="ad_block_enable">Block ads and trackers</string>
 
+    <string name="split_tunnel_title">Split Tunneling:</string>
+    <string name="split_tunnel_enable">Enable split tunneling for domains from the list</string>
+    <string name="split_tunnel_enable_link">the list</string>
+
     <string name="domain_blacklist_title">Domain Blacklist:</string>
     <string name="domain_blacklist_description">Blocks connections to the listed domains and their subdomains. One domain per line. May require turning off Private DNS (DoH) in system settings — otherwise DNS queries bypass filtering.</string>
     <string name="domain_blacklist_enable">Block domains from the list</string>
@@ -342,10 +346,10 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="sni_reality_radio_button_label_additional_info">Requires a real existing domain (otherwise errors may occur)</string>
     <string name="connecting_auto">Selecting the best server...</string>
 
-    <string name="settings_per_app_russian_notice"><![CDATA[For security and stable service operation, known spy apps always bypass the VPN and cannot be returned to the tunnel. The full list of <a href="https://github.com/fptn-project/FptnClient-Android/blob/develop/app/src/main/res/values/always_excluded_apps.xml">excluded apps</a> and <a href="https://github.com/fptn-project/FptnClient-Android/blob/develop/app/src/main/res/values/blocked_domains.xml">their domains</a> is available on GitHub.]]></string>
+    <string name="settings_per_app_russian_notice"><![CDATA[For security and stable service operation, known spy apps always bypass the VPN and cannot be returned to the tunnel. The full list of <a href="https://github.com/fptn-project/FptnClient-Android/blob/develop/app/src/main/res/values/always_excluded_apps.xml">excluded apps</a> and <a href="https://github.com/fptn-project/FptnClient-Android/blob/develop/app/src/main/res/values/split_tunnel_domains.xml">their domains</a> is available on GitHub.]]></string>
     <string name="per_app_vpn_mode_title">Per-app VPN mode</string>
     <string name="per_app_vpn_mode_info">Here you can configure per-app VPN mode: enable vpn for apps (default) or allow/disallow VPN for specific apps.</string>
-    <string name="per_app_vpn_settings_title">Per-app VPN mode</string>
+    <string name="per_app_vpn_settings_title">Tunneling settings</string>
     <string name="all_app_mode_radio_button_label">Disabled</string>
     <string name="all_app_mode_radio_button_label_additional_info">All apps use the VPN</string>
     <string name="only_allowed_apps_mode_radio_button_label">Only allowed apps</string>

@@ -23,7 +23,11 @@ package org.fptn.vpn.views.perappvpn;
 import static org.fptn.vpn.utils.ViewUtils.hideView;
 import static org.fptn.vpn.utils.ViewUtils.showView;
 
+import android.app.AlertDialog;
 import android.os.Bundle;
+import android.text.InputType;
+import android.view.Gravity;
+import android.widget.FrameLayout;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
@@ -46,6 +50,8 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import org.fptn.vpn.R;
 import org.fptn.vpn.enums.PerAppVpnMode;
+import org.fptn.vpn.utils.SharedPrefUtils;
+import org.fptn.vpn.utils.ViewUtils;
 import org.fptn.vpn.views.CustomBottomNavigationListener;
 
 public class PerAppVpnModeActivity extends AppCompatActivity {
@@ -63,6 +69,30 @@ public class PerAppVpnModeActivity extends AppCompatActivity {
         setContentView(R.layout.settings_per_app_vpnmode_layout);
 
         initializeVariable();
+    }
+
+    private void showSplitTunnelDialog() {
+        EditText input = new EditText(this);
+        input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
+        input.setGravity(Gravity.TOP | Gravity.START);
+        input.setMinLines(6);
+        input.setMaxLines(10);
+        input.setVerticalScrollBarEnabled(true);
+        input.setHint(R.string.domain_blacklist_hint);
+        input.setText(SharedPrefUtils.getSplitTunnelDomains(this));
+
+        FrameLayout container = new FrameLayout(this);
+        int padding = (int) (16 * getResources().getDisplayMetrics().density);
+        container.setPadding(padding, 0, padding, 0);
+        container.addView(input);
+
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.split_tunnel_title)
+                .setView(container)
+                .setPositiveButton(R.string.save_button, (dialog, which) ->
+                        SharedPrefUtils.saveSplitTunnelDomains(this, input.getText().toString()))
+                .setNegativeButton(R.string.cancel_button, (dialog, which) -> dialog.dismiss())
+                .show();
     }
 
     private void initializeVariable() {
@@ -97,6 +127,13 @@ public class PerAppVpnModeActivity extends AppCompatActivity {
         showSystemAppsSwitch.setChecked(viewModel.isShowSystemApps());
         showSystemAppsSwitch.setOnCheckedChangeListener((btn, isChecked) ->
                 viewModel.setShowSystemApps(isChecked));
+
+        SwitchCompat splitTunnelSwitch = findViewById(R.id.split_tunnel_switch);
+        splitTunnelSwitch.setChecked(SharedPrefUtils.getSplitTunnelDomainsEnabled(this));
+        splitTunnelSwitch.setOnCheckedChangeListener(
+                (buttonView, isChecked) -> SharedPrefUtils.saveSplitTunnelDomainsEnabled(this, isChecked));
+        ViewUtils.linkifySubstring(findViewById(R.id.split_tunnel_label),
+                getString(R.string.split_tunnel_enable_link), this::showSplitTunnelDialog);
 
         // Setup RadioGroup listener
         RadioGroup protocolRadioGroup = findViewById(R.id.per_app_vpn_mode_radio_button_group);

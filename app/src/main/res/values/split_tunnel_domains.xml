@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string-array name="blocked_domains" translatable="false">
+    <string-array name="split_tunnel_domains" translatable="false">
         <!-- ===== RU ===== -->
         <item>0123456789nonexistent.com</item>
         <item>0d.kebhana.mx</item>

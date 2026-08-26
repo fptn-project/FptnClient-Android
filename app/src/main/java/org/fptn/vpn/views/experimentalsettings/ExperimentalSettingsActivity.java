@@ -61,6 +61,7 @@ import org.fptn.vpn.enums.ConnectionState;
 import org.fptn.vpn.services.tile.FptnTileService;
 import org.fptn.vpn.services.vpn.FptnService;
 import org.fptn.vpn.utils.SharedPrefUtils;
+import org.fptn.vpn.utils.ViewUtils;
 import org.fptn.vpn.views.CustomBottomNavigationListener;
 
 public class ExperimentalSettingsActivity extends AppCompatActivity {
@@ -178,7 +179,7 @@ public class ExperimentalSettingsActivity extends AppCompatActivity {
         domainBlacklistSwitch.setOnCheckedChangeListener(
                 (buttonView, isChecked) -> SharedPrefUtils.saveDomainBlacklistEnabled(this, isChecked));
 
-        linkifySubstring(findViewById(R.id.domain_blacklist_label),
+        ViewUtils.linkifySubstring(findViewById(R.id.domain_blacklist_label),
                 getString(R.string.domain_blacklist_enable_link), this::showDomainBlacklistDialog);
 
         switchNetworkType = findViewById(R.id.reconnect_on_change_network_type_switch);
@@ -362,28 +363,6 @@ public class ExperimentalSettingsActivity extends AppCompatActivity {
 
     // Turns the given substring of a TextView's text into an inline clickable link, styled like the
     // other links on this screen (white at 70% alpha, underlined). No-op if the substring is absent.
-    private void linkifySubstring(TextView textView, String linkText, Runnable onClick) {
-        CharSequence fullText = textView.getText();
-        int linkStart = fullText.toString().indexOf(linkText);
-        if (linkStart < 0) {
-            return;
-        }
-        SpannableString spannable = new SpannableString(fullText);
-        spannable.setSpan(new ClickableSpan() {
-            @Override
-            public void onClick(View widget) {
-                onClick.run();
-            }
-
-            @Override
-            public void updateDrawState(TextPaint ds) {
-                ds.setColor(0xB3FFFFFF); // white at 70% alpha, like other links on this screen
-                ds.setUnderlineText(true);
-            }
-        }, linkStart, linkStart + linkText.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-        textView.setText(spannable);
-        textView.setMovementMethod(LinkMovementMethod.getInstance());
-    }
 
     private void showDomainBlacklistDialog() {
         EditText input = new EditText(this);

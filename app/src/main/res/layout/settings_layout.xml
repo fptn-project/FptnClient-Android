@@ -236,7 +236,7 @@
                         android:layout_centerVertical="true"
                         android:layout_toStartOf="@id/image_view_per_app_vpn_mode"
                         android:layout_toEndOf="@id/per_app_vpn_mode_icon"
-                        android:text="@string/per_app_vpn_mode_title"
+                        android:text="@string/per_app_vpn_settings_title"
                         android:textColor="@color/white"
                         android:textStyle="bold" />
 
