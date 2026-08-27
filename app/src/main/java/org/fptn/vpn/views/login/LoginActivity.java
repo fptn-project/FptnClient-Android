@@ -22,13 +22,16 @@ package org.fptn.vpn.views.login;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.os.Bundle;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
-import android.view.MotionEvent;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -60,7 +63,7 @@ public class LoginActivity extends AppCompatActivity {
         initializeVariable();
     }
 
-    @SuppressLint({"InlinedApi", "ClickableViewAccessibility"})
+    @SuppressLint("InlinedApi")
     private void initializeVariable() {
         viewModel = new ViewModelProvider(this).get(LoginActivityViewModel.class);
 
@@ -77,17 +80,16 @@ public class LoginActivity extends AppCompatActivity {
         Button loginButton = findViewById(R.id.fptn_login_button);
         loginButton.setOnClickListener((v) -> onLogin());
 
+        ImageView pasteIcon = findViewById(R.id.fptn_paste_icon);
+        pasteIcon.setOnClickListener((v) -> onPaste());
+
+        ImageView clearIcon = findViewById(R.id.fptn_clear_icon);
+        clearIcon.setOnClickListener((v) -> linkEditText.setText(""));
+
         // hide keyboard
         linkEditText.setTextIsSelectable(true);
         linkEditText.setShowSoftInputOnFocus(false);
-        linkEditText.setOnTouchListener((view, motionEvent) -> {
-            if (motionEvent.getAction() == MotionEvent.ACTION_UP) {
-                if (motionEvent.getX() > (view.getWidth() - view.getPaddingRight() - 50)) {
-                    ((EditText) view).setText("");
-                }
-            }
-            return false;
-        });
+
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);  // This just hide keyboard when activity starts
 
         // miss back button
@@ -118,6 +120,17 @@ public class LoginActivity extends AppCompatActivity {
             XLog.tag(TAG).e("Token parsing failed at login: %s", e.getMessage());
             Toast.makeText(getApplicationContext(), R.string.token_saving_failed, Toast.LENGTH_SHORT).show();
             viewModel.getErrorTextLiveData().postValue(getString(R.string.token_saving_failed));
+        }
+    }
+
+    private void onPaste() {
+        ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+        if (clipboard != null && clipboard.hasPrimaryClip() && clipboard.getPrimaryClip() != null) {
+            ClipData.Item item = clipboard.getPrimaryClip().getItemAt(0);
+            if (item != null && item.getText() != null) {
+                linkEditText.setText(item.getText().toString());
+                linkEditText.setSelection(linkEditText.getText().length());
+            }
         }
     }
 
