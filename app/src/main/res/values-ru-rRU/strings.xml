@@ -7,6 +7,8 @@
     <string name="state_disconnect">Отключено</string>
 
     <string name="login_button">Войти</string>
+    <string name="paste_button">Вставить</string>
+    <string name="clear_button">Очистить</string>
     <string name="logout_button">Выйти</string>
     <string name="update_token_button">Обновление токена</string>
 

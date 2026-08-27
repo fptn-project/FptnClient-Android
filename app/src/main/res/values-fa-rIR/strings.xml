@@ -7,6 +7,8 @@
     <string name="state_disconnect">قطع شده</string>
 
     <string name="login_button">ورود</string>
+    <string name="paste_button">چسباندن</string>
+    <string name="clear_button">پاک کردن</string>
     <string name="logout_button">خروج</string>
     <string name="update_token_button">به‌روزرسانی توکن</string>
 
