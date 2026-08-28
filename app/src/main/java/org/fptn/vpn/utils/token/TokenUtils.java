@@ -20,6 +20,8 @@
 
 package org.fptn.vpn.utils.token;
 
+import android.os.Build;
+
 import com.elvishew.xlog.XLog;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -62,6 +64,8 @@ public class TokenUtils {
             String decodedToken;
             if (token.contains("fptnb:")) {
                 decodedToken = BrotliUtils.decodeBrotliString(clearedToken);
+            } else if (Build.VERSION.SDK_INT > 0 && Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+                decodedToken = new String(android.util.Base64.decode(clearedToken, android.util.Base64.DEFAULT));
             } else {
                 decodedToken = new String(Base64.getDecoder().decode(clearedToken));
             }

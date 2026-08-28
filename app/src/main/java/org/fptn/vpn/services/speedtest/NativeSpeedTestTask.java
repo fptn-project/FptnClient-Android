@@ -20,6 +20,8 @@
 
 package org.fptn.vpn.services.speedtest;
 
+import android.os.Build;
+
 import org.fptn.vpn.database.entity.ServerEntity;
 import org.fptn.vpn.enums.BypassCensorshipMethod;
 import org.fptn.vpn.enums.SniSpoofingMode;
@@ -55,11 +57,17 @@ public class NativeSpeedTestTask implements Callable<NativeSpeedTestResult> {
 
     @Override
     public NativeSpeedTestResult call() throws PVNClientException {
-        Instant start = Instant.now();
+        Instant start = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ? Instant.now() : null;
+        long startMillis = System.currentTimeMillis();
         NativeResponse response = nativeHttpsClient.Get(GET_FILE_PATH, TIMEOUT);
         if (response.code == 200) {
-            Instant end = Instant.now();
-            long durationsMillis = Duration.between(start, end).toMillis();
+            long durationsMillis;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                Instant end = Instant.now();
+                durationsMillis = Duration.between(start, end).toMillis();
+            } else {
+                durationsMillis = System.currentTimeMillis() - startMillis;
+            }
             return new NativeSpeedTestResult(serverEntity, durationsMillis);
         } else {
             throw new PVNClientException(response.errorMessage);

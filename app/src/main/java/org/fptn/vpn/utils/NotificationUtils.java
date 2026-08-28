@@ -20,17 +20,37 @@
 
 package org.fptn.vpn.utils;
 
+import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationChannelGroup;
 import android.app.NotificationManager;
 import android.content.Context;
+import android.os.Build;
+
+import androidx.annotation.RequiresApi;
 
 import org.fptn.vpn.R;
 import org.fptn.vpn.core.common.Constants;
 import org.jetbrains.annotations.NotNull;
 
 public class NotificationUtils {
+    @SuppressWarnings("deprecation")
+    public static Notification.Builder newLegacyNotificationBuilder(Context context, @NotNull String channelId) {
+        Notification.Builder builder = new Notification.Builder(context).setSound(null);
+        if (Constants.ERROR_NOTIFICATION_CHANNEL_ID.equals(channelId)) {
+            builder.setPriority(Notification.PRIORITY_HIGH);
+        } else if (Constants.SNI_CHECKER_NOTIFICATION_CHANNEL_ID.equals(channelId)) {
+            builder.setPriority(Notification.PRIORITY_LOW);
+        } else {
+            builder.setPriority(Notification.PRIORITY_DEFAULT);
+        }
+        return builder;
+    }
+
     public static void configureNotificationChannels(Context context) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            return;
+        }
         NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 
         // add main notification channel
@@ -64,6 +84,7 @@ public class NotificationUtils {
                 NotificationManager.IMPORTANCE_LOW, true);
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     private static void createOrUpdateNotificationChannel(Context context, NotificationManager notificationManager,
                                                           @NotNull String channelId,
                                                           @NotNull String channelName,

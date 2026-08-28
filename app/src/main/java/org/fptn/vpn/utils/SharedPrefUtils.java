@@ -22,6 +22,8 @@ package org.fptn.vpn.utils;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Build;
+import android.text.TextUtils;
 
 import org.fptn.vpn.R;
 import org.fptn.vpn.core.common.Constants;
@@ -395,6 +397,9 @@ public class SharedPrefUtils {
     }
 
     public static String getSplitTunnelDomainsDefault(Context context) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            return TextUtils.join("\n", context.getResources().getStringArray(R.array.split_tunnel_domains));
+        }
         return String.join("\n", context.getResources().getStringArray(R.array.split_tunnel_domains));
     }
 

@@ -138,6 +138,7 @@ public class FptnConnection extends Thread implements Splitter.Bridge {
 
     @Getter
     private Instant connectionTime;
+    private long connectionTimeMillis;
     private ScheduledFuture<?> onFailureScheduledTask;
     @Getter
     @Setter
@@ -441,11 +442,17 @@ public class FptnConnection extends Thread implements Splitter.Bridge {
 
     private void configureConnectionTimeSpeedScheduler() {
         try {
-            connectionTime = Instant.now();
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                connectionTime = Instant.now();
+            } else {
+                connectionTimeMillis = System.currentTimeMillis();
+            }
             scheduler.scheduleWithFixedDelay(() -> {
                 String downloadSpeed = downloadRate.getFormatString();
                 String uploadSpeed = uploadRate.getFormatString();
-                long durationInSeconds = (int) Duration.between(connectionTime, Instant.now()).getSeconds();
+                long durationInSeconds = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
+                        ? (int) Duration.between(connectionTime, Instant.now()).getSeconds()
+                        : (System.currentTimeMillis() - connectionTimeMillis) / 1000;
                 sendSpeedInfoAndDurationToService(downloadSpeed, uploadSpeed, durationInSeconds,
                         totalDownloadBytes.get(), totalUploadBytes.get(),
                         downloadRate.getRateForSecond(), uploadRate.getRateForSecond());

@@ -1302,6 +1302,20 @@ public class FptnService extends VpnService {
         // In Api level 24 an above, there is no icon in design!!!
         Notification.Action actionDisconnect = new Notification.Action.Builder(null, getString(R.string.disconnect_action), disconnectPendingIntent)
                 .build();
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            return NotificationUtils.newLegacyNotificationBuilder(this, Constants.MAIN_NOTIFICATION_CHANNEL_ID)
+                    .setSmallIcon(R.drawable.ic_logo)
+                    .setContentTitle(title)
+                    .setContentText(message)
+                    .setStyle(new Notification.BigTextStyle().bigText(message))
+                    .setVisibility(Notification.VISIBILITY_PUBLIC)
+                    .setOnlyAlertOnce(true)
+                    .setAutoCancel(false)
+                    .setOngoing(true)
+                    .addAction(actionDisconnect)
+                    .setContentIntent(launchMainActivityPendingIntent)
+                    .build();
+        }
         Notification.Builder builder = new Notification.Builder(this, Constants.MAIN_NOTIFICATION_CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_logo)
                 .setContentTitle(title)
@@ -1320,6 +1334,10 @@ public class FptnService extends VpnService {
     }
 
     private void showReconnectionFailedNotification() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            showReconnectionFailedNotificationLegacy();
+            return;
+        }
         Notification notification = new Notification.Builder(this, Constants.MAIN_NOTIFICATION_CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_logo)
                 .setVisibility(Notification.VISIBILITY_PUBLIC)
@@ -1333,7 +1351,25 @@ public class FptnService extends VpnService {
         notificationManager.notify(Constants.INFO_NOTIFICATION_NOTIFICATION_ID, notification);
     }
 
+    private void showReconnectionFailedNotificationLegacy() {
+        Notification notification = NotificationUtils.newLegacyNotificationBuilder(this, Constants.MAIN_NOTIFICATION_CHANNEL_ID)
+                .setSmallIcon(R.drawable.ic_logo)
+                .setVisibility(Notification.VISIBILITY_PUBLIC)
+                .setContentTitle(getApplication().getString(R.string.reconnecting_failed))
+                .setContentIntent(launchMainActivityPendingIntent)
+                .setAutoCancel(true)
+                .build();
+
+        NotificationManager notificationManager = (NotificationManager) getSystemService(
+                NOTIFICATION_SERVICE);
+        notificationManager.notify(Constants.INFO_NOTIFICATION_NOTIFICATION_ID, notification);
+    }
+
     private void showErrorNotification(String message) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            showErrorNotificationLegacy(message);
+            return;
+        }
         Notification.Action actionDisconnect = new Notification.Action.Builder(null, getString(R.string.reconnect_action), reconnectPendingIntent)
                 .build();
         Notification notification = new Notification.Builder(this, Constants.ERROR_NOTIFICATION_CHANNEL_ID)
@@ -1342,6 +1378,24 @@ public class FptnService extends VpnService {
                 .setContentTitle(getApplication().getString(R.string.error))
                 .setContentText(message)
                 .setAutoCancel(true) // if you tap on notification - opens activity and notification dismissed
+                .setContentIntent(launchMainActivityPendingIntent)
+                .addAction(actionDisconnect)
+                .build();
+
+        NotificationManager notificationManager = (NotificationManager) getSystemService(
+                NOTIFICATION_SERVICE);
+        notificationManager.notify(Constants.ERROR_CONNECTED_NOTIFICATION_ID, notification);
+    }
+
+    private void showErrorNotificationLegacy(String message) {
+        Notification.Action actionDisconnect = new Notification.Action.Builder(null, getString(R.string.reconnect_action), reconnectPendingIntent)
+                .build();
+        Notification notification = NotificationUtils.newLegacyNotificationBuilder(this, Constants.ERROR_NOTIFICATION_CHANNEL_ID)
+                .setSmallIcon(R.drawable.ic_logo)
+                .setVisibility(Notification.VISIBILITY_PUBLIC)
+                .setContentTitle(getApplication().getString(R.string.error))
+                .setContentText(message)
+                .setAutoCancel(true)
                 .setContentIntent(launchMainActivityPendingIntent)
                 .addAction(actionDisconnect)
                 .build();

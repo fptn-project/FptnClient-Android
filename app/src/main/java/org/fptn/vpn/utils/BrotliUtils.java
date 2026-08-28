@@ -20,6 +20,8 @@
 
 package org.fptn.vpn.utils;
 
+import android.os.Build;
+
 import org.brotli.dec.BrotliInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -30,7 +32,9 @@ import java.util.Base64;
 public class BrotliUtils {
     public static String decodeBrotliString(String base64CompressedData) throws IOException {
         // 1. Convert Base64 string back to compressed byte array
-        byte[] compressedBytes = Base64.getDecoder().decode(base64CompressedData);
+        byte[] compressedBytes = Build.VERSION.SDK_INT > 0 && Build.VERSION.SDK_INT < Build.VERSION_CODES.O
+                ? android.util.Base64.decode(base64CompressedData, android.util.Base64.DEFAULT)
+                : Base64.getDecoder().decode(base64CompressedData);
 
         // 2. Use BrotliInputStream to decompress
         try (ByteArrayInputStream bais = new ByteArrayInputStream(compressedBytes);

@@ -346,6 +346,18 @@ public class SniCheckerService extends Service {
         // In Api level 24 an above, there is no icon in design!!!
         Notification.Action actionStopChecking = new Notification.Action.Builder(null, getString(R.string.stop_sni_checking_button_label), stopPendingIntent)
                 .build();
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            return NotificationUtils.newLegacyNotificationBuilder(this, Constants.SNI_CHECKER_NOTIFICATION_CHANNEL_ID)
+                    .setSmallIcon(R.drawable.ic_sql_server_24)
+                    .setContentTitle(title)
+                    .setContentText(message)
+                    .setVisibility(Notification.VISIBILITY_PUBLIC)
+                    .setOnlyAlertOnce(true)
+                    .setAutoCancel(false)
+                    .setOngoing(true)
+                    .addAction(actionStopChecking)
+                    .setContentIntent(launchActivityPendingIntent);
+        }
         Notification.Builder builder = new Notification.Builder(this, Constants.SNI_CHECKER_NOTIFICATION_CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_sql_server_24)
                 .setContentTitle(title)
@@ -363,6 +375,10 @@ public class SniCheckerService extends Service {
     }
 
     private void showResultNotification(String title, String message) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            showResultNotificationLegacy(title, message);
+            return;
+        }
 /*        Notification.Action actionSaveFounded = new Notification.Action.Builder(null, getString(R.string.reconnect_action), reconnectPendingIntent)
                 .build();
         Notification.Action actionContinueChecking = new Notification.Action.Builder(null, getString(R.string.reconnect_action), reconnectPendingIntent)
@@ -375,6 +391,22 @@ public class SniCheckerService extends Service {
                 .setAutoCancel(true) // if you tap on notification - opens activity and notification dismissed
                 .setContentIntent(launchActivityPendingIntent)
                 //.addActions(actionSaveFounded, actionContinueChecking)
+                .setActions()
+                .build();
+
+        NotificationManager notificationManager = (NotificationManager) getSystemService(
+                NOTIFICATION_SERVICE);
+        notificationManager.notify(Constants.SNI_CHECKER_NOTIFICATION_ID, notification);
+    }
+
+    private void showResultNotificationLegacy(String title, String message) {
+        Notification notification = NotificationUtils.newLegacyNotificationBuilder(this, Constants.SNI_CHECKER_NOTIFICATION_CHANNEL_ID)
+                .setSmallIcon(R.drawable.ic_logo)
+                .setVisibility(Notification.VISIBILITY_PUBLIC)
+                .setContentTitle(title)
+                .setContentText(message)
+                .setAutoCancel(true)
+                .setContentIntent(launchActivityPendingIntent)
                 .setActions()
                 .build();
 
