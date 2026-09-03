@@ -31,12 +31,19 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.FptnClient"
         tools:targetApi="33">
+        <!--
+          Single-activity Compose entry point (replaces the old SplashActivity). Also the
+          reverse-bridge target legacy screens launch into for any screen already ported to
+          Compose (see MainActivity.intentForRoute) — so, unlike the old single-purpose
+          SplashActivity, it must NOT use noHistory: each ported screen's own code calls
+          finish() exactly where its legacy Activity predecessor did, to keep the back stack
+          behaving the same as before.
+        -->
         <activity
-            android:name="org.fptn.vpn.views.splash.SplashActivity"
+            android:name="org.fptn.vpn.ui.MainActivity"
             android:exported="true"
             android:label="@string/app_name"
             android:launchMode="singleTop"
-            android:noHistory="true"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.RemoveSplashScreenTheme">
             <intent-filter>
@@ -47,57 +54,6 @@
                 <action android:name="android.service.quicksettings.action.QS_TILE_PREFERENCES" />
             </intent-filter>
         </activity>
-        <activity
-            android:name="org.fptn.vpn.views.login.LoginActivity"
-            android:label="@string/app_name"
-            android:launchMode="singleTop"
-            android:noHistory="true"
-            android:screenOrientation="portrait" />
-        <activity
-            android:name="org.fptn.vpn.views.home.HomeActivity"
-            android:label="@string/app_name"
-            android:launchMode="singleTop"
-            android:screenOrientation="portrait"
-            android:windowSoftInputMode="adjustResize" />
-        <activity
-            android:name="org.fptn.vpn.views.settings.SettingsActivity"
-            android:label="@string/app_name"
-            android:launchMode="singleTop"
-            android:screenOrientation="portrait" />
-        <activity
-            android:name="org.fptn.vpn.views.updatetoken.UpdateTokenActivity"
-            android:label="@string/app_name"
-            android:launchMode="singleTop"
-            android:screenOrientation="portrait" />
-        <activity
-            android:name="org.fptn.vpn.views.bypassmethod.BypassMethodsActivity"
-            android:label="@string/app_name"
-            android:launchMode="singleTop"
-            android:screenOrientation="portrait" />
-        <activity
-            android:name="org.fptn.vpn.views.perappvpn.PerAppVpnModeActivity"
-            android:label="@string/app_name"
-            android:launchMode="singleTop"
-            android:screenOrientation="portrait" />
-        <activity
-            android:name="org.fptn.vpn.views.experimentalsettings.ExperimentalSettingsActivity"
-            android:label="@string/app_name"
-            android:launchMode="singleTop"
-            android:screenOrientation="portrait" />
-
-        <activity
-            android:name="org.fptn.vpn.views.log.LogsActivity"
-            android:label="@string/app_name"
-            android:launchMode="singleTop"
-            android:screenOrientation="portrait"
-            android:windowSoftInputMode="adjustResize" />
-
-        <activity
-            android:name="org.fptn.vpn.views.backup.BackupSettingsActivity"
-            android:label="@string/app_name"
-            android:launchMode="singleTop"
-            android:screenOrientation="portrait" />
-
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"

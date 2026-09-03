@@ -6,6 +6,7 @@ appcompat = "1.7.1"
 assertjCore = "3.27.7"
 autonomousappsSorting = "0.15"
 autonomousappsUnused = "3.6.1"
+composeBom = "2025.10.01"
 constraintlayout = "2.2.1"
 coreTesting = "2.2.0"
 crashlytics = "3.0.6"
@@ -25,6 +26,7 @@ kotlin = "2.2.21"
 ksp = "2.3.0"
 material = "1.13.0"
 monitor = "1.8.0"
+navigationCompose = "2.9.5"
 roomRuntime = "2.8.4"
 runner = "1.7.0"
 zxing = "3.5.4"
@@ -33,10 +35,18 @@ zxing = "3.5.4"
 android-gradle-plugin = { group = "com.android.tools.build", name = "gradle", version.ref = "androidGradlePlugin" }
 androidlombock = { group = "org.projectlombok", name = "lombok", version.ref = "androidlombock" }
 androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
+androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activity" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
+androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3" }
+androidx-compose-runtime-livedata = { group = "androidx.compose.runtime", name = "runtime-livedata" }
+androidx-compose-ui = { group = "androidx.compose.ui", name = "ui" }
+androidx-compose-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
+androidx-compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
 androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitTest" }
 androidx-monitor = { group = "androidx.test", name = "monitor", version.ref = "monitor" }
+androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
 androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "roomRuntime" }
 androidx-room-guava = { module = "androidx.room:room-guava", version.ref = "roomRuntime" }
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "roomRuntime" }
@@ -66,5 +76,6 @@ zxing = { module = "com.google.zxing:core", version.ref = "zxing" }
 
 [plugins]
 crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "crashlytics" }
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 deps-sorting = { id = "com.squareup.sort-dependencies", version.ref = "autonomousappsSorting" }
 deps-unused = { id = "com.autonomousapps.dependency-analysis", version.ref = "autonomousappsUnused" }

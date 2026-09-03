@@ -39,10 +39,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import lombok.Getter;
-
 public class UpdateTokenViewModel extends AndroidViewModel {
-    @Getter
     private final MutableLiveData<String> errorTextLiveData = new MutableLiveData<>("");
 
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
@@ -50,6 +47,13 @@ public class UpdateTokenViewModel extends AndroidViewModel {
 
     public UpdateTokenViewModel(@NonNull Application application) {
         super(application);
+    }
+
+    // Written out explicitly (instead of Lombok's @Getter) because Kotlin's Java-interop
+    // stub generation runs before the Lombok annotation processor, so Kotlin/Compose call
+    // sites can't see a Lombok-generated getter here.
+    public MutableLiveData<String> getErrorTextLiveData() {
+        return errorTextLiveData;
     }
 
     public ListenableFuture<Void> parseAndSaveToken(String token) throws PVNClientException {

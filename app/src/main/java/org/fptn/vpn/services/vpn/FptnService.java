@@ -80,7 +80,7 @@ import org.fptn.vpn.utils.SharedPrefUtils;
 import org.fptn.vpn.views.perappvpn.AppInfo;
 import org.fptn.vpn.services.speedtest.SpeedTestResult;
 import org.fptn.vpn.services.speedtest.SpeedTestUtils;
-import org.fptn.vpn.views.splash.SplashActivity;
+import org.fptn.vpn.ui.MainActivity;
 import org.fptn.vpn.vpnclient.exception.ErrorCode;
 import org.fptn.vpn.vpnclient.exception.PVNClientException;
 
@@ -382,7 +382,7 @@ public class FptnService extends VpnService {
 
         // pending intent for open MainActivity on tap
         launchMainActivityPendingIntent = PendingIntent.getActivity(this, 0,
-                new Intent(this, SplashActivity.class),
+                new Intent(this, MainActivity.class),
                 PendingIntent.FLAG_IMMUTABLE);
 
         // pending intent for disconnect button in connected notification

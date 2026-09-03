@@ -54,37 +54,25 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import lombok.Getter;
-
 public class BypassMethodsViewModel extends AndroidViewModel {
     private final String TAG = this.getClass().getSimpleName();
 
-    @Getter
     private final MutableLiveData<String> sniMutableLiveData;
-    @Getter
     private final MutableLiveData<BypassCensorshipMethod> bypassCensorshipMethodMutableLiveData;
-    @Getter
     private final MutableLiveData<Integer> sniCountLiveData = new MutableLiveData<>(0);
 
-    @Getter
     private final MutableLiveData<SniCheckerServiceState> serviceState = new MutableLiveData<>(SniCheckerServiceState.INACTIVE);
 
-    @Getter
     private final MutableLiveData<String> currentCheckingSniInfo = new MutableLiveData<>("");
 
-    @Getter
     private final MutableLiveData<Pair<Integer, Integer>> currentProgress = new MutableLiveData<>(Pair.create(0, 1));
 
-    @Getter
     private final MutableLiveData<ServerEntity> selectedServer = new MutableLiveData<>(ServerEntity.AUTO);
 
-    @Getter
     private final MutableLiveData<SniSpoofingMode> sniSpoofingModeMutableLiveData;
 
-    @Getter
     private final MutableLiveData<ConnectionStrategy> connectionStrategyMutableLiveData;
 
-    @Getter
     private final MutableLiveData<String> foundedSniEvent = new MutableLiveData<>();
 
     private final AppDatabase appDatabase = AppDatabase.getInstance(getApplication());
@@ -99,6 +87,49 @@ public class BypassMethodsViewModel extends AndroidViewModel {
         connectionStrategyMutableLiveData = new MutableLiveData<>(SharedPrefUtils.getConnectionStrategy(application));
 
         refreshSniCount();
+    }
+
+    // Written out explicitly (instead of Lombok's @Getter) because Kotlin's Java-interop
+    // stub generation runs before the Lombok annotation processor, so Kotlin/Compose call
+    // sites can't see a Lombok-generated getter here.
+    public MutableLiveData<String> getSniMutableLiveData() {
+        return sniMutableLiveData;
+    }
+
+    public MutableLiveData<BypassCensorshipMethod> getBypassCensorshipMethodMutableLiveData() {
+        return bypassCensorshipMethodMutableLiveData;
+    }
+
+    public MutableLiveData<Integer> getSniCountLiveData() {
+        return sniCountLiveData;
+    }
+
+    public MutableLiveData<SniCheckerServiceState> getServiceState() {
+        return serviceState;
+    }
+
+    public MutableLiveData<String> getCurrentCheckingSniInfo() {
+        return currentCheckingSniInfo;
+    }
+
+    public MutableLiveData<Pair<Integer, Integer>> getCurrentProgress() {
+        return currentProgress;
+    }
+
+    public MutableLiveData<ServerEntity> getSelectedServer() {
+        return selectedServer;
+    }
+
+    public MutableLiveData<SniSpoofingMode> getSniSpoofingModeMutableLiveData() {
+        return sniSpoofingModeMutableLiveData;
+    }
+
+    public MutableLiveData<ConnectionStrategy> getConnectionStrategyMutableLiveData() {
+        return connectionStrategyMutableLiveData;
+    }
+
+    public MutableLiveData<String> getFoundedSniEvent() {
+        return foundedSniEvent;
     }
 
     public String getCurrentSni() {

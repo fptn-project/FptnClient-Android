@@ -47,6 +47,13 @@ public class FptnTileService extends TileService {
     @Getter
     private static final MutableLiveData<ConnectionState> serviceStateMutableLiveData = new MutableLiveData<>(ConnectionState.DISCONNECTED);
 
+    // Written out explicitly (instead of relying on Lombok's @Getter) because Kotlin's
+    // Java-interop stub generation runs before the Lombok annotation processor, so
+    // Kotlin/Compose call sites can't see the Lombok-generated static getter here.
+    public static MutableLiveData<ConnectionState> getServiceStateMutableLiveData() {
+        return serviceStateMutableLiveData;
+    }
+
     private Observer<ConnectionState> serviceStateObserver;
 
     @Override

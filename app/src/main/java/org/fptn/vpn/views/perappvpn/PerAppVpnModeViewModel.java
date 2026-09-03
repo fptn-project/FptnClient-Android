@@ -42,21 +42,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import lombok.Getter;
-
 public class PerAppVpnModeViewModel extends AndroidViewModel {
 
-    @Getter
     private final MutableLiveData<PerAppVpnMode> perAppVpnModeMutableLiveData;
 
-    @Getter
     private final MutableLiveData<List<AppInfo>> appListMutableLiveData;
 
     private final AppDatabase appDatabase = AppDatabase.getInstance(getApplication());
 
     private List<AppInfo> allLoadedApps = new ArrayList<>();
 
-    @Getter
     private boolean showSystemApps;
 
     public PerAppVpnModeViewModel(@NonNull Application application) {
@@ -66,6 +61,21 @@ public class PerAppVpnModeViewModel extends AndroidViewModel {
         perAppVpnModeMutableLiveData = new MutableLiveData<>(SharedPrefUtils.getPerAppVPNMode(application));
 
         appListMutableLiveData = new MutableLiveData<>(List.of());
+    }
+
+    // Written out explicitly (instead of Lombok's @Getter) because Kotlin's Java-interop
+    // stub generation runs before the Lombok annotation processor, so Kotlin/Compose call
+    // sites can't see a Lombok-generated getter here.
+    public MutableLiveData<PerAppVpnMode> getPerAppVpnModeMutableLiveData() {
+        return perAppVpnModeMutableLiveData;
+    }
+
+    public MutableLiveData<List<AppInfo>> getAppListMutableLiveData() {
+        return appListMutableLiveData;
+    }
+
+    public boolean isShowSystemApps() {
+        return showSystemApps;
     }
 
     public void setPerAppVpnMode(PerAppVpnMode perAppVpnMode) {

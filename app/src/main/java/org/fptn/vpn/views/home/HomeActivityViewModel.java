@@ -85,6 +85,49 @@ public class HomeActivityViewModel extends AndroidViewModel {
     @Getter
     private final MutableLiveData<long[]> speedSampleLiveData = new MutableLiveData<>();
 
+    // Written out explicitly (instead of relying on Lombok's @Getter) for the LiveData fields
+    // the Compose HomeScreen needs: Kotlin's Java-interop stub generation runs before the
+    // Lombok annotation processor, so Kotlin call sites can't see Lombok-generated accessors.
+    public MutableLiveData<FptnServiceState> getServiceStateMutableLiveData() {
+        return serviceStateMutableLiveData;
+    }
+
+    public MutableLiveData<String> getTimerTextLiveData() {
+        return timerTextLiveData;
+    }
+
+    public MutableLiveData<String> getDownloadSpeedAsStringLiveData() {
+        return downloadSpeedAsStringLiveData;
+    }
+
+    public MutableLiveData<String> getUploadSpeedAsStringLiveData() {
+        return uploadSpeedAsStringLiveData;
+    }
+
+    public MutableLiveData<String> getStatusTextLiveData() {
+        return statusTextLiveData;
+    }
+
+    public MutableLiveData<List<ServerEntity>> getServerDtoListLiveData() {
+        return serverDtoListLiveData;
+    }
+
+    public MutableLiveData<String> getConnectedServerInfoLiveData() {
+        return connectedServerInfoLiveData;
+    }
+
+    public MutableLiveData<String> getDownloadTrafficLiveData() {
+        return downloadTrafficLiveData;
+    }
+
+    public MutableLiveData<String> getUploadTrafficLiveData() {
+        return uploadTrafficLiveData;
+    }
+
+    public MutableLiveData<long[]> getSpeedSampleLiveData() {
+        return speedSampleLiveData;
+    }
+
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
     private final AppDatabase appDatabase = AppDatabase.getInstance(getApplication());
 

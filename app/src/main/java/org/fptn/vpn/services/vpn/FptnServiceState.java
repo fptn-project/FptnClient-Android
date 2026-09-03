@@ -36,6 +36,17 @@ public class FptnServiceState {
     private final String serverInfo;
     private final String disconnectReason;
 
+    // Written out explicitly (instead of relying on Lombok's @Data) for the subset of
+    // accessors Compose screens need: Kotlin's Java-interop stub generation runs before the
+    // Lombok annotation processor, so Kotlin call sites can't see Lombok-generated members.
+    public ConnectionState getConnectionState() {
+        return connectionState;
+    }
+
+    public PVNClientException getException() {
+        return exception;
+    }
+
     public static final FptnServiceState INITIAL = FptnServiceState.builder()
             .connectionState(ConnectionState.DISCONNECTED)
             .exception(null)
