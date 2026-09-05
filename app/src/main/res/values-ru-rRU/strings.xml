@@ -61,7 +61,7 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="disconnect_reason_closed_unexpectedly">Отключен: соединение закрыто неожиданно</string>
     <string name="disconnect_reason_unexpected_error">Отключен: непредвиденная ошибка</string>
     <string name="error">Ошибка подключения!</string>
-    <string name="paste_your_token">Скопируйте сюда токен...</string>
+    <string name="paste_your_token">Коснитесь, чтобы вставить токен</string>
     <string name="running">Подключено</string>
 
     <string name="dialog_logout_title">Подтвердите действие</string>

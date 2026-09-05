@@ -61,7 +61,7 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="disconnect_reason_closed_unexpectedly">Disconnected: connection closed unexpectedly</string>
     <string name="disconnect_reason_unexpected_error">Disconnected: unexpected error</string>
     <string name="error">Error on connecting occurs!</string>
-    <string name="paste_your_token">Paste your token here...</string>
+    <string name="paste_your_token">Tap to paste token</string>
     <string name="running">FptnVPN is running</string>
     <string name="reconnection">FptnVPN is reconnecting...</string>
 

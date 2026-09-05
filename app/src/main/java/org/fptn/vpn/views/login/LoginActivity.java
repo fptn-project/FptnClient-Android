@@ -80,6 +80,8 @@ public class LoginActivity extends AppCompatActivity {
         Button loginButton = findViewById(R.id.fptn_login_button);
         loginButton.setOnClickListener((v) -> onLogin());
 
+        linkEditText.setOnClickListener((v) -> onPaste());
+
         ImageView pasteIcon = findViewById(R.id.fptn_paste_icon);
         pasteIcon.setOnClickListener((v) -> onPaste());
 
@@ -128,8 +130,11 @@ public class LoginActivity extends AppCompatActivity {
         if (clipboard != null && clipboard.hasPrimaryClip() && clipboard.getPrimaryClip() != null) {
             ClipData.Item item = clipboard.getPrimaryClip().getItemAt(0);
             if (item != null && item.getText() != null) {
-                linkEditText.setText(item.getText().toString());
-                linkEditText.setSelection(linkEditText.getText().length());
+                String text = item.getText().toString().trim();
+                if (text.startsWith("fptn:") || text.startsWith("fptnb:")) {
+                    linkEditText.setText(text);
+                    linkEditText.setSelection(linkEditText.getText().length());
+                }
             }
         }
     }

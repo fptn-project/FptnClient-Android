@@ -58,7 +58,7 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/paste_button"
             android:padding="10dp"
-            android:src="@drawable/ic_content_copy_24"
+            android:src="@drawable/ic_content_paste_24"
             app:tint="@color/primary" />
 
         <ImageView
