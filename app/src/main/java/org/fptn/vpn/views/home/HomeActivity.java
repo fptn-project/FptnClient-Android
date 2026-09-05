@@ -81,6 +81,8 @@ import java.util.List;
 import java.util.Optional;
 
 import lombok.Getter;
+import android.widget.AdapterView;
+import org.fptn.vpn.database.AppDatabase;
 
 public class HomeActivity extends AppCompatActivity {
     private static final String TAG = HomeActivity.class.getSimpleName();
@@ -106,6 +108,7 @@ public class HomeActivity extends AppCompatActivity {
     private int trafficFrameMinHeight;
 
     private CustomSpinner spinnerServers;
+    private volatile boolean isUserChangingServer = false;
 
     private ToggleButton startStopButton;
 
@@ -197,7 +200,39 @@ public class HomeActivity extends AppCompatActivity {
         viewModel.getServerDtoListLiveData().observe(this, serverEntities -> {
             ((ServerEntityAdapter) spinnerServers.getAdapter()).setServerEntityList(serverEntities);
 
-            spinnerServers.performClosedEvent(); // FIX SPINNER BACKGROUND
+            if (!spinnerServers.hasBeenOpened()) {
+                spinnerServers.performClosedEvent(); // FIX SPINNER BACKGROUND
+            }
+            updateSpinnerSelection();
+        });
+
+        spinnerServers.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                if (!spinnerServers.hasBeenOpened()) {
+                    return;
+                }
+                if (spinnerServers.getAdapter() instanceof ServerEntityAdapter adapter) {
+                    List<ServerEntity> list = adapter.getServerEntityList();
+                    if (list != null && position < list.size()) {
+                        int serverId = list.get(position).getId();
+                        for (ServerEntity s : list) {
+                            s.setSelected(s.getId() == serverId);
+                        }
+                        isUserChangingServer = true;
+                        new Thread(() -> {
+                            AppDatabase.getInstance(HomeActivity.this)
+                                    .serverDAO()
+                                    .setSelected(serverId);
+                            runOnUiThread(() -> isUserChangingServer = false);
+                        }).start();
+                    }
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+            }
         });
 
         View settingsMenuItem = findViewById(R.id.menuSettings);
@@ -377,25 +412,29 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     private void updateSpinnerSelection() {
-        if (spinnerServers.getAdapter() != null
-                && spinnerServers.getAdapter() instanceof ServerEntityAdapter serverEntityAdapter) {
+        if (isUserChangingServer || spinnerServers.hasBeenOpened()) return;
+        if (spinnerServers.getAdapter() instanceof ServerEntityAdapter serverEntityAdapter) {
             List<ServerEntity> serverEntityList = serverEntityAdapter.getServerEntityList();
             if (serverEntityList != null && !serverEntityList.isEmpty()) {
-                if (SharedPrefUtils.getResetSelectedServerEnabled(this)) {
-                    spinnerServers.setSelection(0);
-                } else {
-                    boolean selected = false;
-                    for (int i = 0; i < serverEntityList.size(); i++) {
-                        if (serverEntityList.get(i).isSelected()) {
-                            spinnerServers.setSelection(i);
-                            selected = true;
-                            break;
+                new Thread(() -> {
+                    ServerEntity selected = AppDatabase.getInstance(HomeActivity.this)
+                            .serverDAO()
+                            .getSelected();
+                    final int selectedId = selected != null
+                            ? selected.getId()
+                            : ServerEntity.AUTO.getId();
+                    runOnUiThread(() -> {
+                        if (isUserChangingServer) return;
+                        int position = 0;
+                        for (int i = 0; i < serverEntityList.size(); i++) {
+                            if (serverEntityList.get(i).getId() == selectedId) {
+                                position = i;
+                                break;
+                            }
                         }
-                    }
-                    if (!selected) {
-                        spinnerServers.setSelection(0);
-                    }
-                }
+                        spinnerServers.setSelection(position);
+                    });
+                }).start();
             }
         }
     }
