@@ -380,6 +380,9 @@ public class FptnConnection extends Thread implements Splitter.Bridge {
                 AppExclusion exclusion = new AppExclusion(service);
                 for (AppInfo appInfo : appInfos) {
                     String packageName = appInfo.getPackageName();
+                    if (packageName.equalsIgnoreCase(service.getPackageName())) {
+                        continue;
+                    }
                     if (!serverEntity.isCensured() && exclusion.isExcluded(packageName)) {
                         continue;
                     }
@@ -387,6 +390,7 @@ public class FptnConnection extends Thread implements Splitter.Bridge {
                 }
             }
         } else if (perAppVpnMode == PerAppVpnMode.EXCEPT_DISALLOWED) {
+            disallowedPackages.add(service.getPackageName());
             for (AppInfo appInfo : appInfos) {
                 disallowedPackages.add(appInfo.getPackageName());
             }
