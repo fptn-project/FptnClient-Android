@@ -21,14 +21,17 @@
 package org.fptn.vpn.views.updatetoken;
 
 import android.annotation.SuppressLint;
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -54,6 +57,7 @@ public class UpdateTokenActivity extends AppCompatActivity {
 
     @Getter
     private UpdateTokenViewModel viewModel;
+    private EditText linkEditText;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -81,19 +85,34 @@ public class UpdateTokenActivity extends AppCompatActivity {
         label.setText(Html.fromHtml(getString(R.string.settings_token_info_html), Html.FROM_HTML_MODE_LEGACY));
         label.setMovementMethod(LinkMovementMethod.getInstance());
 
+        linkEditText = findViewById(R.id.fptn_login_link_input);
+
+        linkEditText.setOnClickListener((v) -> onPaste());
+
+        ImageView pasteIcon = findViewById(R.id.fptn_paste_icon);
+        pasteIcon.setOnClickListener((v) -> onPaste());
+
+        ImageView clearIcon = findViewById(R.id.fptn_clear_icon);
+        clearIcon.setOnClickListener((v) -> linkEditText.setText(""));
+
         // HIDE KEYBOARD
-        EditText editText = findViewById(R.id.fptn_login_link_input);
-        editText.setTextIsSelectable(true);
-        editText.setShowSoftInputOnFocus(false);
-        editText.setOnTouchListener((view, motionEvent) -> {
-            if (motionEvent.getAction() == MotionEvent.ACTION_UP) {
-                if (motionEvent.getX() > (view.getWidth() - view.getPaddingRight() - 50)) {
-                    ((EditText) view).setText("");
+        linkEditText.setTextIsSelectable(true);
+        linkEditText.setShowSoftInputOnFocus(false);
+        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);  // This just hide keyboard when activity starts
+    }
+
+    private void onPaste() {
+        ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+        if (clipboard != null && clipboard.hasPrimaryClip() && clipboard.getPrimaryClip() != null) {
+            ClipData.Item item = clipboard.getPrimaryClip().getItemAt(0);
+            if (item != null && item.getText() != null) {
+                String text = item.getText().toString().trim();
+                if (text.startsWith("fptn:") || text.startsWith("fptnb:")) {
+                    linkEditText.setText(text);
+                    linkEditText.setSelection(linkEditText.getText().length());
                 }
             }
-            return false;
-        });
-        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);  // This just hide keyboard when activity starts
+        }
     }
 
     public void onCancel(View v) {
@@ -104,8 +123,7 @@ public class UpdateTokenActivity extends AppCompatActivity {
     }
 
     public void onSave(View v) {
-        EditText linkInput = findViewById(R.id.fptn_login_link_input);
-        final String tokenLink = linkInput.getText().toString();
+        final String tokenLink = linkEditText.getText().toString();
 
         try {
             ListenableFuture<Void> updateResult = viewModel.parseAndSaveToken(tokenLink);

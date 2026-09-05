@@ -7,6 +7,8 @@
     <string name="state_disconnect">قطع شده</string>
 
     <string name="login_button">ورود</string>
+    <string name="paste_button">چسباندن</string>
+    <string name="clear_button">پاک کردن</string>
     <string name="logout_button">خروج</string>
     <string name="update_token_button">به‌روزرسانی توکن</string>
 
@@ -58,7 +60,7 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="disconnect_reason_closed_unexpectedly">قطع شد: اتصال به طور غیرمنتظره‌ای بسته شد</string>
     <string name="disconnect_reason_unexpected_error">قطع شد: خطای غیرمنتظره</string>
     <string name="error">خطا در اتصال!</string>
-    <string name="paste_your_token">توکن را اینجا کپی کنید...</string>
+    <string name="paste_your_token">برای چسباندن توکن ضربه بزنید</string>
     <string name="running">متصل شد</string>
 
     <string name="dialog_logout_title">اقدام را تأیید کنید</string>
