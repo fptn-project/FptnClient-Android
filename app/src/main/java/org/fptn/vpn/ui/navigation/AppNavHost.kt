@@ -1,5 +1,7 @@
 package org.fptn.vpn.ui.navigation
 
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -48,6 +50,13 @@ fun AppNavHost(
     NavHost(
         navController = navController,
         startDestination = startRoute,
+        // The screen itself already switches instantly (this is a single Activity; navigating
+        // between routes doesn't re-create any window) — the default crossfade/scale transition
+        // just added visible lag on top of that with nothing to justify it, so drop it.
+        enterTransition = { EnterTransition.None },
+        exitTransition = { ExitTransition.None },
+        popEnterTransition = { EnterTransition.None },
+        popExitTransition = { ExitTransition.None },
     ) {
         composable(AppRoute.SPLASH) {
             SplashScreen(
