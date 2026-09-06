@@ -45,9 +45,10 @@ import org.fptn.vpn.database.entity.ServerEntity;
 import org.fptn.vpn.database.entity.SniEntity;
 import org.fptn.vpn.enums.BypassCensorshipMethod;
 import org.fptn.vpn.enums.SniSpoofingMode;
+import org.fptn.vpn.ui.MainActivity;
+import org.fptn.vpn.ui.navigation.AppRoute;
 import org.fptn.vpn.utils.NotificationUtils;
 import org.fptn.vpn.utils.SharedPrefUtils;
-import org.fptn.vpn.views.bypassmethod.BypassMethodsActivity;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -75,6 +76,11 @@ public class SniCheckerService extends Service {
 
     @Getter
     private static final MutableLiveData<SniCheckerServiceState> staticServiceState = new MutableLiveData<>(SniCheckerServiceState.INACTIVE);
+
+    /** Non-Lombok accessor so Kotlin (Compose) code can read the static service state. */
+    public static SniCheckerServiceState getStaticState() {
+        return staticServiceState.getValue();
+    }
 
     @Getter
     private final MutableLiveData<SniCheckerServiceState> serviceState = new MutableLiveData<>(SniCheckerServiceState.INACTIVE);
@@ -142,7 +148,7 @@ public class SniCheckerService extends Service {
 
         // Pending Intent for launch byPassMethodActivity when notification tapped
         launchActivityPendingIntent = PendingIntent.getActivity(this, 0,
-                new Intent(this, BypassMethodsActivity.class),
+                MainActivity.intentForRoute(this, AppRoute.BYPASS_METHODS),
                 PendingIntent.FLAG_IMMUTABLE);
 
         // Pending Intent to stop sni checking from notification

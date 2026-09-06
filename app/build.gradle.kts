@@ -7,6 +7,9 @@ import kotlin.concurrent.thread
 
 plugins {
     id("pvnclient.android.application")
+    // Jetpack Compose compiler (Kotlin 2.x). Applied here so the module can build
+    // Compose UI; the Kotlin Android plugin itself comes from the convention plugin.
+    alias(libs.plugins.kotlin.compose)
     // Google/Firebase plugins are applied conditionally below — only when a `gms`
     // variant is built. This keeps the `foss` APK free of Firebase/Crashlytics and
     // means `foss` builds don't require google-services.json.
@@ -127,6 +130,7 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
     buildFeatures {
+        compose = true
         viewBinding = true
         buildConfig = true
     }
@@ -156,7 +160,16 @@ dependencies {
     implementation(project(":core:common"))
     implementation(project(":vpnclient"))
     implementation(libs.androidx.activity)
+    implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.appcompat)
+    // Jetpack Compose (single-activity UI). Shared by both `gms` and `foss` flavors.
+    implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.runtime.livedata)
+    implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.compose.ui.graphics)
+    implementation(libs.androidx.compose.ui.tooling.preview)
+    implementation(libs.androidx.navigation.compose)
     // To use CallbackToFutureAdapter
     implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.monitor)

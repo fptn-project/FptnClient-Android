@@ -59,8 +59,42 @@ public class ServerEntity {
     @Setter
     private long pingMs = -1;
 
+    // Written out explicitly alongside the Lombok @Getter/@Setter above: Kotlin's Java-interop
+    // stub generation runs before the Lombok annotation processor, so Kotlin call sites can't
+    // see the Lombok-generated accessors here.
+    public long getPingMs() {
+        return pingMs;
+    }
+
+    public void setPingMs(long pingMs) {
+        this.pingMs = pingMs;
+    }
+
     public boolean IsAuto() {
         return Objects.equals(name, "Auto");
+    }
+
+    // Written out explicitly (instead of relying on Lombok's @Data) for the subset of
+    // accessors Compose screens need: Kotlin's Java-interop stub generation runs before the
+    // Lombok annotation processor, so Kotlin call sites can't see Lombok-generated members.
+    public int getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getCountryCode() {
+        return countryCode;
+    }
+
+    public boolean isCensured() {
+        return censured;
+    }
+
+    public boolean isSelected() {
+        return selected;
     }
 
     public String getServerInfo() {
