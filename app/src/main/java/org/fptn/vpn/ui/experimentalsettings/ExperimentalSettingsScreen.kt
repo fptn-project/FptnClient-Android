@@ -10,7 +10,6 @@ import android.provider.Settings
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
@@ -32,7 +31,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -140,36 +138,42 @@ fun ExperimentalSettingsScreen() {
     }
 
     fun requestQuickSettingsTile() {
-        val statusBarManager = context.getSystemService(StatusBarManager::class.java) ?: return
+        val statusBarManager = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            context.getSystemService(StatusBarManager::class.java) ?: return
+        } else {
+            TODO("VERSION.SDK_INT < Q")
+        }
         tileButtonEnabled = false
         try {
             val componentName = ComponentName(context, FptnTileService::class.java)
             val label = context.getString(R.string.app_name)
             val icon = Icon.createWithResource(context, R.drawable.ic_logo)
-            statusBarManager.requestAddTileService(
-                componentName,
-                label,
-                icon,
-                context.mainExecutor,
-            ) { resultCode ->
-                when (resultCode) {
-                    StatusBarManager.TILE_ADD_REQUEST_RESULT_TILE_ALREADY_ADDED -> {
-                        XLog.tag(TAG).i("Quick settings tile already present")
-                        Toast.makeText(context, R.string.tile_already_added, Toast.LENGTH_SHORT).show()
-                        tileButtonUsedUp = true
-                    }
-                    StatusBarManager.TILE_ADD_REQUEST_RESULT_TILE_ADDED -> {
-                        XLog.tag(TAG).i("Quick settings tile added successfully")
-                        Toast.makeText(context, R.string.tile_added_successfully, Toast.LENGTH_SHORT).show()
-                        tileButtonUsedUp = true
-                    }
-                    StatusBarManager.TILE_ADD_REQUEST_RESULT_TILE_NOT_ADDED -> {
-                        XLog.tag(TAG).w("Quick settings tile request was declined")
-                        tileButtonEnabled = true
-                    }
-                    else -> {
-                        XLog.tag(TAG).w("Quick settings tile request returned unexpected result [code=%d]", resultCode)
-                        tileButtonEnabled = true
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                statusBarManager.requestAddTileService(
+                    componentName,
+                    label,
+                    icon,
+                    context.mainExecutor,
+                ) { resultCode ->
+                    when (resultCode) {
+                        StatusBarManager.TILE_ADD_REQUEST_RESULT_TILE_ALREADY_ADDED -> {
+                            XLog.tag(TAG).i("Quick settings tile already present")
+                            Toast.makeText(context, R.string.tile_already_added, Toast.LENGTH_SHORT).show()
+                            tileButtonUsedUp = true
+                        }
+                        StatusBarManager.TILE_ADD_REQUEST_RESULT_TILE_ADDED -> {
+                            XLog.tag(TAG).i("Quick settings tile added successfully")
+                            Toast.makeText(context, R.string.tile_added_successfully, Toast.LENGTH_SHORT).show()
+                            tileButtonUsedUp = true
+                        }
+                        StatusBarManager.TILE_ADD_REQUEST_RESULT_TILE_NOT_ADDED -> {
+                            XLog.tag(TAG).w("Quick settings tile request was declined")
+                            tileButtonEnabled = true
+                        }
+                        else -> {
+                            XLog.tag(TAG).w("Quick settings tile request returned unexpected result [code=%d]", resultCode)
+                            tileButtonEnabled = true
+                        }
                     }
                 }
             }

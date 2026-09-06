@@ -18,7 +18,7 @@
  * Website: https://fptn.org
  */
 
-package org.fptn.vpn.views.home;
+package org.fptn.vpn.ui.home;
 
 import static org.fptn.vpn.utils.ResourcesUtils.getStringResourceByName;
 

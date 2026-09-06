@@ -18,7 +18,7 @@
  * Website: https://fptn.org
  */
 
-package org.fptn.vpn.views.settings;
+package org.fptn.vpn.ui.settings;
 
 import android.app.Application;
 

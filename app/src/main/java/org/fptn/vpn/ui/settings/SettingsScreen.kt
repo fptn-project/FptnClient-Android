@@ -50,7 +50,6 @@ import org.fptn.vpn.ui.theme.Gray
 import org.fptn.vpn.ui.theme.White
 import org.fptn.vpn.utils.PermissionsUtils
 import org.fptn.vpn.utils.SharedPrefUtils
-import org.fptn.vpn.views.settings.SettingsViewModel
 
 private const val TAG = "SettingsScreen"
 

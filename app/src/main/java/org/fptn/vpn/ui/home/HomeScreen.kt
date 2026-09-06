@@ -17,7 +17,6 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -28,19 +27,14 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -52,7 +46,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
@@ -64,7 +57,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -76,7 +68,6 @@ import org.fptn.vpn.services.vpn.FptnService
 import org.fptn.vpn.services.vpn.FptnServiceState
 import org.fptn.vpn.ui.MainActivity
 import org.fptn.vpn.ui.common.BottomNavBar
-import org.fptn.vpn.ui.common.HtmlLinkText
 import org.fptn.vpn.ui.common.ServerDropdown
 import org.fptn.vpn.ui.common.ShareDialog
 import org.fptn.vpn.ui.common.findActivity
@@ -86,8 +77,6 @@ import org.fptn.vpn.ui.theme.White
 import org.fptn.vpn.ui.theme.Yellow
 import org.fptn.vpn.utils.PermissionsUtils
 import org.fptn.vpn.utils.SharedPrefUtils
-import org.fptn.vpn.views.home.HomeActivityViewModel
-import org.fptn.vpn.views.home.TrafficSpeedChart
 import org.fptn.vpn.vpnclient.exception.ErrorCode
 
 private const val TOKEN_MAX_AGE_MS = 14L * 24 * 60 * 60 * 1000
@@ -505,55 +494,34 @@ fun HomeScreen(viewModel: HomeActivityViewModel = viewModel()) {
     }
 
     if (showTokenReminderDialog) {
-        AlertDialog(
-            onDismissRequest = {},
-            title = { Text(stringResource(R.string.token_reminder_title)) },
-            text = { HtmlLinkText(html = stringResource(R.string.token_reminder_message)) },
-            confirmButton = {
-                TextButton(onClick = {
-                    showTokenReminderDialog = false
-                    context.startActivity(MainActivity.intentForRoute(context, AppRoute.UPDATE_TOKEN))
-                }) { Text(stringResource(R.string.token_reminder_update)) }
+        TokenReminderDialog(
+            onUpdateToken = {
+                showTokenReminderDialog = false
+                context.startActivity(MainActivity.intentForRoute(context, AppRoute.UPDATE_TOKEN))
             },
-            dismissButton = {
-                TextButton(onClick = {
-                    showTokenReminderDialog = false
-                    connectVpn()
-                }) { Text(stringResource(R.string.token_reminder_later)) }
+            onLater = {
+                showTokenReminderDialog = false
+                connectVpn()
             },
         )
     }
 
     if (showVpnSwitchDialog) {
-        AlertDialog(
-            onDismissRequest = { showVpnSwitchDialog = false },
-            title = { Text(stringResource(R.string.vpn_switch_title)) },
-            text = { Text(stringResource(R.string.vpn_switch_message)) },
-            confirmButton = {
-                TextButton(onClick = {
-                    showVpnSwitchDialog = false
-                    connectVpn()
-                }) { Text(stringResource(R.string.vpn_switch_button)) }
+        VpnSwitchDialog(
+            onSwitch = {
+                showVpnSwitchDialog = false
+                connectVpn()
             },
-            dismissButton = {
-                TextButton(onClick = { showVpnSwitchDialog = false }) { Text(stringResource(R.string.cancel_button)) }
-            },
+            onCancel = { showVpnSwitchDialog = false },
         )
     }
 
     if (showVpnSetupErrorDialog) {
-        AlertDialog(
-            onDismissRequest = { showVpnSetupErrorDialog = false },
-            title = { Text(stringResource(R.string.vpn_setup_error_title)) },
-            text = { Text(stringResource(R.string.vpn_setup_error_message)) },
-            confirmButton = {
-                TextButton(onClick = { showVpnSetupErrorDialog = false }) { Text(stringResource(android.R.string.ok)) }
-            },
-            dismissButton = {
-                TextButton(onClick = {
-                    showVpnSetupErrorDialog = false
-                    context.startActivity(Intent(Settings.ACTION_VPN_SETTINGS))
-                }) { Text(stringResource(R.string.open_vpn_settings)) }
+        VpnSetupErrorDialog(
+            onOk = { showVpnSetupErrorDialog = false },
+            onOpenVpnSettings = {
+                showVpnSetupErrorDialog = false
+                context.startActivity(Intent(Settings.ACTION_VPN_SETTINGS))
             },
         )
     }
@@ -621,221 +589,3 @@ private fun openBatteryOptimizationSettings(context: Context) {
     }
 }
 
-@Composable
-private fun TrafficCard(
-    downloadSpeed: String,
-    uploadSpeed: String,
-    downloadTraffic: String,
-    uploadTraffic: String,
-    showChart: Boolean,
-    speedSample: LongArray?,
-    modifier: Modifier = Modifier,
-) {
-    val dividerColor = Color(0x26FFFFFF)
-    Column(
-        modifier = modifier
-            .legacyDrawableBackground(R.drawable.round_settings_back_white10_20)
-            .heightIn(min = 140.dp),
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
-                Image(
-                    painter = painterResource(R.drawable.download),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(dimensionResource(R.dimen.traffic_icon_size))
-                        .padding(end = 8.dp),
-                )
-                Text(
-                    text = downloadSpeed,
-                    color = White,
-                    textAlign = TextAlign.End,
-                    modifier = Modifier.weight(1f).padding(end = 8.dp),
-                )
-            }
-            Box(modifier = Modifier.width(1.dp).height(30.dp).background(dividerColor))
-            Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = uploadSpeed,
-                    color = White,
-                    modifier = Modifier.weight(1f).padding(start = 8.dp),
-                )
-                Image(
-                    painter = painterResource(R.drawable.upload),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(dimensionResource(R.dimen.traffic_icon_size))
-                        .padding(start = 8.dp),
-                )
-            }
-        }
-
-        if (showChart) {
-            HorizontalDivider(color = dividerColor, thickness = 1.dp)
-            val lastAppliedSample = remember { mutableStateOf<LongArray?>(null) }
-            AndroidView(
-                factory = { ctx -> TrafficSpeedChart(ctx, null) },
-                update = { view ->
-                    val sample = speedSample
-                    if (sample != null && sample !== lastAppliedSample.value) {
-                        view.addSample(sample[0], sample[1])
-                        lastAppliedSample.value = sample
-                    }
-                },
-                modifier = Modifier.fillMaxWidth().height(100.dp),
-            )
-            HorizontalDivider(color = dividerColor, thickness = 1.dp)
-        }
-
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Column(modifier = Modifier.weight(1f).padding(end = 10.dp), horizontalAlignment = Alignment.End) {
-                Text(text = stringResource(R.string.traffic_download), color = Color(0x80FFFFFF), fontSize = 10.sp)
-                Text(text = downloadTraffic, color = White, fontSize = 14.sp)
-            }
-            Box(modifier = Modifier.width(1.dp).height(30.dp).background(dividerColor))
-            Column(modifier = Modifier.weight(1f).padding(start = 10.dp)) {
-                Text(text = stringResource(R.string.traffic_upload), color = Color(0x80FFFFFF), fontSize = 10.sp)
-                Text(text = uploadTraffic, color = White, fontSize = 14.sp)
-            }
-        }
-    }
-}
-
-@Composable
-private fun BackgroundSetupDialog(
-    notificationsGranted: Boolean,
-    batteryGranted: Boolean,
-    pinDone: Boolean,
-    isXiaomi: Boolean,
-    onRequestNotifications: () -> Unit,
-    onRequestBattery: () -> Unit,
-    onOpenPin: () -> Unit,
-    onDismiss: () -> Unit,
-    onDone: () -> Unit,
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.background_setup_title)) },
-        text = {
-            Column {
-                Text(
-                    text = stringResource(R.string.background_setup_text),
-                    fontSize = 13.sp,
-                    modifier = Modifier.padding(bottom = 14.dp),
-                )
-                SetupChecklistRow(
-                    icon = R.drawable.bell_ring_24,
-                    title = stringResource(R.string.background_setup_notifications_title),
-                    done = notificationsGranted,
-                    onClick = onRequestNotifications,
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                SetupChecklistRow(
-                    icon = R.drawable.eco_battery_24,
-                    title = stringResource(R.string.background_setup_battery_title),
-                    description = stringResource(R.string.background_setup_battery_desc),
-                    done = batteryGranted,
-                    onClick = onRequestBattery,
-                )
-                if (isXiaomi) {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    SetupChecklistRow(
-                        icon = R.drawable.ic_baseline_settings_24,
-                        title = stringResource(R.string.background_setup_pin_title),
-                        description = stringResource(R.string.background_setup_pin_desc),
-                        done = pinDone,
-                        onClick = onOpenPin,
-                    )
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = onDone, enabled = notificationsGranted && batteryGranted) {
-                Text(stringResource(R.string.background_setup_done))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDone) { Text(stringResource(R.string.background_setup_later)) }
-        },
-    )
-}
-
-@Composable
-private fun SetupChecklistRow(icon: Int, title: String, description: String? = null, done: Boolean, onClick: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .legacyDrawableBackground(R.drawable.round_settings_back_white10_20)
-            .clickable(onClick = onClick)
-            .padding(12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Image(painter = painterResource(icon), contentDescription = null, modifier = Modifier.size(22.dp))
-        Column(modifier = Modifier.weight(1f).padding(start = 12.dp)) {
-            Text(text = title, fontSize = 14.sp)
-            if (description != null) {
-                Text(text = description, fontSize = 11.sp, modifier = Modifier.padding(top = 1.dp))
-            }
-        }
-        Image(
-            painter = painterResource(if (done) R.drawable.ic_check_16 else R.drawable.ic_outline_arrow_forward_ios_16),
-            contentDescription = null,
-            modifier = Modifier.size(16.dp),
-        )
-    }
-}
-
-@Composable
-private fun ConnectFailedHelpDialog(
-    tokenIsStale: Boolean,
-    onGetToken: () -> Unit,
-    onBypass: () -> Unit,
-    onDismiss: () -> Unit,
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.connect_failed_help_title)) },
-        text = {
-            Column {
-                Text(
-                    text = stringResource(
-                        if (tokenIsStale) R.string.connect_failed_help_message_token_stale else R.string.connect_failed_help_message,
-                    ),
-                    fontSize = 13.sp,
-                    modifier = Modifier.padding(bottom = 14.dp),
-                )
-                ConnectFailedHelpRow(text = stringResource(R.string.connect_failed_help_bypass), onClick = onBypass)
-                Spacer(modifier = Modifier.height(8.dp))
-                ConnectFailedHelpRow(text = stringResource(R.string.connect_failed_help_get_token), onClick = onGetToken)
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = onDismiss) { Text(stringResource(R.string.connect_failed_help_skip)) }
-        },
-    )
-}
-
-@Composable
-private fun ConnectFailedHelpRow(text: String, onClick: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .legacyDrawableBackground(R.drawable.round_settings_back_white10_20)
-            .clickable(onClick = onClick)
-            .padding(12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(text = text, fontSize = 14.sp, modifier = Modifier.weight(1f))
-        Image(
-            painter = painterResource(R.drawable.ic_outline_arrow_forward_ios_16),
-            contentDescription = null,
-            modifier = Modifier.size(16.dp),
-        )
-    }
-}

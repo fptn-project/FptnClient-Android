@@ -1,11 +1,10 @@
 package org.fptn.vpn.ui.bypassmethod
 
 import android.content.ComponentName
-import android.content.Context
 import android.content.ServiceConnection
-import android.net.Uri
 import android.os.IBinder
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -15,24 +14,16 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -49,7 +40,6 @@ import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
@@ -68,18 +58,14 @@ import org.fptn.vpn.services.snichecker.SniCheckerService
 import org.fptn.vpn.services.snichecker.SniCheckerServiceState
 import org.fptn.vpn.ui.MainActivity
 import org.fptn.vpn.ui.common.BottomNavBar
-import org.fptn.vpn.ui.common.ServerDropdown
+import org.fptn.vpn.ui.common.LegacySpinner
 import org.fptn.vpn.ui.common.ShareDialog
 import org.fptn.vpn.ui.common.legacyDrawableBackground
 import org.fptn.vpn.ui.navigation.AppRoute
 import org.fptn.vpn.ui.theme.Gray
 import org.fptn.vpn.ui.theme.Primary
 import org.fptn.vpn.ui.theme.White
-import org.fptn.vpn.views.bypassmethod.BypassMethodsViewModel
 import org.fptn.vpn.vpnclient.exception.PVNClientException
-import java.io.BufferedReader
-import java.io.InputStreamReader
-import java.util.Locale
 
 private const val TAG = "BypassMethodsScreen"
 
@@ -194,6 +180,13 @@ fun BypassMethodsScreen(
     }
 
     val showSniSection = bypassMethod == BypassCensorshipMethod.SNI_REALITY
+    // While SNI auto-select is scanning, keep the user on this screen — navigating away would
+    // lose sight of the running scan, and a fresh launch already reopens here too (see
+    // SplashScreen's `sniActive` routing). Blocks both the bottom nav (below) and the system
+    // back gesture — the NavHost's back stack can otherwise hold earlier screens reached via
+    // the reverse-bridge, since those don't `popUpTo` the way Splash's routing does.
+    val sniCheckingActive = serviceState == SniCheckerServiceState.ACTIVE
+    BackHandler(enabled = sniCheckingActive) {}
 
     Column(
         modifier = Modifier
@@ -435,6 +428,8 @@ fun BypassMethodsScreen(
             onNavigateHome = { context.startActivity(MainActivity.intentForRoute(context, AppRoute.HOME)) },
             onNavigateSettings = { context.startActivity(MainActivity.intentForRoute(context, AppRoute.SETTINGS)) },
             onShare = { showShareDialog = true },
+            homeEnabled = !sniCheckingActive,
+            settingsEnabled = !sniCheckingActive,
         )
     }
 
@@ -513,180 +508,6 @@ private fun BypassMethodRadioRow(label: String, selected: Boolean, onSelect: () 
         RadioButton(selected = selected, onClick = onSelect)
         Text(text = label, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = White)
     }
-}
-
-@Composable
-private fun <T> LegacySpinner(
-    items: List<T>,
-    selected: T,
-    label: @Composable (T) -> String,
-    onSelect: (T) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    var expanded by remember { mutableStateOf(false) }
-    Box(modifier = modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(40.dp)
-                .legacyDrawableBackground(R.drawable.round_back_spinner_down)
-                .clickable { expanded = true }
-                .padding(horizontal = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                text = label(selected),
-                color = Primary,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f),
-            )
-        }
-        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            items.forEach { item ->
-                DropdownMenuItem(
-                    text = { Text(label(item)) },
-                    onClick = {
-                        onSelect(item)
-                        expanded = false
-                    },
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun AutoSelectSniDialog(
-    servers: List<ServerEntity>,
-    onCancel: () -> Unit,
-    onStart: (ServerEntity, Boolean) -> Unit,
-) {
-    var selected by remember(servers) { mutableStateOf(servers.firstOrNull() ?: ServerEntity.AUTO) }
-    var resetChecked by remember { mutableStateOf(false) }
-
-    AlertDialog(
-        onDismissRequest = onCancel,
-        text = {
-            Column {
-                Text(stringResource(R.string.select_server_for_autoselect), modifier = Modifier.padding(bottom = 16.dp))
-                ServerDropdown(servers = servers, selected = selected, onSelect = { selected = it })
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 16.dp)
-                        .clickable { resetChecked = !resetChecked },
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Checkbox(checked = resetChecked, onCheckedChange = { resetChecked = it })
-                    Text(stringResource(R.string.reset_checked_previously_checkbox_label))
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = { onStart(selected, resetChecked) }) {
-                Text(stringResource(R.string.start_sni_checking_button_label))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onCancel) {
-                Text(stringResource(android.R.string.cancel))
-            }
-        },
-    )
-}
-
-@Composable
-private fun EditSniDialog(
-    initialSni: String,
-    suggestions: List<String>,
-    onSave: (String) -> Unit,
-    onResetDefault: () -> Unit,
-    onDismiss: () -> Unit,
-) {
-    var text by remember { mutableStateOf(initialSni) }
-    var expanded by remember { mutableStateOf(false) }
-    val filteredSuggestions = remember(text, suggestions) {
-        if (text.isEmpty()) emptyList() else suggestions.filter { it.contains(text, ignoreCase = true) }.take(20)
-    }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        text = {
-            Box {
-                OutlinedTextField(
-                    value = text,
-                    onValueChange = {
-                        text = it
-                        expanded = it.isNotEmpty()
-                    },
-                    label = { Text(stringResource(R.string.sni_text_view_hint)) },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                DropdownMenu(
-                    expanded = expanded && filteredSuggestions.isNotEmpty(),
-                    onDismissRequest = { expanded = false },
-                ) {
-                    filteredSuggestions.forEach { suggestion ->
-                        DropdownMenuItem(
-                            text = { Text(suggestion) },
-                            onClick = {
-                                text = suggestion
-                                expanded = false
-                            },
-                        )
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = {
-                onSave(text)
-                onDismiss()
-            }) {
-                Text(stringResource(R.string.save_button))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = {
-                onResetDefault()
-                onDismiss()
-            }) {
-                Text(stringResource(R.string.reset_default_button))
-            }
-        },
-    )
-}
-
-private fun loadSniSuggestions(context: Context): List<String> {
-    val result = mutableListOf<String>()
-    if (Locale.getDefault().language == "ru") {
-        result.addAll(readSniRawFile(context, R.raw.russia))
-    }
-    result.addAll(readSniRawFile(context, R.raw.global))
-    return result
-}
-
-private fun readSniRawFile(context: Context, rawResId: Int): List<String> {
-    val list = mutableListOf<String>()
-    try {
-        context.resources.openRawResource(rawResId).use { inputStream ->
-            BufferedReader(InputStreamReader(inputStream)).useLines { lines ->
-                lines.forEach { line ->
-                    val trimmed = line.trim()
-                    if (trimmed.isNotEmpty() && !trimmed.startsWith("#")) {
-                        list.add(trimmed)
-                    }
-                }
-            }
-        }
-    } catch (e: Exception) {
-        XLog.tag(TAG).e("Failed to read SNI suggestions file: %s", e.message)
-    }
-    return list
 }
 
 @Composable

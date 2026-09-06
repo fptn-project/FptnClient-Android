@@ -18,7 +18,7 @@
  * Website: https://fptn.org
  */
 
-package org.fptn.vpn.views.bypassmethod;
+package org.fptn.vpn.ui.bypassmethod;
 
 import android.app.Application;
 import android.net.Uri;
@@ -41,7 +41,7 @@ import org.fptn.vpn.enums.BypassCensorshipMethod;
 import org.fptn.vpn.enums.ConnectionStrategy;
 import org.fptn.vpn.enums.SniSpoofingMode;
 import org.fptn.vpn.services.snichecker.SniCheckerService;
-import org.fptn.vpn.views.home.HomeActivityViewModel;
+import org.fptn.vpn.ui.home.HomeActivityViewModel;
 import org.fptn.vpn.services.snichecker.SniCheckerServiceState;
 import org.fptn.vpn.utils.SharedPrefUtils;
 import org.fptn.vpn.vpnclient.exception.PVNClientException;

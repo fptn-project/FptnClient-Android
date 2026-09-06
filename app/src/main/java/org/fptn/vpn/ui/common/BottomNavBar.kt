@@ -22,8 +22,11 @@ import org.fptn.vpn.R
  *
  * [settingsEnabled] mirrors `HomeActivity`'s `settingsMenuItem.setEnabled(!activeState)`: Home
  * disables the Settings tab while a VPN connection is active/connecting, so the user can't
- * navigate away mid-connection. Every other screen leaves it at the default (always enabled),
- * since only Home ever disabled it.
+ * navigate away mid-connection. [homeEnabled] is the same idea used by BypassMethodsScreen: while
+ * SNI auto-select checking is running, both tabs are disabled so the user can't navigate away and
+ * lose sight of it (the app also always reopens directly on BypassMethodsScreen while checking is
+ * active — see `SplashScreen`'s `sniActive` routing). Every other screen leaves both at the
+ * default (always enabled).
  */
 @Composable
 fun BottomNavBar(
@@ -33,6 +36,7 @@ fun BottomNavBar(
     onNavigateSettings: () -> Unit,
     onShare: () -> Unit,
     modifier: Modifier = Modifier,
+    homeEnabled: Boolean = true,
     settingsEnabled: Boolean = true,
 ) {
     val selectedItemId = if (isHomeScreen) R.id.menuHome else R.id.menuSettings
@@ -45,17 +49,33 @@ fun BottomNavBar(
             }
         },
         update = { view ->
-            view.selectedItemId = selectedItemId
+            // `BottomNavigationView.setSelectedItemId`/toggling a menu item's `isEnabled` can
+            // synchronously redispatch through whichever listener is *currently* attached —
+            // and since this lambda only re-registers fresh listeners at the end, an in-between
+            // dispatch would run the *previous* recomposition's listener, closed over its stale
+            // enabled/screen flags. That's exactly what fired a real "navigate to Settings" the
+            // instant `settingsEnabled` flipped to false (SNI checking started): the old,
+            // still-enabled listener ran before being replaced. Detach listeners first, so
+            // nothing can fire off a mutation below, then reattach fresh ones with current
+            // values once the view's state is settled.
+            view.setOnItemSelectedListener(null)
+            view.setOnItemReselectedListener(null)
+
+            if (view.selectedItemId != selectedItemId) {
+                view.selectedItemId = selectedItemId
+            }
+            view.menu.findItem(R.id.menuHome)?.isEnabled = homeEnabled
             view.menu.findItem(R.id.menuSettings)?.isEnabled = settingsEnabled
+
             view.setOnItemSelectedListener { item ->
                 when (item.itemId) {
                     selectedItemId -> true
                     R.id.menuHome -> {
-                        onNavigateHome()
+                        if (homeEnabled) onNavigateHome()
                         true
                     }
                     R.id.menuSettings -> {
-                        onNavigateSettings()
+                        if (settingsEnabled) onNavigateSettings()
                         true
                     }
                     R.id.menuShare -> {
@@ -67,8 +87,8 @@ fun BottomNavBar(
             }
             view.setOnItemReselectedListener { item ->
                 when (item.itemId) {
-                    R.id.menuSettings -> if (!isSettingsScreen) onNavigateSettings()
-                    R.id.menuHome -> if (!isHomeScreen) onNavigateHome()
+                    R.id.menuSettings -> if (!isSettingsScreen && settingsEnabled) onNavigateSettings()
+                    R.id.menuHome -> if (!isHomeScreen && homeEnabled) onNavigateHome()
                 }
             }
         },

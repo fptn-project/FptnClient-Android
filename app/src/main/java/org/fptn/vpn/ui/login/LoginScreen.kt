@@ -55,7 +55,6 @@ import org.fptn.vpn.ui.theme.Hint
 import org.fptn.vpn.ui.theme.Primary
 import org.fptn.vpn.ui.theme.White
 import org.fptn.vpn.ui.theme.Yellow
-import org.fptn.vpn.views.login.LoginActivityViewModel
 
 private const val TAG = "LoginScreen"
 private val TOKEN_CLIPBOARD_PREFIXES = listOf("fptn:", "fptnb:")

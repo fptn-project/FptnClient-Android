@@ -61,7 +61,6 @@ import com.elvishew.xlog.XLog;
 
 import org.fptn.vpn.R;
 import org.fptn.vpn.network.DomainBlocker;
-import org.fptn.vpn.network.Splitter;
 import org.fptn.vpn.core.common.Constants;
 import org.fptn.vpn.database.AppDatabase;
 import org.fptn.vpn.database.entity.ServerEntity;
@@ -77,7 +76,7 @@ import org.fptn.vpn.utils.NetworkUtils;
 import org.fptn.vpn.utils.NotificationUtils;
 import org.fptn.vpn.utils.RemoteExclusionListSync;
 import org.fptn.vpn.utils.SharedPrefUtils;
-import org.fptn.vpn.views.perappvpn.AppInfo;
+import org.fptn.vpn.ui.perappvpn.AppInfo;
 import org.fptn.vpn.services.speedtest.SpeedTestResult;
 import org.fptn.vpn.services.speedtest.SpeedTestUtils;
 import org.fptn.vpn.ui.MainActivity;
