@@ -5,8 +5,6 @@ import android.content.ServiceConnection
 import android.os.IBinder
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -29,12 +27,15 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
@@ -132,29 +133,30 @@ fun BypassMethodsScreen(
                     connection = conn
                     SniCheckerService.bindService(context, conn)
                 }
+
                 Lifecycle.Event.ON_STOP -> {
-                    connection?.let { try { context.unbindService(it) } catch (e: Exception) { XLog.tag(TAG).e("Error unbinding SNI checker service: %s", e.message) } }
+                    connection?.let {
+                        try {
+                            context.unbindService(it)
+                        } catch (e: Exception) {
+                            XLog.tag(TAG).e("Error unbinding SNI checker service: %s", e.message)
+                        }
+                    }
                     connection = null
                 }
+
                 else -> Unit
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose {
             lifecycleOwner.lifecycle.removeObserver(observer)
-            connection?.let { try { context.unbindService(it) } catch (e: Exception) { XLog.tag(TAG).e("Error unbinding SNI checker service: %s", e.message) } }
-        }
-    }
-
-    val filePickerLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.StartActivityForResult(),
-    ) { result ->
-        val uri = result.data?.data
-        if (result.resultCode == android.app.Activity.RESULT_OK && uri != null) {
-            try {
-                viewModel.readFileContent(uri)
-            } catch (e: PVNClientException) {
-                Toast.makeText(context, e.errorMessage, Toast.LENGTH_SHORT).show()
+            connection?.let {
+                try {
+                    context.unbindService(it)
+                } catch (e: Exception) {
+                    XLog.tag(TAG).e("Error unbinding SNI checker service: %s", e.message)
+                }
             }
         }
     }
@@ -188,6 +190,22 @@ fun BypassMethodsScreen(
     val sniCheckingActive = serviceState == SniCheckerServiceState.ACTIVE
     BackHandler(enabled = sniCheckingActive) {}
 
+    // While checking is active, scroll down to the stop button so the user lands on it
+    // straight away instead of having to scroll past everything above the SNI section —
+    // whether that's opening the screen fresh (Splash already routes here while active) or
+    // just switching away and back while a scan keeps running.
+    val scrollState = rememberScrollState()
+    var autoScanCardOffsetPx by remember { mutableIntStateOf(0) }
+    var scrolledToActiveScan by remember { mutableStateOf(false) }
+    LaunchedEffect(sniCheckingActive, autoScanCardOffsetPx) {
+        if (sniCheckingActive && autoScanCardOffsetPx > 0 && !scrolledToActiveScan) {
+            scrolledToActiveScan = true
+            scrollState.animateScrollTo(autoScanCardOffsetPx)
+        } else if (!sniCheckingActive) {
+            scrolledToActiveScan = false
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -197,7 +215,7 @@ fun BypassMethodsScreen(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(scrollState)
                 .padding(bottom = 10.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
@@ -228,6 +246,7 @@ fun BypassMethodsScreen(
                         viewModel.setConnectionStrategy(it)
                     },
                     modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                    enabled = !sniCheckingActive,
                 )
             }
 
@@ -247,6 +266,7 @@ fun BypassMethodsScreen(
                             XLog.tag(TAG).i("Bypass method selected [method=TLS_OBFUSCATION]")
                             viewModel.setBypassMethod(BypassCensorshipMethod.TLS_OBFUSCATION)
                         },
+                        enabled = !sniCheckingActive,
                     )
                     BypassMethodRadioRow(
                         label = stringResource(R.string.sni_reality_radio_button_label),
@@ -255,6 +275,7 @@ fun BypassMethodsScreen(
                             XLog.tag(TAG).i("Bypass method selected [method=SNI_REALITY]")
                             viewModel.setBypassMethod(BypassCensorshipMethod.SNI_REALITY)
                         },
+                        enabled = !sniCheckingActive,
                     )
                 }
                 if (showSniSection) {
@@ -264,6 +285,7 @@ fun BypassMethodsScreen(
                         label = { sniSpoofingModeLabel(it) },
                         onSelect = { viewModel.setSniSpoofingMode(it) },
                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                        enabled = !sniCheckingActive,
                     )
                 }
             }
@@ -274,7 +296,7 @@ fun BypassMethodsScreen(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { showEditSniDialog = true },
+                            .clickable(enabled = !sniCheckingActive) { showEditSniDialog = true },
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Image(
@@ -306,7 +328,11 @@ fun BypassMethodsScreen(
                 }
 
                 // SNI autoscan card
-                BypassCard {
+                BypassCard(
+                    modifier = Modifier.onGloballyPositioned { coordinates ->
+                        autoScanCardOffsetPx = coordinates.positionInParent().y.toInt()
+                    },
+                ) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -394,7 +420,7 @@ fun BypassMethodsScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(8.dp)
-                            .legacyDrawableBackground(R.drawable.round_back_secondary_cancel_100)
+                            .legacyDrawableBackground(if (toggleChecked) R.drawable.round_back_secondary_100 else R.drawable.round_back_secondary_cancel_100)
                             .then(
                                 if (sniCount > 0 || toggleChecked) {
                                     Modifier.clickable { onAutoSelectClicked() }
@@ -471,9 +497,9 @@ fun BypassMethodsScreen(
 }
 
 @Composable
-private fun BypassCard(content: @Composable () -> Unit) {
+private fun BypassCard(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp, vertical = 10.dp)
             .legacyDrawableBackground(R.drawable.round_settings_back_white10_20)
@@ -497,15 +523,15 @@ private fun CardHeader(title: String) {
 }
 
 @Composable
-private fun BypassMethodRadioRow(label: String, selected: Boolean, onSelect: () -> Unit) {
+private fun BypassMethodRadioRow(label: String, selected: Boolean, onSelect: () -> Unit, enabled: Boolean = true) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .selectable(selected = selected, onClick = onSelect)
+            .selectable(selected = selected, enabled = enabled, onClick = onSelect)
             .padding(top = 1.dp, end = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        RadioButton(selected = selected, onClick = onSelect)
+        RadioButton(selected = selected, onClick = onSelect, enabled = enabled)
         Text(text = label, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = White)
     }
 }
