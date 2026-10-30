@@ -25,7 +25,7 @@
         <![CDATA[
         The list of available servers is encrypted in the token.
         <br/>
-        To update the server list, enter a new token.
+        Enter a token with the <b>same username</b> as your current one to replace its server list. Tokens with a <b>new</b> username must be added via <b>Token Management</b>.
         <br/>
         The token works like a password: once updated, it will no longer be valid on any devices where it was previously used.
         <br/><br/>
@@ -40,14 +40,16 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="info_message_html">
         <![CDATA[
         FPTN is a fully custom-built VPN technology — developed from scratch, including the core protocol, server implementation, and cross-platform clients. It is a non-commercial, open-source project developed by volunteers and designed to bypass censorship.
-        <br/>
-        <br/>
+        <br/><br/>
         Our <a href="https://storage.googleapis.com/fptn.org/index.html">website</a>
-        <br/>
-        Our Telegram group: <a href="https://t.me/fptn_project">@fptn_project</a>
-        <br/>
+        <br/><br/>
+        Our communities:<br/>
+        - <a href="https://t.me/fpnt_project_global">English Community</a><br/>
+        - <a href="https://t.me/fptn_project">Russian Community</a><br/>
+        - <a href="https://t.me/fptn_project_iran">Persian Community</a>
+        <br/><br/>
         App on <a href="https://play.google.com/store/apps/details?id=org.fptn.vpn">Google Play Market</a>
-        <br/>
+        <br/><br/>
         You can support us on <a href="https://boosty.to/fptn/donate">Boosty</a>
         ]]>
     </string>
@@ -123,7 +125,7 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="no_active_internet_connections">Not connected to Internet.</string>
     <string name="reconnecting_failed">Reconnection Failed.</string>
 
-    <string name="access_token_error">Authentication error! Please make sure you are using the most recently received access token in the application settings.</string>
+    <string name="access_token_error">Authentication error! Make sure you\'re using the latest access token in settings.</string>
 
     <string name="ssl_context_init_failed">SSL context initialization failed!</string>
 
@@ -145,7 +147,7 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="play_market_link" translatable="false">https://play.google.com/store/apps/details?id=org.fptn.vpn</string>
     <string name="close_button_text">Close</string>
     <string name="share_via_message">Share via message</string>
-    <string name="sni_text_description">Server Name Indication (SNI) — the website address declared when connecting to a VPN server. Please specify some popular website accessible without a VPN from your country.</string>
+    <string name="sni_text_description">SNI — the website address sent when connecting to a VPN server. Specify a popular website accessible without VPN in your country.</string>
     <string name="your_current_sni">Your current SNI:</string>
     <string name="default_sni">samsung.com</string>
     <string name="sni_text_view_hint">New SNI</string>
@@ -154,7 +156,7 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="warning">Warning</string>
 
     <string name="battery_optimization_request_dialog_title">Disable battery optimization</string>
-    <string name="battery_optimization_request_dialog_text">For a stable connection, please grant permission to disable battery optimization for this app</string>
+    <string name="battery_optimization_request_dialog_text">Grant permission to disable battery optimization for stable connection.</string>
     <string name="background_setup_title">Reliable background operation</string>
     <string name="background_setup_text">For stable operation, set these up:</string>
     <string name="background_setup_notifications_title">Enable notifications</string>
@@ -173,7 +175,7 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
 
 
     <string name="background_data_request_dialog_title">Background data transfer</string>
-    <string name="background_data_request_dialog_text">For a stable connection, please grant permission to disable data transfer restrictions in background for this app</string>
+    <string name="background_data_request_dialog_text">Grant permission to disable background data restrictions for stable connection.</string>
     <string name="permission_warning_text">Allow all permissions for stable connection on Settings screen</string>
 
 
@@ -265,7 +267,7 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
 
     <string name="another_settings">Another settings:</string>
     <string name="quick_settings_tile_title">Quick toggle in notification shade</string>
-    <string name="quick_settings_tile_description">Adds a VPN connect/disconnect button to the Android quick settings panel (the pull-down shade), so you can turn the VPN on or off without opening the app.</string>
+    <string name="quick_settings_tile_description">Adds a VPN toggle to Android\'s quick settings panel — control VPN without opening the app.</string>
     <string name="quick_settings_tile_button">Add to quick settings</string>
     <string name="tile_already_added">Tile already added</string>
     <string name="tile_added_successfully">Tile added successfully</string>
@@ -285,25 +287,29 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="reset_to_default_success">Advanced settings reset to default</string>
 
     <string name="ad_block_title">Ad Blocking:</string>
-    <string name="ad_block_description">Blocks ads and trackers at the DNS level for all apps. May require turning off Private DNS (DoH) in system settings — otherwise DNS queries bypass filtering.</string>
+    <string name="ad_block_description">Blocks ads and trackers at DNS level for all apps. Disable Private DNS (DoH) in system settings or filtering is bypassed.</string>
     <string name="ad_block_enable">Block ads and trackers</string>
 
     <string name="split_tunnel_title">Split Tunneling:</string>
     <string name="split_tunnel_enable">Enable split tunneling for domains from the list</string>
-    <string name="split_tunnel_enable_link">the list</string>
+    <string name="split_tunnel_list_link">Domain list</string>
+    <string name="split_tunnel_advanced_enable">Use TLDs and IDNs (advanced)</string>
+    <string name="split_tunnel_advanced_description">Bypass entire domain zones (TLD, e.g. .ru or ru — with or without dot) and domains in any language (IDN).\n\nRecommended in Russia, Iran, China and other countries with censorship — otherwise local domains won\'t bypass the tunnel, and the state may block the VPN connection. TLDs and IDNs must be added to the domain list.</string>
 
     <string name="domain_blacklist_title">Domain Blacklist:</string>
-    <string name="domain_blacklist_description">Blocks connections to the listed domains and their subdomains. One domain per line. May require turning off Private DNS (DoH) in system settings — otherwise DNS queries bypass filtering.</string>
+    <string name="domain_blacklist_description">Blocks the listed domains and their subdomains. Disable Private DNS (DoH) in system settings or filtering is bypassed.</string>
+    <string name="domain_blacklist_list_link">Domain list</string>
     <string name="domain_blacklist_enable">Block domains from the list</string>
-    <string name="domain_blacklist_enable_link">the list</string>
     <string name="domain_blacklist_hint">example.com</string>
+    <string name="domain_blacklist_advanced_enable">Block TLDs and IDNs (advanced)</string>
+    <string name="domain_blacklist_advanced_description">Block entire domain zones (TLD, e.g. .cn or cn — with or without dot) and domains in any language (IDN). Use with caution — wrong setup may break apps.</string>
 
     <string name="speed_notification_title">Notification:</string>
     <string name="speed_notification_enable">Connection speed in status bar</string>
     <string name="traffic_notification_enable">Connection traffic in status bar</string>
 
     <string name="connect_failed_help_settings_title">Failed connection hints:</string>
-    <string name="connect_failed_help_settings_description">If a connection from scratch fails twice in a row, a dialog offers to change the bypass blocking method or get a new token.</string>
+    <string name="connect_failed_help_settings_description">If connection fails twice in a row, suggests changing bypass method or getting a new token.</string>
     <string name="connect_failed_help_enable">Show hints after failed connections</string>
 
     <string name="home_screen_settings_title">Home screen:</string>
@@ -312,12 +318,15 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="allow_landscape_label">Auto-rotate screen</string>
 
     <string name="kill_switch_title">Kill-switch:</string>
-    <string name="kill_switch_description">If the VPN connection is lost, the internet will not work until you turn the VPN off manually.</string>
+    <string name="kill_switch_description">Blocks traffic without VPN. Triggers when reconnect attempts are exhausted or the connection drops unexpectedly.</string>
     <string name="kill_switch_enable">Block traffic without VPN</string>
-    <string name="kill_switch_system_hint">Works while the app process is alive: if Android terminates the process, the TUN interface goes down and traffic flows directly. Always-on VPN is enforced by Android itself — enable it in settings together with blocking traffic without VPN.</string>
+    <string name="kill_switch_system_hint">Works only while the app is running. For full protection, also enable Always-on VPN in Android settings.</string>
     <string name="kill_switch_system_button">Open Android VPN settings</string>
     <string name="kill_switch_blocked">Kill-switch triggered: traffic is blocked</string>
-
+    <string name="kill_switch_network_change_enable">Block traffic when switching from Wi-Fi to mobile internet and vice versa</string>
+    <string name="kill_switch_network_change_description">Instantly blocks all traffic when switching between Wi-Fi and mobile internet.</string>
+    <string name="kill_switch_infinite_warning">Warning: with infinite reconnect attempts, Kill-switch won\'t trigger on connection drops — only when switching between Wi-Fi and Cellular (if enabled).</string>
+    <string name="reconnect_attempts_description">Kill-switch activates when these attempts are exhausted.</string>
     <string name="auto_fallback_title">Auto-fallback to available servers:</string>
     <string name="auto_fallback_enable">Switch server on connection loss</string>
     <string name="auto_fallback_threshold_label">Attempts before switching server:</string>
@@ -352,9 +361,9 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="sni_reality_radio_button_label_additional_info">Requires a real existing domain (otherwise errors may occur)</string>
     <string name="connecting_auto">Selecting the best server...</string>
 
-    <string name="settings_per_app_russian_notice"><![CDATA[For security and stable service operation, known spy apps always bypass the VPN and cannot be returned to the tunnel. The full list of <a href="https://github.com/fptn-project/FptnClient-Android/blob/develop/app/src/main/res/values/always_excluded_apps.xml">excluded apps</a> and <a href="https://github.com/fptn-project/FptnClient-Android/blob/develop/app/src/main/res/values/split_tunnel_domains.xml">their domains</a> is available on GitHub.]]></string>
+    <string name="settings_per_app_russian_notice"><![CDATA[For security, known spy apps always bypass the VPN. Full list of <a href="https://github.com/fptn-project/FptnClient-Android/blob/develop/app/src/main/res/values/always_excluded_apps.xml">excluded apps</a> and <a href="https://github.com/fptn-project/FptnClient-Android/blob/develop/app/src/main/res/values/split_tunnel_domains.xml">their domains</a> is on GitHub.]]></string>
     <string name="per_app_vpn_mode_title">Per-app VPN mode</string>
-    <string name="per_app_vpn_mode_info">Here you can configure per-app VPN mode: enable vpn for apps (default) or allow/disallow VPN for specific apps.</string>
+    <string name="per_app_vpn_mode_info">Only allowed apps, or all apps except selected.</string>
     <string name="per_app_vpn_settings_title">Tunneling settings</string>
     <string name="all_app_mode_radio_button_label">Disabled</string>
     <string name="all_app_mode_radio_button_label_additional_info">All apps use the VPN</string>
@@ -363,7 +372,7 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="disallowed_apps_radio_button_label">All apps use VPN, except selected</string>
     <string name="disallowed_apps_radio_button_label_additional_info">All apps use VPN, except selected</string>
     <string name="per_app_vpn_no_apps_selected_title">No apps selected</string>
-    <string name="per_app_vpn_no_apps_selected_message">No apps are selected for tunneling. The VPN will be active but no app traffic will go through the tunnel.\n\nSelect at least one app or choose a different mode.</string>
+    <string name="per_app_vpn_no_apps_selected_message">No apps selected for tunneling. VPN will be active but no traffic goes through it.\n\nSelect an app or change the mode.</string>
     <string name="save_anyway">Save anyway</string>
 
     <string name="auto_sni_label">Autoselect SNI</string>
@@ -392,13 +401,12 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="dialog_clear_logs_title">Clear logs</string>
     <string name="dialog_clear_logs_message">This will delete all saved log files. Continue?</string>
     <string name="logs_cleared">Logs cleared</string>
-    <string name="log_level_title">Log level</string>
-    <string name="log_level_verbose">Verbose</string>
-    <string name="log_level_debug">Debug</string>
-    <string name="log_level_info">Info</string>
-    <string name="log_level_warn">Warning</string>
-    <string name="log_level_error">Error</string>
-    <string name="log_level_none">None</string>
+
+    <!-- App-wide font scale -->
+    <string name="font_scale_title">Font size</string>
+    <string name="font_scale_description">Customize the text size in the app. By default, the system size is used.</string>
+    <string name="font_scale_use_system">Use system font size</string>
+    <string name="font_scale_custom_label">Custom size</string>
 
     <string name="search_apps_hint">Search apps…</string>
     <string name="show_system_apps_label">Show system apps</string>
@@ -415,13 +423,13 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="vpn_switch_button">Switch</string>
 
     <string name="vpn_setup_error_title">VPN Setup Error</string>
-    <string name="vpn_setup_error_message">To connect to FPTN VPN you need to:\n\n- Allow the app to connect to VPN network\n- Disable the \'Always-on VPN\' feature for all other VPN apps in system VPN settings</string>
+    <string name="vpn_setup_error_message">To connect:\n\n- Grant VPN permission\n- Disable Always-on VPN for other VPN apps in system settings</string>
     <string name="open_vpn_settings">Open VPN Settings</string>
 
     <string name="backups_title">Settings backups</string>
     <string name="backups_info">Save all FPTN settings to a file or restore them from a backup</string>
     <string name="backup_save_title">Save settings</string>
-    <string name="backup_save_description">Export all settings (bypass methods, SNI, tunneling, per-app VPN, additional settings) to a JSON file. You can save it on this device or share it.</string>
+    <string name="backup_save_description">Export all settings to a file. Save on device or share.</string>
     <string name="backup_save_button">Save</string>
     <string name="backup_share_button">Share</string>
     <string name="backup_restore_title">Restore settings</string>
@@ -438,4 +446,26 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="connection_strategy_rolling">Rolling tunnel</string>
     <string name="connection_strategy_dual">Dual rolling tunnel</string>
     <string name="connection_strategy_triple">Triple rolling tunnel</string>
+    <string name="token_management_title">Token Management</string>
+    <string name="token_management_description">Manage your FPTN tokens. Toggle visibility of servers.</string>
+    <string name="token_add">Add Token</string>
+    <string name="token_add_hint">Paste token here</string>
+    <string name="token_delete">Delete</string>
+    <string name="token_delete_title">Delete Token</string>
+    <string name="token_delete_confirmation">Are you sure you want to delete token \"%1$s\" and all its servers?</string>
+    <string name="token_updated_at">Updated: %1$s</string>
+    <string name="token_error_exists">A token with this username already exists. Please update it in the Update Token section.</string>
+    <string name="token_error_invalid">Invalid token format.</string>
+    <string name="token_error_unknown">An unknown error occurred.</string>
+    <string name="token_error_title">Error</string>
+    <string name="token_error_not_found">No saved token matches the username in this token. To add a new one, use Token Management.</string>
+    <string name="disconnect_reason_network_change_blocked">Network changed (Wi-Fi to Cellular and vice versa)</string>
+
+    <!-- Auto-start on boot -->
+    <string name="auto_start_on_boot_title">Auto-start on device boot</string>
+    <string name="auto_start_on_boot_description">VPN automatically connects when the device starts. Requires VPN permission and battery optimization exemption.</string>
+    <string name="auto_start_on_boot_enable">Connect VPN on device boot</string>
+    <string name="auto_start_on_boot_hint_before">On some devices (</string>
+    <string name="auto_start_on_boot_hint_oems">Xiaomi, Huawei, Samsung and others</string>
+    <string name="auto_start_on_boot_hint_after">) you need to manually allow auto-start in device settings.</string>
 </resources>

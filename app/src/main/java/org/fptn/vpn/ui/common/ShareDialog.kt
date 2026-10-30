@@ -15,8 +15,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.runtime.CompositionLocalProvider
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.MultiFormatWriter
 import com.google.zxing.common.BitMatrix
@@ -32,35 +37,51 @@ fun ShareDialog(onDismiss: () -> Unit) {
     val context = LocalContext.current
     val qrBitmap = remember { generateQrCode(context.getString(R.string.play_market_link), 500, 500) }
 
+    // AlertDialog opens in a separate window, and LocalDensity from MainActivity is not passed
+    // automatically. Capture the density with our custom fontScale override and provide it inside the dialog.
+    val dialogDensity = LocalDensity.current
+
     AlertDialog(
         onDismissRequest = onDismiss,
         text = {
-            Column {
-                Image(
-                    bitmap = qrBitmap.asImageBitmap(),
-                    contentDescription = null,
-                    modifier = Modifier.size(300.dp),
-                )
-                HtmlLinkText(
-                    html = stringResource(R.string.info_message_html),
+            CompositionLocalProvider(LocalDensity provides dialogDensity) {
+                // With fontScale = 1.3×, the HTML description may not fit on small screens.
+                // verticalScroll + heightIn(max = 400.dp) ensures that the content stays within
+                // the screen bounds and allows the user to scroll through it.
+                Column(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                )
-                Text(stringResource(R.string.menu_share))
+                        .heightIn(max = 400.dp)
+                        .verticalScroll(rememberScrollState()),
+                ) {
+                    Image(
+                        bitmap = qrBitmap.asImageBitmap(),
+                        contentDescription = null,
+                        modifier = Modifier.size(300.dp),
+                    )
+                    HtmlLinkText(
+                        html = stringResource(R.string.info_message_html),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                    )
+                }
             }
         },
         confirmButton = {
-            TextButton(onClick = {
-                shareViaMessage(context)
-                onDismiss()
-            }) {
-                Text(stringResource(R.string.share_via_message))
+            CompositionLocalProvider(LocalDensity provides dialogDensity) {
+                TextButton(onClick = {
+                    shareViaMessage(context)
+                    onDismiss()
+                }) {
+                    Text(stringResource(R.string.share_via_message))
+                }
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.close_button_text))
+            CompositionLocalProvider(LocalDensity provides dialogDensity) {
+                TextButton(onClick = onDismiss) {
+                    Text(stringResource(R.string.close_button_text))
+                }
             }
         },
     )

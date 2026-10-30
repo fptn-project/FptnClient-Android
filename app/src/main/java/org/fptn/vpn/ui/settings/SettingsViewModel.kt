@@ -21,11 +21,15 @@
 package org.fptn.vpn.ui.settings
 
 import android.app.Application
+import androidx.core.app.NotificationManagerCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.fptn.vpn.core.common.Constants
 import org.fptn.vpn.database.AppDatabase
+import org.fptn.vpn.services.snichecker.SniCheckerService
+import org.fptn.vpn.services.vpn.FptnService
 
 class SettingsViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -33,7 +37,33 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
 
     fun deleteAllServers() {
         viewModelScope.launch(Dispatchers.IO) {
+            // Stop background services FIRST — otherwise their foreground notifications outlive
+            // the session and their PendingIntents can still re-open MainActivity on an
+            // authenticated route even after the user has signed out. Cancelling the notification
+            // IDs explicitly is also defensive: stopForeground(STOP_FOREGROUND_REMOVE) only runs
+            // when the service processes its stop intent, which can race the table wipe.
+            try {
+                SniCheckerService.stopChecking(getApplication())
+            } catch (e: Exception) {
+                // SniCheckerService may not be running — ignore.
+            }
+            try {
+                FptnService.startToDisconnect(getApplication())
+            } catch (e: Exception) {
+                // FptnService may not be running — ignore.
+            }
+            try {
+                val nm = NotificationManagerCompat.from(getApplication())
+                nm.cancel(Constants.SNI_CHECKER_NOTIFICATION_ID)
+                nm.cancel(Constants.MAIN_CONNECTED_NOTIFICATION_ID)
+                nm.cancel(Constants.ERROR_CONNECTED_NOTIFICATION_ID)
+                nm.cancel(Constants.INFO_NOTIFICATION_NOTIFICATION_ID)
+            } catch (e: Exception) {
+                // Best-effort cleanup.
+            }
+
             appDatabase.serverDAO().deleteAll()
+            appDatabase.tokenDAO().deleteAll()
         }
     }
 }

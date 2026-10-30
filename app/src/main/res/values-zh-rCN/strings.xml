@@ -1,0 +1,395 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_version">版本 1.0.0 </string>
+
+    <string name="select_server">选择服务器</string>
+    <string name="connection_time">连接时间</string>
+    <string name="state_disconnect">已断开</string>
+
+    <string name="login_button">登录</string>
+    <string name="paste_button">粘贴</string>
+    <string name="clear_button">清除</string>
+    <string name="logout_button">退出</string>
+    <string name="update_token_button">更新令牌</string>
+
+    <string name="menu_home">主页</string>
+    <string name="menu_settings">设置</string>
+    <string name="menu_share">分享</string>
+
+    <string name="your_servers">您的 VPN 服务器</string>
+
+    <string name="reconnect_on_change_ip_settings_title">更换 IP 时重新连接?</string>
+
+    <string name="settings_token_info_html">
+        <![CDATA[
+        可用服务器列表已加密保存在令牌中。
+        <br/>
+        请输入与当前令牌 <b>用户名相同</b> 的令牌以替换其服务器列表。带有 <b>新用户名</b> 的令牌须通过 <b>令牌管理</b> 添加。
+        <br/>
+        令牌类似于密码:更新后,之前使用过该令牌的设备将无法继续使用。
+        <br/><br/>
+        请通过 <a href="https://t.me/fptn_bot">@fptn_bot</a> 使用 <b><font color="#03DAC5">/token</font></b> 命令获取新令牌。
+        ]]>
+    </string>
+
+    <string name="share_title">分享方式</string>
+    <string name="share_message">FPTN 是一款非商业 VPN,是用于突破审查的志愿项目。
+https://play.google.com/store/apps/details?id=org.fptn.vpn
+    </string>
+    <string name="info_message_html">
+        <![CDATA[
+        FPTN 是完全自主开发的 VPN 技术——从零开始构建,包括核心协议、服务端实现和跨平台客户端。这是一个非商业、开源的项目,由志愿者开发,旨在突破审查。
+        <br/><br/>
+        我们的<a href="https://storage.googleapis.com/fptn.org/index.html">网站</a>
+        <br/><br/>
+        我们的社区:<br/>
+        - <a href="https://t.me/fpnt_project_global">英语社区</a><br/>
+        - <a href="https://t.me/fptn_project">俄语社区</a><br/>
+        - <a href="https://t.me/fptn_project_iran">波斯语社区</a>
+        <br/><br/>
+        应用位于 <a href="https://play.google.com/store/apps/details?id=org.fptn.vpn">Google Play 商店</a>
+        <br/><br/>
+        您可以通过 <a href="https://boosty.to/fptn/donate">Boosty</a> 支持我们
+        ]]>
+    </string>
+
+    <string name="connecting">FptnVPN 正在连接...</string>
+    <string name="connected">FptnVPN 已连接</string>
+    <string name="disconnected">FptnVPN 已断开</string>
+    <string name="disconnect_reason_vpn_revoked">已断开: 另一个 VPN 应用接管了连接</string>
+    <string name="disconnect_reason_vpn_conflict">已断开: 检测到 VPN 冲突</string>
+    <string name="disconnect_reason_system_revoked">已断开: VPN 被系统撤销</string>
+    <string name="disconnect_reason_closed_unexpectedly">已断开: 连接意外关闭</string>
+    <string name="disconnect_reason_unexpected_error">已断开: 意外错误</string>
+    <string name="disconnect_reason_network_change_blocked">网络已切换 (Wi-Fi 切换至移动网络,或反之)</string>
+    <string name="error">连接时发生错误!</string>
+    <string name="paste_your_token">点击粘贴令牌</string>
+    <string name="running">FptnVPN 正在运行</string>
+    <string name="reconnection">FptnVPN 正在重新连接...</string>
+
+    <string name="vpn_permission_warning">运行 FptnVPN 需要相应权限!</string>
+
+    <string name="cannot_connect_sni_check_active">无法连接: SNI 搜索进行中</string>
+    <string name="cannot_start_sni_check_vpn_active">无法启动 SNI 搜索: VPN 已连接</string>
+
+
+    <string name="dialog_logout_title">确认操作</string>
+    <string name="dialog_logout_message">您确定要退出吗?</string>
+    <string name="yes">是</string>
+    <string name="no">否</string>
+
+    <string name="cancel_button">取消</string>
+    <string name="save_button">保存</string>
+
+    <string name="server_label">服务器:</string>
+
+    <string name="telegram_bot_html">
+        <![CDATA[
+        使用 Telegram 机器人 <a href="https://t.me/fptn_bot">@fptn_bot</a> 获取令牌
+        ]]>
+    </string>
+
+    <string name="notification_channel_name">已连接时</string>
+    <string name="notification_group_name">主要</string>
+    <string name="errors_notification_group_name">错误</string>
+    <string name="sni_checker_notification_group_name">SNI 检查器</string>
+
+    <string name="disconnect_action">断开</string>
+    <string name="reconnect_action">重新连接</string>
+
+    <string name="token_was_updated">令牌已更新!</string>
+    <string name="token_reminder_title">更新您的令牌</string>
+    <string name="token_reminder_message"><![CDATA[您的令牌已长时间未更新。<br/><br/>请通过 <a href="https://t.me/fptn_bot">@fptn_bot</a> 使用 <b><font color="#03DAC5">/token</font></b> 命令获取新令牌,然后粘贴到此处。]]></string>
+    <string name="token_reminder_update">更新令牌</string>
+    <string name="token_reminder_later">稍后</string>
+    <string name="token_saving_failed">链接格式无效!</string>
+
+    <string name="connect_failed_help_title">无法连接</string>
+    <string name="connect_failed_help_message">请更改绕过封锁的方法,或如果超过三天未更新令牌,请获取新令牌。</string>
+    <string name="connect_failed_help_message_token_stale">请更改绕过封锁的方法,或获取新令牌——您的令牌已超过三天未更新。</string>
+    <string name="connect_failed_help_get_token">获取令牌</string>
+    <string name="connect_failed_help_bypass">更改绕过方法</string>
+    <string name="connect_failed_help_skip">跳过</string>
+
+    <!--Error codes strings-->
+    <string name="server_list_is_empty">服务器列表为空</string>
+    <string name="find_fastest_server_timeout">查找最快服务器的时间已过。</string>
+    <string name="all_servers_are_unreachable">所有服务器当前不可达。</string>
+    <string name="connect_to_server_error">服务器不可用!请尝试使用其他服务器。</string>
+    <string name="dns_server_error">网络错误: 无法从服务器获取 DNS 信息。</string>
+    <string name="vpn_interface_error">无法创建 VPN 接口。</string>
+    <string name="ciphers_error">支持的加密算法列表为空。</string>
+    <string name="waiting_for_network">等待网络...</string>
+    <string name="no_active_internet_connections">未连接到互联网。</string>
+    <string name="reconnecting_failed">重新连接失败。</string>
+
+    <string name="access_token_error">认证错误!请确保在设置中使用的是最新的访问令牌。</string>
+
+    <string name="ssl_context_init_failed">SSL 上下文初始化失败!</string>
+
+    <string name="unknown_error">发生未知错误!我们不知道发生了什么,这很可怕。</string>
+
+    <string name="grant">授予</string>
+    <string name="deny">拒绝</string>
+
+    <string name="connecting_to">"正在连接到 "</string>
+    <string name="connected_to">"已连接到 "</string>
+    <string name="reconnection_to">"重新连接到 "</string>
+    <string name="try_number">"重新连接: 第 "</string>
+    <string name="try_number_fallback">"搜索服务器: 第 "</string>
+    <string name="download_upload_speed_pattern">下载: %s 上传: %s</string>
+    <string name="download_upload_traffic_pattern">已接收: %s 已发送: %s</string>
+    <string name="refresh_token">刷新令牌...</string>
+    <string name="close_button_text">关闭</string>
+    <string name="share_via_message">通过消息分享</string>
+    <string name="sni_text_description">SNI —— 连接 VPN 服务器时发送的网站地址。请指定一个在您所在国家无需 VPN 即可访问的常用网站。</string>
+    <string name="your_current_sni">当前 SNI:</string>
+    <string name="default_sni">samsung.com</string>
+    <string name="sni_text_view_hint">新 SNI</string>
+    <string name="reset_default_button">恢复默认</string>
+    <string name="access_token_format">令牌格式无效!请检查输入是否正确。</string>
+    <string name="warning">警告</string>
+
+    <string name="battery_optimization_request_dialog_title">禁用电池优化</string>
+    <string name="battery_optimization_request_dialog_text">为获得稳定连接,请授予禁用电池优化的权限。</string>
+    <string name="background_setup_title">可靠的后台运行</string>
+    <string name="background_setup_text">为稳定运行,请设置以下选项:</string>
+    <string name="background_setup_notifications_title">启用通知</string>
+    <string name="background_setup_battery_title">电池使用</string>
+    <string name="background_setup_battery_desc">设置为"无限制"</string>
+    <string name="background_setup_pin_title">在"安全"中锁定应用</string>
+    <string name="background_setup_pin_desc">安全 → 加速 → ⚙ → 锁定的应用</string>
+    <string name="background_setup_done">继续</string>
+    <string name="background_setup_later">稍后</string>
+
+    <string name="required_permissions">所需权限:</string>
+    <string name="granted_text">已授予</string>
+    <string name="denied_text">已拒绝</string>
+
+    <string name="show_notification_label">强制通知</string>
+
+
+    <string name="background_data_request_dialog_title">后台数据传输</string>
+    <string name="background_data_request_dialog_text">为获得稳定连接,请授予禁用后台数据限制的权限。</string>
+    <string name="permission_warning_text">请在设置屏幕上授予所有权限以获得稳定的连接</string>
+
+
+
+    <string name="sponsors_text">感谢我们的赞助者 ❤️</string>
+
+
+    <string name="experimental_features_label">附加设置</string>
+    <string name="experimental_features_info">通过附加设置微调连接行为。</string>
+    <string name="reconnect_on_change">以下情况重新连接:</string>
+    <string name="reconnect_on_change_network_type">网络类型变更</string>
+    <string name="reconnect_on_change_ip_address">IP 地址变更</string>
+
+    <string name="reconnection_on_failure_attempts">失败时重新连接尝试次数:</string>
+    <string name="attempts_count">尝试次数:</string>
+    <string name="delay_between_attempts">间隔时间:</string>
+
+    <string name="delay_between_attempts_seconds">"%d 秒"</string>
+    <string name="reconnect_attempts_text">"%d"</string>
+
+    <string name="another_settings">其他设置:</string>
+    <string name="quick_settings_tile_title">通知栏快捷开关</string>
+    <string name="quick_settings_tile_description">在 Android 快捷设置面板中添加 VPN 开关,无需打开应用即可控制 VPN。</string>
+    <string name="quick_settings_tile_button">添加到快捷设置</string>
+    <string name="tile_already_added">磁贴已添加</string>
+    <string name="tile_added_successfully">磁贴添加成功</string>
+    <string name="tile_addition_failed">磁贴添加失败!</string>
+
+    <string name="settings_reset_server_title">服务器选择:</string>
+    <string name="settings_reset_server_on_disconnect">断开后重置所选服务器</string>
+    <string name="settings_reset_server_on_exception">仅在连接错误时重置服务器</string>
+    <string name="searching_for_server">正在搜索服务器...</string>
+    <string name="custom_dns_title">自定义 DNS:</string>
+    <string name="custom_dns_description">使用自定义 DNS 服务器。</string>
+    <string name="custom_dns_enable">启用自定义 DNS</string>
+    <string name="custom_dns_hint">DNS IPv4 地址 (例如 8.8.8.8)</string>
+    <string name="custom_dns_invalid">无效的 IPv4 地址</string>
+    <string name="reset_to_default_button">恢复默认</string>
+    <string name="reset_to_default_success">高级设置已恢复为默认值</string>
+
+    <string name="ad_block_title">广告拦截:</string>
+    <string name="ad_block_description">在 DNS 层级为所有应用拦截广告和追踪器。请在系统设置中关闭私有 DNS (DoH),否则过滤会被绕过。</string>
+    <string name="ad_block_enable">拦截广告和追踪器</string>
+
+    <string name="split_tunnel_title">分流 (Split Tunneling):</string>
+    <string name="split_tunnel_enable">为列表中的域名启用分流</string>
+    <string name="split_tunnel_list_link">域名列表</string>
+    <string name="split_tunnel_advanced_enable">使用 TLD 和 IDN (高级)</string>
+    <string name="split_tunnel_advanced_description">绕过整个域名区域 (TLD,例如 .ru 或 ru —— 带点或不带) 和任何语言的域名 (IDN)。\n\n在俄罗斯、伊朗、中国及其他有审查的国家建议启用 —— 否则本地域名不会绕过隧道,且政府可能封锁 VPN 连接。TLD 和 IDN 需添加到域名列表中。</string>
+
+    <string name="domain_blacklist_title">域名黑名单:</string>
+    <string name="domain_blacklist_description">拦截所列域名及其子域名。请在系统设置中关闭私有 DNS (DoH),否则过滤会被绕过。</string>
+    <string name="domain_blacklist_list_link">域名列表</string>
+    <string name="domain_blacklist_enable">拦截列表中的域名</string>
+    <string name="domain_blacklist_hint">example.com</string>
+    <string name="domain_blacklist_advanced_enable">拦截 TLD 和 IDN (高级)</string>
+    <string name="domain_blacklist_advanced_description">拦截整个域名区域 (TLD,例如 .cn 或 cn —— 带点或不带) 和任何语言的域名 (IDN)。请谨慎使用 —— 错误设置可能导致应用无法工作。</string>
+
+    <string name="speed_notification_title">通知:</string>
+    <string name="speed_notification_enable">状态栏显示连接速度</string>
+    <string name="traffic_notification_enable">状态栏显示连接流量</string>
+
+    <string name="connect_failed_help_settings_title">连接失败提示:</string>
+    <string name="connect_failed_help_settings_description">若连接连续失败两次,将弹出对话框,建议更改绕过方法或获取新令牌。</string>
+    <string name="connect_failed_help_enable">连接失败后显示提示</string>
+
+    <string name="home_screen_settings_title">主屏幕:</string>
+    <string name="show_traffic_chart_label">显示速度图表</string>
+    <string name="orientation_settings_title">屏幕方向:</string>
+    <string name="allow_landscape_label">自动旋转屏幕</string>
+
+    <string name="kill_switch_title">Kill-switch (流量阻断开关):</string>
+    <string name="kill_switch_description">在无 VPN 时拦截流量。当重新连接尝试用尽或连接意外断开时触发。</string>
+    <string name="kill_switch_enable">无 VPN 时拦截流量</string>
+    <string name="kill_switch_system_hint">仅在应用运行时有效。如需完整保护,请在 Android 设置中同时启用 Always-on VPN。</string>
+    <string name="kill_switch_system_button">打开 Android VPN 设置</string>
+    <string name="kill_switch_blocked">Kill-switch 已触发: 流量已拦截</string>
+    <string name="kill_switch_network_change_enable">在 Wi-Fi 切换到移动网络 (或反之) 时拦截流量</string>
+    <string name="kill_switch_network_change_description">在 Wi-Fi 与移动网络之间切换时立即拦截所有流量。</string>
+    <string name="kill_switch_infinite_warning">警告: 当重连尝试为无限次时,连接断开时 Kill-switch 不会触发 —— 仅在 Wi-Fi 与移动网络之间切换时生效 (若已启用)。</string>
+    <string name="reconnect_attempts_description">Kill-switch 在这些尝试用尽时触发。</string>
+    <string name="auto_fallback_title">自动切换到可用服务器:</string>
+    <string name="auto_fallback_enable">连接丢失时切换服务器</string>
+    <string name="auto_fallback_threshold_label">切换服务器前的尝试次数:</string>
+    <string name="auto_fallback_threshold_value">"%d"</string>
+
+    <string name="bypass_methods_title">绕过封锁方法</string>
+    <string name="bypass_methods_info">配置绕过封锁方法</string>
+
+    <string name="sni">域名伪装 (默认)</string>
+    <string name="sni_radio_button_label">域名伪装</string>
+    <string name="tls_handshake_obfuscation_radio_button_label">流量伪装 (混淆)</string>
+    <string name="sni_reality_radio_button_label">域名伪装 (SNI + REALITY)</string>
+
+    <string name="sni_reality_radio_button_label_chrome_149">域名伪装 (Chrome 149)</string>
+    <string name="sni_reality_radio_button_label_chrome_148">域名伪装 (Chrome 148)</string>
+    <string name="sni_reality_radio_button_label_chrome_147">域名伪装 (Chrome 147)</string>
+    <string name="sni_reality_radio_button_label_chrome_146">域名伪装 (Chrome 146)</string>
+    <string name="sni_reality_radio_button_label_chrome_145">域名伪装 (Chrome 145)</string>
+
+    <string name="sni_reality_radio_button_label_firefox_151">域名伪装 (Firefox 151)</string>
+    <string name="sni_reality_radio_button_label_firefox_150">域名伪装 (Firefox 150)</string>
+    <string name="sni_reality_radio_button_label_firefox_149">域名伪装 (Firefox 149)</string>
+
+    <string name="sni_reality_radio_button_label_yandex_26_4">域名伪装 (Yandex 26.4)</string>
+    <string name="sni_reality_radio_button_label_yandex_26_3">域名伪装 (Yandex 26.3)</string>
+    <string name="sni_reality_radio_button_label_yandex_25">域名伪装 (Yandex 25)</string>
+    <string name="sni_reality_radio_button_label_yandex_24">域名伪装 (Yandex 24)</string>
+
+    <string name="sni_reality_radio_button_label_safari_26_5">域名伪装 (Safari 26.5)</string>
+    <string name="sni_reality_radio_button_label_safari_26_4">域名伪装 (Safari 26.4)</string>
+
+    <string name="sni_reality_radio_button_label_additional_info">需要一个真实存在的域名 (否则可能发生错误)</string>
+    <string name="connecting_auto">正在选择最佳服务器...</string>
+
+    <string name="settings_per_app_russian_notice"><![CDATA[为安全起见,已知的间谍应用始终绕过 VPN。完整排除应用列表及域名列表可在 GitHub 上查看。]]></string>
+    <string name="per_app_vpn_mode_title">分应用 VPN 模式</string>
+    <string name="per_app_vpn_mode_info">仅允许的应用,或除所选外的全部。</string>
+    <string name="per_app_vpn_settings_title">隧道设置</string>
+    <string name="all_app_mode_radio_button_label">已禁用</string>
+    <string name="all_app_mode_radio_button_label_additional_info">所有应用都使用 VPN</string>
+    <string name="only_allowed_apps_mode_radio_button_label">仅允许的应用</string>
+    <string name="only_allowed_radio_button_label_additional_info">仅列表中的应用使用 VPN</string>
+    <string name="disallowed_apps_radio_button_label">所有应用使用 VPN,所选应用除外</string>
+    <string name="disallowed_apps_radio_button_label_additional_info">所有应用使用 VPN,所选应用除外</string>
+    <string name="per_app_vpn_no_apps_selected_title">未选择任何应用</string>
+    <string name="per_app_vpn_no_apps_selected_message">未选择用于隧道的应用。VPN 将激活,但无流量通过。\n\n请选择一个应用或更换模式。</string>
+    <string name="save_anyway">仍然保存</string>
+
+    <string name="auto_sni_label">自动选择 SNI</string>
+    <string name="sni_features_label">SNI 设置</string>
+    <string name="load_sni_from_file">加载 SNI</string>
+    <string name="delete_loaded_sni">删除 SNI</string>
+    <string name="auto_select_sni">开始自动选择</string>
+    <string name="loaded_sni_label">已加载的 SNI:</string>
+    <string name="select_server_for_autoselect">选择用于 SNI 自动选择的服务器</string>
+    <string name="start_sni_checking_button_label">开始 SNI 检查</string>
+    <string name="stop_sni_checking_button_label">停止 SNI 检查</string>
+    <string name="reset_checked_previously_checkbox_label">重置之前检查过的?</string>
+    <string name="selected_server">已选服务器</string>
+    <string name="checking_current_sni">正在检查 SNI:</string>
+    <string name="load_default">加载默认值</string>
+    <string name="logs">日志</string>
+    <string name="logs_copied">日志已复制到剪贴板</string>
+    <string name="logs_empty">没有可复制的日志</string>
+    <string name="view_and_copy_application_logs">查看应用运行日志</string>
+    <string name="send_log_file">发送日志文件</string>
+    <string name="logs_error_no_directory">日志目录不存在。</string>
+    <string name="logs_error_no_files">没有日志文件。</string>
+    <string name="logs_error_empty_file">日志文件为空。</string>
+    <string name="logs_error_read_failed">读取日志错误: %1$s</string>
+    <string name="clear_logs_button">清除日志</string>
+    <string name="dialog_clear_logs_title">清除日志</string>
+    <string name="dialog_clear_logs_message">这将删除所有保存的日志文件。是否继续?</string>
+    <string name="logs_cleared">日志已清除</string>
+
+    <!-- App-wide font scale -->
+    <string name="font_scale_title">字体大小</string>
+    <string name="font_scale_description">自定义应用中的文本大小。默认使用系统大小。</string>
+    <string name="font_scale_use_system">使用系统字体大小</string>
+    <string name="font_scale_custom_label">自定义大小</string>
+
+    <string name="search_apps_hint">搜索应用…</string>
+    <string name="show_system_apps_label">显示系统应用</string>
+
+    <string name="sni_found_title">SNI 已找到</string>
+    <string name="sni_found_message">已找到可用的 SNI: </string>
+    <string name="sni_not_found_title">未找到 SNI</string>
+    <string name="sni_not_found_message">未找到适用于该服务器的可用 SNI: </string>
+    <string name="traffic_download">下载</string>
+    <string name="traffic_upload">上传</string>
+
+    <string name="vpn_switch_title">另一个 VPN 处于活动状态</string>
+    <string name="vpn_switch_message">另一个 VPN 当前正在运行。是否切换到 FPTN VPN?</string>
+    <string name="vpn_switch_button">切换</string>
+
+    <string name="vpn_setup_error_title">VPN 设置错误</string>
+    <string name="vpn_setup_error_message">连接需:\n\n- 授予 VPN 权限\n- 在系统设置中为其他 VPN 应用禁用 Always-on VPN</string>
+    <string name="open_vpn_settings">打开 VPN 设置</string>
+
+    <string name="backups_title">设置备份</string>
+    <string name="backups_info">将所有 FPTN 设置保存到文件或从备份恢复</string>
+    <string name="backup_save_title">保存设置</string>
+    <string name="backup_save_description">将所有设置导出为文件。可保存在本设备或分享。</string>
+    <string name="backup_save_button">保存</string>
+    <string name="backup_share_button">分享</string>
+    <string name="backup_restore_title">恢复设置</string>
+    <string name="backup_restore_description">从之前保存的文件加载设置。当前设置将被覆盖。</string>
+    <string name="backup_restore_button">从文件加载</string>
+    <string name="backup_saved_success">设置已保存到文件</string>
+    <string name="backup_save_error">保存设置失败</string>
+    <string name="backup_restore_success">设置已恢复</string>
+    <string name="backup_restore_error">加载设置失败: 备份文件无效</string>
+    <string name="backup_restore_confirm_title">恢复设置?</string>
+    <string name="backup_restore_confirm_message">当前设置将被所选文件中的设置替换。</string>
+
+    <string name="connection_strategy_title">连接策略</string>
+    <string name="connection_strategy_rolling">滚动隧道</string>
+    <string name="connection_strategy_dual">双重滚动隧道</string>
+    <string name="connection_strategy_triple">三重滚动隧道</string>
+    <string name="token_management_title">令牌管理</string>
+    <string name="token_management_description">管理您的 FPTN 令牌。切换服务器的可见性。</string>
+    <string name="token_add">添加令牌</string>
+    <string name="token_add_hint">在此粘贴令牌</string>
+    <string name="token_delete">删除</string>
+    <string name="token_delete_title">删除令牌</string>
+    <string name="token_delete_confirmation">您确定要删除令牌 \"%1$s\" 及其所有服务器吗?</string>
+    <string name="token_updated_at">更新于: %1$s</string>
+    <string name="token_error_exists">具有此用户名的令牌已存在。请在"更新令牌"部分更新它。</string>
+    <string name="token_error_invalid">令牌格式无效。</string>
+    <string name="token_error_unknown">发生未知错误。</string>
+    <string name="token_error_title">错误</string>
+    <string name="token_error_not_found">没有已保存的令牌与该令牌的用户名匹配。如需添加新令牌,请使用"令牌管理"。</string>
+
+    <!-- Auto-start on boot -->
+    <string name="auto_start_on_boot_title">设备开机时自动启动</string>
+    <string name="auto_start_on_boot_description">VPN在设备启动时自动连接。需要VPN权限和电池优化豁免。</string>
+    <string name="auto_start_on_boot_enable">设备开机时连接VPN</string>
+    <string name="auto_start_on_boot_hint_before">在某些设备上（</string>
+    <string name="auto_start_on_boot_hint_oems">小米、华为、三星等</string>
+    <string name="auto_start_on_boot_hint_after">）您需要在设备设置中手动允许自动启动。</string>
+</resources>

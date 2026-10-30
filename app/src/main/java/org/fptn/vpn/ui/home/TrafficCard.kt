@@ -48,7 +48,7 @@ fun TrafficCard(
     Column(
         modifier = modifier
             .legacyDrawableBackground(R.drawable.round_settings_back_white10_20)
-            .heightIn(min = 140.dp),
+            .then(if (showChart) Modifier.heightIn(min = 140.dp) else Modifier),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(8.dp),

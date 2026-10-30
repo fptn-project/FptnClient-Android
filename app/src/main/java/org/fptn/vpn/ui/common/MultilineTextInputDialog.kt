@@ -11,7 +11,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.runtime.CompositionLocalProvider
 import org.fptn.vpn.R
 
 /**
@@ -29,30 +31,41 @@ fun MultilineTextInputDialog(
     onDismiss: () -> Unit,
 ) {
     var text by remember { mutableStateOf(initialText) }
+    val dialogDensity = LocalDensity.current
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(title) },
+        title = {
+            CompositionLocalProvider(LocalDensity provides dialogDensity) {
+                Text(title)
+            }
+        },
         text = {
-            OutlinedTextField(
-                value = text,
-                onValueChange = { text = it },
-                placeholder = { Text(hint) },
-                minLines = 6,
-                maxLines = 10,
-                modifier = Modifier.fillMaxWidth(),
-            )
+            CompositionLocalProvider(LocalDensity provides dialogDensity) {
+                OutlinedTextField(
+                    value = text,
+                    onValueChange = { text = it },
+                    placeholder = { Text(hint) },
+                    minLines = 6,
+                    maxLines = 10,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
         },
         confirmButton = {
-            TextButton(onClick = {
-                onSave(text)
-                onDismiss()
-            }) {
-                Text(stringResource(R.string.save_button))
+            CompositionLocalProvider(LocalDensity provides dialogDensity) {
+                TextButton(onClick = {
+                    onSave(text)
+                    onDismiss()
+                }) {
+                    Text(stringResource(R.string.save_button))
+                }
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.cancel_button))
+            CompositionLocalProvider(LocalDensity provides dialogDensity) {
+                TextButton(onClick = onDismiss) {
+                    Text(stringResource(R.string.cancel_button))
+                }
             }
         },
     )

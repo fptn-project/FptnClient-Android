@@ -31,13 +31,13 @@ import com.elvishew.xlog.printer.file.backup.FileSizeBackupStrategy2;
 import com.elvishew.xlog.printer.file.clean.FileLastModifiedCleanStrategy;
 import com.elvishew.xlog.printer.file.naming.FileNameGenerator;
 
-import org.fptn.vpn.enums.AppLogLevel;
-
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
+import com.elvishew.xlog.LogLevel;
+import com.elvishew.xlog.LogConfiguration;
 
 /**
  * Builds the {@code XLog} configuration from the log level saved in {@link SharedPrefUtils}.
@@ -57,9 +57,8 @@ public final class XLogInitializer {
 
         PatternFlattener flattener = new PatternFlattener("{d yyyy-MM-dd HH:mm:ss}|{l}|{t}|{m}");
 
-        AppLogLevel level = SharedPrefUtils.getLogLevel(context);
         LogConfiguration config = new LogConfiguration.Builder()
-                .logLevel(level.getXLogLevel())
+                .logLevel(LogLevel.INFO)
                 .tag("FPTN")
                 .build();
 

@@ -31,6 +31,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.IDN;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -48,9 +49,11 @@ public class DomainBlocker {
 
     private final Set<String> blockedDomains;
     private final Set<String> allowedDomains;
+    private final boolean advancedModeEnabled;
 
     public DomainBlocker(Context context, boolean adBlockEnabled, String domainBlacklist,
-            boolean blockDetectorDomains) {
+            boolean blockDetectorDomains, boolean advancedModeEnabled) {
+        this.advancedModeEnabled = advancedModeEnabled;
         blockedDomains = new HashSet<>();
         allowedDomains = new HashSet<>();
         for (String domain : context.getResources().getStringArray(R.array.allowed_domains)) {
@@ -62,7 +65,7 @@ public class DomainBlocker {
         if (adBlockEnabled) {
             blockedDomains.addAll(loadBlocklist(context));
         }
-        blockedDomains.addAll(parseDomainBlacklist(domainBlacklist));
+        blockedDomains.addAll(parseDomainBlacklist(domainBlacklist, advancedModeEnabled));
         if (blockDetectorDomains) {
             for (int arrayId : SPLIT_TUNNEL_DOMAIN_ARRAYS) {
                 for (String domain : context.getResources().getStringArray(arrayId)) {
@@ -73,24 +76,44 @@ public class DomainBlocker {
                 }
             }
         }
-        XLog.tag(TAG).i("Blocklist DNS loaded [domains=%d, allowed=%d]",
-                blockedDomains.size(), allowedDomains.size());
+        XLog.tag(TAG).i("Blocklist DNS loaded [domains=%d, allowed=%d, advanced=%b]",
+                blockedDomains.size(), allowedDomains.size(), advancedModeEnabled);
     }
 
     // Parses a user-entered domain list: newline/comma separated, optional
     // "domain:" prefix (fptn desktop config format), invalid entries ignored.
-    private static Set<String> parseDomainBlacklist(String text) {
+    private static Set<String> parseDomainBlacklist(String text, boolean advancedModeEnabled) {
         Set<String> domains = new HashSet<>();
         if (text == null) {
             return domains;
         }
-        for (String entry : text.split("[\\n,]")) {
+        for (String entry : text.split("[\n,]")) {
             String domain = entry.trim().toLowerCase();
             if (domain.startsWith("domain:")) {
                 domain = domain.substring("domain:".length()).trim();
             }
-            if (domain.contains(".")) {
+            
+            if (advancedModeEnabled) {
+                // Allow leading dot for zones: ".ru" → "ru"
+                if (domain.startsWith(".")) {
+                    domain = domain.substring(1);
+                }
+                if (domain.isEmpty()) {
+                    continue;
+                }
+                // Convert Cyrillic/CJK/Arabic to Punycode
+                try {
+                    domain = IDN.toASCII(domain, IDN.ALLOW_UNASSIGNED);
+                } catch (IllegalArgumentException e) {
+                    continue;
+                }
+                // Accept both full domains AND bare zones
                 domains.add(domain);
+            } else {
+                // Original logic: only full domains with a dot
+                if (domain.contains(".")) {
+                    domains.add(domain);
+                }
             }
         }
         return domains;
@@ -138,11 +161,14 @@ public class DomainBlocker {
             }
             d = d.substring(d.indexOf('.') + 1);
         }
+        if (rules.contains(d)) {
+            return true;
+        }
         return false;
     }
 
-    // Checks domain and all parent domains against allowlist and blocklist.
-    // e.g. "sub.ads.example.com" matches if "ads.example.com" or "example.com" is blocked.
+    // Checks domain, all parent domains, AND the bare TLD against blocklist.
+    // e.g. "sub.ads.example.com" matches if "ads.example.com", "example.com", or "com" is blocked.
     // Allowlist is checked at each level first, so the most specific rule wins:
     // allowing "example.com" still blocks "ads.example.com" if that is on the blocklist.
     private boolean isDomainBlocked(String domain) {
@@ -153,6 +179,11 @@ public class DomainBlocker {
             if (blockedDomains.contains(d)) return true;
             int dot = d.indexOf('.');
             d = d.substring(dot + 1);
+        }
+        // Bare TLD check — only active in advanced mode to avoid false positives
+        if (advancedModeEnabled) {
+            if (allowedDomains.contains(d)) return false;
+            if (blockedDomains.contains(d)) return true;
         }
         return false;
     }

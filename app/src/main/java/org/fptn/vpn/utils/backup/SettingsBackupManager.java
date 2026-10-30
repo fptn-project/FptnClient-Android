@@ -35,6 +35,8 @@ import org.fptn.vpn.utils.SharedPrefUtils;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import org.fptn.vpn.enums.ConnectionStrategy;
+import android.content.pm.PackageManager;
 
 /**
  * Exports all user-configurable FPTN settings to JSON and applies them back.
@@ -82,6 +84,16 @@ public final class SettingsBackupManager {
         Boolean showSpeedInNotification;
         Boolean showTrafficChart;
         Boolean killSwitchEnabled;
+        Boolean killSwitchOnNetworkChange;
+        Boolean splitTunnelDomainsAdvancedMode;
+        Boolean domainBlacklistAdvancedMode;
+        String connectionStrategy;
+        Boolean showTrafficInNotification;
+        Boolean connectFailedHelpEnabled;
+        Boolean allowLandscape;
+        Boolean useSystemFontSize;
+        Integer fontScaleIndex;
+        Boolean autoStartOnBoot;
     }
 
     private static class BackupAppRule {
@@ -119,6 +131,17 @@ public final class SettingsBackupManager {
         settings.showSpeedInNotification = SharedPrefUtils.getShowSpeedInNotification(context);
         settings.showTrafficChart = SharedPrefUtils.getShowTrafficChart(context);
         settings.killSwitchEnabled = SharedPrefUtils.getKillSwitchEnabled(context);
+        settings.killSwitchOnNetworkChange = SharedPrefUtils.getKillSwitchOnNetworkChangeEnabled(context);
+        settings.splitTunnelDomainsAdvancedMode = SharedPrefUtils.getSplitTunnelDomainsAdvancedModeEnabled(context);
+        settings.domainBlacklistAdvancedMode = SharedPrefUtils.getDomainBlacklistAdvancedModeEnabled(context);
+        settings.connectionStrategy = SharedPrefUtils.getConnectionStrategy(context).name();
+        settings.showTrafficInNotification = SharedPrefUtils.getShowTrafficInNotification(context);
+        settings.connectFailedHelpEnabled = SharedPrefUtils.getConnectFailedHelpEnabled(context);
+        settings.allowLandscape = SharedPrefUtils.getAllowLandscape(context);
+        settings.useSystemFontSize = SharedPrefUtils.getUseSystemFontSize(context);
+        settings.fontScaleIndex = SharedPrefUtils.getFontScaleIndex(context);
+        settings.autoStartOnBoot = SharedPrefUtils.getAutoStartOnBoot(context);
+
         backup.settings = settings;
 
         backup.perAppVpnApps = AppDatabase.getInstance(context).appInfoDAO().getAll().stream()
@@ -217,8 +240,49 @@ public final class SettingsBackupManager {
         if (settings.killSwitchEnabled != null) {
             SharedPrefUtils.saveKillSwitchEnabled(context, settings.killSwitchEnabled);
         }
+        if (settings.killSwitchOnNetworkChange != null) {
+            SharedPrefUtils.saveKillSwitchOnNetworkChangeEnabled(context, settings.killSwitchOnNetworkChange);
+        }
+        if (settings.splitTunnelDomainsAdvancedMode != null) {
+            SharedPrefUtils.saveSplitTunnelDomainsAdvancedModeEnabled(context, settings.splitTunnelDomainsAdvancedMode);
+        }
+        if (settings.domainBlacklistAdvancedMode != null) {
+            SharedPrefUtils.saveDomainBlacklistAdvancedModeEnabled(context, settings.domainBlacklistAdvancedMode);
+        }
+        ConnectionStrategy connectionStrategy = parseEnum(ConnectionStrategy.class, settings.connectionStrategy);
+        if (connectionStrategy != null) {
+            SharedPrefUtils.saveConnectionStrategy(context, connectionStrategy);
+        }
+        if (settings.showTrafficInNotification != null) {
+            SharedPrefUtils.saveShowTrafficInNotification(context, settings.showTrafficInNotification);
+        }
+        if (settings.connectFailedHelpEnabled != null) {
+            SharedPrefUtils.saveConnectFailedHelpEnabled(context, settings.connectFailedHelpEnabled);
+        }
+        if (settings.allowLandscape != null) {
+            SharedPrefUtils.saveAllowLandscape(context, settings.allowLandscape);
+        }
+        if (settings.useSystemFontSize != null) {
+            SharedPrefUtils.saveUseSystemFontSize(context, settings.useSystemFontSize);
+        }
+        if (settings.fontScaleIndex != null) {
+            SharedPrefUtils.saveFontScaleIndex(context, settings.fontScaleIndex);
+        }
+        if (settings.autoStartOnBoot != null) {
+            SharedPrefUtils.saveAutoStartOnBoot(context, settings.autoStartOnBoot);
+        }
+
+        // TV overrides: force settings that make sense for TV, regardless of what
+        // the backup file contained. TV is always landscape, has no battery, and
+        // custom font sizes can break the 10-foot UI layout.
+        boolean isTv = context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_LEANBACK);
+        if (isTv) {
+            SharedPrefUtils.saveAllowLandscape(context, true);
+            SharedPrefUtils.saveUseSystemFontSize(context, true);
+        }
 
         if (backup.perAppVpnApps != null) {
+
             List<AppInfoEntity> entities = backup.perAppVpnApps.stream()
                     .map(rule -> AppInfoEntity.builder()
                             .packageName(rule.packageName)

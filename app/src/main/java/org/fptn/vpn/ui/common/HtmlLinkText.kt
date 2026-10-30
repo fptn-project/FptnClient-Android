@@ -13,6 +13,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 
 /**
@@ -37,6 +38,15 @@ fun HtmlLinkText(
     val paddingRight = with(density) { padding.calculateRightPadding(LayoutDirection.Ltr).roundToPx() }
     val paddingBottom = with(density) { padding.calculateBottomPadding().roundToPx() }
 
+    // If fontSize is not provided, use 14.sp (the Compose/Material default for body text).
+    // This is necessary because the native TextView reads fontScale from the system configuration,
+    // while we override fontScale only in Compose through LocalDensity.
+    // Without this, TextView will ignore our custom fontScale override.
+    val effectiveFontSize = if (fontSize != TextUnit.Unspecified) fontSize else 14.sp
+
+    // Convert to pixels using LocalDensity — this accounts for both screen density and our fontScale.
+    val fontSizePx = with(density) { effectiveFontSize.toPx() }
+
     AndroidView(
         modifier = modifier,
         factory = { context ->
@@ -47,7 +57,12 @@ fun HtmlLinkText(
         update = { textView ->
             textView.text = Html.fromHtml(html, Html.FROM_HTML_MODE_LEGACY)
             if (color != Color.Unspecified) textView.setTextColor(color.toArgb())
-            if (fontSize != TextUnit.Unspecified) textView.textSize = fontSize.value
+            // Always set the text size to ensure that the fontScale
+            // from LocalDensity is applied, even if the caller does not provide fontSize.
+            textView.setTextSize(
+                android.util.TypedValue.COMPLEX_UNIT_PX,
+                fontSizePx,
+            )
             textView.setTypeface(textView.typeface, if (bold) Typeface.BOLD else Typeface.NORMAL)
             textView.setPadding(paddingLeft, paddingTop, paddingRight, paddingBottom)
         },

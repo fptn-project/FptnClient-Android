@@ -295,10 +295,8 @@ public class FptnConnection extends Thread implements Splitter.Bridge {
                 int length = inputStream.read(byteBuffer);
 
                 IPPacket packet = new IPPacket(byteBuffer, length);
-                if (packet.isOk() && splitter != null && splitter.handleOutbound(packet)) {
-                    continue;
-                }
-
+                // Blacklist has priority over split-tunnel bypass: if a domain is
+                // explicitly blocked, it must be blocked regardless of bypass list.
                 if (packet.isOk() && domainBlocker != null) {
                     byte[] blockedResponse = domainBlocker.processPacket(packet);
                     if (blockedResponse == null) {
@@ -310,6 +308,10 @@ public class FptnConnection extends Thread implements Splitter.Bridge {
                         }
                         continue;
                     }
+                }
+
+                if (packet.isOk() && splitter != null && splitter.handleOutbound(packet)) {
+                    continue;
                 }
 
                 uploadRate.update(length);

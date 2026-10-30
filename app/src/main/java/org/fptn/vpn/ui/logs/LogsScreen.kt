@@ -36,6 +36,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalTextToolbar
 import androidx.compose.ui.platform.TextToolbar
 import androidx.compose.ui.platform.TextToolbarStatus
@@ -43,6 +44,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
@@ -167,13 +169,25 @@ fun LogsScreen(
                             Toast.makeText(context, R.string.logs_copied, Toast.LENGTH_SHORT).show()
                         }
                     }
-                    CompositionLocalProvider(LocalTextToolbar provides toastingToolbar) {
+                    // Logs are technical content. Their font size must remain fixed and must not depend
+                    // on either the system fontScale or our custom fontScale override in Experimental Settings.
+                    // Override LocalDensity with fontScale = 1f.
+                    val logsDensity = LocalDensity.current
+                    val logsDensityFixed = Density(
+                        density = logsDensity.density,
+                        fontScale = 1f,
+                    )
+
+                    CompositionLocalProvider(
+                        LocalTextToolbar provides toastingToolbar,
+                        LocalDensity provides logsDensityFixed,
+                    ) {
                         SelectionContainer(
                             modifier = Modifier
                                 .weight(1f)
                                 .fillMaxWidth()
                                 .padding(horizontal = 16.dp, vertical = 8.dp)
-                                .background(Color(0xFF1A1A1A)),
+                                .background(Color(0xFF202020)),
                         ) {
                             LazyColumn(state = listState) {
                                 if (state.hasMoreBefore) {
@@ -191,8 +205,8 @@ fun LogsScreen(
                                 items(state.lines) { line ->
                                     Text(
                                         text = line,
-                                        color = White,
-                                        fontSize = 10.sp,
+                                        color = Color(0xFFE0E0E0),
+                                        fontSize = 12.sp,
                                         fontFamily = FontFamily.Monospace,
                                         modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 1.dp),
                                     )
@@ -276,7 +290,12 @@ private fun CenteredMessage(modifier: Modifier = Modifier, content: @Composable 
 
 @Composable
 private fun PlaceholderText(text: String) {
-    Text(text = text, color = White, fontSize = 13.sp)
+    Text(
+        text = text,
+        color = White,
+        fontSize = 13.sp,
+        lineHeight = 18.sp,
+    )
 }
 
 private fun sendLogFile(context: Context, file: File?) {

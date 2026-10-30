@@ -23,7 +23,7 @@
         <![CDATA[
         Список доступных серверов зашифрован в токене.
         <br/>
-        Чтобы обновить список серверов, введите новый токен.
+        Введите токен с <b>тем же username</b>, что у текущего, — список его серверов будет заменён. Токены с <b>новым</b> username нужно добавлять через раздел <b>Управление токенами</b>.
         <br/>
         Токен работает как пароль: при его обновлении он перестанет действовать на всех устройствах, где использовался ранее.
         <br/><br/>
@@ -40,11 +40,14 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
         <br/>
         <br/>
         Наш <a href="https://storage.googleapis.com/fptn.org/index.html">сайт</a>
-        <br/>
-        Наша группа в Telegram <a href="https://t.me/fptn_project">@fptn_project</a>
-        <br/>
+        <br/><br/>
+        Наши сообщества:<br/>
+        - <a href="https://t.me/fpnt_project_global">Англоязычное сообщество</a><br/>
+        - <a href="https://t.me/fptn_project">Русскоязычное сообщество</a><br/>
+        - <a href="https://t.me/fptn_project_iran">Персидское сообщество</a>
+        <br/><br/>
         Приложение в <a href="https://play.google.com/store/apps/details?id=org.fptn.vpn">Google Play Market</a>
-        <br/>
+        <br/><br/>
         Вы можете поддержать нас на <a href="https://boosty.to/fptn/donate">Boosty</a>
         ]]>
     </string>
@@ -115,7 +118,7 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="vpn_interface_error">Не удалось создать VPN тунель!</string>
     <string name="ciphers_error">Не удалось найти поддерживаемые шифры!</string>
 
-    <string name="access_token_error">Ошибка аутентификации! Пожалуйста убедитесь, что используете последний полученный токен доступа в настройках приложения</string>
+    <string name="access_token_error">Ошибка аутентификации! Убедитесь, что используете последний полученный токен доступа в настройках.</string>
     <string name="access_token_format">Неверный формат токена! Проверьте правильность ввода</string>
 
     <string name="ssl_context_init_failed">Ошибка при инициализации контекста SSL!</string>
@@ -135,7 +138,7 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="refresh_token">Обновить токен...</string>
     <string name="close_button_text">Закрыть</string>
     <string name="share_via_message">Поделиться в сообщении</string>
-    <string name="sni_text_description">Server Name Indication (SNI) — адрес сайта, декларируемый при подключении к VPN-серверу. Укажите какой-нибудь популярный сайт доступный без VPN из вашей страны.</string>
+    <string name="sni_text_description">SNI — адрес сайта, указываемый при подключении к VPN-серверу. Укажите популярный сайт, доступный без VPN в вашей стране.</string>
     <string name="your_current_sni">Текущий SNI:</string>
     <string name="default_sni">ads.x5.ru</string>
     <string name="sni_text_view_hint">Новый SNI</string>
@@ -143,7 +146,7 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
 
     <string name="warning">Внимание</string>
     <string name="battery_optimization_request_dialog_title">Откл оптимизацию батареи</string>
-    <string name="battery_optimization_request_dialog_text">Для стабильного подключения предоставьте разрешение на отключение оптимизации энергопотребления для этого приложения</string>
+    <string name="battery_optimization_request_dialog_text">Разрешите отключить оптимизацию батареи для стабильного подключения.</string>
     <string name="background_setup_title">Стабильная работа в фоне</string>
     <string name="background_setup_text">Для стабильной работы настройте:</string>
     <string name="background_setup_notifications_title">Включить уведомления</string>
@@ -157,7 +160,7 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="required_permissions">Необходимые разрешения:</string>
     <string name="denied_text">ОТКЛОНЕНО</string>
     <string name="background_data_request_dialog_title">Передача данных в фоне</string>
-    <string name="background_data_request_dialog_text">Для стабильного подключения предоставьте разрешение на передачу данных в фоне</string>
+    <string name="background_data_request_dialog_text">Разрешите отключить ограничения фоновой передачи данных для стабильного подключения.</string>
 
     <string name="granted_text">РАЗРЕШЕНО</string>
 
@@ -179,7 +182,7 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
 
     <string name="another_settings">Другие настройки:</string>
     <string name="quick_settings_tile_title">Быстрая кнопка VPN в шторке</string>
-    <string name="quick_settings_tile_description">Добавляет кнопку включения/выключения VPN в панель быстрых настроек Android (шторку уведомлений), чтобы управлять VPN без открытия приложения.</string>
+    <string name="quick_settings_tile_description">Добавляет переключатель VPN в панель быстрых настроек Android — управляйте VPN без открытия приложения.</string>
     <string name="quick_settings_tile_button">Добавить в шторку</string>
     <string name="tile_already_added">Плитка быстрых настроек была добавлена ранее</string>
     <string name="tile_added_successfully">Плитка быстрых настроек добавлена</string>
@@ -188,18 +191,22 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="settings_reset_server_on_exception">Сброс на Auto только при ошибке</string>
     <string name="searching_for_server">Поиск сервера...</string>
     <string name="ad_block_title">Блокировка рекламы:</string>
-    <string name="ad_block_description">Блокирует рекламу и трекеры на уровне DNS для всех приложений. Может потребовать отключения приватного DNS (DoH) в системных настройках — иначе DNS-запросы обходят фильтрацию.</string>
+    <string name="ad_block_description">Блокирует рекламу и трекеры на уровне DNS для всех приложений. Отключите приватный DNS (DoH) — иначе фильтрация не сработает.</string>
     <string name="ad_block_enable">Блокировать рекламу и трекеры</string>
 
     <string name="split_tunnel_title">Раздельный туннель:</string>
     <string name="split_tunnel_enable">Включить раздельное туннелирование для доменов из списка</string>
-    <string name="split_tunnel_enable_link">списка</string>
+    <string name="split_tunnel_list_link">Список доменов</string>
+    <string name="split_tunnel_advanced_enable">Использовать TLD и IDN (экспертный)</string>
+    <string name="split_tunnel_advanced_description">Обход целых доменных зон (TLD, например .ru или ru — с точкой или без) и доменов на любом языке (IDN).\n\nРекомендуется в России, Иране, Китае и других странах с цензурой — иначе локальные домены не будут обходить туннель, и государство может заблокировать VPN-соединение. TLD и IDN нужно добавить в список доменов.</string>
 
     <string name="domain_blacklist_title">Черный список доменов:</string>
-    <string name="domain_blacklist_description">Блокирует подключения к указанным доменам и их поддоменам. Один домен на строку. Может потребовать отключения приватного DNS (DoH) в системных настройках — иначе DNS-запросы обходят фильтрацию.</string>
+    <string name="domain_blacklist_description">Блокирует указанные домены и их поддомены. Отключите приватный DNS (DoH) в системных настройках — иначе фильтрация не сработает.</string>
+    <string name="domain_blacklist_list_link">Список доменов</string>
     <string name="domain_blacklist_enable">Блокировать домены из списка</string>
-    <string name="domain_blacklist_enable_link">из списка</string>
     <string name="domain_blacklist_hint">example.com</string>
+    <string name="domain_blacklist_advanced_enable">Блокировать TLD и IDN (экспертный)</string>
+    <string name="domain_blacklist_advanced_description">Блокировка целых доменных зон (TLD, например .cn или cn — с точкой или без) и доменов на любом языке (IDN). Используйте с осторожностью — неверная настройка может сломать приложения.</string>
 
     <string name="custom_dns_title">Пользовательский DNS:</string>
     <string name="custom_dns_description">Использовать пользовательский DNS.</string>
@@ -213,7 +220,7 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="traffic_notification_enable">Трафик подключения в статус-баре</string>
 
     <string name="connect_failed_help_settings_title">Подсказки при неудачном подключении:</string>
-    <string name="connect_failed_help_settings_description">Если подключение с нуля не удалось два раза подряд, появится окно с предложением сменить метод обхода блокировок или получить новый токен.</string>
+    <string name="connect_failed_help_settings_description">Если подключение не удалось дважды подряд, появится окно с предложением сменить метод обхода или получить новый токен.</string>
     <string name="connect_failed_help_enable">Показывать подсказки после неудачных подключений</string>
 
     <string name="home_screen_settings_title">Главный экран:</string>
@@ -222,12 +229,14 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="allow_landscape_label">Автоповорот экрана</string>
 
     <string name="kill_switch_title">Kill-switch:</string>
-    <string name="kill_switch_description">Если соединение с VPN прервется, интернет работать не будет, пока вы не отключите VPN вручную.</string>
-    <string name="kill_switch_enable">Блокировать трафик без VPN</string>
-    <string name="kill_switch_system_hint">Действует, пока жив процесс приложения: если Android завершит процесс, TUN-интерфейс снимется и трафик пойдет напрямую. Always-on VPN (постоянный VPN) обеспечивает сам Android — включите его в настройках вместе с блокировкой трафика.</string>
+    <string name="kill_switch_description">Блокирует трафик без VPN. Срабатывает при исчерпании попыток переподключения или неожиданном разрыве связи.</string>    <string name="kill_switch_enable">Блокировать трафик без VPN</string>
+    <string name="kill_switch_system_hint">Работает только пока приложение запущено. Для полной защиты включите Always-on VPN в настройках Android.</string>
     <string name="kill_switch_system_button">Открыть настройки VPN в Android</string>
     <string name="kill_switch_blocked">Сработал kill-switch: трафик заблокирован</string>
-
+    <string name="kill_switch_network_change_enable">Блокировать при переключении с Wi-Fi на мобильный интернет и наоборот</string>
+    <string name="kill_switch_network_change_description">Мгновенно блокирует весь трафик при переключении между Wi-Fi и мобильным интернетом.</string>
+    <string name="kill_switch_infinite_warning">Внимание: при бесконечных попытках переподключения Kill-switch не сработает при разрыве — только при переключении между Wi-Fi и мобильным интернетом (если включено).</string>
+    <string name="reconnect_attempts_description">Kill-switch срабатывает, когда эти попытки исчерпаны.</string>
     <string name="auto_fallback_title">Авто-переключение на доступные серверы:</string>
     <string name="auto_fallback_enable">Менять сервер при потере связи</string>
     <string name="auto_fallback_threshold_label">Попыток до смены сервера:</string>
@@ -259,9 +268,9 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
 
     <string name="sni_reality_radio_button_label_additional_info">Требуется реальный существующий домен (иначе возможны ошибки)</string>
 
-    <string name="settings_per_app_russian_notice"><![CDATA[В целях безопасности и стабильной работы сервиса известные приложения-шпионы всегда работают в обход VPN и не могут быть возвращены в туннель. Полный список <a href="https://github.com/fptn-project/FptnClient-Android/blob/develop/app/src/main/res/values/always_excluded_apps.xml">исключенных приложений</a> и <a href="https://github.com/fptn-project/FptnClient-Android/blob/develop/app/src/main/res/values/split_tunnel_domains.xml">их доменов</a> доступен на GitHub.]]></string>
+    <string name="settings_per_app_russian_notice"><![CDATA[В целях безопасности известные приложения-шпионы всегда работают в обход VPN. Полный список <a href="https://github.com/fptn-project/FptnClient-Android/blob/develop/app/src/main/res/values/always_excluded_apps.xml">исключённых приложений</a> и <a href="https://github.com/fptn-project/FptnClient-Android/blob/develop/app/src/main/res/values/split_tunnel_domains.xml">их доменов</a> — на GitHub.]]></string>
     <string name="per_app_vpn_mode_title">Настройки туннелирования для приложений</string>
-    <string name="per_app_vpn_mode_info">Здесь вы можете настроить выборочный VPN: использовать VPN для всех приложений (по умолчанию) или разрешить/запретить доступ для конкретных программ.</string>
+    <string name="per_app_vpn_mode_info">Только разрешённые приложения или все, кроме выбранных.</string>
     <string name="per_app_vpn_settings_title">Настройки туннелирования</string>
     <string name="all_app_mode_radio_button_label">Все приложения разрешены</string>
     <string name="all_app_mode_radio_button_label_additional_info">Все приложения используют VPN</string>
@@ -270,7 +279,7 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="disallowed_apps_radio_button_label">Все приложения используют VPN, кроме выбранных</string>
     <string name="disallowed_apps_radio_button_label_additional_info">Все приложения используют VPN, кроме выбранных</string>
     <string name="per_app_vpn_no_apps_selected_title">Не выбрано ни одного приложения</string>
-    <string name="per_app_vpn_no_apps_selected_message">Ни одно приложение не выбрано для туннелирования. VPN будет активен, но ни один трафик не пройдет через туннель.\n\nВыберите хотя бы одно приложение или смените режим.</string>
+    <string name="per_app_vpn_no_apps_selected_message">Не выбрано ни одного приложения для туннелирования. VPN будет активен, но трафик через него не пойдёт.\n\nВыберите приложение или смените режим.</string>
     <string name="save_anyway">Все равно сохранить</string>
     <string name="settings_reset_server_title">Выбор сервера:</string>
     <string name="settings_reset_server_on_disconnect">Сброс на Auto после отключения</string>
@@ -302,13 +311,12 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="dialog_clear_logs_title">Очистить логи</string>
     <string name="dialog_clear_logs_message">Все сохранённые файлы логов будут удалены. Продолжить?</string>
     <string name="logs_cleared">Логи очищены</string>
-    <string name="log_level_title">Уровень логирования</string>
-    <string name="log_level_verbose">Подробный</string>
-    <string name="log_level_debug">Отладка</string>
-    <string name="log_level_info">Информация</string>
-    <string name="log_level_warn">Предупреждения</string>
-    <string name="log_level_error">Ошибки</string>
-    <string name="log_level_none">Отключено</string>
+
+    <!-- App-wide font scale -->
+    <string name="font_scale_title">Размер шрифта</string>
+    <string name="font_scale_description">Настройте размер текста в приложении. По умолчанию используется системный размер.</string>
+    <string name="font_scale_use_system">Использовать системный размер шрифта</string>
+    <string name="font_scale_custom_label">Пользовательский размер</string>
 
     <string name="search_apps_hint">Поиск приложений…</string>
     <string name="show_system_apps_label">Системные приложения</string>
@@ -325,13 +333,13 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="vpn_switch_button">Переключиться</string>
 
     <string name="vpn_setup_error_title">Ошибка настройки VPN</string>
-    <string name="vpn_setup_error_message">Чтобы подключиться к FPTN VPN необходимо:\n\n- Разрешить приложению подключаться к сети VPN\n- Отключить функцию \"Постоянная VPN\" для всех остальных VPN-приложений в системных настройках VPN</string>
+    <string name="vpn_setup_error_message">Для подключения:\n\n- Разрешите доступ к VPN\n- Отключите Always-on VPN для других VPN-приложений в настройках</string>
     <string name="open_vpn_settings">Открыть настройки VPN</string>
 
     <string name="backups_title">Бэкапы настроек</string>
     <string name="backups_info">Сохранение всех настроек FPTN в файл и восстановление из файла</string>
     <string name="backup_save_title">Сохранить настройки</string>
-    <string name="backup_save_description">Экспорт всех настроек (методы обхода, SNI, туннелирование, VPN для приложений, дополнительные настройки) в JSON-файл. Его можно сохранить на устройстве или отправить.</string>
+    <string name="backup_save_description">Экспорт всех настроек в файл. Сохраните на устройстве или поделитесь.</string>
     <string name="backup_save_button">Сохранить</string>
     <string name="backup_share_button">Поделиться</string>
     <string name="backup_restore_title">Загрузить настройки</string>
@@ -348,4 +356,26 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="connection_strategy_rolling">Скользящий туннель</string>
     <string name="connection_strategy_dual">Двойной скользящий туннель</string>
     <string name="connection_strategy_triple">Тройной скользящий туннель</string>
+    <string name="token_management_title">Управление токенами</string>
+    <string name="token_management_description">Управляйте вашими FPTN-токенами. Включайте видимость серверов.</string>
+    <string name="token_add">Добавить токен</string>
+    <string name="token_add_hint">Вставьте токен сюда</string>
+    <string name="token_delete">Удалить</string>
+    <string name="token_delete_title">Удалить токен</string>
+    <string name="token_delete_confirmation">Вы уверены, что хотите удалить токен \"%1$s\" и все его серверы?</string>
+    <string name="token_updated_at">Обновлён: %1$s</string>
+    <string name="token_error_exists">Токен с таким username уже существует. Обновите его в разделе Обновить токен.</string>
+    <string name="token_error_invalid">Неверный формат токена.</string>
+    <string name="token_error_unknown">Произошла неизвестная ошибка.</string>
+    <string name="token_error_title">Ошибка</string>
+    <string name="token_error_not_found">Среди сохранённых токенов нет ни одного с таким username. Чтобы добавить новый, используйте раздел Управление токенами.</string>
+    <string name="disconnect_reason_network_change_blocked">Сменён тип сети (с Wi-Fi на мобильный интернет и наоборот)</string>
+
+    <!-- Auto-start on boot -->
+    <string name="auto_start_on_boot_title">Автозапуск при загрузке устройства</string>
+    <string name="auto_start_on_boot_description">VPN автоматически подключается при запуске устройства. Требуется разрешение VPN и исключение из оптимизации батареи.</string>
+    <string name="auto_start_on_boot_enable">Подключать VPN при загрузке устройства</string>
+    <string name="auto_start_on_boot_hint_before">На некоторых устройствах (</string>
+    <string name="auto_start_on_boot_hint_oems">Xiaomi, Huawei, Samsung и др.</string>
+    <string name="auto_start_on_boot_hint_after">) необходимо вручную разрешить автозапуск в настройках устройства.</string>
 </resources>
