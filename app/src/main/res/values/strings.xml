@@ -285,25 +285,29 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="reset_to_default_success">Advanced settings reset to default</string>
 
     <string name="ad_block_title">Ad Blocking:</string>
-    <string name="ad_block_description">Blocks ads and trackers at the DNS level for all apps. May require turning off Private DNS (DoH) in system settings — otherwise DNS queries bypass filtering.</string>
+    <string name="ad_block_description">Blocks ads and trackers at DNS level for all apps. Disable Private DNS (DoH) in system settings or filtering is bypassed.</string>
     <string name="ad_block_enable">Block ads and trackers</string>
 
     <string name="split_tunnel_title">Split Tunneling:</string>
     <string name="split_tunnel_enable">Enable split tunneling for domains from the list</string>
-    <string name="split_tunnel_enable_link">the list</string>
+    <string name="split_tunnel_list_link">Domain list</string>
+    <string name="split_tunnel_advanced_enable">Use TLDs and IDNs (advanced)</string>
+    <string name="split_tunnel_advanced_description">Bypass entire domain zones (TLD, e.g. .ru or ru — with or without dot) and domains in any language (IDN).\n\nRecommended in Russia, Iran, China and other countries with censorship — otherwise local domains won\'t bypass the tunnel, and the state may block the VPN connection. TLDs and IDNs must be added to the domain list.</string>
 
     <string name="domain_blacklist_title">Domain Blacklist:</string>
-    <string name="domain_blacklist_description">Blocks connections to the listed domains and their subdomains. One domain per line. May require turning off Private DNS (DoH) in system settings — otherwise DNS queries bypass filtering.</string>
+    <string name="domain_blacklist_description">Blocks the listed domains and their subdomains. Disable Private DNS (DoH) in system settings or filtering is bypassed.</string>
+    <string name="domain_blacklist_list_link">Domain list</string>
     <string name="domain_blacklist_enable">Block domains from the list</string>
-    <string name="domain_blacklist_enable_link">the list</string>
     <string name="domain_blacklist_hint">example.com</string>
+    <string name="domain_blacklist_advanced_enable">Block TLDs and IDNs (advanced)</string>
+    <string name="domain_blacklist_advanced_description">Block entire domain zones (TLD, e.g. .cn or cn — with or without dot) and domains in any language (IDN). Use with caution — wrong setup may break apps.</string>
 
     <string name="speed_notification_title">Notification:</string>
     <string name="speed_notification_enable">Connection speed in status bar</string>
     <string name="traffic_notification_enable">Connection traffic in status bar</string>
 
     <string name="connect_failed_help_settings_title">Failed connection hints:</string>
-    <string name="connect_failed_help_settings_description">If a connection from scratch fails twice in a row, a dialog offers to change the bypass blocking method or get a new token.</string>
+    <string name="connect_failed_help_settings_description">If connection fails twice in a row, suggests changing bypass method or getting a new token.</string>
     <string name="connect_failed_help_enable">Show hints after failed connections</string>
 
     <string name="home_screen_settings_title">Home screen:</string>
