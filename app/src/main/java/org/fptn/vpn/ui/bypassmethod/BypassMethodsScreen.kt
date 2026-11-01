@@ -70,7 +70,7 @@ import org.fptn.vpn.ui.common.legacyDrawableBackground
 import org.fptn.vpn.ui.theme.Gray
 import org.fptn.vpn.ui.theme.Primary
 import org.fptn.vpn.ui.theme.White
-import org.fptn.vpn.vpnclient.exception.PVNClientException
+import org.fptn.vpn.exception.PVNClientException
 
 private const val TAG = "BypassMethodsScreen"
 

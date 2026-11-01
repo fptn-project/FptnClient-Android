@@ -30,8 +30,8 @@ import org.fptn.vpn.services.websocket.NativeHttpsClientImpl;
 import org.fptn.vpn.services.websocket.NativeResponse;
 import org.json.JSONObject;
 
-import org.fptn.vpn.vpnclient.exception.ErrorCode;
-import org.fptn.vpn.vpnclient.exception.PVNClientException;
+import org.fptn.vpn.exception.ErrorCode;
+import org.fptn.vpn.exception.PVNClientException;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicReference;

@@ -18,7 +18,7 @@
  * Website: https://fptn.org
  */
 
-package org.fptn.vpn.core.common
+package org.fptn.vpn
 
 object Constants {
     const val QUICK_SETTINGS_TILE_REQUESTED_SHARED_PREF_KEY: String = "QUICK_SETTINGS_TILE_REQUESTED_SHARED_PREF_KEY"

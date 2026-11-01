@@ -26,7 +26,7 @@ import android.content.SharedPreferences;
 import com.elvishew.xlog.XLog;
 
 import org.fptn.vpn.R;
-import org.fptn.vpn.core.common.Constants;
+import org.fptn.vpn.Constants;
 import org.fptn.vpn.enums.AppLogLevel;
 import org.fptn.vpn.enums.BypassCensorshipMethod;
 import org.fptn.vpn.enums.ConnectionStrategy;

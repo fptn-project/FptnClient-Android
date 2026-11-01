@@ -45,7 +45,7 @@ import com.elvishew.xlog.XLog;
 
 import androidx.core.content.ContextCompat;
 
-import org.fptn.vpn.core.common.Constants;
+import org.fptn.vpn.Constants;
 
 
 public class PermissionsUtils {
