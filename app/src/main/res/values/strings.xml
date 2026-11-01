@@ -399,13 +399,12 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="dialog_clear_logs_title">Clear logs</string>
     <string name="dialog_clear_logs_message">This will delete all saved log files. Continue?</string>
     <string name="logs_cleared">Logs cleared</string>
-    <string name="log_level_title">Log level</string>
-    <string name="log_level_verbose">Verbose</string>
-    <string name="log_level_debug">Debug</string>
-    <string name="log_level_info">Info</string>
-    <string name="log_level_warn">Warning</string>
-    <string name="log_level_error">Error</string>
-    <string name="log_level_none">None</string>
+
+    <!-- App-wide font scale -->
+    <string name="font_scale_title">Font size</string>
+    <string name="font_scale_description">Customize the text size in the app. By default, the system size is used.</string>
+    <string name="font_scale_use_system">Use system font size</string>
+    <string name="font_scale_custom_label">Custom size</string>
 
     <string name="search_apps_hint">Search apps…</string>
     <string name="show_system_apps_label">Show system apps</string>
