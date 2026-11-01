@@ -468,4 +468,9 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="auto_start_on_boot_hint_before">On some devices (</string>
     <string name="auto_start_on_boot_hint_oems">Xiaomi, Huawei, Samsung and others</string>
     <string name="auto_start_on_boot_hint_after">) you need to manually allow auto-start in device settings.</string>
+    <string name="token_import_from_file">Import from file</string>
+    <string name="token_import_error_not_txt">Only .txt files are supported</string>
+    <string name="token_import_error_read">Failed to read file</string>
+    <string name="token_import_error_empty">File is empty</string>
+    <string name="token_import_error_io">Error reading file</string>
 </resources>

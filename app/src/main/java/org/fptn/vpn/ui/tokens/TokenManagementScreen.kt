@@ -32,6 +32,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
@@ -48,6 +49,9 @@ import org.fptn.vpn.ui.common.MultilineTextInputDialog
 import org.fptn.vpn.ui.common.legacyDrawableBackground
 import org.fptn.vpn.ui.theme.Primary
 import org.fptn.vpn.ui.theme.White
+import org.fptn.vpn.ui.common.TokenImportError
+import org.fptn.vpn.ui.common.TokenImportErrorDialog
+import org.fptn.vpn.ui.common.rememberTokenFilePicker
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -60,13 +64,26 @@ fun TokenManagementScreen(
     viewModel: TokenManagementViewModel = viewModel()
 ) {
     val context = LocalContext.current
+    val configuration = LocalConfiguration.current
+    val isTv = configuration.uiMode and android.content.res.Configuration.UI_MODE_TYPE_TELEVISION != 0
     val tokens by viewModel.tokensLiveData.observeAsState(emptyList())
     var showAddDialog by remember { mutableStateOf(false) }
     var tokenToDelete by remember { mutableStateOf<TokenEntity?>(null) }
-
     // State for the error dialog
     var showErrorDialog by remember { mutableStateOf(false) }
     var errorType by remember { mutableStateOf<String?>(null) }
+
+    // TV-only: file import for token
+    var importedText by remember { mutableStateOf<String?>(null) }
+    var importError by remember { mutableStateOf<TokenImportError?>(null) }
+    val launchFilePicker = if (isTv) {
+        rememberTokenFilePicker(
+            onTokenLoaded = { content -> importedText = content },
+            onError = { error -> importError = error }
+        )
+    } else {
+        null
+    }
 
     Scaffold(
         topBar = {
@@ -158,8 +175,20 @@ fun TokenManagementScreen(
                         }
                     }
                     showAddDialog = false
+                    importedText = null // reset import state on save
                 },
-                onDismiss = { showAddDialog = false }
+                onDismiss = {
+                    showAddDialog = false
+                    importedText = null // reset import state on dismiss
+                },
+                // TV-only: third button "Import from file"
+                onImportFromFile = if (isTv && launchFilePicker != null) {
+                    {
+                        importedText = null
+                        launchFilePicker()
+                    }
+                } else null,
+                importedText = if (isTv) importedText else null,
             )
         }
     }
@@ -218,6 +247,14 @@ fun TokenManagementScreen(
                     }
                 }
             }
+        )
+    }
+
+    // TV-only: file import error dialog (независимо от showErrorDialog)
+    if (importError != null) {
+        TokenImportErrorDialog(
+            error = importError,
+            onDismiss = { importError = null }
         )
     }
 

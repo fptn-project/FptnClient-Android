@@ -378,4 +378,9 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="auto_start_on_boot_hint_before">На некоторых устройствах (</string>
     <string name="auto_start_on_boot_hint_oems">Xiaomi, Huawei, Samsung и др.</string>
     <string name="auto_start_on_boot_hint_after">) необходимо вручную разрешить автозапуск в настройках устройства.</string>
+    <string name="token_import_from_file">Импорт из файла</string>
+    <string name="token_import_error_not_txt">Поддерживаются только .txt файлы</string>
+    <string name="token_import_error_read">Не удалось прочитать файл</string>
+    <string name="token_import_error_empty">Файл пуст</string>
+    <string name="token_import_error_io">Ошибка чтения файла</string>
 </resources>

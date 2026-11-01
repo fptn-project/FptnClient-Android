@@ -41,6 +41,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -69,6 +70,9 @@ import org.fptn.vpn.ui.theme.Yellow
 import org.fptn.vpn.utils.ResourcesUtils.getStringResourceByName
 import org.fptn.vpn.vpnclient.exception.ErrorCode
 import org.fptn.vpn.vpnclient.exception.PVNClientException
+import org.fptn.vpn.ui.common.TokenImportError
+import org.fptn.vpn.ui.common.TokenImportErrorDialog
+import org.fptn.vpn.ui.common.rememberTokenFilePicker
 
 private const val TAG = "UpdateTokenScreen"
 private val TOKEN_CLIPBOARD_PREFIXES = listOf("fptn:", "fptnb:")
@@ -81,6 +85,8 @@ fun UpdateTokenScreen(
     viewModel: UpdateTokenViewModel = viewModel()
 ) {
     val context = LocalContext.current
+    val configuration = LocalConfiguration.current
+    val isTv = configuration.uiMode and android.content.res.Configuration.UI_MODE_TYPE_TELEVISION != 0
     val coroutineScope = rememberCoroutineScope()
     val errorText by viewModel.errorTextLiveData.observeAsState("")
     var tokenText by rememberSaveable(stateSaver = TextFieldValue.Saver) {
@@ -91,6 +97,19 @@ fun UpdateTokenScreen(
     val interactionSource = remember { MutableInteractionSource() }
     val isFocused by interactionSource.collectIsFocusedAsState()
     val keyboardController = LocalSoftwareKeyboardController.current
+
+    // TV-only: file import for token
+    var importError by remember { mutableStateOf<TokenImportError?>(null) }
+    val launchFilePicker = if (isTv) {
+        rememberTokenFilePicker(
+            onTokenLoaded = { content ->
+                tokenText = TextFieldValue(content, selection = TextRange(content.length))
+            },
+            onError = { error -> importError = error }
+        )
+    } else {
+        null
+    }
 
     LaunchedEffect(isFocused) {
         if (isFocused) keyboardController?.hide()
@@ -246,6 +265,18 @@ fun UpdateTokenScreen(
                         .weight(1f)
                         .padding(end = 8.dp),
                 )
+                // TV-only: import token from .txt file
+                if (isTv && launchFilePicker != null) {
+                    LegacyPillButton(
+                        text = stringResource(R.string.token_import_from_file),
+                        backgroundDrawable = R.drawable.round_back_secondary_100,
+                        textColor = Primary,
+                        onClick = launchFilePicker,
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(horizontal = 4.dp),
+                    )
+                }
                 LegacyPillButton(
                     text = stringResource(R.string.save_button),
                     backgroundDrawable = R.drawable.round_back_secondary_100,
@@ -313,6 +344,14 @@ fun UpdateTokenScreen(
                     }
                 }
             }
+        )
+    }
+
+    // TV-only: file import error dialog
+    if (importError != null) {
+        TokenImportErrorDialog(
+            error = importError,
+            onDismiss = { importError = null }
         )
     }
 }

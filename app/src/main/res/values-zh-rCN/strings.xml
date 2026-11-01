@@ -392,4 +392,9 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="auto_start_on_boot_hint_before">在某些设备上（</string>
     <string name="auto_start_on_boot_hint_oems">小米、华为、三星等</string>
     <string name="auto_start_on_boot_hint_after">）您需要在设备设置中手动允许自动启动。</string>
+    <string name="token_import_from_file">从文件导入</string>
+    <string name="token_import_error_not_txt">仅支持 .txt 文件</string>
+    <string name="token_import_error_read">无法读取文件</string>
+    <string name="token_import_error_empty">文件为空</string>
+    <string name="token_import_error_io">读取文件时出错</string>
 </resources>

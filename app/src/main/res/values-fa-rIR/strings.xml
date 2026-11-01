@@ -380,4 +380,9 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="auto_start_on_boot_hint_before">در برخی دستگاه‌ها (</string>
     <string name="auto_start_on_boot_hint_oems">شیائومی، هواوی، سامسونگ و غیره</string>
     <string name="auto_start_on_boot_hint_after">) باید شروع خودکار را به طور دستی در تنظیمات دستگاه اجازه دهید.</string>
+    <string name="token_import_from_file">ورود از فایل</string>
+    <string name="token_import_error_not_txt">فقط فایل‌های .txt پشتیبانی می‌شوند</string>
+    <string name="token_import_error_read">خواندن فایل ناموفق بود</string>
+    <string name="token_import_error_empty">فایل خالی است</string>
+    <string name="token_import_error_io">خطا در خواندن فایل</string>
 </resources>
