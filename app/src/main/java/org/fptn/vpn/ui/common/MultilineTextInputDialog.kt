@@ -55,8 +55,12 @@ fun MultilineTextInputDialog(
 
     fun onPaste() {
         val clipboard = context.getSystemService(ClipboardManager::class.java)
-        val clipText = clipboard?.primaryClip?.takeIf { it.itemCount > 0 }
-            ?.getItemAt(0)?.text?.toString()?.trim()
+        val clipText: String? = try {
+            clipboard?.primaryClip?.takeIf { it.itemCount > 0 }
+                ?.getItemAt(0)?.text?.toString()?.trim()
+        } catch (e: Exception) {
+            null  // DeadObjectException / SecurityException — silent no-op
+        }
         if (clipText != null && TOKEN_CLIPBOARD_PREFIXES.any { clipText.startsWith(it) }) {
             text = clipText
         }
