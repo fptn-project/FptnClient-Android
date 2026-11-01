@@ -34,6 +34,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
@@ -47,7 +49,6 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.elvishew.xlog.XLog
 import org.fptn.vpn.R
-import org.fptn.vpn.enums.AppLogLevel
 import org.fptn.vpn.ui.common.BottomNavBar
 import org.fptn.vpn.ui.common.HtmlLinkText
 import org.fptn.vpn.ui.common.LegacySpinner
@@ -58,6 +59,7 @@ import org.fptn.vpn.ui.theme.White
 import org.fptn.vpn.utils.PermissionsUtils
 import org.fptn.vpn.utils.SharedPrefUtils
 import org.fptn.vpn.utils.XLogInitializer
+import androidx.compose.ui.platform.LocalConfiguration
 
 private const val TAG = "SettingsScreen"
 
@@ -77,9 +79,12 @@ fun SettingsScreen(
     onNavigateExperimentalSettings: () -> Unit,
     onNavigateLogs: () -> Unit,
     onNavigateBackup: () -> Unit,
+    onNavigateTokenManagement: () -> Unit,
     viewModel: SettingsViewModel = viewModel(),
 ) {
     val context = LocalContext.current
+    val configuration = LocalConfiguration.current
+    val isTv = configuration.uiMode and android.content.res.Configuration.UI_MODE_TYPE_TELEVISION != 0
     val lifecycleOwner = LocalLifecycleOwner.current
 
     var showShareDialog by remember { mutableStateOf(false) }
@@ -91,7 +96,14 @@ fun SettingsScreen(
 
     var batteryOptimizationGranted by remember { mutableStateOf(PermissionsUtils.checkBatteryOptimizations(context)) }
     var backgroundDataGranted by remember { mutableStateOf(PermissionsUtils.checkBackgroundDataTransferRestrictions(context)) }
-    var logLevel by remember { mutableStateOf(SharedPrefUtils.getLogLevel(context)) }
+
+    // Capture the screen-level LocalDensity ONCE, before any AlertDialog is composed. AlertDialog
+    // renders in a separate window (androidx.compose.ui.window.Dialog) that does NOT inherit
+    // CompositionLocals from its parent, so reading LocalDensity.current INSIDE the dialog's
+    // title/text/button lambdas returns the system Density (without our custom fontScale from
+    // MainActivity). Providing dialogDensity explicitly fixes both "font size doesn't change
+    // when the user picks a custom font scale" and "line height looks wrong".
+    val dialogDensity = LocalDensity.current
 
     val appVersion = remember {
         try {
@@ -156,6 +168,13 @@ fun SettingsScreen(
             }
 
             SettingsNavRow(
+                icon = R.drawable.ic_baseline_key_24,
+                title = stringResource(R.string.token_management_title),
+                description = stringResource(R.string.token_management_description),
+                onClick = onNavigateTokenManagement,
+            )
+
+            SettingsNavRow(
                 icon = R.drawable.ic_baseline_update_24,
                 title = stringResource(R.string.update_token_button),
                 onClick = onNavigateUpdateToken,
@@ -189,10 +208,11 @@ fun SettingsScreen(
                 onClick = onNavigateExperimentalSettings,
             )
 
-            SettingsCard {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Image(
-                        painter = painterResource(R.drawable.user_permissions_24),
+            if (!isTv) {
+                SettingsCard {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Image(
+                            painter = painterResource(R.drawable.user_permissions_24),
                         contentDescription = null,
                         modifier = Modifier.size(16.dp),
                     )
@@ -216,6 +236,7 @@ fun SettingsScreen(
                         onRequest = { showBackgroundDataDialog = true },
                     )
                 }
+                }
             }
 
             SettingsNavRow(
@@ -224,41 +245,17 @@ fun SettingsScreen(
                 description = stringResource(R.string.view_and_copy_application_logs),
                 onClick = onNavigateLogs,
             ) {
-                Column(modifier = Modifier.fillMaxWidth()) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(
-                            text = stringResource(R.string.log_level_title),
-                            color = White,
-                            fontSize = 14.sp,
-                            modifier = Modifier.weight(1f),
-                        )
-                        LegacySpinner(
-                            items = AppLogLevel.entries,
-                            selected = logLevel,
-                            label = { logLevelLabel(it) },
-                            onSelect = {
-                                logLevel = it
-                                SharedPrefUtils.saveLogLevel(context, it)
-                                XLogInitializer.init(context)
-                                XLog.tag(TAG).i("Log level changed [level=%s]", it)
-                            },
-                            width = 200.dp,
-                            maxVisibleItems = 3,
-                        )
-                    }
-                    Text(
-                        text = stringResource(R.string.clear_logs_button),
-                        color = Gray,
-                        fontSize = 13.sp,
-                        textDecoration = TextDecoration.Underline,
-                        modifier = Modifier
-                            .padding(top = 10.dp)
-                            .clickable { showClearLogsConfirm = true },
-                    )
-                }
+                Text(
+                    text = stringResource(R.string.clear_logs_button),
+                    color = Gray,
+                    fontSize = 13.sp,
+                    textDecoration = TextDecoration.Underline,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 10.dp)
+                        .clickable { showClearLogsConfirm = true },
+                )
             }
 
             SettingsNavRow(
@@ -320,17 +317,42 @@ fun SettingsScreen(
     if (showLogoutConfirm) {
         AlertDialog(
             onDismissRequest = { showLogoutConfirm = false },
-            title = { Text(stringResource(R.string.dialog_logout_title)) },
-            text = { Text(stringResource(R.string.dialog_logout_message)) },
+            title = {
+                CompositionLocalProvider(LocalDensity provides dialogDensity) {
+                    Text(
+                        stringResource(R.string.dialog_logout_title),
+                        color = White,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            },
+            text = {
+                CompositionLocalProvider(LocalDensity provides dialogDensity) {
+                    Text(
+                        stringResource(R.string.dialog_logout_message),
+                        color = White,
+                        fontSize = 14.sp,
+                        lineHeight = 17.sp
+                    )
+                }
+            },
             confirmButton = {
-                TextButton(onClick = {
-                    showLogoutConfirm = false
-                    viewModel.deleteAllServers()
-                    onLoggedOut()
-                }) { Text(stringResource(R.string.yes)) }
+                CompositionLocalProvider(LocalDensity provides dialogDensity) {
+                    TextButton(onClick = {
+                        showLogoutConfirm = false
+                        viewModel.deleteAllServers()
+                        onLoggedOut()
+                    }) {
+                        Text(stringResource(R.string.yes))
+                    }
+                }
             },
             dismissButton = {
-                TextButton(onClick = { showLogoutConfirm = false }) { Text(stringResource(R.string.no)) }
+                CompositionLocalProvider(LocalDensity provides dialogDensity) {
+                    TextButton(onClick = { showLogoutConfirm = false }) {
+                        Text(stringResource(R.string.no))
+                    }
+                }
             },
         )
     }
@@ -338,19 +360,31 @@ fun SettingsScreen(
     if (showBatteryOptimizationDialog) {
         AlertDialog(
             onDismissRequest = { showBatteryOptimizationDialog = false },
-            title = { Text(stringResource(R.string.battery_optimization_request_dialog_title)) },
-            text = { Text(stringResource(R.string.battery_optimization_request_dialog_text)) },
+            title = {
+                CompositionLocalProvider(LocalDensity provides dialogDensity) {
+                    Text(stringResource(R.string.battery_optimization_request_dialog_title))
+                }
+            },
+            text = {
+                CompositionLocalProvider(LocalDensity provides dialogDensity) {
+                    Text(stringResource(R.string.battery_optimization_request_dialog_text))
+                }
+            },
             confirmButton = {
-                TextButton(onClick = {
-                    showBatteryOptimizationDialog = false
-                    requestBatteryOptimizationExemption(context)
-                }) { Text(stringResource(R.string.grant)) }
+                CompositionLocalProvider(LocalDensity provides dialogDensity) {
+                    TextButton(onClick = {
+                        showBatteryOptimizationDialog = false
+                        requestBatteryOptimizationExemption(context)
+                    }) { Text(stringResource(R.string.grant)) }
+                }
             },
             dismissButton = {
-                TextButton(onClick = {
-                    showBatteryOptimizationDialog = false
-                    XLog.tag(TAG).w("Battery optimization exemption denied by user")
-                }) { Text(stringResource(R.string.deny)) }
+                CompositionLocalProvider(LocalDensity provides dialogDensity) {
+                    TextButton(onClick = {
+                        showBatteryOptimizationDialog = false
+                        XLog.tag(TAG).w("Battery optimization exemption denied by user")
+                    }) { Text(stringResource(R.string.deny)) }
+                }
             },
         )
     }
@@ -358,19 +392,31 @@ fun SettingsScreen(
     if (showBackgroundDataDialog) {
         AlertDialog(
             onDismissRequest = { showBackgroundDataDialog = false },
-            title = { Text(stringResource(R.string.background_data_request_dialog_title)) },
-            text = { Text(stringResource(R.string.background_data_request_dialog_text)) },
+            title = {
+                CompositionLocalProvider(LocalDensity provides dialogDensity) {
+                    Text(stringResource(R.string.background_data_request_dialog_title))
+                }
+            },
+            text = {
+                CompositionLocalProvider(LocalDensity provides dialogDensity) {
+                    Text(stringResource(R.string.background_data_request_dialog_text))
+                }
+            },
             confirmButton = {
-                TextButton(onClick = {
-                    showBackgroundDataDialog = false
-                    requestBackgroundDataTransferPermission(context)
-                }) { Text(stringResource(R.string.grant)) }
+                CompositionLocalProvider(LocalDensity provides dialogDensity) {
+                    TextButton(onClick = {
+                        showBackgroundDataDialog = false
+                        requestBackgroundDataTransferPermission(context)
+                    }) { Text(stringResource(R.string.grant)) }
+                }
             },
             dismissButton = {
-                TextButton(onClick = {
-                    showBackgroundDataDialog = false
-                    XLog.tag(TAG).w("Background data transfer permission denied by user")
-                }) { Text(stringResource(R.string.deny)) }
+                CompositionLocalProvider(LocalDensity provides dialogDensity) {
+                    TextButton(onClick = {
+                        showBackgroundDataDialog = false
+                        XLog.tag(TAG).w("Background data transfer permission denied by user")
+                    }) { Text(stringResource(R.string.deny)) }
+                }
             },
         )
     }
@@ -378,17 +424,29 @@ fun SettingsScreen(
     if (showClearLogsConfirm) {
         AlertDialog(
             onDismissRequest = { showClearLogsConfirm = false },
-            title = { Text(stringResource(R.string.dialog_clear_logs_title)) },
-            text = { Text(stringResource(R.string.dialog_clear_logs_message)) },
+            title = {
+                CompositionLocalProvider(LocalDensity provides dialogDensity) {
+                    Text(stringResource(R.string.dialog_clear_logs_title))
+                }
+            },
+            text = {
+                CompositionLocalProvider(LocalDensity provides dialogDensity) {
+                    Text(stringResource(R.string.dialog_clear_logs_message))
+                }
+            },
             confirmButton = {
-                TextButton(onClick = {
-                    showClearLogsConfirm = false
-                    XLogInitializer.clearLogs(context)
-                    Toast.makeText(context, R.string.logs_cleared, Toast.LENGTH_SHORT).show()
-                }) { Text(stringResource(R.string.yes)) }
+                CompositionLocalProvider(LocalDensity provides dialogDensity) {
+                    TextButton(onClick = {
+                        showClearLogsConfirm = false
+                        XLogInitializer.clearLogs(context)
+                        Toast.makeText(context, R.string.logs_cleared, Toast.LENGTH_SHORT).show()
+                    }) { Text(stringResource(R.string.yes)) }
+                }
             },
             dismissButton = {
-                TextButton(onClick = { showClearLogsConfirm = false }) { Text(stringResource(R.string.no)) }
+                CompositionLocalProvider(LocalDensity provides dialogDensity) {
+                    TextButton(onClick = { showClearLogsConfirm = false }) { Text(stringResource(R.string.no)) }
+                }
             },
         )
     }
@@ -468,6 +526,7 @@ private fun SettingsNavRow(
                 text = description,
                 color = Gray,
                 fontSize = 12.sp,
+                lineHeight = 17.sp,
                 modifier = Modifier.padding(start = 12.dp, end = 12.dp, bottom = 12.dp),
             )
         }
@@ -504,14 +563,4 @@ private fun PermissionRow(icon: Int, label: String, granted: Boolean, onRequest:
             onCheckedChange = { if (!granted) onRequest() },
         )
     }
-}
-
-@Composable
-private fun logLevelLabel(level: AppLogLevel): String = when (level) {
-    AppLogLevel.VERBOSE -> stringResource(R.string.log_level_verbose)
-    AppLogLevel.DEBUG -> stringResource(R.string.log_level_debug)
-    AppLogLevel.INFO -> stringResource(R.string.log_level_info)
-    AppLogLevel.WARN -> stringResource(R.string.log_level_warn)
-    AppLogLevel.ERROR -> stringResource(R.string.log_level_error)
-    AppLogLevel.NONE -> stringResource(R.string.log_level_none)
 }

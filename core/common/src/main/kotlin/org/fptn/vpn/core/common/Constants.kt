@@ -73,19 +73,29 @@ object Constants {
     const val SHOW_TRAFFIC_IN_NOTIFICATION_PREF_KEY: String = "SHOW_TRAFFIC_IN_NOTIFICATION_V1"
     const val SHOW_TRAFFIC_CHART_PREF_KEY: String = "SHOW_TRAFFIC_CHART_V1"
     const val ALLOW_LANDSCAPE_PREF_KEY: String = "ALLOW_LANDSCAPE_V1"
-    const val LOG_LEVEL_PREF_KEY: String = "LOG_LEVEL_V1"
     const val KILL_SWITCH_ENABLED_PREF_KEY: String = "KILL_SWITCH_ENABLED_V1"
+    const val KILL_SWITCH_ON_NETWORK_CHANGE_PREF_KEY: String = "KILL_SWITCH_ON_NETWORK_CHANGE_V1"
     const val SPLIT_TUNNEL_DOMAINS_PREF_KEY: String = "SPLIT_TUNNEL_DOMAINS_V1"
+    const val SPLIT_TUNNEL_DOMAINS_ADVANCED_MODE_PREF_KEY: String = "SPLIT_TUNNEL_DOMAINS_ADVANCED_MODE_V1"
     const val SPLIT_TUNNEL_DOMAINS_LIST_PREF_KEY: String = "SPLIT_TUNNEL_DOMAINS_LIST_V1"
     const val DOMAIN_BLACKLIST_ENABLED_PREF_KEY: String = "DOMAIN_BLACKLIST_ENABLED_V1"
     const val DOMAIN_BLACKLIST_DOMAINS_PREF_KEY: String = "DOMAIN_BLACKLIST_DOMAINS_V1"
+    const val DOMAIN_BLACKLIST_ADVANCED_MODE_PREF_KEY: String = "DOMAIN_BLACKLIST_ADVANCED_MODE_V1"
     const val TOKEN_UPDATED_DATE_PREF_KEY: String = "TOKEN_UPDATED_DATE_V1"
     const val CONNECT_FAILED_HELP_ENABLED_PREF_KEY: String = "CONNECT_FAILED_HELP_ENABLED_V1"
     const val CONNECT_FAILURES_IN_ROW_PREF_KEY: String = "CONNECT_FAILURES_IN_ROW_V1"
-
+    const val LAST_SELECTED_SERVER_ID_PREF_KEY: String = "LAST_SELECTED_SERVER_ID_V1"
+    const val USE_SYSTEM_FONT_SIZE_PREF_KEY: String = "USE_SYSTEM_FONT_SIZE_V1"
+    const val FONT_SCALE_PREF_KEY: String = "FONT_SCALE_V1"
     const val REMOTE_EXCLUDED_APPS_PREF_KEY: String = "REMOTE_EXCLUDED_APPS_V1"
     const val REMOTE_LISTS_LAST_SYNC_DATE_PREF_KEY: String = "REMOTE_LISTS_LAST_SYNC_DATE_V1"
+    const val AUTO_START_ON_BOOT_PREF_KEY: String = "AUTO_START_ON_BOOT_V1"
 
+    // App-wide font scale override (active only when USE_SYSTEM_FONT_SIZE_PREF_KEY == false).
+    // Index into FONT_SCALE_VALUES; default = 1 (= 1.0f, matches system).
+    val FONT_SCALE_VALUES: FloatArray = floatArrayOf(0.85f, 1.0f, 1.1f, 1.2f)
+    const val FONT_SCALE_DEFAULT_INDEX: Int = 1
+    
     // Default matches blacklist_domains in the fptn desktop client (settingsmodel.cpp)
     const val DOMAIN_BLACKLIST_DEFAULT: String =
         "solovev-live.ru\nria.ru\ntass.ru\n1tv.ru\nntv.ru\nrt.com"
