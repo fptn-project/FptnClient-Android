@@ -40,6 +40,9 @@ public interface ServerDAO {
     List<ServerEntity> getServerList();
 
     @Query("SELECT COUNT(*) FROM server_table")
+    int getCountSync();
+
+    @Query("SELECT COUNT(*) FROM server_table")
     ListenableFuture<Integer> getCount();
 
     @Query("SELECT * FROM server_table WHERE censured = :censured")
@@ -60,6 +63,23 @@ public interface ServerDAO {
     @Query("DELETE FROM server_table")
     void deleteAll();
 
+    /**
+     * Deletes all servers belonging to a specific token.
+     * Used when updating or deleting a token in Token Management.
+     */
+    @Query("DELETE FROM server_table WHERE tokenId = :tokenId")
+    void deleteByTokenId(int tokenId);
+
+    /**
+     * Returns all servers belonging to tokens where isVisible = true.
+     * Sorts by token ID (insertion order), then by sortIndex (order in the JSON token).
+     */
+    @Query("SELECT server_table.* FROM server_table INNER JOIN token_table ON server_table.tokenId = token_table.id WHERE token_table.isVisible = 1 ORDER BY token_table.id ASC, server_table.censured ASC, server_table.sortIndex ASC")
+    List<ServerEntity> getVisibleServerList();
+
+    @Query("UPDATE server_table SET countryCode = :code WHERE id = :id")
+    void updateCountryCode(int id, String code);
+
     @Transaction
     default void deleteAndInsert(List<ServerEntity> servers) {
         deleteAll();
@@ -68,4 +88,11 @@ public interface ServerDAO {
 
     @Query("SELECT * FROM server_table WHERE id = :serverId")
     ServerEntity getById(int serverId);
+
+    /**
+     * Returns all VISIBLE servers (isVisible = 1), filtered by censured.
+     * Sorts by token ID (insertion order), then by sortIndex (order in the JSON token).
+     */
+    @Query("SELECT server_table.* FROM server_table INNER JOIN token_table ON server_table.tokenId = token_table.id WHERE token_table.isVisible = 1 AND server_table.censured = :censured ORDER BY token_table.id ASC, server_table.sortIndex ASC")
+    List<ServerEntity> getVisibleServerList(boolean censured);
 }

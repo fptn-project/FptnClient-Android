@@ -7,7 +7,6 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
-import android.content.res.Configuration
 import android.graphics.drawable.Icon
 import android.net.Uri
 import android.net.VpnService
@@ -19,7 +18,6 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -50,13 +48,14 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLifecycleOwner
@@ -83,21 +82,24 @@ import org.fptn.vpn.ui.common.BottomNavBar
 import org.fptn.vpn.ui.common.ServerDropdown
 import org.fptn.vpn.ui.common.ShareDialog
 import org.fptn.vpn.ui.common.findActivity
-import org.fptn.vpn.ui.common.legacyDrawableBackground
 import org.fptn.vpn.ui.theme.White
 import org.fptn.vpn.ui.theme.Yellow
 import org.fptn.vpn.utils.PermissionsUtils
 import org.fptn.vpn.utils.SharedPrefUtils
+import androidx.compose.ui.platform.LocalConfiguration
 import org.fptn.vpn.vpnclient.exception.ErrorCode
 import androidx.core.net.toUri
-
+import androidx.compose.foundation.background
+import org.fptn.vpn.ui.theme.Primary
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.activity.compose.BackHandler
 private const val TOKEN_MAX_AGE_MS = 14L * 24 * 60 * 60 * 1000
 private const val TOKEN_STALE_AGE_MS = 3L * 24 * 60 * 60 * 1000
 private const val CONNECT_FAILURES_BEFORE_HELP = 2
 
 // Matches home_layout.xml's `app:layout_constraintVertical_bias="0.38"` on the connect button,
 // which is constant — it does not vary by screen height.
-private const val CONNECT_BUTTON_VERTICAL_BIAS = 0.38f
+private const val CONNECT_BUTTON_VERTICAL_BIAS = 0.3f
 
 // In landscape the available height is much smaller, so the same bias would leave no room for
 // the status text / server dropdown / traffic card below the button — pin the button near the
@@ -127,12 +129,26 @@ fun HomeScreen(
     viewModel: HomeActivityViewModel = viewModel(),
 ) {
     val context = LocalContext.current
+    val configuration = LocalConfiguration.current
+    val isTv = configuration.uiMode and android.content.res.Configuration.UI_MODE_TYPE_TELEVISION != 0
     val lifecycleOwner = LocalLifecycleOwner.current
     val snackbarHostState = remember { SnackbarHostState() }
 
     val serviceState by viewModel.serviceStateMutableLiveData.observeAsState(FptnServiceState.INITIAL)
     val connectionState = serviceState.connectionState
-    val serverEntities by viewModel.serverDtoListLiveData.observeAsState(emptyList())
+    val serverEntities = remember { androidx.compose.runtime.mutableStateListOf<ServerEntity>() }
+
+    var serverListVersion by remember { mutableIntStateOf(0) }
+
+    LaunchedEffect(Unit) {
+        viewModel.serverDtoListLiveData.observeForever { list ->
+            serverEntities.clear()
+            if (list != null) {
+                serverEntities.addAll(list)
+            }
+            serverListVersion++
+        }
+    }
     val timerText by viewModel.timerTextLiveData.observeAsState(stringResource(R.string.zero_time))
     val downloadSpeed by viewModel.downloadSpeedAsStringLiveData.observeAsState(stringResource(R.string.zero_speed))
     val uploadSpeed by viewModel.uploadSpeedAsStringLiveData.observeAsState(stringResource(R.string.zero_speed))
@@ -143,6 +159,7 @@ fun HomeScreen(
     val speedSample by viewModel.speedSampleLiveData.observeAsState(null)
 
     var selectedServer by remember { mutableStateOf(ServerEntity.AUTO) }
+    var pendingReselect by remember { mutableStateOf(false) }
     var serverSelectionInitialized by remember { mutableStateOf(false) }
     // Sticky "are we showing the connected layout" flag: flips on CONNECTED/DISCONNECTED/BLOCKED,
     // left untouched on transitional states (CONNECTING, RECONNECTING, ...) — mirrors the legacy
@@ -170,9 +187,16 @@ fun HomeScreen(
     var connectFailedTokenStale by remember { mutableStateOf(false) }
     var showShareDialog by remember { mutableStateOf(false) }
 
+    val toggleButtonOffPainter = painterResource(R.drawable.toggle_button_off)
+    val toggleButtonOnPainter = painterResource(R.drawable.toggle_button_on)
     val needsBackgroundSetup = !notificationsGranted || !batteryGranted
     val showPermissionWarning = connectionState == ConnectionState.CONNECTED && needsBackgroundSetup
     val activeState = connectionState.isActiveState
+
+    // Intercept the system Back button — minimize the app instead of opening Settings
+    BackHandler {
+        context.findActivity()?.moveTaskToBack(true)
+    }
 
     val vpnPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.StartActivityForResult(),
@@ -197,10 +221,15 @@ fun HomeScreen(
     }
 
     fun connectVpn() {
+        SharedPrefUtils.saveLastSelectedServerId(context, selectedServer.id)
         val intent = VpnService.prepare(context)
         if (intent != null) {
             vpnPermissionLauncher.launch(intent)
         } else {
+            // Switch UI to CONNECTING instantly — don't wait for the service to start and send
+            // the state back via IPC. Without this, there's a 1-2 frame gap between the tap and
+            // the first FptnService update, during which vpnState.isActiveState is still false
+            // and the LaunchedEffect in AppNavHost could reset the composition.
             viewModel.serviceStateMutableLiveData.postValue(FptnServiceState.FAKE_CONNECTING)
             FptnService.startToConnect(context, selectedServer)
         }
@@ -285,6 +314,7 @@ fun HomeScreen(
                     notificationsGranted = PermissionsUtils.checkNotificationEnabled(context)
                     batteryGranted = PermissionsUtils.checkBatteryOptimizations(context)
                     showTrafficChart = SharedPrefUtils.getShowTrafficChart(context)
+                    viewModel.refreshServerListFromDB()
                 }
 
                 Lifecycle.Event.ON_PAUSE -> {
@@ -323,22 +353,48 @@ fun HomeScreen(
         }
     }
 
-    // Re-pick the default server only on the edge into DISCONNECTED, not on every ping
-    // refresh while already disconnected — otherwise a user's manual dropdown pick would
-    // keep getting reset every 5 minutes as ping results stream in. Also keyed on
-    // serverEntities so the very first load (which lands after INITIAL's DISCONNECTED
-    // state is already composed) still applies the saved/AUTO selection once it arrives.
-    LaunchedEffect(connectionState, serverEntities) {
-        val enteringDisconnected = connectionState == ConnectionState.DISCONNECTED &&
-            previousConnectionState != ConnectionState.DISCONNECTED
-        if (serverEntities.isNotEmpty() && (enteringDisconnected || !serverSelectionInitialized)) {
-            selectedServer = if (SharedPrefUtils.getResetSelectedServerEnabled(context)) {
-                serverEntities[0]
-            } else {
-                serverEntities.firstOrNull { it.isSelected } ?: serverEntities[0]
-            }
+    LaunchedEffect(connectionState, serverListVersion) {
+        val isInitialSelection = !serverSelectionInitialized && serverEntities.isNotEmpty()
+
+        if (isInitialSelection) {
+            val lastId = SharedPrefUtils.getLastSelectedServerId(context)
+            selectedServer = serverEntities.firstOrNull { it.id == lastId }
+                ?: serverEntities.firstOrNull { it.isSelected }
+                  ?: serverEntities[0]
             serverSelectionInitialized = true
+            return@LaunchedEffect
         }
+
+        // Track transitions into DISCONNECTED specifically from an active or blocked state
+        if (connectionState == ConnectionState.DISCONNECTED &&
+            (previousConnectionState == ConnectionState.CONNECTING ||
+              previousConnectionState == ConnectionState.CONNECTED ||
+              previousConnectionState == ConnectionState.BLOCKED)) {
+            pendingReselect = true
+        }
+
+        if (pendingReselect && serverEntities.isNotEmpty()) {
+            pendingReselect = false
+            val lastId = SharedPrefUtils.getLastSelectedServerId(context)
+            val anySelected = serverEntities.any { it.isSelected }
+
+
+            selectedServer = when {
+                SharedPrefUtils.getResetSelectedServerEnabled(context) -> {
+                    serverEntities[0]
+                }
+                !anySelected && lastId == ServerEntity.AUTO.id -> {
+                    serverEntities[0]
+                }
+                else -> {
+                    val chosen = serverEntities.firstOrNull { it.id == lastId }
+                        ?: serverEntities.firstOrNull { it.isSelected }
+                        ?: serverEntities[0]
+                    chosen
+                }
+            }
+        }
+
         previousConnectionState = connectionState
     }
 
@@ -380,7 +436,7 @@ fun HomeScreen(
     // Request the quick-settings tile once, same as the legacy Activity's onCreate.
     LaunchedEffect(Unit) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-            !SharedPrefUtils.isQuickSettingsTileRequested(context)
+            !SharedPrefUtils.isQuickSettingsTileRequested(context) && !isTv
         ) {
             try {
                 val statusBarManager = context.getSystemService(StatusBarManager::class.java)
@@ -407,18 +463,14 @@ fun HomeScreen(
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(modifier = Modifier.fillMaxSize().background(Primary)) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .legacyDrawableBackground(R.drawable.application_background)
-                // Excludes the bottom side deliberately: BottomNavBar consumes the navigation-bar
-                // inset itself so its background reaches the real screen edge instead of floating
-                // above it with the screen background showing through underneath (see
-                // BottomNavBar's window insets listener).
+                .background(Primary)   // ← Один слой, тот же цвет, что у темы
                 .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal)),
         ) {
-            if (showPermissionWarning) {
+            if (showPermissionWarning && !isTv) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -440,111 +492,128 @@ fun HomeScreen(
                         text = stringResource(R.string.permission_warning_text),
                         color = White,
                         fontSize = 12.sp,
+                        lineHeight = 17.sp,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.padding(start = 6.dp),
                     )
                 }
             }
 
-            BoxWithConstraints(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-                    .padding(10.dp),
-            ) {
-                val availableHeight = maxHeight
-                val buttonSize = dimensionResource(R.dimen.toggle_button_size)
-                val density = LocalDensity.current
-                val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
-                val verticalBias =
-                    if (isLandscape) CONNECT_BUTTON_VERTICAL_BIAS_LANDSCAPE else CONNECT_BUTTON_VERTICAL_BIAS
-                // Always composed (never conditionally removed) so it reserves the same layout
-                // space whether shown or not — otherwise the button below would jump down by the
-                // timer's height the moment it appears on connect. The legacy ConstraintLayout
-                // avoided this because the button's position came from its own bias against the
-                // parent, independent of the timer view above it; here the timer's measured
-                // height is subtracted from the spacer below instead, so the button still lands
-                // at the same bias-determined position either way.
-                var timerHeight by remember { mutableStateOf(0.dp) }
-                val spacerHeight = ((availableHeight - buttonSize) * verticalBias - timerHeight)
-                    .coerceAtLeast(0.dp)
 
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .verticalScroll(rememberScrollState()),
-                ) {
-                    Spacer(modifier = Modifier.height(spacerHeight))
-
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
+                    BoxWithConstraints(
                         modifier = Modifier
-                            .alpha(if (showConnectedUi) 1f else 0f)
-                            .then(if (showConnectedUi) Modifier else Modifier.semantics { hideFromAccessibility() })
-                            .onSizeChanged { size -> timerHeight = with(density) { size.height.toDp() } },
+                            .weight(1f)
+                            .fillMaxWidth()
+                            .padding(10.dp),
                     ) {
-                        Text(text = stringResource(R.string.connection_time), color = White)
-                        Text(text = timerText, color = White, modifier = Modifier.padding(bottom = 4.dp))
-                    }
+                        val availableHeight = maxHeight
+                        val buttonSize = dimensionResource(R.dimen.toggle_button_size)
+                        val density = LocalDensity.current
+                        val isLandscape =
+                            configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
+                        val verticalBias =
+                            if (isLandscape) CONNECT_BUTTON_VERTICAL_BIAS_LANDSCAPE else CONNECT_BUTTON_VERTICAL_BIAS
 
-                    Image(
-                        painter = painterResource(if (activeState) R.drawable.toggle_button_on else R.drawable.toggle_button_off),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(buttonSize)
-                            .clickable(
-                                interactionSource = remember { MutableInteractionSource() },
-                                indication = null,
-                            ) { onToggleConnectClick() },
-                    )
+                        var timerHeight by remember { mutableStateOf(0.dp) }
+                        val spacerHeight = ((availableHeight - buttonSize) * verticalBias - timerHeight)
+                            .coerceAtLeast(0.dp)
 
-                    Text(
-                        text = statusText,
-                        color = Yellow,
-                        modifier = Modifier.padding(top = 4.dp, bottom = 4.dp),
-                    )
-
-                    if (showConnectedUi) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(bottom = 6.dp),
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .verticalScroll(rememberScrollState()),
                         ) {
-                            Text(
-                                text = stringResource(R.string.server_label),
-                                color = White,
-                                modifier = Modifier.padding(end = 5.dp)
-                            )
-                            Text(text = connectedServerInfo.orEmpty(), color = White, maxLines = 2)
-                        }
-                    } else {
-                        ServerDropdown(
-                            servers = serverEntities,
-                            selected = selectedServer,
-                            onSelect = { selectedServer = it },
-                            enabled = !activeState,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .heightIn(min = 36.dp)
-                                .padding(top = 16.dp),
-                        )
-                    }
+                            Spacer(modifier = Modifier.height(spacerHeight))
 
-                    if (showConnectedUi) {
-                        TrafficCard(
-                            downloadSpeed = downloadSpeed,
-                            uploadSpeed = uploadSpeed,
-                            downloadTraffic = downloadTraffic,
-                            uploadTraffic = uploadTraffic,
-                            showChart = showTrafficChart,
-                            speedSample = speedSample,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(top = 8.dp),
-                        )
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier
+                                    .alpha(if (showConnectedUi) 1f else 0f)
+                                    .then(if (showConnectedUi) Modifier else Modifier.semantics { hideFromAccessibility() })
+                                    .onSizeChanged { size -> timerHeight = with(density) { size.height.toDp() } },
+                            ) {
+                                Text(text = stringResource(R.string.connection_time), color = White)
+                                Text(text = timerText, color = White, modifier = Modifier.padding(bottom = 4.dp))
+                            }
+
+                            // Keep BOTH button images in composition at all times.
+                            // PNGs are decoded once at startup — switching is instant.
+                            Box(
+                                modifier = Modifier
+                                    .size(buttonSize)
+                                    .clickable(
+                                        interactionSource = remember { MutableInteractionSource() },
+                                        indication = null,
+                                    ) { onToggleConnectClick() },
+                            ) {
+                                Image(
+                                    painter = toggleButtonOffPainter,
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .matchParentSize()
+                                        .alpha(if (activeState) 0f else 1f),
+                                )
+                                Image(
+                                    painter = toggleButtonOnPainter,
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .matchParentSize()
+                                        .alpha(if (activeState) 1f else 0f),
+                                )
+                            }
+
+                            Text(
+                                text = statusText,
+                                color = Yellow,
+                                modifier = Modifier.padding(top = 4.dp, bottom = 4.dp),
+                            )
+
+                            if (showConnectedUi) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.padding(bottom = 6.dp),
+                                ) {
+                                    Text(
+                                        text = stringResource(R.string.server_label),
+                                        color = White,
+                                        modifier = Modifier.padding(end = 5.dp)
+                                    )
+                                    Text(text = connectedServerInfo.orEmpty(), color = White, maxLines = 2)
+                                }
+                            } else {
+                                ServerDropdown(
+                                    servers = serverEntities,
+                                    selected = selectedServer,
+                                    onSelect = { server ->
+                                        selectedServer = server
+                                        pendingReselect = false
+                                        SharedPrefUtils.saveLastSelectedServerId(context, server.id)
+                                        viewModel.saveSelectedServerToDatabase(server.id)
+                                    },
+                                    enabled = !activeState,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .heightIn(min = 36.dp)
+                                        .padding(top = 16.dp),
+                                )
+                            }
+
+                            if (showConnectedUi) {
+                                TrafficCard(
+                                    downloadSpeed = downloadSpeed,
+                                    uploadSpeed = uploadSpeed,
+                                    downloadTraffic = downloadTraffic,
+                                    uploadTraffic = uploadTraffic,
+                                    showChart = showTrafficChart,
+                                    speedSample = speedSample,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(top = 8.dp),
+                                )
+                            }
+                        }
                     }
-                }
-            }
 
             BottomNavBar(
                 isHomeScreen = true,
