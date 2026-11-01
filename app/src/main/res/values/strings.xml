@@ -438,4 +438,26 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="connection_strategy_rolling">Rolling tunnel</string>
     <string name="connection_strategy_dual">Dual rolling tunnel</string>
     <string name="connection_strategy_triple">Triple rolling tunnel</string>
+    <string name="token_management_title">Token Management</string>
+    <string name="token_management_description">Manage your FPTN tokens. Toggle visibility of servers.</string>
+    <string name="token_add">Add Token</string>
+    <string name="token_add_hint">Paste token here</string>
+    <string name="token_delete">Delete</string>
+    <string name="token_delete_title">Delete Token</string>
+    <string name="token_delete_confirmation">Are you sure you want to delete token \"%1$s\" and all its servers?</string>
+    <string name="token_updated_at">Updated: %1$s</string>
+    <string name="token_error_exists">A token with this username already exists. Please update it in the Update Token section.</string>
+    <string name="token_error_invalid">Invalid token format.</string>
+    <string name="token_error_unknown">An unknown error occurred.</string>
+    <string name="token_error_title">Error</string>
+    <string name="token_error_not_found">No saved token matches the username in this token. To add a new one, use Token Management.</string>
+    <string name="disconnect_reason_network_change_blocked">Network changed (Wi-Fi to Cellular and vice versa)</string>
+
+    <!-- Auto-start on boot -->
+    <string name="auto_start_on_boot_title">Auto-start on device boot</string>
+    <string name="auto_start_on_boot_description">VPN automatically connects when the device starts. Requires VPN permission and battery optimization exemption.</string>
+    <string name="auto_start_on_boot_enable">Connect VPN on device boot</string>
+    <string name="auto_start_on_boot_hint_before">On some devices (</string>
+    <string name="auto_start_on_boot_hint_oems">Xiaomi, Huawei, Samsung and others</string>
+    <string name="auto_start_on_boot_hint_after">) you need to manually allow auto-start in device settings.</string>
 </resources>
