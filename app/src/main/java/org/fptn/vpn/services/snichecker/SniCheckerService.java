@@ -39,7 +39,7 @@ import androidx.lifecycle.MutableLiveData;
 import com.elvishew.xlog.XLog;
 
 import org.fptn.vpn.R;
-import org.fptn.vpn.core.common.Constants;
+import org.fptn.vpn.Constants;
 import org.fptn.vpn.database.AppDatabase;
 import org.fptn.vpn.database.entity.ServerEntity;
 import org.fptn.vpn.database.entity.SniEntity;

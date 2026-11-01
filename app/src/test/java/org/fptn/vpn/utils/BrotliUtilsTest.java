@@ -27,7 +27,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.fptn.vpn.utils.token.TokenValidationUtils;
 import org.fptn.vpn.utils.token.Token;
-import org.fptn.vpn.vpnclient.exception.PVNClientException;
+import org.fptn.vpn.exception.PVNClientException;
 import org.junit.Test;
 
 import java.io.IOException;

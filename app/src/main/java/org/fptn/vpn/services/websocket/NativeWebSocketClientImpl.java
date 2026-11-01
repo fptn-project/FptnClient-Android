@@ -31,8 +31,8 @@ import org.fptn.vpn.services.websocket.callback.OnFailureCallback;
 import org.fptn.vpn.services.websocket.callback.OnMessageReceivedCallback;
 import org.fptn.vpn.services.websocket.callback.OnOpenCallback;
 import org.fptn.vpn.services.websocket.callback.OnSocketOpenedCallback;
-import org.fptn.vpn.vpnclient.exception.ErrorCode;
-import org.fptn.vpn.vpnclient.exception.PVNClientException;
+import org.fptn.vpn.exception.ErrorCode;
+import org.fptn.vpn.exception.PVNClientException;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;

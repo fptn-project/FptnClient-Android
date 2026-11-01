@@ -22,8 +22,8 @@ package org.fptn.vpn.utils.token;
 
 import com.elvishew.xlog.XLog;
 
-import org.fptn.vpn.vpnclient.exception.ErrorCode;
-import org.fptn.vpn.vpnclient.exception.PVNClientException;
+import org.fptn.vpn.exception.ErrorCode;
+import org.fptn.vpn.exception.PVNClientException;
 
 import lombok.experimental.UtilityClass;
 

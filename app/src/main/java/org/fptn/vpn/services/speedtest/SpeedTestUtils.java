@@ -25,8 +25,8 @@ import com.elvishew.xlog.XLog;
 import org.fptn.vpn.database.entity.ServerEntity;
 import org.fptn.vpn.enums.BypassCensorshipMethod;
 import org.fptn.vpn.enums.SniSpoofingMode;
-import org.fptn.vpn.vpnclient.exception.ErrorCode;
-import org.fptn.vpn.vpnclient.exception.PVNClientException;
+import org.fptn.vpn.exception.ErrorCode;
+import org.fptn.vpn.exception.PVNClientException;
 
 import java.util.ArrayList;
 import java.util.Collections;

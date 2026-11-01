@@ -24,7 +24,7 @@ import androidx.room.Entity;
 import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
 
-import org.fptn.vpn.core.common.Constants;
+import org.fptn.vpn.Constants;
 import org.fptn.vpn.utils.CountryFlags;
 
 import java.util.Objects;
