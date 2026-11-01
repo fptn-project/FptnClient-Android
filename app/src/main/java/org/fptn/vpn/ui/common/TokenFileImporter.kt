@@ -1,6 +1,7 @@
 package org.fptn.vpn.ui.common
 
 import android.net.Uri
+import android.provider.OpenableColumns
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material3.AlertDialog
@@ -64,8 +65,31 @@ fun rememberTokenFilePicker(
             return@rememberLauncherForActivityResult
         }
 
-        // Validate .txt extension (MIME is unreliable on TV file managers)
-        val fileName = uri.lastPathSegment ?: ""
+        // Validate .txt extension. uri.lastPathSegment is NOT always the real
+        // file name: when a file is picked from "Recent" in the system picker,
+        // some SAF providers (e.g. com.android.providers.downloads.documents)
+        // return a URI whose lastPathSegment is a numeric document ID, which
+        // made every Recent pick falsely fail the .txt check. Query
+        // OpenableColumns.DISPLAY_NAME for the real name; fall back to the
+        // decoded last path segment if the provider doesn't support the query.
+        val fileName = run {
+            var name: String? = null
+            try {
+                context.contentResolver.query(
+                    uri,
+                    arrayOf(OpenableColumns.DISPLAY_NAME),
+                    null, null, null,
+                )?.use { cursor ->
+                    if (cursor.moveToFirst()) {
+                        val n = cursor.getString(0)
+                        if (!n.isNullOrEmpty()) name = n
+                    }
+                }
+            } catch (_: Exception) {
+                // best-effort — fall through to lastPathSegment below
+            }
+            name ?: uri.lastPathSegment?.let { Uri.decode(it) } ?: ""
+        }
         if (!fileName.endsWith(".txt", ignoreCase = true)) {
             onError(TokenImportError.NOT_TXT_EXTENSION)
             return@rememberLauncherForActivityResult
