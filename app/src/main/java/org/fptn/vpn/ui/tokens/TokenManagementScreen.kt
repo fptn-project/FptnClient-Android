@@ -189,6 +189,7 @@ fun TokenManagementScreen(
                     }
                 } else null,
                 importedText = if (isTv) importedText else null,
+                showPasteClearIcons = true
             )
         }
     }
