@@ -61,7 +61,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import lombok.Getter;
-
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.TimeUnit;
 public class SniCheckerService extends Service {
     private static final String TAG = SniCheckerService.class.getSimpleName();
 
@@ -187,6 +188,13 @@ public class SniCheckerService extends Service {
     }
 
     public synchronized static void stopChecking(Context context) {
+        // No-op if the SNI checker isn't actually running — otherwise sending ACTION_STOP would
+        // start the service just to immediately call stopCheckingProcess(), which would show
+        // "SNI not found" notifications for a search that never happened (e.g. on logout).
+        if (getStaticState() != SniCheckerServiceState.ACTIVE) {
+            XLog.tag(TAG).i("stopChecking: service not active — nothing to do");
+            return;
+        }
         Intent intent = new Intent(context, SniCheckerService.class);
         intent.setAction(ACTION_STOP);
         context.startService(intent);
@@ -199,6 +207,32 @@ public class SniCheckerService extends Service {
             String intentAction = intent.getAction();
 
             if (ACTION_START.equalsIgnoreCase(intentAction)) {
+                // Security gate (early): refuse to start if there are no servers AND no tokens in
+                // the DB. This can happen when ACTION_START arrives right after a logout cleared
+                // the tables — serverDAO().getById(serverId) would return null, the worker would
+                // "abort SNI check" silently, and stopCheckingProcess() (with the now-ACTIVE state)
+                // would post a misleading "SNI not found" notification. Bounce off a worker with a
+                // 2s timeout — onStartCommand runs on the main thread, and AppDatabase forbids
+                // main-thread queries.
+                boolean earlySessionEstablished = false;
+                FutureTask<Boolean> earlyCheck = new FutureTask<>(() ->
+                        appDatabase.serverDAO().getCountSync() > 0 && appDatabase.tokenDAO().getCount() > 0);
+                executorService.execute(earlyCheck);
+                try {
+                    earlySessionEstablished = earlyCheck.get(2, TimeUnit.SECONDS);
+                } catch (Exception e) {
+                    XLog.tag(TAG).w("Early session check failed (%s) — aborting SNI start",
+                            e.getClass().getSimpleName());
+                    earlyCheck.cancel(true);
+                    stopSelf();
+                    return START_NOT_STICKY;
+                }
+                if (!earlySessionEstablished) {
+                    XLog.tag(TAG).w("Refusing to start SNI check — session not established");
+                    stopSelf();
+                    return START_NOT_STICKY;
+                }
+
                 startForegroundWithNotification("Searching the best SNI");
                 XLog.tag(TAG).i("SNI check started");
 
@@ -207,7 +241,14 @@ public class SniCheckerService extends Service {
                 boolean resetChecked = intent.getBooleanExtra(RESET_CHECKED_EXTRA, false);
                 int serverId = intent.getIntExtra(SELECTED_SERVER, Constants.SELECTED_SERVER_ID_AUTO);
 
-                serviceState.postValue(SniCheckerServiceState.ACTIVE);
+                // setValue (not postValue) — onStartCommand runs on the main thread, and the
+                // worker launched below checks serviceState.getValue() == ACTIVE in its while loop.
+                // postValue would deliver ACTIVE asynchronously via the main looper; on a very fast
+                // device the worker could enter the loop before the postValue was dispatched, see
+                // INACTIVE, skip the loop entirely, fall through to stopCheckingProcess() and post
+                // a misleading "SNI not found" notification. setValue updates the underlying
+                // volatile field synchronously so the worker observes ACTIVE immediately.
+                serviceState.setValue(SniCheckerServiceState.ACTIVE);
 
                 executorService.submit(() -> {
                     ServerEntity serverEntity = appDatabase.serverDAO().getById(serverId);
@@ -293,18 +334,24 @@ public class SniCheckerService extends Service {
         // Release wakelock
         releasePowerLock();
 
+        // Only post result notifications if a search was actually running. ACTION_STOP can reach
+        // the service even when the checker was never started (e.g. logout calls stopChecking()
+        // defensively) — in that case foundedSni is null simply because no search ever ran, not
+        // because the search ran out of candidates. Showing "SNI not found" then is misleading.
+        boolean wasActive = serviceState.getValue() == SniCheckerServiceState.ACTIVE;
+
         if (foundedSni != null) {
             //todo: does need add save action to notification?
             SharedPrefUtils.saveSniHostname(this, foundedSni);
 
             foundedSniLiveData.postValue(foundedSni);
 
-            showResultNotification(getString(R.string.sni_found_title), getString(R.string.sni_found_message) + foundedSni);
-        } else {
+            if (wasActive) {
+                showResultNotification(getString(R.string.sni_found_title), getString(R.string.sni_found_message) + foundedSni);
+            }
+        } else if (wasActive) {
+            // Single localized notification (the hardcoded English duplicate was removed).
             showResultNotification(getString(R.string.sni_not_found_title), getString(R.string.sni_not_found_message));
-
-            showResultNotification("SNI not found!", "Not found working SNI for server: "
-                    + Optional.ofNullable(selectedServer.getValue()).map(ServerEntity::getServerInfo).orElse(""));
         }
         serviceState.postValue(SniCheckerServiceState.INACTIVE);
 
