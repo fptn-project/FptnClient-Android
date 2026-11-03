@@ -17,9 +17,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -35,45 +37,84 @@ import org.fptn.vpn.ui.common.legacyDrawableBackground
  */
 @Composable
 fun TokenReminderDialog(onUpdateToken: () -> Unit, onLater: () -> Unit) {
+    val dialogDensity = LocalDensity.current
     AlertDialog(
         onDismissRequest = {}, // Not cancelable — the user must pick "Update" or "Later".
-        title = { Text(stringResource(R.string.token_reminder_title)) },
-        text = { HtmlLinkText(html = stringResource(R.string.token_reminder_message)) },
+        title = {
+            CompositionLocalProvider(LocalDensity provides dialogDensity) {
+                Text(stringResource(R.string.token_reminder_title))
+            }
+        },
+        text = {
+            CompositionLocalProvider(LocalDensity provides dialogDensity) {
+                HtmlLinkText(html = stringResource(R.string.token_reminder_message))
+            }
+        },
         confirmButton = {
-            TextButton(onClick = onUpdateToken) { Text(stringResource(R.string.token_reminder_update)) }
+            CompositionLocalProvider(LocalDensity provides dialogDensity) {
+                TextButton(onClick = onUpdateToken) { Text(stringResource(R.string.token_reminder_update)) }
+            }
         },
         dismissButton = {
-            TextButton(onClick = onLater) { Text(stringResource(R.string.token_reminder_later)) }
+            CompositionLocalProvider(LocalDensity provides dialogDensity) {
+                TextButton(onClick = onLater) { Text(stringResource(R.string.token_reminder_later)) }
+            }
         },
     )
 }
 
 @Composable
 fun VpnSwitchDialog(onSwitch: () -> Unit, onCancel: () -> Unit) {
+    val dialogDensity = LocalDensity.current
     AlertDialog(
         onDismissRequest = onCancel,
-        title = { Text(stringResource(R.string.vpn_switch_title)) },
-        text = { Text(stringResource(R.string.vpn_switch_message)) },
+        title = {
+            CompositionLocalProvider(LocalDensity provides dialogDensity) {
+                Text(stringResource(R.string.vpn_switch_title))
+            }
+        },
+        text = {
+            CompositionLocalProvider(LocalDensity provides dialogDensity) {
+                Text(stringResource(R.string.vpn_switch_message))
+            }
+        },
         confirmButton = {
-            TextButton(onClick = onSwitch) { Text(stringResource(R.string.vpn_switch_button)) }
+            CompositionLocalProvider(LocalDensity provides dialogDensity) {
+                TextButton(onClick = onSwitch) { Text(stringResource(R.string.vpn_switch_button)) }
+            }
         },
         dismissButton = {
-            TextButton(onClick = onCancel) { Text(stringResource(R.string.cancel_button)) }
+            CompositionLocalProvider(LocalDensity provides dialogDensity) {
+                TextButton(onClick = onCancel) { Text(stringResource(R.string.cancel_button)) }
+            }
         },
     )
 }
 
 @Composable
 fun VpnSetupErrorDialog(onOk: () -> Unit, onOpenVpnSettings: () -> Unit) {
+    val dialogDensity = LocalDensity.current
     AlertDialog(
         onDismissRequest = onOk,
-        title = { Text(stringResource(R.string.vpn_setup_error_title)) },
-        text = { Text(stringResource(R.string.vpn_setup_error_message)) },
+        title = {
+            CompositionLocalProvider(LocalDensity provides dialogDensity) {
+                Text(stringResource(R.string.vpn_setup_error_title))
+            }
+        },
+        text = {
+            CompositionLocalProvider(LocalDensity provides dialogDensity) {
+                Text(stringResource(R.string.vpn_setup_error_message))
+            }
+        },
         confirmButton = {
-            TextButton(onClick = onOk) { Text(stringResource(android.R.string.ok)) }
+            CompositionLocalProvider(LocalDensity provides dialogDensity) {
+                TextButton(onClick = onOk) { Text(stringResource(android.R.string.ok)) }
+            }
         },
         dismissButton = {
-            TextButton(onClick = onOpenVpnSettings) { Text(stringResource(R.string.open_vpn_settings)) }
+            CompositionLocalProvider(LocalDensity provides dialogDensity) {
+                TextButton(onClick = onOpenVpnSettings) { Text(stringResource(R.string.open_vpn_settings)) }
+            }
         },
     )
 }
@@ -91,57 +132,65 @@ fun BackgroundSetupDialog(
     onDone: () -> Unit,
 ) {
     val maxDialogContentHeight = (LocalConfiguration.current.screenHeightDp * 0.6f).dp
+    val dialogDensity = LocalDensity.current
     AlertDialog(
         onDismissRequest = onDismiss,
         text = {
-            Column(
-                modifier = Modifier
-                    .heightIn(max = maxDialogContentHeight)
-                    .verticalScroll(rememberScrollState()),
-            ) {
-                Text(
-                    text = stringResource(R.string.background_setup_title),
-                    style = MaterialTheme.typography.headlineSmall,
-                    modifier = Modifier.padding(bottom = 16.dp),
-                )
-                Text(
-                    text = stringResource(R.string.background_setup_text),
-                    fontSize = 13.sp,
-                    modifier = Modifier.padding(bottom = 14.dp),
-                )
-                SetupChecklistRow(
-                    icon = R.drawable.bell_ring_24,
-                    title = stringResource(R.string.background_setup_notifications_title),
-                    done = notificationsGranted,
-                    onClick = onRequestNotifications,
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                SetupChecklistRow(
-                    icon = R.drawable.eco_battery_24,
-                    title = stringResource(R.string.background_setup_battery_title),
-                    description = stringResource(R.string.background_setup_battery_desc),
-                    done = batteryGranted,
-                    onClick = onRequestBattery,
-                )
-                if (isXiaomi) {
+            CompositionLocalProvider(LocalDensity provides dialogDensity) {
+                Column(
+                    modifier = Modifier
+                        .heightIn(max = maxDialogContentHeight)
+                        .verticalScroll(rememberScrollState()),
+                ) {
+                    Text(
+                        text = stringResource(R.string.background_setup_title),
+                        style = MaterialTheme.typography.headlineSmall,
+                        modifier = Modifier.padding(bottom = 16.dp),
+                    )
+                    Text(
+                        text = stringResource(R.string.background_setup_text),
+                        fontSize = 13.sp,
+                        lineHeight = 18.sp,
+                        modifier = Modifier.padding(bottom = 14.dp),
+                    )
+                    SetupChecklistRow(
+                        icon = R.drawable.bell_ring_24,
+                        title = stringResource(R.string.background_setup_notifications_title),
+                        done = notificationsGranted,
+                        onClick = onRequestNotifications,
+                    )
                     Spacer(modifier = Modifier.height(8.dp))
                     SetupChecklistRow(
-                        icon = R.drawable.ic_baseline_settings_24,
-                        title = stringResource(R.string.background_setup_pin_title),
-                        description = stringResource(R.string.background_setup_pin_desc),
-                        done = pinDone,
-                        onClick = onOpenPin,
+                        icon = R.drawable.eco_battery_24,
+                        title = stringResource(R.string.background_setup_battery_title),
+                        description = stringResource(R.string.background_setup_battery_desc),
+                        done = batteryGranted,
+                        onClick = onRequestBattery,
                     )
+                    if (isXiaomi) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        SetupChecklistRow(
+                            icon = R.drawable.ic_baseline_settings_24,
+                            title = stringResource(R.string.background_setup_pin_title),
+                            description = stringResource(R.string.background_setup_pin_desc),
+                            done = pinDone,
+                            onClick = onOpenPin,
+                        )
+                    }
                 }
             }
         },
         confirmButton = {
-            TextButton(onClick = onDone, enabled = notificationsGranted && batteryGranted) {
-                Text(stringResource(R.string.background_setup_done))
+            CompositionLocalProvider(LocalDensity provides dialogDensity) {
+                TextButton(onClick = onDone, enabled = notificationsGranted && batteryGranted) {
+                    Text(stringResource(R.string.background_setup_done))
+                }
             }
         },
         dismissButton = {
-            TextButton(onClick = onDone) { Text(stringResource(R.string.background_setup_later)) }
+            CompositionLocalProvider(LocalDensity provides dialogDensity) {
+                TextButton(onClick = onDone) { Text(stringResource(R.string.background_setup_later)) }
+            }
         },
     )
 }
@@ -160,7 +209,7 @@ private fun SetupChecklistRow(icon: Int, title: String, description: String? = n
         Column(modifier = Modifier.weight(1f).padding(start = 12.dp)) {
             Text(text = title, fontSize = 14.sp)
             if (description != null) {
-                Text(text = description, fontSize = 11.sp, modifier = Modifier.padding(top = 1.dp))
+                Text(text = description, fontSize = 11.sp, lineHeight = 15.sp, modifier = Modifier.padding(top = 1.dp))
             }
         }
         Image(
@@ -178,25 +227,35 @@ fun ConnectFailedHelpDialog(
     onBypass: () -> Unit,
     onDismiss: () -> Unit,
 ) {
+    val dialogDensity = LocalDensity.current
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.connect_failed_help_title)) },
+        title = {
+            CompositionLocalProvider(LocalDensity provides dialogDensity) {
+                Text(stringResource(R.string.connect_failed_help_title))
+            }
+        },
         text = {
-            Column {
-                Text(
-                    text = stringResource(
-                        if (tokenIsStale) R.string.connect_failed_help_message_token_stale else R.string.connect_failed_help_message,
-                    ),
-                    fontSize = 13.sp,
-                    modifier = Modifier.padding(bottom = 14.dp),
-                )
-                ConnectFailedHelpRow(text = stringResource(R.string.connect_failed_help_bypass), onClick = onBypass)
-                Spacer(modifier = Modifier.height(8.dp))
-                ConnectFailedHelpRow(text = stringResource(R.string.connect_failed_help_get_token), onClick = onGetToken)
+            CompositionLocalProvider(LocalDensity provides dialogDensity) {
+                Column {
+                    Text(
+                        text = stringResource(
+                            if (tokenIsStale) R.string.connect_failed_help_message_token_stale else R.string.connect_failed_help_message,
+                        ),
+                        fontSize = 13.sp,
+                        lineHeight = 18.sp,
+                        modifier = Modifier.padding(bottom = 14.dp),
+                    )
+                    ConnectFailedHelpRow(text = stringResource(R.string.connect_failed_help_bypass), onClick = onBypass)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    ConnectFailedHelpRow(text = stringResource(R.string.connect_failed_help_get_token), onClick = onGetToken)
+                }
             }
         },
         confirmButton = {
-            TextButton(onClick = onDismiss) { Text(stringResource(R.string.connect_failed_help_skip)) }
+            CompositionLocalProvider(LocalDensity provides dialogDensity) {
+                TextButton(onClick = onDismiss) { Text(stringResource(R.string.connect_failed_help_skip)) }
+            }
         },
     )
 }
