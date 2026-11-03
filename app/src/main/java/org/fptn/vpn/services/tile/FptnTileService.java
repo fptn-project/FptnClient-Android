@@ -35,14 +35,28 @@ import androidx.lifecycle.Observer;
 import com.elvishew.xlog.XLog;
 
 import org.fptn.vpn.R;
+import org.fptn.vpn.database.AppDatabase;
 import org.fptn.vpn.enums.ConnectionState;
 import org.fptn.vpn.services.vpn.FptnService;
 import org.fptn.vpn.utils.PermissionsUtils;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import lombok.Getter;
 
 public class FptnTileService extends TileService {
     private static final String TAG = FptnTileService.class.getSimpleName();
+
+    // Background executor for synchronous Room reads inside onClick. The AppDatabase does not
+    // allow main-thread queries, and onClick runs on the main thread — we need to bounce the
+    // session check off a worker, with a strict timeout so a stuck DB query can never strand the
+    // tile click (the user gets the old behavior instead).
+    private static final ExecutorService DB_CHECK_EXECUTOR = Executors.newSingleThreadExecutor();
+    private static final long DB_CHECK_TIMEOUT_SECONDS = 2L;
 
     @Getter
     private static final MutableLiveData<ConnectionState> serviceStateMutableLiveData = new MutableLiveData<>(ConnectionState.DISCONNECTED);
@@ -106,6 +120,53 @@ public class FptnTileService extends TileService {
                         startActivityAndCollapse(intent);
                     }
 
+                    return;
+                }
+
+                // Security gate: refuse to start the VPN from the tile when the user has not
+                // signed in yet (no servers AND no tokens in the DB). Previously the tile would
+                // kick off FptnService regardless, which produced a "Selecting the best server..."
+                // notification and then — via AppNavHost's auto-routing on the active ConnectionState —
+                // dropped the user onto the Home screen without ever going through Login. Open the
+                // app on the launcher Intent instead; MainActivity will start at Splash, which will
+                // route to Login because the DB is empty.
+                //
+                // The check runs off the main thread because AppDatabase does not allow
+                // main-thread queries. A 2s timeout keeps us from blocking forever if Room is
+                // stuck — on timeout we cancel the future and fall through to the legacy "start
+                // VPN" path; the FptnService.startConnectionAttempt + AppNavHost gates still
+                // protect the UI.
+                boolean sessionEstablished = false;
+                FutureTask<Boolean> checkTask = new FutureTask<>(() -> {
+                    AppDatabase db = AppDatabase.getInstance(FptnTileService.this);
+                    return db.serverDAO().getCountSync() > 0 && db.tokenDAO().getCount() > 0;
+                });
+                DB_CHECK_EXECUTOR.execute(checkTask);
+                try {
+                    sessionEstablished = checkTask.get(DB_CHECK_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+                } catch (TimeoutException te) {
+                    XLog.tag(TAG).w("Session check timed out — falling through to legacy tile behavior");
+                    // Cancel the still-running query so it can't leak threads / hold the DB.
+                    checkTask.cancel(true);
+                } catch (Exception e) {
+                    XLog.tag(TAG).e("Failed to check session before starting VPN from tile: %s", e.getMessage());
+                    // Fall through and let VpnService.prepare / FptnService handle it as before —
+                    // we'd rather start than strand the user. The AppNavHost gate still protects UI.
+                }
+
+                if (!sessionEstablished) {
+                    XLog.tag(TAG).w("Refusing to start VPN from tile — session not established");
+                    Intent launchIntent = getPackageManager().getLaunchIntentForPackage(getPackageName());
+                    if (launchIntent != null) {
+                        launchIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        PendingIntent launchPendingIntent = PendingIntent.getActivity(
+                                this, 0, launchIntent, PendingIntent.FLAG_IMMUTABLE);
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                            startActivityAndCollapse(launchPendingIntent);
+                        } else {
+                            startActivityAndCollapse(launchIntent);
+                        }
+                    }
                     return;
                 }
 
