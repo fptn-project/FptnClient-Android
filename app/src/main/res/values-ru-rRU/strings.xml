@@ -193,7 +193,9 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
 
     <string name="split_tunnel_title">Раздельный туннель:</string>
     <string name="split_tunnel_enable">Включить раздельное туннелирование для доменов из списка</string>
-    <string name="split_tunnel_enable_link">списка</string>
+    <string name="split_tunnel_list_link">Список доменов</string>
+    <string name="split_tunnel_advanced_enable">Использовать TLD и IDN (экспертный)</string>
+    <string name="split_tunnel_advanced_description">Обход целых доменных зон (TLD, например .ru или ru — с точкой или без) и доменов на любом языке (IDN).\n\nРекомендуется в России, Иране, Китае и других странах с цензурой — иначе локальные домены не будут обходить туннель, и государство может заблокировать VPN-соединение. TLD и IDN нужно добавить в список доменов.</string>
 
     <string name="domain_blacklist_title">Черный список доменов:</string>
     <string name="domain_blacklist_description">Блокирует подключения к указанным доменам и их поддоменам. Один домен на строку. Может потребовать отключения приватного DNS (DoH) в системных настройках — иначе DNS-запросы обходят фильтрацию.</string>
