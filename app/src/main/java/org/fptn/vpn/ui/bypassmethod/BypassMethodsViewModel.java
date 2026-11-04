@@ -45,7 +45,7 @@ import org.fptn.vpn.services.snichecker.SniCheckerService;
 import org.fptn.vpn.ui.home.HomeActivityViewModel;
 import org.fptn.vpn.services.snichecker.SniCheckerServiceState;
 import org.fptn.vpn.utils.SharedPrefUtils;
-import org.fptn.vpn.exception.PVNClientException;
+import org.fptn.vpn.vpnclient.exception.PVNClientException;
 
 import java.io.BufferedReader;
 import java.io.InputStream;

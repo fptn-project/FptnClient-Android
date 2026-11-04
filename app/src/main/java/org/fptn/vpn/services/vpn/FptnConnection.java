@@ -57,8 +57,8 @@ import org.fptn.vpn.utils.DataRateCalculator;
 import org.fptn.vpn.utils.NetworkUtils;
 import org.fptn.vpn.utils.IPUtils;
 import org.fptn.vpn.ui.perappvpn.AppInfo;
-import org.fptn.vpn.exception.ErrorCode;
-import org.fptn.vpn.exception.PVNClientException;
+import org.fptn.vpn.vpnclient.exception.ErrorCode;
+import org.fptn.vpn.vpnclient.exception.PVNClientException;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;

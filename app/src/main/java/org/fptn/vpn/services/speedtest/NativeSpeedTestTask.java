@@ -25,7 +25,7 @@ import org.fptn.vpn.enums.BypassCensorshipMethod;
 import org.fptn.vpn.enums.SniSpoofingMode;
 import org.fptn.vpn.services.websocket.NativeHttpsClientImpl;
 import org.fptn.vpn.services.websocket.NativeResponse;
-import org.fptn.vpn.exception.PVNClientException;
+import org.fptn.vpn.vpnclient.exception.PVNClientException;
 
 import java.time.Duration;
 import java.time.Instant;
