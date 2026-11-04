@@ -91,4 +91,11 @@ object Constants {
     // Default matches blacklist_domains in the fptn desktop client (settingsmodel.cpp)
     const val DOMAIN_BLACKLIST_DEFAULT: String =
         "solovev-live.ru\nria.ru\ntass.ru\n1tv.ru\nntv.ru\nrt.com"
+
+    const val USE_SYSTEM_FONT_SIZE_PREF_KEY: String = "USE_SYSTEM_FONT_SIZE_V1"
+    const val FONT_SCALE_PREF_KEY: String = "FONT_SCALE_V1"
+    // App-wide font scale override (active only when USE_SYSTEM_FONT_SIZE_PREF_KEY == false).
+    // Index into FONT_SCALE_VALUES; default = 1 (= 1.0f, matches system).
+    val FONT_SCALE_VALUES: FloatArray = floatArrayOf(0.85f, 1.0f, 1.1f, 1.2f)
+    const val FONT_SCALE_DEFAULT_INDEX: Int = 1
 }

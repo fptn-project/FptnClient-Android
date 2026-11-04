@@ -39,6 +39,9 @@ public class App extends Application {
         super.onCreate();
         initXLog();
         registerOrientationController();
+        // Load the font size state before MainActivity starts composition.
+        // FontScaleState is a Compose state singleton; reading it in MainActivity is reactive.
+        org.fptn.vpn.ui.theme.FontScaleState.INSTANCE.load(this);
     }
 
     // Portrait is the manifest baseline; on tablets (or when the user opts in) we
