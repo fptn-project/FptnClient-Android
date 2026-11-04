@@ -438,4 +438,22 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="connection_strategy_rolling">Rolling tunnel</string>
     <string name="connection_strategy_dual">Dual rolling tunnel</string>
     <string name="connection_strategy_triple">Triple rolling tunnel</string>
+
+    <!-- token management (PR 2b) -->
+    <string name="token_add">Add Token</string>
+    <string name="token_add_hint">Paste token here</string>
+    <string name="token_delete">Delete</string>
+    <string name="token_delete_confirmation">Are you sure you want to delete token \"%1$s\" and all its servers?</string>
+    <string name="token_delete_title">Delete Token</string>
+    <string name="token_error_exists">A token with this username already exists. Please update it in the Update Token section.</string>
+    <string name="token_error_invalid">Invalid token format.</string>
+    <string name="token_error_title">Error</string>
+    <string name="token_error_unknown">An unknown error occurred.</string>
+    <string name="token_management_title">Token Management</string>
+    <string name="token_updated_at">Updated: %1$s</string>
+    <string name="token_import_error_empty">File is empty</string>
+    <string name="token_import_error_io">Error reading file</string>
+    <string name="token_import_error_not_txt">Only .txt files are supported</string>
+    <string name="token_import_error_read">Failed to read file</string>
+    <string name="token_import_from_file">Import from file</string>
 </resources>
