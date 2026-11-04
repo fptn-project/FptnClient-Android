@@ -404,6 +404,10 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="log_level_error">Error</string>
     <string name="log_level_none">None</string>
 
+    <string name="font_scale_title">Font size</string>
+    <string name="font_scale_description">Customize the text size in the app. By default, the system size is used.</string>
+    <string name="font_scale_use_system">Use system font size</string>
+    <string name="font_scale_custom_label">Custom size</string>
     <string name="search_apps_hint">Search apps…</string>
     <string name="show_system_apps_label">Show system apps</string>
 
