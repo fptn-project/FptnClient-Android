@@ -315,6 +315,30 @@ public class SharedPrefUtils {
         XLog.tag(TAG).d("Saved " + Constants.DOMAIN_BLACKLIST_ADVANCED_MODE_PREF_KEY + " = " + enabled);
     }
 
+    /* Last selected server (survives screen recreation) */
+    public static int getLastSelectedServerId(Context context) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        return sharedPreferences.getInt(Constants.LAST_SELECTED_SERVER_ID_PREF_KEY, Constants.SELECTED_SERVER_ID_AUTO);
+    }
+
+    public static void saveLastSelectedServerId(Context context, int serverId) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        sharedPreferences.edit().putInt(Constants.LAST_SELECTED_SERVER_ID_PREF_KEY, serverId).apply();
+        XLog.tag(TAG).d("Saved " + Constants.LAST_SELECTED_SERVER_ID_PREF_KEY + " = " + serverId);
+    }
+
+    /* Auto-start on boot */
+    public static boolean getAutoStartOnBoot(Context context) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        return sharedPreferences.getBoolean(Constants.AUTO_START_ON_BOOT_PREF_KEY, false);
+    }
+
+    public static void saveAutoStartOnBoot(Context context, boolean enabled) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        sharedPreferences.edit().putBoolean(Constants.AUTO_START_ON_BOOT_PREF_KEY, enabled).apply();
+        XLog.tag(TAG).d("Saved " + Constants.AUTO_START_ON_BOOT_PREF_KEY + " = " + enabled);
+    }
+
     /* Token freshness reminder */
     public static long getTokenUpdatedDate(Context context) {
         SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
