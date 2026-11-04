@@ -27,7 +27,6 @@ import com.elvishew.xlog.XLog;
 
 import org.fptn.vpn.R;
 import org.fptn.vpn.Constants;
-import org.fptn.vpn.enums.AppLogLevel;
 import org.fptn.vpn.enums.BypassCensorshipMethod;
 import org.fptn.vpn.enums.ConnectionStrategy;
 import org.fptn.vpn.enums.PerAppVpnMode;
@@ -136,7 +135,6 @@ public class SharedPrefUtils {
         XLog.tag(TAG).d("Saved " + Constants.RECONNECT_ATTEMPTS_COUNT_SHARED_PREF_KEY + " = " + count);
     }
 
-
     public static int getDelayBetweenReconnect(Context context) {
         SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
         return sharedPreferences.getInt(Constants.RECONNECT_DELAY_BETWEEN_SHARED_PREF_KEY, 1);
@@ -208,7 +206,6 @@ public class SharedPrefUtils {
         sharedPreferences.edit().putString(Constants.BYPASS_CENSORSHIP_METHOD_SHARED_PREF_KEY, method.toString()).apply();
         XLog.tag(TAG).d("Saved " + Constants.BYPASS_CENSORSHIP_METHOD_SHARED_PREF_KEY + " = " + method);
     }
-
 
     public static SniSpoofingMode getSniSpoofingMode(Context context) {
         SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
@@ -482,24 +479,6 @@ public class SharedPrefUtils {
         SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
         sharedPreferences.edit().putBoolean(Constants.ALLOW_LANDSCAPE_PREF_KEY, allow).apply();
         XLog.tag(TAG).d("Saved " + Constants.ALLOW_LANDSCAPE_PREF_KEY + " = " + allow);
-    }
-
-    /* Log level */
-    public static AppLogLevel getLogLevel(Context context) {
-        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
-        String levelName = sharedPreferences.getString(Constants.LOG_LEVEL_PREF_KEY, null);
-        for (AppLogLevel value : AppLogLevel.values()) {
-            if (Objects.equals(levelName, value.name())) {
-                return value;
-            }
-        }
-        return AppLogLevel.INFO;
-    }
-
-    public static void saveLogLevel(Context context, AppLogLevel level) {
-        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
-        sharedPreferences.edit().putString(Constants.LOG_LEVEL_PREF_KEY, level.name()).apply();
-        XLog.tag(TAG).d("Saved " + Constants.LOG_LEVEL_PREF_KEY + " = " + level);
     }
 
 }
