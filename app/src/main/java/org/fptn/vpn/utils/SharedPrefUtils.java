@@ -308,6 +308,17 @@ public class SharedPrefUtils {
         XLog.tag(TAG).d("Saved " + Constants.DOMAIN_BLACKLIST_DOMAINS_PREF_KEY + " = " + domains);
     }
 
+    public static boolean getDomainBlacklistAdvancedModeEnabled(Context context) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        return sharedPreferences.getBoolean(Constants.DOMAIN_BLACKLIST_ADVANCED_MODE_PREF_KEY, false);
+    }
+
+    public static void saveDomainBlacklistAdvancedModeEnabled(Context context, boolean enabled) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        sharedPreferences.edit().putBoolean(Constants.DOMAIN_BLACKLIST_ADVANCED_MODE_PREF_KEY, enabled).apply();
+        XLog.tag(TAG).d("Saved " + Constants.DOMAIN_BLACKLIST_ADVANCED_MODE_PREF_KEY + " = " + enabled);
+    }
+
     /* Token freshness reminder */
     public static long getTokenUpdatedDate(Context context) {
         SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
