@@ -81,6 +81,7 @@ fun ExperimentalSettingsScreen(
     var showDomainBlacklistDialog by remember { mutableStateOf(false) }
 
     var killSwitchEnabled by remember { mutableStateOf(SharedPrefUtils.getKillSwitchEnabled(context)) }
+    var killSwitchOnNetworkChange by remember { mutableStateOf(SharedPrefUtils.getKillSwitchOnNetworkChangeEnabled(context)) }
     var customDnsEnabled by remember { mutableStateOf(SharedPrefUtils.getCustomDnsEnabled(context)) }
     var customDnsInput by remember { mutableStateOf(SharedPrefUtils.getCustomDnsIpv4(context)) }
     val customDnsValid = customDnsInput.isEmpty() || isValidDnsAddress(customDnsInput)
@@ -104,6 +105,7 @@ fun ExperimentalSettingsScreen(
 
     fun resetToDefault() {
         killSwitchEnabled = false
+        killSwitchOnNetworkChange = false
         customDnsEnabled = false
         customDnsInput = ""
         showSpeedInNotification = false
@@ -122,6 +124,7 @@ fun ExperimentalSettingsScreen(
         fallbackThresholdProgress = 3f
 
         SharedPrefUtils.saveKillSwitchEnabled(context, false)
+        SharedPrefUtils.saveKillSwitchOnNetworkChangeEnabled(context, false)
         SharedPrefUtils.saveCustomDnsEnabled(context, false)
         SharedPrefUtils.saveCustomDnsIpv4(context, "")
         SharedPrefUtils.saveShowSpeedInNotification(context, false)
@@ -388,6 +391,7 @@ fun ExperimentalSettingsScreen(
 
             ExperimentalCard {
                 CardTitle(stringResource(R.string.reconnection_on_failure_attempts))
+                CardDescription(stringResource(R.string.reconnect_attempts_description))
                 val attemptsValue = ATTEMPTS_COUNT_VALUES[attemptsCountProgress.toInt()]
                 DiscreteSeekBar(
                     label = stringResource(R.string.attempts_count),
@@ -412,6 +416,17 @@ fun ExperimentalSettingsScreen(
                         SharedPrefUtils.saveDelayBetweenReconnect(context, it.toInt() + 1)
                     },
                 )
+
+                // Warning if an unlimited number of attempts is selected
+                if (attemptsValue == Int.MAX_VALUE) {
+                    Text(
+                        text = stringResource(R.string.kill_switch_infinite_warning),
+                        color = White.copy(alpha = 0.7f),
+                        fontSize = 12.sp,
+                        lineHeight = 17.sp,
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+                }
             }
 
             ExperimentalCard {
@@ -447,6 +462,21 @@ fun ExperimentalSettingsScreen(
                             FptnService.startToDisconnect(context)
                         }
                     },
+                )
+                SwitchRow(
+                    text = stringResource(R.string.kill_switch_network_change_enable),
+                    checked = killSwitchOnNetworkChange,
+                    enabled = killSwitchEnabled,
+                    onCheckedChange = {
+                        killSwitchOnNetworkChange = it
+                        SharedPrefUtils.saveKillSwitchOnNetworkChangeEnabled(context, it)
+                    },
+                )
+                Text(
+                    text = stringResource(R.string.kill_switch_network_change_description),
+                    color = White.copy(alpha = 0.7f),
+                    fontSize = 12.sp,
+                    lineHeight = 17.sp,
                 )
                 Text(
                     text = stringResource(R.string.kill_switch_system_hint),
@@ -573,15 +603,24 @@ private fun CardDescription(text: String) {
 }
 
 @Composable
-private fun SwitchRow(text: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
+private fun SwitchRow(text: String, checked: Boolean, enabled: Boolean = true, onCheckedChange: (Boolean) -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(text = text, color = White, fontSize = 14.sp, modifier = Modifier.weight(1f))
-        Switch(checked = checked, onCheckedChange = onCheckedChange)
+        Text(
+            text = text,
+            color = if (enabled) White else White.copy(alpha = 0.5f),
+            fontSize = 14.sp,
+            modifier = Modifier.weight(1f)
+        )
+        Switch(
+            checked = checked,
+            enabled = enabled,
+            onCheckedChange = onCheckedChange
+        )
     }
 }
 
