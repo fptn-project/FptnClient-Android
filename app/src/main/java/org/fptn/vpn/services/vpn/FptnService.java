@@ -99,10 +99,13 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
+import java.net.IDN;
 
 import kotlin.Pair;
 import kotlin.Triple;
@@ -120,10 +123,15 @@ public class FptnService extends VpnService {
     public static final String DISCONNECT_REASON_SYSTEM_REVOKED = "reason:system_revoked";
     public static final String DISCONNECT_REASON_CLOSED_UNEXPECTEDLY = "reason:closed_unexpectedly";
     public static final String DISCONNECT_REASON_UNEXPECTED_ERROR = "reason:unexpected_error";
+    public static final String DISCONNECT_REASON_NETWORK_CHANGE_BLOCKED = "reason:network_change_blocked";
 
     private ParcelFileDescriptor blockingTun;
     private volatile boolean sessionEstablished = false;
     private volatile boolean coldConnectAttempt = false;
+    // Set to true when Network Kill-switch triggers due to a network change (Wi-Fi <-> Mobile).
+    // Makes disconnect() treat the change as involuntary → keeps the blocking TUN raised
+    // until the user manually presses "Disconnect" or "Connect".
+    private volatile boolean isNetworkChangeInProgress = false;
 
     private final AtomicReference<FptnConnection> activeConnection = new AtomicReference<>();
     private final AtomicInteger nextConnectionId = new AtomicInteger(1);
@@ -458,6 +466,8 @@ public class FptnService extends VpnService {
         if (ACTION_CONNECT.equals(intent.getAction()) && acceptConnect) {
             restoringSession = false;
             restoreRetryCount.set(0);
+            // Network Kill-switch episode is over: user pressed "Connect" to recover.
+            isNetworkChangeInProgress = false;
             // Drop ALL pending restore work (grace runnable AND delayed retries) — a stale
             // retry firing into the new session would race it with the old server id.
             restoreHandler.removeCallbacksAndMessages(null);
@@ -467,6 +477,34 @@ public class FptnService extends VpnService {
             }
             sessionEstablished = false;
             coldConnectAttempt = true;
+
+            // Security gate (early): refuse to even start the foreground notification when there
+            // are no servers AND no tokens in the DB. The downstream startConnectionAttempt has
+            // the same gate, but running it here too avoids flashing a "Connecting..."
+            // foreground notification for a few frames before disconnect() removes it.
+            // SERVER_LIST_NULL_OR_EMPTY is in the "offer refresh token" set, so the user will be
+            // routed to the Update Token flow rather than seeing a generic error.
+            //
+            // onStartCommand runs on the main thread, but AppDatabase does not allow main-thread
+            // queries — bounce off a worker with a strict timeout.
+            boolean earlySessionEstablished = false;
+            FutureTask<Boolean> earlyCheck = new FutureTask<>(() ->
+                    appDatabase.serverDAO().getCountSync() > 0 && appDatabase.tokenDAO().getCount() > 0);
+            executorService.execute(earlyCheck);
+            try {
+                earlySessionEstablished = earlyCheck.get(2, TimeUnit.SECONDS);
+            } catch (Exception e) {
+                XLog.tag(TAG).w("Early session check failed (%s) — falling through; startConnectionAttempt gate will re-check",
+                        e.getClass().getSimpleName());
+                earlySessionEstablished = true; // assume true; startConnectionAttempt gate will catch it
+                earlyCheck.cancel(true);
+            }
+            if (!earlySessionEstablished) {
+                XLog.tag(TAG).w("Refusing to start foreground notification — session not established");
+                disconnect(new PVNClientException(ErrorCode.SERVER_LIST_NULL_OR_EMPTY));
+                return START_NOT_STICKY;
+            }
+
             startForegroundWithNotification(getString(R.string.connecting));
 
             if (!NetworkUtils.isOnline(connectivityManager)) {
@@ -483,6 +521,9 @@ public class FptnService extends VpnService {
 
         } else if (ACTION_DISCONNECT.equals(intent.getAction()) && isActiveState) {
             XLog.tag(TAG).i("User-initiated disconnect");
+
+            // Network Kill-switch episode is over: user pressed "Disconnect" to clear it.
+            isNetworkChangeInProgress = false;
 
             if (submittedConnectionAttempt != null && !submittedConnectionAttempt.isDone()) {
                 submittedConnectionAttempt.cancel(true);
@@ -558,6 +599,21 @@ public class FptnService extends VpnService {
                     Network activeNetwork = connectivityManager.getActiveNetwork();
                     NetworkCapabilities activeNetworkCapabilities = connectivityManager.getNetworkCapabilities(activeNetwork);
                     if (activeNetworkCapabilities != null && activeNetworkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)) {
+                        // Variant A: Network Kill-switch takes PRIORITY over "Reconnect on network change".
+                        // Triggers on network type change even if the reconnect setting is disabled,
+                        // and immediately raises the blocking TUN WITHOUT attempting to reconnect.
+                        if (SharedPrefUtils.getKillSwitchOnNetworkChangeEnabled(FptnService.this)) {
+                            NetworkType activeNetworkType = NetworkUtils.getNetworkType(activeNetworkCapabilities);
+                            if (activeNetworkType != currentConnection.getCurrentNetworkType()) {
+                                isNetworkChangeInProgress = true;
+                                XLog.tag(TAG).i("Network type changed [%s -> %s] — Network Kill-switch triggering BLOCKED state",
+                                        currentConnection.getCurrentNetworkType(), activeNetworkType);
+                                executorService.submit(() -> disconnect(null, DISCONNECT_REASON_NETWORK_CHANGE_BLOCKED));
+                                return;
+                            }
+                            // No network change detected — fall through to other checks.
+                        }
+
                         boolean needReconnectByNetworkType = false;
                         boolean reconnectOnChangeNetworkTypeEnabled = SharedPrefUtils.getReconnectOnChangeNetworkTypeEnabled(FptnService.this);
                         if (reconnectOnChangeNetworkTypeEnabled) {
@@ -704,6 +760,24 @@ public class FptnService extends VpnService {
     private void startConnectionAttempt(int initialServerId) {
         submittedConnectionAttempt = executorService.submit(() -> {
             try {
+                // Security gate: refuse to enter CONNECTING when there are no servers in the DB.
+                // This can happen when the user starts the VPN (e.g. from the Quick Settings tile)
+                // before signing in, or right after a logout that cleared the server table. Without
+                // this guard we would post the "Selecting the best server..." foreground notification,
+                // flip the static ConnectionState to CONNECTING, and let AppNavHost auto-route into
+                // Home — exposing the UI to an unauthenticated user.
+                int serverCount = appDatabase.serverDAO().getCountSync();
+                int tokenCount = appDatabase.tokenDAO().getCount();
+                if (serverCount == 0 || tokenCount == 0) {
+                    XLog.tag(TAG).w("Refusing to start connection — session not established (servers=%d, tokens=%d)",
+                            serverCount, tokenCount);
+                    // SERVER_LIST_NULL_OR_EMPTY is in the "offer refresh token" set, so the
+                    // user will be routed to the Update Token / Telegram bot flow rather than
+                    // seeing a generic error.
+                    disconnect(new PVNClientException(ErrorCode.SERVER_LIST_NULL_OR_EMPTY));
+                    return;
+                }
+
                 setConnectionState(ConnectionState.CONNECTING, null);
 
                 NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
@@ -747,7 +821,7 @@ public class FptnService extends VpnService {
                     try {
                         XLog.tag(TAG).i("Auto-selecting fastest server via login");
                         updateNotificationWithMessage(getString(R.string.connecting_auto), "");
-                        List<ServerEntity> serverEntities = appDatabase.serverDAO().getServerList(false);
+                        List<ServerEntity> serverEntities = appDatabase.serverDAO().getVisibleServerList(false);
                         SpeedTestResult loginResult = SpeedTestUtils.findServerByLogin(serverEntities, sniHostname, bypassCensorshipMethod, sniSpoofingMode);
                         if (loginResult == null || Thread.currentThread().isInterrupted()) {
                             return;
@@ -805,12 +879,12 @@ public class FptnService extends VpnService {
                     disconnect(null, disconnectReason);
                 }
             }
-            case CONNECTING -> setConnectionState(ConnectionState.CONNECTING, null);
             case CONNECTED -> {
                 // Success fully closes the recovery episode: clear the restore flag, zero the
                 // attempt counters, refill the budget and drop any pending restore work.
                 restoringSession = false;
                 restoreRetryCount.set(0);
+                isNetworkChangeInProgress = false;
                 remainingFallbackBudget.set(SharedPrefUtils.getReconnectAttemptsCount(this));
                 restoreHandler.removeCallbacksAndMessages(null);
                 sessionEstablished = true;
@@ -944,12 +1018,31 @@ public class FptnService extends VpnService {
 
         boolean useDetectorDomains = !serverEntity.isCensured();
         boolean splitTunnelEnabled = SharedPrefUtils.getSplitTunnelDomainsEnabled(this);
+        boolean splitTunnelAdvancedEnabled = SharedPrefUtils.getSplitTunnelDomainsAdvancedModeEnabled(this);
+        
         if (bypassDomains == null && useDetectorDomains && splitTunnelEnabled) {
             Set<String> domains = new HashSet<>();
-            for (String domain : SharedPrefUtils.getSplitTunnelDomains(this).split("[\\n,]")) {
+            for (String domain : SharedPrefUtils.getSplitTunnelDomains(this).split("[\n,]")) {
                 String d = domain.trim().toLowerCase();
-                if (d.contains(".")) {
+                if (d.startsWith("domain:")) {
+                    d = d.substring("domain:".length()).trim();
+                }
+                
+                if (splitTunnelAdvancedEnabled) {
+                    if (d.startsWith(".")) {
+                        d = d.substring(1);
+                    }
+                    if (d.isEmpty()) continue;
+                    try {
+                        d = java.net.IDN.toASCII(d, java.net.IDN.ALLOW_UNASSIGNED);
+                    } catch (IllegalArgumentException e) {
+                        continue;
+                    }
                     domains.add(d);
+                } else {
+                    if (d.contains(".")) {
+                        domains.add(d);
+                    }
                 }
             }
             bypassDomains = domains;
@@ -958,9 +1051,10 @@ public class FptnService extends VpnService {
 
         boolean adBlockEnabled = SharedPrefUtils.getAdBlockEnabled(this);
         boolean domainBlacklistEnabled = SharedPrefUtils.getDomainBlacklistEnabled(this);
+        boolean domainBlacklistAdvancedEnabled = SharedPrefUtils.getDomainBlacklistAdvancedModeEnabled(this);
         String domainBlacklist = domainBlacklistEnabled ? SharedPrefUtils.getDomainBlacklistDomains(this) : null;
         DomainBlocker domainBlocker = new DomainBlocker(this, adBlockEnabled, domainBlacklist,
-                useDetectorDomains && connectionDomains == null);
+                useDetectorDomains && connectionDomains == null, domainBlacklistAdvancedEnabled);
 
         boolean customDnsEnabled = SharedPrefUtils.getCustomDnsEnabled(this);
         String customDnsIpv4 = customDnsEnabled ? SharedPrefUtils.getCustomDnsIpv4(this) : null;
@@ -1038,7 +1132,7 @@ public class FptnService extends VpnService {
                         .serverInfo(getString(R.string.connecting_auto))
                         .build());
 
-                List<ServerEntity> serverEntities = appDatabase.serverDAO().getServerList(false);
+                List<ServerEntity> serverEntities = appDatabase.serverDAO().getVisibleServerList(false);
                 try {
                     SpeedTestResult loginResult = SpeedTestUtils.findServerByLogin(serverEntities, sniHostname, bypassCensorshipMethod, sniSpoofingMode);
                     if (loginResult == null || Thread.currentThread().isInterrupted()) {
@@ -1197,11 +1291,16 @@ public class FptnService extends VpnService {
             case DISCONNECT_REASON_SYSTEM_REVOKED:    return getString(R.string.disconnect_reason_system_revoked);
             case DISCONNECT_REASON_CLOSED_UNEXPECTEDLY: return getString(R.string.disconnect_reason_closed_unexpectedly);
             case DISCONNECT_REASON_UNEXPECTED_ERROR:  return getString(R.string.disconnect_reason_unexpected_error);
+            case DISCONNECT_REASON_NETWORK_CHANGE_BLOCKED: return getString(R.string.disconnect_reason_network_change_blocked);
             default: return key;
         }
     }
 
     private void disconnect(PVNClientException exception, String disconnectReasonKey) {
+        final boolean hadSession = activeConnection.get() != null
+                || sessionEstablished
+                || restoringSession;
+
         // Cancel any pending restore work so a scheduled retry can't resurrect a torn-down session.
         restoringSession = false;
         restoreRetryCount.set(0);
@@ -1224,8 +1323,16 @@ public class FptnService extends VpnService {
         }
         boolean involuntary = exception != null
                 || DISCONNECT_REASON_CLOSED_UNEXPECTEDLY.equals(disconnectReasonKey)
-                || DISCONNECT_REASON_UNEXPECTED_ERROR.equals(disconnectReasonKey);
+                || DISCONNECT_REASON_UNEXPECTED_ERROR.equals(disconnectReasonKey)
+                || isNetworkChangeInProgress;
         boolean blockTraffic = involuntary && SharedPrefUtils.getKillSwitchEnabled(this);
+        // Explicitly raise the blocking TUN for Kill Switch if needed.
+        // Important: call this BEFORE setActiveConnection, because raiseBlockingTun()
+        // checks sessionEstablished, and setActiveConnection may not invoke it
+        // if activeConnection is already null (e.g., after a failed reconnection).
+        if (blockTraffic) {
+            raiseBlockingTun();
+        }
         // stop and null existed connection
         setActiveConnection(null, blockTraffic);
         boolean killSwitchHold = blockTraffic && hasBlockingTun();
@@ -1255,9 +1362,6 @@ public class FptnService extends VpnService {
                     exception.errorCode, failuresInRow);
         }
 
-        //send to UI activity that state is disconnected.
-        setConnectionState(finalState, exception, disconnectReason);
-
         if (errorText != null) {
             showErrorNotification(errorText);
         }
@@ -1269,19 +1373,58 @@ public class FptnService extends VpnService {
         unregisterNetworkWaitCallback();
         unregisterNetworkCallback();
 
-        if (SharedPrefUtils.getResetSelectedServerEnabled(this)
-                || (SharedPrefUtils.getResetSelectedServerOnExceptionEnabled(this) && exception != null)) {
-            executorService.submit(() -> {
-                try {
-                    resetSelectedServer();
+        final boolean needResetServer = hadSession
+                && (SharedPrefUtils.getResetSelectedServerEnabled(this)
+                || (SharedPrefUtils.getResetSelectedServerOnExceptionEnabled(this) && exception != null));
 
-                    //send to UI activity that state is disconnected.
-                    setConnectionState(finalState, exception, disconnectReason);
-                } catch (ExecutionException | InterruptedException e) {
-                    XLog.tag(TAG).e("Failed to reset selected server: %s", e.getMessage());
+        if (needResetServer) {
+            XLog.tag(TAG).i("🔍 DISCONNECT DEBUG: Resetting server in DB and SharedPreferences");
+            try {
+                // ⚠WARNING: disconnect() may be called from the service's onDestroy(),
+                // which runs on the MAIN thread. Directly accessing Room on the main
+                // thread throws IllegalStateException: "Cannot access database on the main thread"
+                // on newer Android versions (13+/14+/16), causing a RuntimeException and app crash.
+                // Therefore, execute the database operation on a background thread and wait for it to finish.
+                final java.util.concurrent.CountDownLatch latch = new java.util.concurrent.CountDownLatch(1);
+                final java.util.concurrent.atomic.AtomicReference<Exception> errorRef = new java.util.concurrent.atomic.AtomicReference<>();
+
+                executorService.submit(() -> {
+                    try {
+                        appDatabase.serverDAO().resetSelected();
+                    } catch (Exception e) {
+                        errorRef.set(e);
+                    } finally {
+                        latch.countDown();
+                    }
+                });
+
+                // Wait for the background database request to complete (with a timeout to avoid waiting indefinitely).
+                // 300 ms is a good compromise: it is enough for the resetSelected() SQL query to complete on 99% of devices,
+                // while the delay is barely noticeable to the user. If the database operation hasn't finished in time, that's fine;
+                // the UI will display the server, which will be reset slightly later in the background.
+                latch.await(300, java.util.concurrent.TimeUnit.MILLISECONDS);
+
+                SharedPrefUtils.saveLastSelectedServerId(this, Constants.SELECTED_SERVER_ID_AUTO);
+                if (errorRef.get() != null) {
+                    XLog.tag(TAG).e("Failed to reset selected server: %s", errorRef.get().getMessage());
+                } else {
+                    XLog.tag(TAG).i("🔍 DISCONNECT DEBUG: Reset completed successfully");
                 }
-            });
+            } catch (InterruptedException e) {
+                XLog.tag(TAG).e("Reset interrupted: %s", e.getMessage());
+                Thread.currentThread().interrupt();
+            }
+        } else {
+            XLog.tag(TAG).i("🔍 DISCONNECT DEBUG: Skipping server reset (preserving current selection)");
         }
+
+        // NOW update the UI with the state. The database and SharedPreferences are already cleared!
+        setConnectionState(finalState, exception, disconnectReason);
+
+        // Reset the session flag AT THE VERY END so that raiseBlockingTun() above can complete.
+        // This also prevents the server from being reset in the database again if disconnect() is called repeatedly
+        // (for example, when the user presses "Disconnect" after the Kill Switch has been triggered).
+        sessionEstablished = false;
 
         if (!killSwitchHold) {
             // stop service
@@ -1300,6 +1443,17 @@ public class FptnService extends VpnService {
             startForeground(Constants.MAIN_CONNECTED_NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SYSTEM_EXEMPTED);
         } else {
             startForeground(Constants.MAIN_CONNECTED_NOTIFICATION_ID, notification);
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            try {
+                NotificationManager manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+                if (manager != null) {
+                    manager.cancel(Constants.MAIN_CONNECTED_NOTIFICATION_ID);
+                    manager.notify(Constants.MAIN_CONNECTED_NOTIFICATION_ID, notification);
+                }
+            } catch (Exception e) {
+                XLog.tag(TAG).w("Failed to suppress notification animation: %s", e.getMessage());
+            }
         }
     }
 
@@ -1326,7 +1480,7 @@ public class FptnService extends VpnService {
                 .addAction(actionDisconnect)
                 .setContentIntent(launchMainActivityPendingIntent);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            builder.setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_IMMEDIATE); // foreground service notification behavior
+            builder.setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_DEFERRED); // foreground service notification behavior
         }
         return builder.build();
     }
