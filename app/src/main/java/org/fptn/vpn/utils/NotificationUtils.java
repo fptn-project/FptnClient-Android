@@ -26,7 +26,7 @@ import android.app.NotificationManager;
 import android.content.Context;
 
 import org.fptn.vpn.R;
-import org.fptn.vpn.Constants;
+import org.fptn.vpn.core.common.Constants;
 import org.jetbrains.annotations.NotNull;
 
 public class NotificationUtils {

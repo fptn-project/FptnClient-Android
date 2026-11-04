@@ -20,9 +20,9 @@
 
 package org.fptn.vpn.services.vpn;
 
-import static org.fptn.vpn.Constants.SELECTED_SERVER;
-import static org.fptn.vpn.Constants.SELECTED_SERVER_ID_AUTO;
-import static org.fptn.vpn.Constants.START_FROM_TILE_AUTO;
+import static org.fptn.vpn.core.common.Constants.SELECTED_SERVER;
+import static org.fptn.vpn.core.common.Constants.SELECTED_SERVER_ID_AUTO;
+import static org.fptn.vpn.core.common.Constants.START_FROM_TILE_AUTO;
 import static org.fptn.vpn.enums.ConnectionSubnets.ALL_SUBNET;
 import static org.fptn.vpn.enums.ConnectionSubnets.IP_V4_PREFIX_LENGTH;
 import static org.fptn.vpn.enums.ConnectionSubnets.IP_V6_PREFIX_LENGTH;
@@ -61,7 +61,7 @@ import com.elvishew.xlog.XLog;
 
 import org.fptn.vpn.R;
 import org.fptn.vpn.network.DomainBlocker;
-import org.fptn.vpn.Constants;
+import org.fptn.vpn.core.common.Constants;
 import org.fptn.vpn.database.AppDatabase;
 import org.fptn.vpn.database.entity.ServerEntity;
 import org.fptn.vpn.enums.BypassCensorshipMethod;

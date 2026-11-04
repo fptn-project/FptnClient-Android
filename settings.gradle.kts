@@ -9,3 +9,4 @@ pluginManagement {
 }
 
 include(":app")
+include(":core:common")

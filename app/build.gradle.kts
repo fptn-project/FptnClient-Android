@@ -157,6 +157,7 @@ dependencies {
     "gmsImplementation"(platform(libs.firebase.bom))
     "gmsImplementation"(libs.firebase.analytics)
     "gmsImplementation"(libs.firebase.crashlytics.ndk)
+    implementation(project(":core:common"))
     implementation(libs.androidx.activity)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.appcompat)

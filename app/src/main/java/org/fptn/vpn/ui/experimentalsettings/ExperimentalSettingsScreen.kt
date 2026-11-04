@@ -48,7 +48,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.elvishew.xlog.XLog
 import org.fptn.vpn.R
-import org.fptn.vpn.Constants
+import org.fptn.vpn.core.common.Constants
 import org.fptn.vpn.enums.ConnectionState
 import org.fptn.vpn.services.tile.FptnTileService
 import org.fptn.vpn.services.vpn.FptnService
