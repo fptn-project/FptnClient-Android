@@ -6,10 +6,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import org.fptn.vpn.database.AppDatabase
 import org.fptn.vpn.enums.ConnectionState
 import org.fptn.vpn.services.snichecker.SniCheckerService
 import org.fptn.vpn.services.snichecker.SniCheckerServiceState
@@ -25,7 +29,7 @@ import org.fptn.vpn.ui.settings.SettingsScreen
 import org.fptn.vpn.ui.splash.SplashRoute
 import org.fptn.vpn.ui.splash.SplashScreen
 import org.fptn.vpn.ui.updatetoken.UpdateTokenScreen
-
+import org.fptn.vpn.ui.tokens.TokenManagementScreen
 /**
  * Route constants for the single-activity Compose navigation graph.
  *
@@ -45,6 +49,7 @@ object AppRoute {
     const val EXPERIMENTAL_SETTINGS = "experimental_settings"
     const val SETTINGS = "settings"
     const val HOME = "home"
+    const val TOKEN_MANAGEMENT = "token_management"
 }
 
 @Composable
@@ -52,23 +57,55 @@ fun AppNavHost(
     navController: NavHostController = rememberNavController(),
     startRoute: String = AppRoute.SPLASH,
 ) {
+    val context = LocalContext.current
+
     // The VPN and the SNI search are mutually exclusive background jobs (enforced in
     // FptnService/SniCheckerService's static start methods) — whichever one is actually
     // running owns the screen, no matter how it was started (in-app button, Quick Settings
     // tile, or a notification tap). These observers key on the static LiveData both services
     // already expose, so a state flip anywhere jumps the user to the matching screen even if
     // they're currently elsewhere in the app.
+    //
+    // Security gate: never auto-route into an authenticated destination (Home / BypassMethods)
+    // when the session is not established — i.e. there are no servers AND no tokens in the DB.
+    // Without this check, taping the Quick Settings tile before sign-in would start FptnService,
+    // flip the static ConnectionState to CONNECTING, and this LaunchedEffect would push the user
+    // straight into Home — bypassing the Login screen entirely. (Bug: "tap FPTN tile without a
+    // token → 'Selecting the best server...' notification → tap → Home screen".)
     val vpnState by FptnTileService.getServiceStateMutableLiveData().observeAsState(ConnectionState.DISCONNECTED)
     val sniState by SniCheckerService.getStaticServiceStateLiveData().observeAsState(SniCheckerServiceState.INACTIVE)
 
     LaunchedEffect(vpnState.isActiveState) {
-        if (vpnState.isActiveState) {
-            navController.navigate(AppRoute.HOME) { launchSingleTop = true }
+        if (vpnState.isActiveState &&
+            navController.currentDestination?.route != AppRoute.HOME
+        ) {
+            val sessionValid = withContext(Dispatchers.IO) {
+                val db = AppDatabase.getInstance(context)
+                db.serverDAO().getCountSync() > 0 && db.tokenDAO().getCount() > 0
+            }
+            if (sessionValid) {
+                navController.navigate(AppRoute.HOME) { launchSingleTop = true }
+            }
+            // Otherwise: do nothing. Splash (which is the start destination) will read the same
+            // empty DB and route to Login — exactly what we want for an unauthenticated user.
         }
     }
     LaunchedEffect(sniState == SniCheckerServiceState.ACTIVE) {
-        if (sniState == SniCheckerServiceState.ACTIVE) {
-            navController.navigate(AppRoute.BYPASS_METHODS) { launchSingleTop = true }
+        // Same gate as the VPN branch above: only navigate when we're NOT already on the
+        // destination. Without this check, tapping "Auto-select SNI" while already on
+        // BypassMethodsScreen triggers a navigate(BYPASS_METHODS) round-trip — even with
+        // launchSingleTop = true Compose Navigation recomposes the screen for a couple of
+        // frames, which the user sees as a visual flash.
+        if (sniState == SniCheckerServiceState.ACTIVE &&
+            navController.currentDestination?.route != AppRoute.BYPASS_METHODS
+        ) {
+            val sessionValid = withContext(Dispatchers.IO) {
+                val db = AppDatabase.getInstance(context)
+                db.serverDAO().getCountSync() > 0 && db.tokenDAO().getCount() > 0
+            }
+            if (sessionValid) {
+                navController.navigate(AppRoute.BYPASS_METHODS) { launchSingleTop = true }
+            }
         }
     }
 
@@ -112,7 +149,10 @@ fun AppNavHost(
         composable(AppRoute.HOME) {
             HomeScreen(
                 onNavigateSettings = {
-                    navController.navigate(AppRoute.SETTINGS) { launchSingleTop = true }
+                    navController.navigate(AppRoute.SETTINGS) {
+                        launchSingleTop = true
+                        popUpTo(AppRoute.HOME) { inclusive = false }
+                    }
                 },
                 onNavigateUpdateToken = {
                     navController.navigate(AppRoute.UPDATE_TOKEN) { launchSingleTop = true }
@@ -123,17 +163,17 @@ fun AppNavHost(
             )
         }
         composable(AppRoute.UPDATE_TOKEN) {
-            // Reachable from Settings/HomeScreen's nav rows.
             UpdateTokenScreen(
-                onNavigateHome = {
-                    navController.navigate(AppRoute.HOME) { launchSingleTop = true }
-                },
+                onNavigateHome = { navController.navigate(AppRoute.HOME) { launchSingleTop = true } },
                 onDoneNavigateSettings = {
                     navController.navigate(AppRoute.SETTINGS) {
                         launchSingleTop = true
                         popUpTo(AppRoute.UPDATE_TOKEN) { inclusive = true }
                     }
                 },
+                onNavigateToTokenManagement = {
+                    navController.navigate(AppRoute.TOKEN_MANAGEMENT) { launchSingleTop = true }
+                }
             )
         }
         composable(AppRoute.LOGS) {
@@ -192,6 +232,15 @@ fun AppNavHost(
                 },
             )
         }
+        composable(AppRoute.TOKEN_MANAGEMENT) {
+            TokenManagementScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToUpdateToken = {
+                    navController.navigate(AppRoute.UPDATE_TOKEN) { launchSingleTop = true }
+                }
+            )
+        }
+
         composable(AppRoute.SETTINGS) {
             // Reachable from every sub-screen's BottomNavBar, including HomeScreen's.
             SettingsScreen(
@@ -220,6 +269,9 @@ fun AppNavHost(
                 },
                 onNavigateBackup = {
                     navController.navigate(AppRoute.BACKUP) { launchSingleTop = true }
+                },
+                onNavigateTokenManagement = {
+                    navController.navigate(AppRoute.TOKEN_MANAGEMENT) { launchSingleTop = true }
                 },
             )
         }
