@@ -60,10 +60,12 @@ import org.fptn.vpn.ui.common.findActivity
 import org.fptn.vpn.ui.common.legacyDrawableBackground
 import org.fptn.vpn.ui.theme.White
 import org.fptn.vpn.utils.SharedPrefUtils
+import org.fptn.vpn.ui.theme.FontScaleState
 
 private const val TAG = "ExperimentalSettingsScreen"
 private val ATTEMPTS_COUNT_VALUES = intArrayOf(5, 15, 35, Int.MAX_VALUE)
 private val FALLBACK_THRESHOLD_VALUES = intArrayOf(3, 6, 10, 15)
+private val FONT_SCALE_LABELS = arrayOf("0.85×", "1.0×", "1.1×", "1.2×")
 
 /**
  * Compose port of the legacy `ExperimentalSettingsActivity` / `experimental_settings_layout.xml`.
@@ -103,6 +105,8 @@ fun ExperimentalSettingsScreen(
     var fallbackThresholdProgress by remember { mutableFloatStateOf(initialFallbackThresholdProgress(context)) }
     var tileButtonEnabled by remember { mutableStateOf(true) }
     var tileButtonUsedUp by remember { mutableStateOf(false) }
+    var useSystemFontSize by remember { mutableStateOf(FontScaleState.useSystem) }
+    var fontScaleProgress by remember { mutableFloatStateOf(FontScaleState.index.toFloat()) }
 
     fun resetToDefault() {
         killSwitchEnabled = false
@@ -124,6 +128,11 @@ fun ExperimentalSettingsScreen(
         connectFailedHelpEnabled = true
         autoFallbackEnabled = true
         fallbackThresholdProgress = 3f
+        useSystemFontSize = true
+        fontScaleProgress = Constants.FONT_SCALE_DEFAULT_INDEX.toFloat()
+        // Synchronize global state — instant re-render
+        FontScaleState.setUseSystem(context, true)
+        FontScaleState.setIndex(context, Constants.FONT_SCALE_DEFAULT_INDEX)
 
         SharedPrefUtils.saveKillSwitchEnabled(context, false)
         SharedPrefUtils.saveKillSwitchOnNetworkChangeEnabled(context, false)
@@ -469,6 +478,35 @@ fun ExperimentalSettingsScreen(
             }
 
             ExperimentalCard(paddingBottom = 8.dp) {
+                CardTitle(stringResource(R.string.font_scale_title))
+                CardDescription(stringResource(R.string.font_scale_description))
+
+                SwitchRow(
+                    text = stringResource(R.string.font_scale_use_system),
+                    checked = useSystemFontSize,
+                    onCheckedChange = {
+                        useSystemFontSize = it
+                        // Updating global state → instant re-rendering of the entire UI
+                        FontScaleState.setUseSystem(context, it)
+                    },
+                )
+
+                DiscreteSeekBar(
+                    label = stringResource(R.string.font_scale_custom_label),
+                    valueText = FONT_SCALE_LABELS[fontScaleProgress.toInt()],
+                    progress = fontScaleProgress,
+                    enabled = !useSystemFontSize,
+                    onProgressChange = {
+                        fontScaleProgress = it
+                        // Updating global state → instant re-rendering of the entire UI
+                        FontScaleState.setIndex(context, it.toInt())
+                        XLog.tag(TAG).i("Font scale changed [index=%d, value=%.2f]",
+                            it.toInt(), Constants.FONT_SCALE_VALUES[it.toInt()])
+                    },
+                )
+            }
+
+            ExperimentalCard(paddingBottom = 8.dp) {
                 CardTitle(stringResource(R.string.kill_switch_title))
                 CardDescription(stringResource(R.string.kill_switch_description))
                 SwitchRow(
@@ -644,7 +682,7 @@ private fun SwitchRow(text: String, checked: Boolean, enabled: Boolean = true, o
 }
 
 @Composable
-private fun DiscreteSeekBar(label: String, valueText: String, progress: Float, onProgressChange: (Float) -> Unit) {
+private fun DiscreteSeekBar(label: String, valueText: String, progress: Float, enabled: Boolean = true, onProgressChange: (Float) -> Unit) {
     Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 4.dp)) {
             Text(text = label, color = White, fontSize = 14.sp)
@@ -655,6 +693,7 @@ private fun DiscreteSeekBar(label: String, valueText: String, progress: Float, o
             onValueChange = onProgressChange,
             valueRange = 0f..3f,
             steps = 2,
+            enabled = enabled,
         )
     }
 }
