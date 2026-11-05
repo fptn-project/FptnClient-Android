@@ -539,6 +539,7 @@ fun ExperimentalSettingsScreen(
                     text = stringResource(R.string.kill_switch_system_hint),
                     color = White.copy(alpha = 0.7f),
                     fontSize = 12.sp,
+                    lineHeight = 17.sp,
                     modifier = Modifier.padding(top = 10.dp),
                 )
                 Text(
@@ -561,6 +562,7 @@ fun ExperimentalSettingsScreen(
                         text = stringResource(R.string.quick_settings_tile_description),
                         color = White.copy(alpha = 0.7f),
                         fontSize = 12.sp,
+                        lineHeight = 17.sp,
                         modifier = Modifier.padding(bottom = 3.dp),
                     )
                     Text(
@@ -651,12 +653,25 @@ private fun ExperimentalCard(paddingBottom: Dp = 16.dp, content: @Composable Col
 
 @Composable
 private fun CardTitle(text: String) {
-    Text(text = text, color = White, fontSize = 16.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 4.dp))
+    Text(
+        text = text,
+        color = White,
+        fontSize = 16.sp,
+        fontWeight = FontWeight.Bold,
+        lineHeight = 22.sp,
+        modifier = Modifier.padding(bottom = 4.dp),
+    )
 }
 
 @Composable
 private fun CardDescription(text: String) {
-    Text(text = text, color = White.copy(alpha = 0.7f), fontSize = 12.sp, modifier = Modifier.padding(bottom = 6.dp))
+    Text(
+        text = text,
+        color = White.copy(alpha = 0.7f),
+        fontSize = 12.sp,
+        lineHeight = 17.sp,
+        modifier = Modifier.padding(bottom = 6.dp),
+    )
 }
 
 @Composable
