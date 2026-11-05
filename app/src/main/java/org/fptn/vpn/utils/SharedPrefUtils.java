@@ -432,6 +432,17 @@ public class SharedPrefUtils {
         return sharedPreferences.getBoolean(Constants.SPLIT_TUNNEL_DOMAINS_PREF_KEY, true);
     }
 
+    public static boolean getSplitTunnelDomainsAdvancedModeEnabled(Context context) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        return sharedPreferences.getBoolean(Constants.SPLIT_TUNNEL_DOMAINS_ADVANCED_MODE_PREF_KEY, false);
+    }
+
+    public static void saveSplitTunnelDomainsAdvancedModeEnabled(Context context, boolean enabled) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        sharedPreferences.edit().putBoolean(Constants.SPLIT_TUNNEL_DOMAINS_ADVANCED_MODE_PREF_KEY, enabled).apply();
+        XLog.tag(TAG).d("Saved " + Constants.SPLIT_TUNNEL_DOMAINS_ADVANCED_MODE_PREF_KEY + " = " + enabled);
+    }
+
     public static void saveSplitTunnelDomainsEnabled(Context context, boolean enabled) {
         SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
         sharedPreferences.edit().putBoolean(Constants.SPLIT_TUNNEL_DOMAINS_PREF_KEY, enabled).apply();
