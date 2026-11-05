@@ -194,7 +194,9 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
 
     <string name="split_tunnel_title">تونل تفکیک‌شده:</string>
     <string name="split_tunnel_enable">فعال‌سازی تونل تفکیک‌شده برای دامنه‌های فهرست</string>
-    <string name="split_tunnel_enable_link">فهرست</string>
+    <string name="split_tunnel_list_link">فهرست دامنه‌ها</string>
+    <string name="split_tunnel_advanced_enable">استفاده از TLD و IDN (پیشرفته)</string>
+    <string name="split_tunnel_advanced_description">خروج از تونل برای کل مناطق دامنه (TLD، مثلاً .ru یا ru — با نقطه یا بدون) و دامنه‌ها به هر زبانی (IDN).\n\nدر روسیه، ایران، چین و سایر کشورهای دارای سانسور توصیه می‌شود — وگرنه دامنه‌های محلی از تونل عبور نمی‌کنند و دولت می‌تواند اتصال VPN را مسدود کند. TLD و IDN باید به فهرست دامنه‌ها اضافه شوند.</string>
 
     <string name="domain_blacklist_title">لیست سیاه دامنه‌ها:</string>
     <string name="domain_blacklist_description">اتصال به دامنه‌های فهرست‌شده و زیردامنه‌های آن‌ها را مسدود می‌کند. هر دامنه در یک خط. ممکن است نیازمند خاموش کردن DNS خصوصی (DoH) در تنظیمات سیستم باشد — در غیر این صورت درخواست‌های DNS از فیلتر عبور می‌کنند.</string>
