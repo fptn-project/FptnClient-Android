@@ -600,8 +600,17 @@ private fun SwitchRow(text: String, checked: Boolean, enabled: Boolean = true, o
             .padding(horizontal = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(text = text, color = White, fontSize = 14.sp, modifier = Modifier.weight(1f))
-        Switch(checked = checked, onCheckedChange = onCheckedChange)
+        Text(
+            text = text,
+            color = if (enabled) White else White.copy(alpha = 0.5f),
+            fontSize = 14.sp,
+            modifier = Modifier.weight(1f)
+        )
+        Switch(
+            checked = checked,
+            enabled = enabled,
+            onCheckedChange = onCheckedChange
+        )
     }
 }
 
