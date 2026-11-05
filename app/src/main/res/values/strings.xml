@@ -460,4 +460,11 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <!-- token management strings -->
     <string name="token_error_not_found">No saved token matches the username in this token. To add a new one, use Token Management.</string>
     <string name="token_management_description">Manage your FPTN tokens. Toggle visibility of servers.</string>
+
+    <!-- token management strings -->
+    <string name="kill_switch_network_change_enable">Block traffic when switching from Wi-Fi to mobile internet and vice versa</string>
+    <string name="kill_switch_network_change_description">Instantly blocks all traffic when switching between Wi-Fi and mobile internet.</string>
+    <string name="kill_switch_infinite_warning">Warning: with infinite reconnect attempts, Kill-switch won\'t trigger on connection drops — only when switching between Wi-Fi and Cellular (if enabled).</string>
+    <string name="reconnect_attempts_description">Kill-switch activates when these attempts are exhausted.</string>
+    <string name="disconnect_reason_network_change_blocked">Network changed (Wi-Fi to Cellular and vice versa)</string>
 </resources>
