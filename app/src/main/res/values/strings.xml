@@ -293,10 +293,12 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="split_tunnel_enable_link">the list</string>
 
     <string name="domain_blacklist_title">Domain Blacklist:</string>
-    <string name="domain_blacklist_description">Blocks connections to the listed domains and their subdomains. One domain per line. May require turning off Private DNS (DoH) in system settings — otherwise DNS queries bypass filtering.</string>
+    <string name="domain_blacklist_description">Blocks the listed domains and their subdomains. Disable Private DNS (DoH) in system settings or filtering is bypassed.</string>
+    <string name="domain_blacklist_list_link">Domain list</string>
     <string name="domain_blacklist_enable">Block domains from the list</string>
-    <string name="domain_blacklist_enable_link">the list</string>
     <string name="domain_blacklist_hint">example.com</string>
+    <string name="domain_blacklist_advanced_enable">Block TLDs and IDNs (advanced)</string>
+    <string name="domain_blacklist_advanced_description">Block entire domain zones (TLD, e.g. .cn or cn — with or without dot) and domains in any language (IDN). Use with caution — wrong setup may break apps.</string>
 
     <string name="speed_notification_title">Notification:</string>
     <string name="speed_notification_enable">Connection speed in status bar</string>

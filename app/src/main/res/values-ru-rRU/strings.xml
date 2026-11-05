@@ -198,7 +198,6 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="domain_blacklist_title">Черный список доменов:</string>
     <string name="domain_blacklist_description">Блокирует подключения к указанным доменам и их поддоменам. Один домен на строку. Может потребовать отключения приватного DNS (DoH) в системных настройках — иначе DNS-запросы обходят фильтрацию.</string>
     <string name="domain_blacklist_enable">Блокировать домены из списка</string>
-    <string name="domain_blacklist_enable_link">из списка</string>
     <string name="domain_blacklist_hint">example.com</string>
 
     <string name="custom_dns_title">Пользовательский DNS:</string>
