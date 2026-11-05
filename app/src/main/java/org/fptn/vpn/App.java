@@ -77,6 +77,6 @@ public class App extends Application {
 
     private void initXLog() {
         XLogInitializer.init(this);
-        XLog.i("XLog initialized successfully [level=%s]", SharedPrefUtils.getLogLevel(this));
+        XLog.i("XLog initialized successfully");
     }
 }
