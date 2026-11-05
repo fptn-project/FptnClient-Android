@@ -31,6 +31,16 @@ import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.withStyle
+import org.fptn.vpn.utils.isTv
+import androidx.compose.foundation.focusable
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -42,10 +52,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.style.TextAlign
 import com.elvishew.xlog.XLog
 import org.fptn.vpn.R
 import org.fptn.vpn.core.common.Constants
@@ -60,8 +70,19 @@ import org.fptn.vpn.ui.common.findActivity
 import org.fptn.vpn.ui.common.legacyDrawableBackground
 import org.fptn.vpn.ui.theme.White
 import org.fptn.vpn.utils.SharedPrefUtils
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.height
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
+import kotlin.math.roundToInt
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.ui.draw.alpha
 import org.fptn.vpn.ui.theme.FontScaleState
-
 private const val TAG = "ExperimentalSettingsScreen"
 private val ATTEMPTS_COUNT_VALUES = intArrayOf(5, 15, 35, Int.MAX_VALUE)
 private val FALLBACK_THRESHOLD_VALUES = intArrayOf(3, 6, 10, 15)
@@ -79,6 +100,7 @@ fun ExperimentalSettingsScreen(
     onNavigateSettings: () -> Unit,
 ) {
     val context = LocalContext.current
+    val isTv = remember { context.isTv() }
     var showShareDialog by remember { mutableStateOf(false) }
     var showDomainBlacklistDialog by remember { mutableStateOf(false) }
 
@@ -105,8 +127,10 @@ fun ExperimentalSettingsScreen(
     var fallbackThresholdProgress by remember { mutableFloatStateOf(initialFallbackThresholdProgress(context)) }
     var tileButtonEnabled by remember { mutableStateOf(true) }
     var tileButtonUsedUp by remember { mutableStateOf(false) }
+
     var useSystemFontSize by remember { mutableStateOf(FontScaleState.useSystem) }
     var fontScaleProgress by remember { mutableFloatStateOf(FontScaleState.index.toFloat()) }
+    var autoStartOnBoot by remember { mutableStateOf(SharedPrefUtils.getAutoStartOnBoot(context)) }
 
     fun resetToDefault() {
         killSwitchEnabled = false
@@ -145,6 +169,7 @@ fun ExperimentalSettingsScreen(
         SharedPrefUtils.saveDomainBlacklistEnabled(context, true)
         SharedPrefUtils.saveDomainBlacklistDomains(context, Constants.DOMAIN_BLACKLIST_DEFAULT)
         SharedPrefUtils.saveDomainBlacklistAdvancedModeEnabled(context, false)
+        SharedPrefUtils.saveSplitTunnelDomainsEnabled(context, true)
         SharedPrefUtils.saveReconnectOnChangeNetworkTypeEnabled(context, true)
         SharedPrefUtils.saveReconnectOnChangeIPEnabled(context, true)
         SharedPrefUtils.saveReconnectAttemptsCount(context, ATTEMPTS_COUNT_VALUES[2])
@@ -154,6 +179,9 @@ fun ExperimentalSettingsScreen(
         SharedPrefUtils.saveConnectFailedHelpEnabled(context, true)
         SharedPrefUtils.saveAutoFallbackEnabled(context, true)
         SharedPrefUtils.saveAutoFallbackThreshold(context, FALLBACK_THRESHOLD_VALUES[3])
+
+        autoStartOnBoot = false
+        SharedPrefUtils.saveAutoStartOnBoot(context, false)
 
         XLog.tag(TAG).i("Experimental settings reset to default")
         Toast.makeText(context, R.string.reset_to_default_success, Toast.LENGTH_SHORT).show()
@@ -239,21 +267,23 @@ fun ExperimentalSettingsScreen(
                 modifier = Modifier.padding(top = 10.dp, bottom = 10.dp),
             )
 
-            ExperimentalCard {
-                CardTitle(stringResource(R.string.orientation_settings_title))
-                SwitchRow(
-                    text = stringResource(R.string.allow_landscape_label),
-                    checked = allowLandscape,
-                    onCheckedChange = {
-                        allowLandscape = it
-                        SharedPrefUtils.saveAllowLandscape(context, it)
-                        context.findActivity()?.requestedOrientation = if (it) {
-                            ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
-                        } else {
-                            ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
-                        }
-                    },
-                )
+            if (!isTv) {
+                ExperimentalCard {
+                    CardTitle(stringResource(R.string.orientation_settings_title))
+                    SwitchRow(
+                        text = stringResource(R.string.allow_landscape_label),
+                        checked = allowLandscape,
+                        onCheckedChange = {
+                            allowLandscape = it
+                            SharedPrefUtils.saveAllowLandscape(context, it)
+                            context.findActivity()?.requestedOrientation = if (it) {
+                                ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+                            } else {
+                                ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+                            }
+                        },
+                    )
+                }
             }
 
             ExperimentalCard {
@@ -291,7 +321,7 @@ fun ExperimentalSettingsScreen(
                     onCheckedChange = {
                         domainBlacklistEnabled = it
                         SharedPrefUtils.saveDomainBlacklistEnabled(context, it)
-
+                        
                         if (!it) {
                             domainBlacklistAdvancedEnabled = false
                             SharedPrefUtils.saveDomainBlacklistAdvancedModeEnabled(context, false)
@@ -308,7 +338,7 @@ fun ExperimentalSettingsScreen(
                         SharedPrefUtils.saveDomainBlacklistAdvancedModeEnabled(context, it)
                     },
                 )
-
+                
                 CardDescription(stringResource(R.string.domain_blacklist_advanced_description))
             }
 
@@ -477,33 +507,35 @@ fun ExperimentalSettingsScreen(
                 )
             }
 
-            ExperimentalCard(paddingBottom = 8.dp) {
-                CardTitle(stringResource(R.string.font_scale_title))
-                CardDescription(stringResource(R.string.font_scale_description))
+            if (!isTv) {
+                ExperimentalCard(paddingBottom = 8.dp) {
+                    CardTitle(stringResource(R.string.font_scale_title))
+                    CardDescription(stringResource(R.string.font_scale_description))
 
-                SwitchRow(
-                    text = stringResource(R.string.font_scale_use_system),
-                    checked = useSystemFontSize,
-                    onCheckedChange = {
-                        useSystemFontSize = it
-                        // Updating global state → instant re-rendering of the entire UI
-                        FontScaleState.setUseSystem(context, it)
-                    },
-                )
+                    SwitchRow(
+                        text = stringResource(R.string.font_scale_use_system),
+                        checked = useSystemFontSize,
+                        onCheckedChange = {
+                            useSystemFontSize = it
+                            // Updating global state → instant re-rendering of the entire UI
+                            FontScaleState.setUseSystem(context, it)
+                        },
+                    )
 
-                DiscreteSeekBar(
-                    label = stringResource(R.string.font_scale_custom_label),
-                    valueText = FONT_SCALE_LABELS[fontScaleProgress.toInt()],
-                    progress = fontScaleProgress,
-                    enabled = !useSystemFontSize,
-                    onProgressChange = {
-                        fontScaleProgress = it
-                        // Updating global state → instant re-rendering of the entire UI
-                        FontScaleState.setIndex(context, it.toInt())
-                        XLog.tag(TAG).i("Font scale changed [index=%d, value=%.2f]",
-                            it.toInt(), Constants.FONT_SCALE_VALUES[it.toInt()])
-                    },
-                )
+                    DiscreteSeekBar(
+                        label = stringResource(R.string.font_scale_custom_label),
+                        valueText = FONT_SCALE_LABELS[fontScaleProgress.toInt()],
+                        progress = fontScaleProgress,
+                        enabled = !useSystemFontSize,
+                        onProgressChange = {
+                            fontScaleProgress = it
+                            // Updating global state → instant re-rendering of the entire UI
+                            FontScaleState.setIndex(context, it.toInt())
+                            XLog.tag(TAG).i("Font scale changed [index=%d, value=%.2f]",
+                                it.toInt(), Constants.FONT_SCALE_VALUES[it.toInt()])
+                        },
+                    )
+                }
             }
 
             ExperimentalCard(paddingBottom = 8.dp) {
@@ -520,6 +552,7 @@ fun ExperimentalSettingsScreen(
                         }
                     },
                 )
+
                 SwitchRow(
                     text = stringResource(R.string.kill_switch_network_change_enable),
                     checked = killSwitchOnNetworkChange,
@@ -555,7 +588,7 @@ fun ExperimentalSettingsScreen(
                 )
             }
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !isTv) {
                 ExperimentalCard(paddingBottom = 8.dp) {
                     CardTitle(stringResource(R.string.quick_settings_tile_title))
                     Text(
@@ -599,6 +632,33 @@ fun ExperimentalSettingsScreen(
                         },
                     )
                 }
+            }
+
+            ExperimentalCard(paddingBottom = 8.dp) {
+                CardTitle(stringResource(R.string.auto_start_on_boot_title))
+                CardDescription(stringResource(R.string.auto_start_on_boot_description))
+                SwitchRow(
+                    text = stringResource(R.string.auto_start_on_boot_enable),
+                    checked = autoStartOnBoot,
+                    onCheckedChange = {
+                        autoStartOnBoot = it
+                        SharedPrefUtils.saveAutoStartOnBoot(context, it)
+                    },
+                )
+                // Hint with bold OEM names — single line spacing (lineHeight = 17.sp)
+                Text(
+                    text = buildAnnotatedString {
+                        append(stringResource(R.string.auto_start_on_boot_hint_before))
+                        withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+                            append(stringResource(R.string.auto_start_on_boot_hint_oems))
+                        }
+                        append(stringResource(R.string.auto_start_on_boot_hint_after))
+                    },
+                    color = White.copy(alpha = 0.7f),
+                    fontSize = 12.sp,
+                    lineHeight = 17.sp,
+                    modifier = Modifier.padding(top = 6.dp),
+                )
             }
 
             Text(
@@ -683,13 +743,13 @@ private fun SwitchRow(text: String, checked: Boolean, enabled: Boolean = true, o
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
-            text = text,
+            text = text, 
             color = if (enabled) White else White.copy(alpha = 0.5f),
-            fontSize = 14.sp,
+            fontSize = 14.sp, 
             modifier = Modifier.weight(1f)
         )
         Switch(
-            checked = checked,
+            checked = checked, 
             enabled = enabled,
             onCheckedChange = onCheckedChange
         )
@@ -697,19 +757,133 @@ private fun SwitchRow(text: String, checked: Boolean, enabled: Boolean = true, o
 }
 
 @Composable
-private fun DiscreteSeekBar(label: String, valueText: String, progress: Float, enabled: Boolean = true, onProgressChange: (Float) -> Unit) {
+private fun DiscreteSeekBar(
+    label: String,
+    valueText: String,
+    progress: Float,
+    onProgressChange: (Float) -> Unit,
+    enabled: Boolean = true,
+) {
     Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 4.dp)) {
-            Text(text = label, color = White, fontSize = 14.sp)
-            Text(text = valueText, color = White, fontSize = 14.sp, modifier = Modifier.padding(start = 8.dp))
+            Text(
+                text = label,
+                color = if (enabled) White else White.copy(alpha = 0.5f),
+                fontSize = 14.sp,
+            )
+            Text(
+                text = valueText,
+                color = if (enabled) White else White.copy(alpha = 0.5f),
+                fontSize = 14.sp,
+                modifier = Modifier.padding(start = 8.dp),
+            )
         }
-        androidx.compose.material3.Slider(
-            value = progress,
-            onValueChange = onProgressChange,
-            valueRange = 0f..3f,
-            steps = 2,
-            enabled = enabled,
-        )
+
+        val trackColor = Color(0xFF959292)
+        val activeColor = Color(0xFF03DAC5)
+        val tickColor = Color(0xFF03DAC5).copy(alpha = 0.7f)
+        val thumbColor = Color(0xFFFFFFFF)
+
+        val maxStep = 3
+        val tickFractions = (1 until maxStep).map { it.toFloat() / maxStep }
+
+        val currentProgress by rememberUpdatedState(progress)
+        val currentOnProgressChange by rememberUpdatedState(onProgressChange)
+        val currentEnabled by rememberUpdatedState(enabled)
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(48.dp)
+                .alpha(if (enabled) 1f else 0.5f)
+                .focusable(enabled)
+                .onKeyEvent { event ->
+                    if (event.type == KeyEventType.KeyDown && currentEnabled) {
+                        when (event.key) {
+                            Key.DirectionLeft -> {
+                                val newValue = (currentProgress - 1).coerceIn(0f, maxStep.toFloat())
+                                if (newValue != currentProgress) {
+                                    currentOnProgressChange(newValue)
+                                }
+                                true
+                            }
+                            Key.DirectionRight -> {
+                                val newValue = (currentProgress + 1).coerceIn(0f, maxStep.toFloat())
+                                if (newValue != currentProgress) {
+                                    currentOnProgressChange(newValue)
+                                }
+                                true
+                            }
+                            else -> false
+                        }
+                    } else {
+                        false
+                    }
+                }
+                .pointerInput(Unit) {
+                    // Early check: if the slider is disabled, don't process gestures at all.
+                    if (!currentEnabled) return@pointerInput
+
+                    val widthPx = size.width.toFloat()
+
+                    fun snapToStep(x: Float) {
+                        if (!currentEnabled) return
+                        val rawFraction = (x / widthPx).coerceIn(0f, 1f)
+                        val snapped = (rawFraction * maxStep).roundToInt().coerceIn(0, maxStep).toFloat()
+                        if (snapped != currentProgress) {
+                            currentOnProgressChange(snapped)
+                        }
+                    }
+
+                    detectTapGestures { offset -> snapToStep(offset.x) }
+                    detectHorizontalDragGestures(
+                        onDragStart = { offset -> snapToStep(offset.x) },
+                        onHorizontalDrag = { change, _ ->
+                            snapToStep(change.position.x)
+                            change.consume()
+                        },
+                    )
+                }
+        ) {
+            Canvas(modifier = Modifier.fillMaxWidth().height(48.dp)) {
+                val trackY = size.height / 2f
+                val trackHeightPx = 8.dp.toPx()
+                val trackStart = 12.dp.toPx()
+                val trackEnd = size.width - 12.dp.toPx()
+                val trackWidth = trackEnd - trackStart
+
+                drawRoundRect(
+                    color = trackColor,
+                    topLeft = Offset(trackStart, trackY - trackHeightPx / 2),
+                    size = androidx.compose.ui.geometry.Size(trackWidth, trackHeightPx),
+                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(trackHeightPx / 2),
+                )
+
+                val activeEnd = trackStart + trackWidth * (progress / maxStep)
+                drawRoundRect(
+                    color = activeColor,
+                    topLeft = Offset(trackStart, trackY - trackHeightPx / 2),
+                    size = androidx.compose.ui.geometry.Size(activeEnd - trackStart, trackHeightPx),
+                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(trackHeightPx / 2),
+                )
+
+                tickFractions.forEach { fraction ->
+                    val cx = trackStart + trackWidth * fraction
+                    drawCircle(
+                        color = Color.White,
+                        radius = 5.dp.toPx(),
+                        center = Offset(cx, trackY),
+                    )
+                }
+
+                val thumbX = trackStart + trackWidth * (progress / maxStep)
+                drawCircle(
+                    color = thumbColor,
+                    radius = 10.dp.toPx(),
+                    center = Offset(thumbX, trackY),
+                )
+            }
+        }
     }
 }
 

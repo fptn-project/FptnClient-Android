@@ -92,6 +92,7 @@ public class DomainBlocker {
             if (domain.startsWith("domain:")) {
                 domain = domain.substring("domain:".length()).trim();
             }
+            
             if (advancedModeEnabled) {
                 // Allow leading dot for zones: ".ru" → "ru"
                 if (domain.startsWith(".")) {
