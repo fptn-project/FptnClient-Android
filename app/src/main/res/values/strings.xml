@@ -456,4 +456,8 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="token_import_error_not_txt">Only .txt files are supported</string>
     <string name="token_import_error_read">Failed to read file</string>
     <string name="token_import_from_file">Import from file</string>
+
+    <!-- token management strings -->
+    <string name="token_error_not_found">No saved token matches the username in this token. To add a new one, use Token Management.</string>
+    <string name="token_management_description">Manage your FPTN tokens. Toggle visibility of servers.</string>
 </resources>
