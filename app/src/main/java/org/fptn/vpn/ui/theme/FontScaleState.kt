@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import org.fptn.vpn.Constants
+import org.fptn.vpn.core.common.Constants
 import org.fptn.vpn.utils.SharedPrefUtils
 
 /**
