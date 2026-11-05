@@ -82,8 +82,8 @@ import org.fptn.vpn.ui.perappvpn.AppInfo;
 import org.fptn.vpn.services.speedtest.SpeedTestResult;
 import org.fptn.vpn.services.speedtest.SpeedTestUtils;
 import org.fptn.vpn.ui.MainActivity;
-import org.fptn.vpn.exception.ErrorCode;
-import org.fptn.vpn.exception.PVNClientException;
+import org.fptn.vpn.vpnclient.exception.ErrorCode;
+import org.fptn.vpn.vpnclient.exception.PVNClientException;
 
 import java.io.IOException;
 import java.net.UnknownHostException;

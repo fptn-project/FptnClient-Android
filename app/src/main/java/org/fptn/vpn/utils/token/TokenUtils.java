@@ -8,8 +8,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.fptn.vpn.database.entity.ServerEntity;
 import org.fptn.vpn.utils.BrotliUtils;
 import org.fptn.vpn.utils.CountryFlags;
-import org.fptn.vpn.exception.ErrorCode;
-import org.fptn.vpn.exception.PVNClientException;
+import org.fptn.vpn.vpnclient.exception.ErrorCode;
+import org.fptn.vpn.vpnclient.exception.PVNClientException;
 
 import java.io.IOException;
 import java.util.ArrayList;

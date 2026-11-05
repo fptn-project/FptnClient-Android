@@ -88,7 +88,7 @@ import org.fptn.vpn.ui.theme.White
 import org.fptn.vpn.ui.theme.Yellow
 import org.fptn.vpn.utils.PermissionsUtils
 import org.fptn.vpn.utils.SharedPrefUtils
-import org.fptn.vpn.exception.ErrorCode
+import org.fptn.vpn.vpnclient.exception.ErrorCode
 import androidx.core.net.toUri
 
 private const val TOKEN_MAX_AGE_MS = 14L * 24 * 60 * 60 * 1000

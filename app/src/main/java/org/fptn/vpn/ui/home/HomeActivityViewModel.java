@@ -42,8 +42,8 @@ import org.fptn.vpn.services.vpn.FptnServiceState;
 
 import org.fptn.vpn.utils.NetworkUtils;
 import org.fptn.vpn.utils.TimeUtils;
-import org.fptn.vpn.exception.ErrorCode;
-import org.fptn.vpn.exception.PVNClientException;
+import org.fptn.vpn.vpnclient.exception.ErrorCode;
+import org.fptn.vpn.vpnclient.exception.PVNClientException;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;

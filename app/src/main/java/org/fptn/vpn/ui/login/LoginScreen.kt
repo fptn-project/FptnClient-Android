@@ -56,8 +56,8 @@ import org.fptn.vpn.ui.theme.Primary
 import org.fptn.vpn.ui.theme.White
 import org.fptn.vpn.ui.theme.Yellow
 import org.fptn.vpn.utils.ResourcesUtils.getStringResourceByName
-import org.fptn.vpn.exception.ErrorCode
-import org.fptn.vpn.exception.PVNClientException
+import org.fptn.vpn.vpnclient.exception.ErrorCode
+import org.fptn.vpn.vpnclient.exception.PVNClientException
 
 private const val TAG = "LoginScreen"
 private val TOKEN_CLIPBOARD_PREFIXES = listOf("fptn:", "fptnb:")

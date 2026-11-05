@@ -18,7 +18,7 @@
  * Website: https://fptn.org
  */
 
-package org.fptn.vpn.exception
+package org.fptn.vpn.vpnclient.exception
 
 class PVNClientException(
     @JvmField val errorCode: ErrorCode,

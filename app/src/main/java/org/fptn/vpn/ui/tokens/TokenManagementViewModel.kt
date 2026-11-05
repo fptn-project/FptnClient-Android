@@ -10,7 +10,7 @@ import kotlinx.coroutines.launch
 import org.fptn.vpn.database.AppDatabase
 import org.fptn.vpn.database.entity.TokenEntity
 import org.fptn.vpn.utils.token.TokenUtils
-import org.fptn.vpn.exception.PVNClientException
+import org.fptn.vpn.vpnclient.exception.PVNClientException
 
 class TokenManagementViewModel(application: Application) : AndroidViewModel(application) {
 
