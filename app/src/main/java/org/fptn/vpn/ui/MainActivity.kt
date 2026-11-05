@@ -10,6 +10,10 @@ import androidx.navigation.compose.rememberNavController
 import org.fptn.vpn.ui.navigation.AppNavHost
 import org.fptn.vpn.ui.navigation.AppRoute
 import org.fptn.vpn.ui.theme.FptnTheme
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
+import org.fptn.vpn.ui.theme.FontScaleState
 
 /**
  * The single entry-point activity hosting the whole Compose UI. Every screen is a Compose
@@ -35,10 +39,24 @@ class MainActivity : ComponentActivity() {
         setContent {
             navController = rememberNavController()
             FptnTheme {
-                AppNavHost(
-                    navController = navController,
-                    startRoute = startRoute,
-                )
+                // Read the reactive fields from FontScaleState.
+                // Compose automatically subscribes to changes:
+                // when FontScaleState.setUseSystem() / setIndex() is called from Settings,
+                // the entire UI is immediately recomposed with the new fontScale, without restarting the app.
+                val systemDensity = LocalDensity.current
+                val effectiveDensity = FontScaleState.effectiveFontScaleOrNull()?.let { fs ->
+                    Density(
+                        density = systemDensity.density,
+                        fontScale = fs,
+                    )
+                } ?: systemDensity
+
+                CompositionLocalProvider(LocalDensity provides effectiveDensity) {
+                    AppNavHost(
+                        navController = navController,
+                        startRoute = startRoute,
+                    )
+                }
             }
         }
     }
