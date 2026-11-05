@@ -38,10 +38,20 @@ public class App extends Application {
     public void onCreate() {
         super.onCreate();
         initXLog();
+        applyTvDefaults();
         registerOrientationController();
         // Load the font size state before MainActivity starts composition.
         // FontScaleState is a Compose state singleton; reading it in MainActivity is reactive.
         org.fptn.vpn.ui.theme.FontScaleState.INSTANCE.load(this);
+    }
+
+    // Android TV is always landscape — force allowLandscape on first launch so the user
+    // doesn't have to find and enable the toggle in Experimental Settings.
+    private void applyTvDefaults() {
+        android.content.pm.PackageManager pm = getPackageManager();
+        if (!pm.hasSystemFeature("android.hardware.touchscreen")) {
+            SharedPrefUtils.saveAllowLandscape(this, true);
+        }
     }
 
     // Portrait is the manifest baseline; on tablets (or when the user opts in) we
