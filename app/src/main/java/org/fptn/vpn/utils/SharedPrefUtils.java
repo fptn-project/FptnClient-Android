@@ -513,4 +513,25 @@ public class SharedPrefUtils {
         XLog.tag(TAG).d("Saved " + Constants.ALLOW_LANDSCAPE_PREF_KEY + " = " + allow);
     }
 
+    /* App-wide font scale override (null = use system font scale) */
+    public static boolean getUseSystemFontSize(Context context) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        return sharedPreferences.getBoolean(Constants.USE_SYSTEM_FONT_SIZE_PREF_KEY, true);
+    }
+
+    public static void saveUseSystemFontSize(Context context, boolean useSystem) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        sharedPreferences.edit().putBoolean(Constants.USE_SYSTEM_FONT_SIZE_PREF_KEY, useSystem).apply();
+    }
+
+    public static int getFontScaleIndex(Context context) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        return sharedPreferences.getInt(Constants.FONT_SCALE_PREF_KEY, Constants.FONT_SCALE_DEFAULT_INDEX);
+    }
+
+    public static void saveFontScaleIndex(Context context, int index) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        sharedPreferences.edit().putInt(Constants.FONT_SCALE_PREF_KEY, index).apply();
+    }
+
 }
