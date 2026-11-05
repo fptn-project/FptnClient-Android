@@ -146,6 +146,7 @@ fun PerAppVpnModeScreen(
                 color = White,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
+                lineHeight = 22.sp,
                 modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp),
             )
             HtmlLinkText(
@@ -164,6 +165,7 @@ fun PerAppVpnModeScreen(
                     color = White,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
+                    lineHeight = 22.sp,
                     modifier = Modifier.padding(bottom = 4.dp, start = 4.dp),
                 )
 
@@ -252,6 +254,7 @@ fun PerAppVpnModeScreen(
                         color = White,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
+                        lineHeight = 22.sp,
                     )
                 }
                 Column(
@@ -315,6 +318,7 @@ fun PerAppVpnModeScreen(
                         text = stringResource(R.string.show_system_apps_label),
                         color = Gray,
                         fontSize = 12.sp,
+                        lineHeight = 17.sp,
                         modifier = Modifier.weight(1f),
                     )
                     Switch(
@@ -399,6 +403,7 @@ private fun PerAppVpnModeRadioRow(label: String, info: String, selected: Boolean
             text = info,
             color = Gray,
             fontSize = 12.sp,
+            lineHeight = 17.sp,
             modifier = Modifier.padding(start = 30.dp),
         )
     }
