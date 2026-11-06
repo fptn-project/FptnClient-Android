@@ -458,6 +458,10 @@ fun ExperimentalSettingsScreen(
                     onCheckedChange = {
                         killSwitchEnabled = it
                         SharedPrefUtils.saveKillSwitchEnabled(context, it)
+                        if (!it) {
+                            killSwitchOnNetworkChange = false
+                            SharedPrefUtils.saveKillSwitchOnNetworkChangeEnabled(context, false)
+                        }
                         if (!it && FptnTileService.getServiceStateMutableLiveData().value == ConnectionState.BLOCKED) {
                             FptnService.startToDisconnect(context)
                         }
