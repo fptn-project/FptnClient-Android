@@ -2,19 +2,15 @@
 <resources>
     <string-array name="always_excluded_apps" translatable="false">
         <!-- ===== RU ===== -->
-        <item>ru.yoo.money</item>
-        <item>com.yoo.money</item>
-        <item>ru.vkusvill</item>
-        <item>com.vkusvill</item>
-        <item>ru.apteki.plus</item>
-        <item>com.apteki.plus</item>
         <item>aero.pobeda.twa</item>
         <item>agent.rko.psb.finstar.online</item>
+        <item>ais.artek</item>
         <item>alfa.life.mapp</item>
         <item>alfa.sravni.zaym</item>
         <item>app.bitbanker.org</item>
         <item>app.debt.tracker.planner.payoff.rustore</item>
         <item>app.fcreator.cardio_wise.rustore</item>
+        <item>app.muctr.flutter</item>
         <item>app.subscab</item>
         <item>apps.yclients1</item>
         <item>artes.tabletochka</item>
@@ -27,9 +23,18 @@
         <item>com.aistsoft.egrn</item>
         <item>com.alfadev.alfaworkingshift</item>
         <item>com.allgoritm</item>
+        <item>com.AlowpForUniver.AdminVSOSH</item>
+        <item>com.altinntech.oopt_lo</item>
+        <item>com.anonymous.libraryfrontendmobile</item>
         <item>com.anytime.rus2</item>
         <item>com.anytimefollow.rus</item>
+        <item>com.apegroup.mcdonaldsrussia</item>
+        <item>com.app.care</item>
+        <item>com.application.ttssm</item>
+        <item>com.apteki.plus</item>
+        <item>com.argus.fito</item>
         <item>com.asmo</item>
+        <item>com.asoft.mfcmobile</item>
         <item>com.av100.androidavito</item>
         <item>com.avito</item>
         <item>com.avito.android</item>
@@ -37,6 +42,7 @@
         <item>com.b2bdomru.domrubusiness</item>
         <item>com.bank.domrf.v2</item>
         <item>com.barabashka_24.metro2026</item>
+        <item>com.bastion</item>
         <item>com.birzha_rt</item>
         <item>com.bogg</item>
         <item>com.budgettracker.app</item>
@@ -44,39 +50,68 @@
         <item>com.chaevieprosto</item>
         <item>com.chiatk.apps.ozone1</item>
         <item>com.citymobil</item>
+        <item>com.companyname.okd_mobile</item>
         <item>com.credituralbank.cubmobilenew</item>
+        <item>com.crkk.mobile_psychologist</item>
         <item>com.dartit</item>
+        <item>com.dashboardrct</item>
+        <item>com.dataeast.nskreporter</item>
         <item>com.deliveryclub</item>
         <item>com.dengimigom.app</item>
+        <item>com.develop25.datumgroup.gis_ro_new</item>
         <item>com.dexp01</item>
         <item>com.discover</item>
+        <item>com.dismond.rosguard_app</item>
         <item>com.dnsriteil</item>
         <item>com.dozarplati.android.rustore</item>
         <item>com.drweb</item>
         <item>com.easypay_fssp</item>
         <item>com.edadeal</item>
         <item>com.ekassir.ips.priovtb</item>
+        <item>com.electro_tickets.app</item>
+        <item>com.emergency.kalmykia.android</item>
         <item>com.energobank.digital</item>
         <item>com.equeo</item>
         <item>com.equeo.megafondraiv</item>
         <item>com.ertelecom</item>
+        <item>com.eskso</item>
+        <item>com.etos.MauiClient</item>
+        <item>com.example.fragments</item>
+        <item>com.example.gis_ogs</item>
         <item>com.example.magnitzp</item>
+        <item>com.example.mchs</item>
+        <item>com.example.mfc</item>
+        <item>com.example.socialworker</item>
+        <item>com.example.webview</item>
         <item>com.example.yandexmap</item>
         <item>com.exploremetro</item>
         <item>com.farmlend.android</item>
         <item>com.flowwow</item>
         <item>com.fls.gosuslugispb</item>
+        <item>com.frp.foresight</item>
+        <item>com.garpix.gen_procuratura</item>
         <item>com.garzdrav.aptekalegko</item>
+        <item>com.gatchina.app.gatchina</item>
         <item>com.getmeback.avtomir</item>
         <item>com.gettransfer</item>
         <item>com.gibdd.app</item>
+        <item>com.gikit.piterkit</item>
+        <item>com.global.alchteplo</item>
         <item>com.gmeteos</item>
+        <item>com.gnivts.ausn</item>
+        <item>com.gnivts.selfemployed</item>
         <item>com.goodok</item>
         <item>com.goodok.mts</item>
+        <item>com.goznak.invest</item>
         <item>com.grotem</item>
         <item>com.gsgroup</item>
         <item>com.happyteiy.testsgibdd</item>
         <item>com.hasbis.parabox</item>
+        <item>com.haulmont.rsmu</item>
+        <item>com.haulmont.tezis.komi</item>
+        <item>com.haulmont.tezis.yanao</item>
+        <item>com.helpdeskRGMU.uit.stsp</item>
+        <item>com.hintsolutions.donor</item>
         <item>com.horosho</item>
         <item>com.icemobile</item>
         <item>com.icemobile.lenta.prod</item>
@@ -92,23 +127,32 @@
         <item>com.kaspersky</item>
         <item>com.kazanexpress</item>
         <item>com.kdl</item>
+        <item>com.khabmeteo.dv_pogoda</item>
         <item>com.kickly.android.rustore</item>
+        <item>com.kirillyep.gkhApp</item>
         <item>com.kms</item>
         <item>com.kontur.bank</item>
         <item>com.kontur_elba</item>
         <item>com.kp</item>
         <item>com.lamoda</item>
         <item>com.lenta</item>
+        <item>com.lenta.employee</item>
+        <item>com.lenta.garage</item>
+        <item>com.lenta.lentochka_service</item>
         <item>com.logistic</item>
         <item>com.magnit</item>
         <item>com.match</item>
         <item>com.matchtv</item>
+        <item>com.maugry.izbirkom</item>
         <item>com.mc.xiaomi1</item>
         <item>com.mcd</item>
         <item>com.mcptt</item>
         <item>com.megafon</item>
         <item>com.metrokryma.client</item>
         <item>com.mfc.mfcsmolensk</item>
+        <item>com.mintrudkk.ticket_mtsrkk</item>
+        <item>com.mirs.managetogether</item>
+        <item>com.mkarpushin.kapmed</item>
         <item>com.mobileinfo.budgettracker</item>
         <item>com.moex.finuslugi</item>
         <item>com.moi.nalogi</item>
@@ -124,21 +168,30 @@
         <item>com.navitelmonitoring</item>
         <item>com.navplatform</item>
         <item>com.ncloudtech</item>
+        <item>com.nizhniy_mobile</item>
         <item>com.notissimus</item>
         <item>com.octopod</item>
         <item>com.octopod.russianpost</item>
+        <item>com.onlineinspector.mobile</item>
+        <item>com.ooptspb.app</item>
         <item>com.oplatagosuslug</item>
+        <item>com.petrunkin47rnic.SocTaxiUserMobile</item>
         <item>com.platfomni</item>
         <item>com.pobeda</item>
         <item>com.pobeda.anniversary</item>
         <item>com.pogoda</item>
+        <item>com.portal.tunduk_gos</item>
         <item>com.programmisty</item>
         <item>com.programmisty.emiasapp</item>
         <item>com.pyaterochka.client</item>
+        <item>com.ranepa.gspm</item>
         <item>com.renins.auto</item>
         <item>com.reserveonline</item>
+        <item>com.rgis.mob</item>
+        <item>com.rims.app</item>
         <item>com.rostelecom</item>
         <item>com.rostelecom.printservice</item>
+        <item>com.rostest.arshin</item>
         <item>com.routecard.fuelapp.rustore</item>
         <item>com.routeq</item>
         <item>com.ru.dixy</item>
@@ -148,33 +201,63 @@
         <item>com.sberbank</item>
         <item>com.sberbank.sberpravo</item>
         <item>com.sberegator.app</item>
+        <item>com.sc.mfcaltai</item>
+        <item>com.sc.mfckbr</item>
+        <item>com.sc.mfcko</item>
+        <item>com.sc.mfckomi</item>
+        <item>com.sc.mfcpskov</item>
+        <item>com.sc.mfcrt</item>
+        <item>com.sc.mfcur</item>
         <item>com.sdkit</item>
         <item>com.sevelina.labio.organizer.rustore</item>
         <item>com.shurikcomg.examgibdd2015</item>
         <item>com.sike.mts.firstaid</item>
         <item>com.simplepayments_gibdd</item>
+        <item>com.skatcloud.mfc</item>
+        <item>com.skatcloud.sirius</item>
         <item>com.smartswap.rustore</item>
+        <item>com.soc_taxi</item>
+        <item>com.soctech.lksoc</item>
+        <item>com.software.ssp.erkc</item>
         <item>com.sovcombank.mpp</item>
+        <item>com.spbiats.safecity</item>
         <item>com.spbtv</item>
         <item>com.speedradar.speedalerts.gpsspeedometer.analogspeedometer.nearby</item>
         <item>com.sravni_kredity.ru</item>
         <item>com.sshex.sberometr</item>
         <item>com.ssspeed.huawei</item>
+        <item>com.superdzhem.app</item>
         <item>com.tadiuzzz.tadius.mysalary.rustore</item>
+        <item>com.talisman.tickets_mobile.ru</item>
+        <item>com.tapston.burgerking</item>
         <item>com.taxipoehali</item>
         <item>com.tdm</item>
+        <item>com.technocom.migrant</item>
+        <item>com.tgr.foresight</item>
+        <item>com.tgr.foresight.ud</item>
+        <item>com.tula.sub_v1</item>
+        <item>com.ub.sushivesla.app</item>
         <item>com.uchebnik_tj</item>
+        <item>com.Ugramuseum.ARMuseum</item>
+        <item>com.uip.crowdcontrol</item>
+        <item>com.uip.gosuslugi2</item>
+        <item>com.uip.inspector</item>
         <item>com.uma</item>
+        <item>com.upd</item>
         <item>com.vgtrk</item>
         <item>com.video.gibdd</item>
         <item>com.vk</item>
         <item>com.vkontakte</item>
         <item>com.vkontakte.android</item>
         <item>com.vkusvill</item>
+        <item>com.vodokanal.str</item>
+        <item>com.volynka.android</item>
+        <item>com.vsknn.ru</item>
         <item>com.wbextdelivery</item>
         <item>com.wbpoint</item>
         <item>com.wbstream_app</item>
         <item>com.webmoney</item>
+        <item>com.webview.kcsova2</item>
         <item>com.wildberries</item>
         <item>com.witharts.metro</item>
         <item>com.wms_mm_point</item>
@@ -184,11 +267,14 @@
         <item>com.yandex_voditel</item>
         <item>com.yango.maps.android</item>
         <item>com.yclients</item>
+        <item>com.ykg.app</item>
+        <item>com.yoo.money</item>
         <item>com.zebrains</item>
         <item>com.zebrainy</item>
         <item>com.zoloto585.pawn</item>
         <item>com.zvezda.client</item>
         <item>ertransport.ertelecom.mobile</item>
+        <item>es.hol.ing.zagsr</item>
         <item>fssp.check.ru</item>
         <item>fssp.dolgi.pristav</item>
         <item>games.my</item>
@@ -199,8 +285,15 @@
         <item>infobot.gibdd.vin.auto</item>
         <item>intech.global</item>
         <item>intech.global.com.beeline</item>
+        <item>io.citizens.security</item>
         <item>io.emcd.emcd_flutter.rustore</item>
+        <item>io.thermal.points</item>
+        <item>it.alkona.rutoken</item>
+        <item>it.elect.client</item>
         <item>jamhome.ru</item>
+        <item>kg.infocom.srs</item>
+        <item>krista.iMonitoring</item>
+        <item>kz.mobile.mgov</item>
         <item>lessons.analogi.lekarstv</item>
         <item>live.vkplay</item>
         <item>live.vkplay.app</item>
@@ -220,11 +313,18 @@
         <item>org.rtk</item>
         <item>org.ts</item>
         <item>otello.dgis</item>
+        <item>pro.bacca.appf</item>
+        <item>pro.midev.moscowexportcenter</item>
         <item>psb.market</item>
         <item>pulkovo.spb</item>
+        <item>rental.tsr.com</item>
         <item>rs.oplatagosuslug.nalogi</item>
         <item>ru.absolutins.rustore</item>
         <item>ru.aeroflot</item>
+        <item>ru.ahtadm.okar</item>
+        <item>ru.aisa.android.ekppsuess</item>
+        <item>ru.aisa.android.yanao</item>
+        <item>ru.aisa.android.yanao.services</item>
         <item>ru.akbars</item>
         <item>ru.akbarsmed</item>
         <item>ru.alfabank</item>
@@ -235,19 +335,28 @@
         <item>ru.aliexpress</item>
         <item>ru.alrosa</item>
         <item>ru.altarix</item>
+        <item>ru.altarix.mos.pgu</item>
         <item>ru.apteka</item>
+        <item>ru.apteki.plus</item>
+        <item>ru.artsofte.mfc_svo</item>
         <item>ru.askona.android.rustore</item>
         <item>ru.avangard</item>
         <item>ru.aviasales</item>
         <item>ru.bankuralsib.mb.android</item>
+        <item>ru.barsopen.registrature2</item>
         <item>ru.barusalinda.cheqly</item>
         <item>ru.basegibdd.v2</item>
         <item>ru.beeline</item>
         <item>ru.belkacar.belkacar</item>
+        <item>ru.belregion.belgoroddrone</item>
         <item>ru.beru</item>
+        <item>ru.bestprice.fixprice</item>
+        <item>ru.bisoft.govtaxi.mobile.driver</item>
         <item>ru.boxberry.mobile</item>
         <item>ru.bspb</item>
+        <item>ru.burgerking</item>
         <item>ru.bx5.radar360</item>
+        <item>ru.calcul.gtnosmotr</item>
         <item>ru.carbox.fines.rustore</item>
         <item>ru.cbr.banknotesrf</item>
         <item>ru.cctvb2b</item>
@@ -259,48 +368,123 @@
         <item>ru.compass</item>
         <item>ru.crpt</item>
         <item>ru.crptech</item>
+        <item>ru.crptech.foiv</item>
+        <item>ru.csarm.sreda</item>
+        <item>ru.ctrans.mobtk</item>
+        <item>ru.defense.ministry.hcs</item>
         <item>ru.detmir</item>
+        <item>ru.dev.lanitpartner.portalpatient</item>
+        <item>ru.digitalalania.traek_mobile</item>
+        <item>ru.digitalnvrsk.bn</item>
+        <item>ru.digitalnvrsk.ncard</item>
+        <item>ru.digitalnvrsk.vn</item>
         <item>ru.dit</item>
+        <item>ru.dit.inventarization</item>
         <item>ru.dixy.mopod.mobile</item>
+        <item>ru.dk.mykuban</item>
         <item>ru.dns</item>
         <item>ru.dodopizza</item>
+        <item>ru.dodopizza.app</item>
         <item>ru.dublgis</item>
+        <item>ru.dubna.hospital</item>
         <item>ru.eapteka</item>
+        <item>ru.edinros.iparty</item>
+        <item>ru.election.droid</item>
         <item>ru.energobank_qrs.enb</item>
         <item>ru.etalon.gt</item>
+        <item>ru.evolenta.mfc16</item>
+        <item>ru.evolenta.mfc54</item>
+        <item>ru.evolenta.mobile.mfc47</item>
+        <item>ru.evolenta.mobile.mfc63</item>
+        <item>ru.evolenta.mobile.mfc74</item>
         <item>ru.evotor.evotormobile</item>
+        <item>ru.f5k.altaipredlagai</item>
         <item>ru.fanid</item>
         <item>ru.farpost</item>
         <item>ru.fdoctor</item>
+        <item>ru.fgis.mobile</item>
         <item>ru.filit</item>
+        <item>ru.finassist</item>
+        <item>ru.finopolis.dataxway.app.finopolis</item>
+        <item>ru.fixprice.fpa.android</item>
+        <item>ru.fixprice.privacyidea.authenticator</item>
+        <item>ru.fnkcib.lk.android</item>
         <item>ru.fns</item>
+        <item>ru.fns.billchecker.mobile.android</item>
+        <item>ru.fns.markirovka</item>
+        <item>ru.fns.mysign</item>
         <item>ru.foodfox</item>
+        <item>ru.fors.sport.mobile</item>
+        <item>ru.frpk.enot</item>
+        <item>ru.fso.architector</item>
+        <item>ru.fsrar.anti_counterfeit_b2b</item>
         <item>ru.gazprombank</item>
         <item>ru.gazprompay</item>
+        <item>ru.geosamara.smartcity.ksdm</item>
         <item>ru.getpharma</item>
         <item>ru.gibdd_pay</item>
         <item>ru.gid</item>
+        <item>ru.gnivc.lkip</item>
         <item>ru.gosuslugi</item>
+        <item>ru.gosuslugi.auto</item>
+        <item>ru.gosuslugi.culture</item>
+        <item>ru.gosuslugi.goscan</item>
+        <item>ru.gosuslugi.goskey</item>
+        <item>ru.gosuslugi.migrant</item>
+        <item>ru.gosuslugi.pos</item>
+        <item>ru.gosuslugi.pos.executor</item>
+        <item>ru.gosuslugi.volunteer</item>
+        <item>ru.gov.bus.mobile</item>
+        <item>ru.gov.knd</item>
+        <item>ru.gov.mser</item>
+        <item>ru.gov.rosleshoz.fgislk.photo</item>
+        <item>ru.goznak.dmdkmobile</item>
         <item>ru.hh</item>
         <item>ru.hh.android</item>
+        <item>ru.hoff.app</item>
         <item>ru.homecredit</item>
         <item>ru.ideast</item>
         <item>ru.iflex</item>
         <item>ru.imteleport</item>
+        <item>ru.imteleport.plp2</item>
+        <item>ru.infodev.golos27</item>
         <item>ru.infolio.zvezdatv</item>
+        <item>ru.infotech.asm25.prod</item>
+        <item>ru.infotech24.HmaoSocServices2</item>
         <item>ru.ingos.ingomobile</item>
         <item>ru.inovatek.azssmartpos</item>
         <item>ru.instamart</item>
         <item>ru.intech</item>
+        <item>ru.integrics.kirovschool</item>
+        <item>ru.integrics.mobiled</item>
         <item>ru.involta.metro</item>
         <item>ru.it.mobile.gosuslugi24</item>
+        <item>ru.ituva.news</item>
         <item>ru.ivi</item>
         <item>ru.ivi.client</item>
+        <item>ru.katharsis.office</item>
+        <item>ru.katharsis.soccoordinator.arh</item>
+        <item>ru.katharsis.soccoordinator.arh.custody</item>
+        <item>ru.katharsis.soccoordinator.penza</item>
+        <item>ru.katharsis.soccoordinator.tambov</item>
+        <item>ru.katharsis.soccoordinator.udmurtia</item>
+        <item>ru.kbasp.curatortula</item>
+        <item>ru.kfc.kfc_delivery</item>
+        <item>ru.kih.transport.kk.evak</item>
         <item>ru.kinopoisk</item>
+        <item>ru.komiac.lmo_app</item>
+        <item>ru.kr_crb.app</item>
+        <item>ru.krasecology.krasecology</item>
+        <item>ru.krista.LENO.iPad</item>
+        <item>ru.krista.mobile.krista.id</item>
+        <item>ru.krista.nationalgoals.sobi</item>
+        <item>ru.krskcit.mobyapps</item>
         <item>ru.kubankredit</item>
+        <item>ru.lenreg.svyaz47</item>
         <item>ru.lenta</item>
         <item>ru.lenta.lentochka</item>
         <item>ru.leroymerlin</item>
+        <item>ru.leroymerlin.mobile</item>
         <item>ru.lesegais.mobile</item>
         <item>ru.letu</item>
         <item>ru.lifepay</item>
@@ -317,17 +501,37 @@
         <item>ru.megapolis</item>
         <item>ru.mercaux</item>
         <item>ru.mgfoms</item>
+        <item>ru.mgfoms.pandora</item>
+        <item>ru.mid.app</item>
         <item>ru.mntk</item>
+        <item>ru.mntk.dostavka.prod</item>
         <item>ru.modulbank.modulpay</item>
         <item>ru.more</item>
         <item>ru.mos</item>
+        <item>ru.mos.aiso.m</item>
+        <item>ru.mos.amina.app</item>
+        <item>ru.mos.analytics.app.prod</item>
+        <item>ru.mos.app</item>
+        <item>ru.mos.cms.erzapp</item>
+        <item>ru.mos.cms.lkyo</item>
+        <item>ru.mos.ed</item>
+        <item>ru.mos.gz</item>
         <item>ru.mos.helper</item>
+        <item>ru.mos.ourcity</item>
+        <item>ru.mos.polls</item>
+        <item>ru.mos.socmon</item>
         <item>ru.mosgorpass</item>
         <item>ru.mosmetro</item>
         <item>ru.mosmetro.metro</item>
         <item>ru.mosparking</item>
         <item>ru.mosparking.appnew</item>
         <item>ru.mosreg</item>
+        <item>ru.mosreg.easuz.portal</item>
+        <item>ru.mosreg.master.rm.androidApp</item>
+        <item>ru.mosreg.mingos.mdp.app</item>
+        <item>ru.mosreg.mo112</item>
+        <item>ru.mosreg.moe</item>
+        <item>ru.mosreg.uslugi.mobile.beta</item>
         <item>ru.mts</item>
         <item>ru.mtsbank.dbosme</item>
         <item>ru.mvd</item>
@@ -337,23 +541,43 @@
         <item>ru.my_fns.twa</item>
         <item>ru.myauchan.droid</item>
         <item>ru.mybook</item>
+        <item>ru.mybox.app</item>
         <item>ru.nalog.rmr.client</item>
+        <item>ru.naoplus.mfcnao</item>
+        <item>ru.nashdom.ryazan.mobile</item>
         <item>ru.navitel</item>
         <item>ru.ncloudtech</item>
         <item>ru.neopharm</item>
         <item>ru.netbynet</item>
         <item>ru.netris</item>
+        <item>ru.netvoxlab.mydocapp</item>
         <item>ru.newamelia</item>
+        <item>ru.newsstat.app0</item>
+        <item>ru.nnov.gu.test.twa</item>
+        <item>ru.nobl.fincult</item>
+        <item>ru.novo_sibirsk.ritual</item>
+        <item>ru.nso.agro</item>
+        <item>ru.nso.gisogd</item>
+        <item>ru.nso.hunter</item>
+        <item>ru.nso.karta</item>
+        <item>ru.nso.teacher</item>
         <item>ru.nspk</item>
         <item>ru.ntv</item>
         <item>ru.ntvplus</item>
+        <item>ru.ocode.er63</item>
         <item>ru.ok</item>
         <item>ru.ok.android</item>
         <item>ru.okbmei</item>
+        <item>ru.okbmei.gosservice</item>
         <item>ru.one2.one2tips.rustore</item>
         <item>ru.oneme</item>
         <item>ru.onlime</item>
         <item>ru.open</item>
+        <item>ru.open.gisokmp</item>
+        <item>ru.opencity.cheboksary</item>
+        <item>ru.opvk.mobileapp</item>
+        <item>ru.orb.ag2</item>
+        <item>ru.orb.mfc.mobile</item>
         <item>ru.otpbank.mobile</item>
         <item>ru.ozon</item>
         <item>ru.pavellukyanov.aspirin.rustore</item>
@@ -381,23 +605,43 @@
         <item>ru.ritmmedia</item>
         <item>ru.robokassa.pwa.twa</item>
         <item>ru.rolf.rolf</item>
+        <item>ru.rosah.cifrovoyagrohimik</item>
         <item>ru.rosfines.rustore</item>
+        <item>ru.roskazna.sbpapp</item>
         <item>ru.rosreestr.mobile</item>
         <item>ru.rosstat.websbor.mobileapp</item>
         <item>ru.rostel</item>
         <item>ru.rostelecom</item>
         <item>ru.rostneft.mobile</item>
+        <item>ru.rscagex.phytosanitary</item>
         <item>ru.rshb</item>
+        <item>ru.rsv.checkin</item>
         <item>ru.rt</item>
         <item>ru.rtdc</item>
+        <item>ru.rtdoctis.rt_fmba_tmk</item>
+        <item>ru.rtdoctis.telemed66</item>
         <item>ru.rtlabs.mobile.ebs.gosuslugi.android</item>
+        <item>ru.runetsoft.gisogs_greenspacesapp</item>
+        <item>ru.rusatom.sakhalin.citizen</item>
         <item>ru.russianpost</item>
         <item>ru.russianpost.pechkin</item>
         <item>ru.rustore</item>
         <item>ru.rutube</item>
         <item>ru.rzd</item>
         <item>ru.s7</item>
+        <item>ru.saby.cookscreen</item>
+        <item>ru.saby.hallscreen</item>
+        <item>ru.saby.waiter</item>
+        <item>ru.sabybrand.issihub</item>
+        <item>ru.sabybrand.kompas</item>
+        <item>ru.sabybrand.krascvetmet</item>
+        <item>ru.sabybrand.ktgmy</item>
+        <item>ru.sabybrand.mrfoodsaby</item>
+        <item>ru.sabybrand.rtikadri</item>
+        <item>ru.sabybrand.sedialog</item>
+        <item>ru.sabybrand.sts</item>
         <item>ru.samokat</item>
+        <item>ru.saturn.mobile_saturn</item>
         <item>ru.sbcs</item>
         <item>ru.sber</item>
         <item>ru.sberbank</item>
@@ -408,34 +652,59 @@
         <item>ru.sc.rpgu.gov</item>
         <item>ru.setka</item>
         <item>ru.sigma</item>
+        <item>ru.sigma.gisgkh</item>
         <item>ru.sinara_finance.invest</item>
+        <item>ru.sitesoft.childhoodNavigators</item>
+        <item>ru.sitesoft.fssp</item>
         <item>ru.skbbank.ib</item>
         <item>ru.skblab.skbbank</item>
+        <item>ru.smarttransport.monitoring_ums</item>
+        <item>ru.smolensk.mobileRPGU</item>
+        <item>ru.socprotect.notAloneMobile</item>
         <item>ru.sogaz</item>
         <item>ru.soglasie.client</item>
         <item>ru.sovcombank</item>
+        <item>ru.spargo.mlk.arkhangelsk.app</item>
+        <item>ru.spargo.mlk.murmansk.app</item>
+        <item>ru.spb.iac.goszakaz</item>
+        <item>ru.spb.iac.ourspb</item>
         <item>ru.sportmaster</item>
         <item>ru.sravni</item>
         <item>ru.sravnizaim.app</item>
+        <item>ru.srt.eronreload</item>
         <item>ru.supgetter.android</item>
         <item>ru.svneft.app</item>
         <item>ru.systtech</item>
         <item>ru.systtech.megafon.mobile</item>
         <item>ru.t2</item>
         <item>ru.tander</item>
+        <item>ru.tensor.sbis.droid.saby</item>
+        <item>ru.tatarstan</item>
+        <item>ru.tatarstan.care</item>
         <item>ru.tatneft.gasstations</item>
         <item>ru.tbank</item>
         <item>ru.tbank.myt</item>
+        <item>ru.tectus_it.rgisspb_mobile.v3</item>
         <item>ru.tele2</item>
         <item>ru.tele2med.mobile</item>
         <item>ru.tinkoff</item>
         <item>ru.tntmusic</item>
+        <item>ru.torgi</item>
         <item>ru.troika.regional</item>
+        <item>ru.trudvsem.mobile</item>
+        <item>ru.tstst.mysubsidie</item>
+        <item>ru.tularegion.arsenal</item>
         <item>ru.tutu</item>
+        <item>ru.tver.leto.lk.twa</item>
+        <item>ru.tyumencity.home</item>
         <item>ru.ubrr.corporate</item>
+        <item>ru.ucso.SSCardId</item>
         <item>ru.ulyanovsk.telemed</item>
         <item>ru.uralsib.business</item>
+        <item>ru.uslugi27.twa</item>
         <item>ru.utk</item>
+        <item>ru.utk.dostavka</item>
+        <item>ru.utnkr.voicehelper</item>
         <item>ru.vk</item>
         <item>ru.vkpm</item>
         <item>ru.vkusvill</item>
@@ -451,6 +720,7 @@
         <item>ru.yandex</item>
         <item>ru.yandex_team</item>
         <item>ru.yandex_team.calendar_app</item>
+        <item>ru.yoo.money</item>
         <item>ru.yoomoney</item>
         <item>ru.yota</item>
         <item>ru.yozhka</item>
@@ -460,6 +730,7 @@
         <item>ru.zen</item>
         <item>ru.zenitonline.android</item>
         <item>ru.zettatech.eyescare</item>
+        <item>ru.zharpizza.mobile</item>
         <item>ru.zvezdal.client</item>
         <item>ru.zvezdasvoi.client</item>
         <item>ruagro.start</item>
@@ -490,12 +761,14 @@
         <item>samolet.bank.prod</item>
         <item>sberdlc.prod</item>
         <item>shtrafy.onlinegibdd</item>
+        <item>soctaxi.soctaxi.soctaxi</item>
         <item>sodruzhestvo.android</item>
         <item>sravni.banki.ru</item>
         <item>sravni.ru.zaym.online</item>
         <item>su.tease.dontforgetthediscount</item>
         <item>taxi.cash.rustore</item>
         <item>team.rtds</item>
+        <item>team.rtds.checkcontrol</item>
         <item>tech.clink</item>
         <item>tele2.vats</item>
         <item>to.boosty.android</item>
@@ -505,8 +778,13 @@
         <item>tv.ntvplus</item>
         <item>tv.okko</item>
         <item>tv.tricolor</item>
+        <item>ugra.hmao.aenviron</item>
+        <item>ugra.hmao.mtransport</item>
         <item>video.like.rustore</item>
         <item>wb.partners</item>
+        <item>website.copyandpaste.MFCKALUGA</item>
+        <item>website.copyandpaste.MFCRO</item>
+        <item>website.copyandpaste.MFCVOLOGDA</item>
         <item>wildberries.business</item>
         <item>youdrive.today</item>
     </string-array>
