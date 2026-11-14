@@ -46,15 +46,26 @@ import java.util.regex.PatternSyntaxException;
 public final class DomainWildcard {
 
     private final String original;
-    private final Pattern[] labelPatterns;  // compiled regex per label; null = exact label
-    private final String[] exactLabels;     // exact label value when labelPatterns[i] == null
-    private final int labelCount;
+    private final Pattern[] labelPatterns;  // null in global-substring mode
+    private final String[] exactLabels;     // null in global-substring mode
+    private final int labelCount;            // 0 in global-substring mode
+    private final Pattern globalPattern;     // non-null only in global-substring mode
 
     private DomainWildcard(String original, Pattern[] labelPatterns, String[] exactLabels) {
         this.original = original;
         this.labelPatterns = labelPatterns;
         this.exactLabels = exactLabels;
         this.labelCount = labelPatterns.length;
+        this.globalPattern = null;
+    }
+
+    // NEW: single-label "substring over whole domain" mode
+    private DomainWildcard(String original, Pattern globalPattern) {
+        this.original = original;
+        this.labelPatterns = null;
+        this.exactLabels = null;
+        this.labelCount = 0;
+        this.globalPattern = globalPattern;
     }
 
     /**
@@ -66,6 +77,16 @@ public final class DomainWildcard {
     public static DomainWildcard compile(String pattern) {
         if (pattern == null || pattern.isEmpty() || !pattern.contains("*")) {
             return null;
+        }
+        // NEW: A pattern without a dot is treated as a shell-glob substring match across the entire domain.
+        // '*' matches everything, including dots: "*google*" blocks google.com,
+        // mail.google.com, and mygoogleapp.com — which is what the user expects.
+        if (!pattern.contains(".")) {
+            try {
+                return new DomainWildcard(pattern, Pattern.compile(buildGlobalRegex(pattern)));
+            } catch (PatternSyntaxException e) {
+                return null;
+            }
         }
         String[] labels = pattern.split("\\.");
         if (labels.length == 0) {
@@ -115,6 +136,22 @@ public final class DomainWildcard {
         return sb.toString();
     }
 
+    // '*' -> '.*' (any characters, INCLUDING the dot); other regex metacharacters are escaped.
+    private static String buildGlobalRegex(String pattern) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < pattern.length(); i++) {
+            char c = pattern.charAt(i);
+            if (c == '*') {
+                sb.append(".*");
+            } else if ("\\.[]{}()*+-?^$|".indexOf(c) >= 0) {
+                sb.append('\\').append(c);
+            } else {
+                sb.append(c);
+            }
+        }
+        return sb.toString();
+    }
+
     /**
      * Check whether domain matches this pattern. Domain must be lowercased and
      * Punycode (as delivered by DNS). Supports suffix matching: the domain may
@@ -124,6 +161,9 @@ public final class DomainWildcard {
     public boolean matches(String domain) {
         if (domain == null || domain.isEmpty()) {
             return false;
+        }
+        if (globalPattern != null) {
+            return globalPattern.matcher(domain).matches();
         }
         String[] domainLabels = domain.split("\\.");
         if (domainLabels.length < labelCount) {
