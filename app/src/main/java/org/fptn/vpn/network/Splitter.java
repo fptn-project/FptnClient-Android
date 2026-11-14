@@ -30,7 +30,9 @@ import java.net.Socket;
 import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
+import java.util.Collections;            // NEW
 import java.util.Iterator;
+import java.util.List;                   // NEW
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
@@ -55,6 +57,7 @@ public class Splitter {
     }
 
     private final Set<String> domains;
+    private final List<DomainWildcard> wildcardDomains;   // NEW
     private final Bridge bridge;
 
     private final Map<Integer, Long> addresses;
@@ -66,9 +69,11 @@ public class Splitter {
     private final Thread ioThread;
     private volatile boolean running = true;
 
-    public Splitter(Set<String> domains, Map<Integer, Long> addresses, Bridge bridge)
+    public Splitter(Set<String> domains, List<DomainWildcard> wildcardDomains,
+                    Map<Integer, Long> addresses, Bridge bridge)
             throws IOException {
-        this.domains = domains;
+        this.domains = domains != null ? domains : java.util.Collections.emptySet();
+        this.wildcardDomains = wildcardDomains != null ? wildcardDomains : java.util.Collections.emptyList();   // NEW
         this.addresses = addresses;
         this.bridge = bridge;
         this.selector = Selector.open();
@@ -97,7 +102,7 @@ public class Splitter {
             return;
         }
         String domain = packet.getDnsDomain();
-        if (!DomainBlocker.matches(domains, domain)) {
+        if (!DomainBlocker.matches(domains, wildcardDomains, domain)) {   // NEW: pass wildcards
             return;
         }
         for (InetAddress address : packet.getDnsAddresses()) {
@@ -107,7 +112,7 @@ public class Splitter {
 
     private boolean resetIfBypass(IPPacket packet) {
         String sni = packet.getSni();
-        if (!DomainBlocker.matches(domains, sni)) {
+        if (!DomainBlocker.matches(domains, wildcardDomains, sni)) {   // NEW
             return false;
         }
         remember(packet.getDestination(), sni, "sni");

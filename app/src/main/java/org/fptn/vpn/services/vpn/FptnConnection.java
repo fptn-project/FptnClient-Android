@@ -83,7 +83,7 @@ import inet.ipaddr.IPAddress;
 import inet.ipaddr.IPAddressString;
 import lombok.Getter;
 import lombok.Setter;
-
+import org.fptn.vpn.network.DomainWildcard;
 public class FptnConnection extends Thread implements Splitter.Bridge {
     private static final String TAG = FptnConnection.class.getSimpleName();
 
@@ -152,6 +152,7 @@ public class FptnConnection extends Thread implements Splitter.Bridge {
     private final ConnectivityManager connectivityManager;
     private final DomainBlocker domainBlocker; // null when ad blocking and domain blacklist are disabled
     private final Set<String> bypassDomains; // null when split tunneling is off
+    private final List<DomainWildcard> bypassWildcards; // null when split tunneling is off   // NEW
     private final Map<Integer, Long> bypassAddresses; // outlives reconnects
     private volatile Splitter splitter;
     private final String customDnsIpv4; // null when custom DNS is disabled
@@ -177,6 +178,7 @@ public class FptnConnection extends Thread implements Splitter.Bridge {
                           final ConnectivityManager connectivityManager,
                           final DomainBlocker domainBlocker,
                           final Set<String> bypassDomains,
+                          final List<DomainWildcard> bypassWildcards,   // NEW
                           final Map<Integer, Long> bypassAddresses,
                           final String customDnsIpv4,
                           final DnsServers preFetchedDnsServers) {
@@ -190,6 +192,7 @@ public class FptnConnection extends Thread implements Splitter.Bridge {
         this.connectivityManager = connectivityManager;
         this.domainBlocker = domainBlocker;
         this.bypassDomains = bypassDomains;
+        this.bypassWildcards = bypassWildcards;   // NEW
         this.bypassAddresses = bypassAddresses;
         this.customDnsIpv4 = customDnsIpv4;
         this.maxReconnectCount = maxReconnectCount;
@@ -219,8 +222,9 @@ public class FptnConnection extends Thread implements Splitter.Bridge {
         try {
             sendConnectionStateToService(ConnectionState.CONNECTING);
 
-            if (bypassDomains != null && !bypassDomains.isEmpty()) {
-                splitter = new Splitter(bypassDomains, bypassAddresses, this);
+            if ((bypassDomains != null && !bypassDomains.isEmpty())
+                    || (bypassWildcards != null && !bypassWildcards.isEmpty())) {   // NEW
+                splitter = new Splitter(bypassDomains, bypassWildcards, bypassAddresses, this);   // NEW arg
             }
 
             setupTun();
