@@ -35,6 +35,8 @@ import java.net.IDN;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.zip.GZIPInputStream;
 
 public class DomainBlocker {
@@ -49,74 +51,98 @@ public class DomainBlocker {
 
     private final Set<String> blockedDomains;
     private final Set<String> allowedDomains;
+    private final List<DomainWildcard> blockedWildcards;
+    private final List<DomainWildcard> allowedWildcards;
     private final boolean advancedModeEnabled;
 
     public DomainBlocker(Context context, boolean adBlockEnabled, String domainBlacklist,
-            boolean blockDetectorDomains, boolean advancedModeEnabled) {
+                         boolean blockDetectorDomains, boolean advancedModeEnabled) {
         this.advancedModeEnabled = advancedModeEnabled;
         blockedDomains = new HashSet<>();
         allowedDomains = new HashSet<>();
+        blockedWildcards = new ArrayList<>();   // NEW
+        allowedWildcards = new ArrayList<>();   // NEW
         for (String domain : context.getResources().getStringArray(R.array.allowed_domains)) {
             String d = domain.trim().toLowerCase();
-            if (d.contains(".")) {
+            if (advancedModeEnabled && d.contains("*")) {                       // NEW
+                DomainWildcard w = DomainWildcard.compile(DomainWildcard.idnWithWildcards(d));
+                if (w != null) allowedWildcards.add(w);
+            } else if (d.contains(".")) {
                 allowedDomains.add(d);
             }
         }
         if (adBlockEnabled) {
             blockedDomains.addAll(loadBlocklist(context));
         }
-        blockedDomains.addAll(parseDomainBlacklist(domainBlacklist, advancedModeEnabled));
+        ParsedDomains parsed = parseDomains(domainBlacklist, advancedModeEnabled);  // NEW
+        blockedDomains.addAll(parsed.exact);                                         // NEW
+        blockedWildcards.addAll(parsed.wildcards);                                   // NEW
         if (blockDetectorDomains) {
             for (int arrayId : SPLIT_TUNNEL_DOMAIN_ARRAYS) {
                 for (String domain : context.getResources().getStringArray(arrayId)) {
                     String d = domain.trim().toLowerCase();
-                    if (d.contains(".")) {
+                    if (advancedModeEnabled && d.contains("*")) {                   // NEW
+                        DomainWildcard w = DomainWildcard.compile(DomainWildcard.idnWithWildcards(d));
+                        if (w != null) blockedWildcards.add(w);
+                    } else if (d.contains(".")) {
                         blockedDomains.add(d);
                     }
                 }
             }
         }
-        XLog.tag(TAG).i("Blocklist DNS loaded [domains=%d, allowed=%d, advanced=%b]",
-                blockedDomains.size(), allowedDomains.size(), advancedModeEnabled);
+        XLog.tag(TAG).i("Blocklist DNS loaded [domains=%d, allowed=%d, wildcards=%d, allowedWildcards=%d, advanced=%b]",
+                blockedDomains.size(), allowedDomains.size(),
+                blockedWildcards.size(), allowedWildcards.size(), advancedModeEnabled);
     }
 
     // Parses a user-entered domain list: newline/comma separated, optional
     // "domain:" prefix (fptn desktop config format), invalid entries ignored.
-    private static Set<String> parseDomainBlacklist(String text, boolean advancedModeEnabled) {
-        Set<String> domains = new HashSet<>();
+    // NEW: holder for parsed exact domains + wildcard patterns
+    private static final class ParsedDomains {
+        final Set<String> exact = new HashSet<>();
+        final List<DomainWildcard> wildcards = new ArrayList<>();
+    }
+
+    // Parses a user-entered domain list: newline/comma separated, optional
+    // "domain:" prefix (fptn desktop config format), invalid entries ignored.
+    // Advanced mode also extracts '*' wildcard patterns into a separate list.
+    private static ParsedDomains parseDomains(String text, boolean advancedModeEnabled) {
+        ParsedDomains result = new ParsedDomains();
         if (text == null) {
-            return domains;
+            return result;
         }
         for (String entry : text.split("[\n,]")) {
             String domain = entry.trim().toLowerCase();
             if (domain.startsWith("domain:")) {
                 domain = domain.substring("domain:".length()).trim();
             }
-            
             if (advancedModeEnabled) {
-                // Allow leading dot for zones: ".ru" → "ru"
                 if (domain.startsWith(".")) {
                     domain = domain.substring(1);
                 }
                 if (domain.isEmpty()) {
                     continue;
                 }
-                // Convert Cyrillic/CJK/Arabic to Punycode
                 try {
-                    domain = IDN.toASCII(domain, IDN.ALLOW_UNASSIGNED);
+                    domain = DomainWildcard.idnWithWildcards(domain);   // NEW: preserve '*'
                 } catch (IllegalArgumentException e) {
                     continue;
                 }
-                // Accept both full domains AND bare zones
-                domains.add(domain);
+                if (domain.contains("*")) {                             // NEW
+                    DomainWildcard w = DomainWildcard.compile(domain);
+                    if (w != null) {
+                        result.wildcards.add(w);
+                    }
+                } else {
+                    result.exact.add(domain);
+                }
             } else {
-                // Original logic: only full domains with a dot
                 if (domain.contains(".")) {
-                    domains.add(domain);
+                    result.exact.add(domain);
                 }
             }
         }
-        return domains;
+        return result;
     }
 
     // Returns 127.0.0.1 (A) or ::1 (AAAA) so SDK gets a "successful" DNS response,
@@ -151,6 +177,11 @@ public class DomainBlocker {
     }
 
     public static boolean matches(Set<String> rules, String domain) {
+        return matches(rules, null, domain);   // delegate — backward compat
+    }
+
+    // NEW: overload with wildcard list (for Splitter)
+    public static boolean matches(Set<String> rules, List<DomainWildcard> wildcardRules, String domain) {
         if (domain == null) {
             return false;
         }
@@ -164,6 +195,9 @@ public class DomainBlocker {
         if (rules.contains(d)) {
             return true;
         }
+        if (wildcardRules != null && !wildcardRules.isEmpty()) {
+            return DomainWildcard.matchesAny(wildcardRules, domain);
+        }
         return false;
     }
 
@@ -173,6 +207,7 @@ public class DomainBlocker {
     // allowing "example.com" still blocks "ads.example.com" if that is on the blocklist.
     private boolean isDomainBlocked(String domain) {
         if (domain == null) return false;
+        // Phase 1: exact walk (allow + block per level, most-specific wins) — UNCHANGED
         String d = domain;
         while (d.contains(".")) {
             if (allowedDomains.contains(d)) return false;
@@ -180,10 +215,14 @@ public class DomainBlocker {
             int dot = d.indexOf('.');
             d = d.substring(dot + 1);
         }
-        // Bare TLD check — only active in advanced mode to avoid false positives
         if (advancedModeEnabled) {
             if (allowedDomains.contains(d)) return false;
             if (blockedDomains.contains(d)) return true;
+        }
+        // Phase 2: wildcard fallback (only if no exact rule matched) — NEW
+        if (advancedModeEnabled) {
+            if (DomainWildcard.matchesAny(allowedWildcards, domain)) return false;
+            if (DomainWildcard.matchesAny(blockedWildcards, domain)) return true;
         }
         return false;
     }

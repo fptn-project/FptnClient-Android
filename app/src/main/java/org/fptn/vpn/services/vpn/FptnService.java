@@ -110,7 +110,7 @@ import java.net.IDN;
 import kotlin.Pair;
 import kotlin.Triple;
 import lombok.Getter;
-
+import org.fptn.vpn.network.DomainWildcard;
 @SuppressLint("VpnServicePolicy")
 public class FptnService extends VpnService {
     private static final String TAG = FptnService.class.getSimpleName();
@@ -144,6 +144,7 @@ public class FptnService extends VpnService {
     private volatile int cachedDnsServersServerId = -1;
 
     private volatile Set<String> bypassDomains = null;
+    private volatile List<DomainWildcard> bypassWildcards = null;
     private final Map<Integer, Long> bypassAddresses = new ConcurrentHashMap<>();
 
     private volatile boolean restoringSession = false;
@@ -1019,26 +1020,32 @@ public class FptnService extends VpnService {
         boolean useDetectorDomains = !serverEntity.isCensured();
         boolean splitTunnelEnabled = SharedPrefUtils.getSplitTunnelDomainsEnabled(this);
         boolean splitTunnelAdvancedEnabled = SharedPrefUtils.getSplitTunnelDomainsAdvancedModeEnabled(this);
-        
+
         if (bypassDomains == null && useDetectorDomains && splitTunnelEnabled) {
             Set<String> domains = new HashSet<>();
+            List<DomainWildcard> wildcards = new ArrayList<>();   // NEW
             for (String domain : SharedPrefUtils.getSplitTunnelDomains(this).split("[\n,]")) {
                 String d = domain.trim().toLowerCase();
                 if (d.startsWith("domain:")) {
                     d = d.substring("domain:".length()).trim();
                 }
-                
+
                 if (splitTunnelAdvancedEnabled) {
                     if (d.startsWith(".")) {
                         d = d.substring(1);
                     }
                     if (d.isEmpty()) continue;
                     try {
-                        d = java.net.IDN.toASCII(d, java.net.IDN.ALLOW_UNASSIGNED);
+                        d = DomainWildcard.idnWithWildcards(d);   // NEW: preserve '*'
                     } catch (IllegalArgumentException e) {
                         continue;
                     }
-                    domains.add(d);
+                    if (d.contains("*")) {                         // NEW
+                        DomainWildcard w = DomainWildcard.compile(d);
+                        if (w != null) wildcards.add(w);
+                    } else {
+                        domains.add(d);
+                    }
                 } else {
                     if (d.contains(".")) {
                         domains.add(d);
@@ -1046,8 +1053,10 @@ public class FptnService extends VpnService {
                 }
             }
             bypassDomains = domains;
+            bypassWildcards = wildcards;   // NEW
         }
         Set<String> connectionDomains = (useDetectorDomains && splitTunnelEnabled) ? bypassDomains : null;
+        List<DomainWildcard> connectionWildcards = (useDetectorDomains && splitTunnelEnabled) ? bypassWildcards : null;  // NEW
 
         boolean adBlockEnabled = SharedPrefUtils.getAdBlockEnabled(this);
         boolean domainBlacklistEnabled = SharedPrefUtils.getDomainBlacklistEnabled(this);
@@ -1081,6 +1090,7 @@ public class FptnService extends VpnService {
                 connectivityManager,
                 domainBlocker,
                 connectionDomains,
+                connectionWildcards,    // NEW
                 bypassAddresses,
                 customDnsIpv4,
                 preFetchedDnsServers
