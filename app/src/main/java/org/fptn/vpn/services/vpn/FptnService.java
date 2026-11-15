@@ -153,6 +153,8 @@ public class FptnService extends VpnService {
     // validation probe (which is routinely blocked in censored networks) — it is only a hint.
     private static final long VALIDATED_GRACE_PERIOD_MS = 2000L;
     private final Handler restoreHandler = new Handler(Looper.getMainLooper());
+    // Delayed re-check after a tracked network is lost (see onLost in registerNetworkCallback).
+    private final Handler networkLostCheckHandler = new Handler(Looper.getMainLooper());
     private final AtomicBoolean waitProceeded = new AtomicBoolean(false);
     private final Runnable proceedAfterGraceRunnable = this::proceedFromWait;
 
@@ -611,12 +613,53 @@ public class FptnService extends VpnService {
                     }
                 }
             }
+
+            @Override
+            public void onLost(@NonNull Network network) {
+                super.onLost(network);
+                // WiFi→mobile: onCapabilitiesChanged does NOT always fire for an already-validated
+                // mobile network becoming the new default, so the Variant A check above is skipped
+                // and traffic would leak via mobile. Re-check after a short settle delay: if the VPN
+                // is no longer the active network (its underlying transport died) and a non-VPN
+                // network of a different type is now active, raise the kill-switch.
+                if (!SharedPrefUtils.getKillSwitchOnNetworkChangeEnabled(FptnService.this)) {
+                    return;
+                }
+                FptnConnection currentConnection = activeConnection.get();
+                ConnectionState connectionState = Optional.ofNullable(serviceStateMutableLiveData.getValue())
+                        .map(FptnServiceState::getConnectionState).orElse(null);
+                if (currentConnection == null || connectionState != ConnectionState.CONNECTED) {
+                    return;
+                }
+                XLog.tag(TAG).i("Network lost [network=%s] — re-checking active network for kill-switch", network);
+                networkLostCheckHandler.removeCallbacksAndMessages(null);
+                networkLostCheckHandler.postDelayed(() -> {
+                    FptnConnection conn = activeConnection.get();
+                    if (conn == null) return;
+                    ConnectionState st = Optional.ofNullable(serviceStateMutableLiveData.getValue())
+                            .map(FptnServiceState::getConnectionState).orElse(null);
+                    if (st != ConnectionState.CONNECTED) return;
+                    Network activeNetwork = connectivityManager.getActiveNetwork();
+                    NetworkCapabilities caps = connectivityManager.getNetworkCapabilities(activeNetwork);
+                    if (caps == null || !caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)) return;
+                    // VPN still the active default => still protecting traffic, nothing to do.
+                    if (caps.hasTransport(NetworkCapabilities.TRANSPORT_VPN)) return;
+                    NetworkType newType = NetworkUtils.getNetworkType(caps);
+                    if (newType != conn.getCurrentNetworkType()) {
+                        isNetworkChangeInProgress = true;
+                        XLog.tag(TAG).i("Active network changed after loss [old=%s, new=%s] — Network Kill-switch triggering BLOCKED state",
+                                conn.getCurrentNetworkType(), newType);
+                        executorService.submit(() -> disconnect(null, DISCONNECT_REASON_NETWORK_CHANGE_BLOCKED));
+                    }
+                }, 500L);
+            }
         };
 
         connectivityManager.registerNetworkCallback(NetworkUtils.createNetworkRequest(), networkCallback);
     }
 
     private synchronized void unregisterNetworkCallback() {
+        networkLostCheckHandler.removeCallbacksAndMessages(null);
         if (networkCallback != null) {
             connectivityManager.unregisterNetworkCallback(networkCallback);
             networkCallback = null;
