@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.widget.Toast
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,10 +17,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -49,6 +49,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
+import kotlinx.coroutines.flow.first
 import org.fptn.vpn.R
 import org.fptn.vpn.ui.common.BottomNavBar
 import org.fptn.vpn.ui.common.LegacyPillButton
@@ -58,7 +59,11 @@ import org.fptn.vpn.ui.theme.Primary
 import org.fptn.vpn.ui.theme.White
 import java.io.File
 
-private const val LOAD_MORE_INDEX_THRESHOLD = 2
+// Scroll-position thresholds (px) for the pager triggers with a plain scrollable Column:
+// near the top pages in older history, near the bottom picks up appended lines.
+// 150px is roughly a dozen 12sp monospace log lines.
+private const val LOAD_MORE_SCROLL_PX = 150
+private const val AT_BOTTOM_SCROLL_PX = 150
 
 /**
  * Compose port of the legacy `LogsActivity` / `logs_layout.xml`, extended into a `kubectl logs`
@@ -75,48 +80,59 @@ fun LogsScreen(
     val uiState by viewModel.uiStateLiveData.observeAsState(LogsUiState.Loading)
     var showShareDialog by remember { mutableStateOf(false) }
 
-    val listState = rememberLazyListState()
-    var pendingPrependAnchor by remember { mutableStateOf<PrependAnchor?>(null) }
+    val scrollState = rememberScrollState()
     var didInitialScroll by remember { mutableStateOf(false) }
+    // Snapshot of scrollState.maxValue taken right before a prepend; used afterwards to keep
+    // the viewport anchored at the same lines while older content is inserted above.
+    var prePrependMaxValue by remember { mutableStateOf(-1) }
 
     val content = uiState as? LogsUiState.Content
 
     LaunchedEffect(content?.lines) {
         val lines = content?.lines ?: return@LaunchedEffect
-        val anchor = pendingPrependAnchor
-        if (anchor != null && lines.size > anchor.lineCountBefore) {
-            val inserted = lines.size - anchor.lineCountBefore
-            listState.scrollToItem(anchor.indexBefore + inserted, anchor.offsetBefore)
-            pendingPrependAnchor = null
-        } else if (!didInitialScroll && lines.isNotEmpty()) {
-            listState.scrollToItem(lines.lastIndex)
+        if (!didInitialScroll && lines.isNotEmpty()) {
+            // Wait for the first layout pass, then open on the newest lines.
+            snapshotFlow { scrollState.maxValue > 0 }.first { it }
+            scrollState.scrollTo(scrollState.maxValue)
             didInitialScroll = true
+        } else if (prePrependMaxValue >= 0) {
+            // Older lines were inserted above the viewport: wait until the layout has picked
+            // them up (maxValue grows past the captured value), then scroll down by the grown
+            // height so the user keeps looking at the same lines instead of being teleported.
+            snapshotFlow { scrollState.maxValue }.first { it > prePrependMaxValue }
+            val delta = scrollState.maxValue - prePrependMaxValue
+            if (delta > 0) {
+                scrollState.scrollTo(scrollState.value + delta)
+            }
+            prePrependMaxValue = -1
         }
     }
 
     // Scrolled near the top: page in older history. Reads the ViewModel's live state directly
     // (rather than closing over `content`) since this effect is launched once and then loops.
-    LaunchedEffect(listState) {
-        snapshotFlow { listState.firstVisibleItemIndex }.collect { index ->
+    LaunchedEffect(scrollState) {
+        snapshotFlow { scrollState.value <= LOAD_MORE_SCROLL_PX }.collect { nearTop ->
+            if (!nearTop || !didInitialScroll) return@collect
             val current = viewModel.uiStateLiveData.value as? LogsUiState.Content ?: return@collect
-            if (index <= LOAD_MORE_INDEX_THRESHOLD && current.hasMoreBefore && !current.loadingOlder) {
-                pendingPrependAnchor = PrependAnchor(
-                    indexBefore = index,
-                    offsetBefore = listState.firstVisibleItemScrollOffset,
-                    lineCountBefore = current.lines.size,
-                )
+            if (current.hasMoreBefore && !current.loadingOlder) {
+                prePrependMaxValue = scrollState.maxValue
                 viewModel.loadOlder()
             }
         }
     }
 
     // Scrolled to the end: check for anything appended to the file since it was last read.
-    LaunchedEffect(listState) {
+    LaunchedEffect(scrollState) {
         snapshotFlow {
-            val info = listState.layoutInfo
-            val lastVisible = info.visibleItemsInfo.lastOrNull()?.index ?: -1
-            info.totalItemsCount > 0 && lastVisible >= info.totalItemsCount - 1
-        }.collect { atBottom -> if (atBottom) viewModel.loadNewer() }
+            val max = scrollState.maxValue
+            // max == 0: content shorter than the viewport — everything is visible, so it
+            // counts as "at bottom" (matches the old LazyColumn behaviour for short files).
+            max == 0 || max - scrollState.value <= AT_BOTTOM_SCROLL_PX
+        }.collect { atBottom ->
+            if (atBottom && viewModel.uiStateLiveData.value is LogsUiState.Content) {
+                viewModel.loadNewer()
+            }
+        }
     }
 
     Column(
@@ -189,20 +205,26 @@ fun LogsScreen(
                                 .padding(horizontal = 16.dp, vertical = 8.dp)
                                 .background(Color(0xFF202020)),
                         ) {
-                            LazyColumn(state = listState) {
+                            // A plain scrollable Column instead of a LazyColumn: scrolling never
+                            // disposes children, so selection anchors stay valid and tapping the
+                            // system toolbar's "Copy" can't crash on disposed text layouts
+                            // (the field crash: big selection -> scroll -> Copy -> fatal).
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .verticalScroll(scrollState),
+                            ) {
                                 if (state.hasMoreBefore) {
-                                    item(key = "loading_older") {
-                                        Box(
-                                            modifier = Modifier.fillMaxWidth().padding(8.dp),
-                                            contentAlignment = Alignment.Center,
-                                        ) {
-                                            if (state.loadingOlder) {
-                                                CircularProgressIndicator(color = White, modifier = Modifier.size(16.dp))
-                                            }
+                                    Box(
+                                        modifier = Modifier.fillMaxWidth().padding(8.dp),
+                                        contentAlignment = Alignment.Center,
+                                    ) {
+                                        if (state.loadingOlder) {
+                                            CircularProgressIndicator(color = White, modifier = Modifier.size(16.dp))
                                         }
                                     }
                                 }
-                                items(state.lines) { line ->
+                                state.lines.forEach { line ->
                                     Text(
                                         text = line,
                                         color = Color(0xFFE0E0E0),
@@ -239,8 +261,6 @@ fun LogsScreen(
         ShareDialog(onDismiss = { showShareDialog = false })
     }
 }
-
-private data class PrependAnchor(val indexBefore: Int, val offsetBefore: Int, val lineCountBefore: Int)
 
 /**
  * Delegates to the platform [TextToolbar] so text selection/copy keeps its normal behavior,
