@@ -45,6 +45,7 @@ public class Splitter {
     private static final long ADDRESS_TTL_MILLIS = 24 * 60 * 60 * 1000L; // 24 hours
     private static final long UDP_IDLE_MILLIS = 60 * 1000L;
     private static final long SELECT_TIMEOUT_MILLIS = 1000L;
+    private static final int QUIC_UDP_PORT = 443;
 
     public interface Bridge {
         void toTun(byte[] packet);
@@ -189,6 +190,14 @@ public class Splitter {
         UdpRelay relay = udpFlows.get(flowKey);
         if (relay == null) {
             if (!isBypass(packet.getDestinationIpv4())) {
+                // No SNI visibility on UDP (QUIC ClientHello is encrypted): a QUIC flow to
+                // an address never learned via DNS/SNI may belong to a bypass-listed site
+                // whose CDN rotated to a fresh IP — tunneling it would leak VPN-exit traffic
+                // into that site's session. Reject instead: the client falls back to TCP,
+                // where SYN/SNI routing makes the correct direct-vs-tunnel decision.
+                if (packet.getDestinationPort() == QUIC_UDP_PORT && rejectUnknownQuic(packet)) {
+                    return true;
+                }
                 return false;
             }
             relay = UdpRelay.open(this, bridge, flowKey, packet);
@@ -198,6 +207,21 @@ public class Splitter {
             udpFlows.put(flowKey, relay);
         }
         relay.onPacketFromApp(packet);
+        return true;
+    }
+
+    // Reject an unknown UDP/443 flow with ICMP port-unreachable so the client
+    // quickly falls back to TCP (Chromium reacts to the socket error immediately,
+    // instead of waiting for the QUIC handshake timeout). QUIC to a known bypass
+    // address never reaches this: it is relayed directly above.
+    private boolean rejectUnknownQuic(IPPacket packet) {
+        byte[] icmp = IPPacket.buildIcmpDestUnreachable(packet);
+        if (icmp == null) {
+            return false;
+        }
+        bridge.toTun(icmp);
+        XLog.tag(TAG).i("QUIC flow rejected, TCP fallback expected [address=%s, port=%d]",
+                packet.getDestination().getHostAddress(), packet.getDestinationPort());
         return true;
     }
 

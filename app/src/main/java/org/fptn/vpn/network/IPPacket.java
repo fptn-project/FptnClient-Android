@@ -47,6 +47,8 @@ public final class IPPacket {
     public static final int FLAG_RST = 0x04;
     public static final int FLAG_PSH = 0x08;
     public static final int FLAG_ACK = 0x10;
+    public static final int ICMP_TYPE_DEST_UNREACHABLE = 3;
+    public static final int ICMP_CODE_PORT_UNREACHABLE = 3;
 
     private static final int TLS_RECORD_HANDSHAKE = 0x16;
     private static final int TLS_CLIENT_HELLO = 0x01;
@@ -389,6 +391,30 @@ public final class IPPacket {
         if (version == IpVersion.V4) {
             writeU16(out, 10, checksum(sum(out, 0, ipLength)));
         }
+        return out;
+    }
+
+    // ICMP Destination Unreachable (type 3, code 3 port-unreachable) quoting the
+    // original IPv4 header + first 8 bytes of the offending datagram (RFC 1122 3.2.2.5).
+    // Used by the split-tunnel splitter to reject QUIC flows to unknown addresses so
+    // the client falls back to TCP, where SNI-based routing can be applied.
+    public static byte[] buildIcmpDestUnreachable(IPPacket request) {
+        if (request.version != IpVersion.V4) {
+            return null;
+        }
+        int ipHeaderLength = request.ipHeaderLength;
+        int quoted = Math.min(ipHeaderLength + 8, request.length);
+        int icmpLength = 8 + quoted;
+        byte[] out = newReply(request, IpProtocol.ICMP.getNumber(), icmpLength);
+
+        int icmp = ipHeaderLength;
+        out[icmp] = ICMP_TYPE_DEST_UNREACHABLE;
+        out[icmp + 1] = ICMP_CODE_PORT_UNREACHABLE;
+        writeU16(out, icmp + 2, 0);
+        writeU16(out, icmp + 4, 0);
+        System.arraycopy(request.data, 0, out, icmp + 8, quoted);
+
+        writeU16(out, icmp + 2, checksum(sum(out, icmp, icmpLength)));
         return out;
     }
 
