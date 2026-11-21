@@ -592,6 +592,9 @@ fun HomeScreen(
                                         SharedPrefUtils.saveLastSelectedServerId(context, server.id)
                                         viewModel.saveSelectedServerToDatabase(server.id)
                                     },
+                                    onFavoriteToggle = { server ->
+                                        viewModel.toggleFavorite(server.id)
+                                    },
                                     enabled = !activeState,
                                     modifier = Modifier
                                         .fillMaxWidth()

@@ -113,6 +113,7 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
 
     <!--Error codes strings-->
     <string name="server_list_is_empty">服务器列表为空</string>
+    <string name="favorite_server_toggle">切换服务器收藏</string>
     <string name="find_fastest_server_timeout">查找最快服务器的时间已过。</string>
     <string name="all_servers_are_unreachable">所有服务器当前不可达。</string>
     <string name="connect_to_server_error">服务器不可用!请尝试使用其他服务器。</string>

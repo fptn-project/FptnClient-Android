@@ -108,6 +108,7 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
 
     <!--Сообщения об ошибках-->
     <string name="server_list_is_empty">Список серверов пуст!</string>
+    <string name="favorite_server_toggle">Добавить/убрать из избранного</string>
     <string name="find_fastest_server_timeout">Превышен временной лимит при поиске самого быстрого сервера!</string>
     <string name="all_servers_are_unreachable">Все сервера недоступны!</string>
     <string name="connect_to_server_error">Сервер недоступен! Попробуйте использовать другой сервер.</string>

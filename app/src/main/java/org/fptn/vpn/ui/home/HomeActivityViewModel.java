@@ -275,9 +275,14 @@ public class HomeActivityViewModel extends AndroidViewModel {
                             // No shutdown — the pool is reused for subsequent batches
                         }
 
-                        // Update the UI with new ping values
+                        // Update the UI with new ping values.
+                        // Do NOT re-post the snapshot list itself: favorite/selected/sort may
+                        // have changed mid-cycle (e.g. a star toggled while pings are loading),
+                        // and re-posting these (stale) entities would revert the UI.
+                        // refreshServerListFromDB() re-reads the DB and copies pings from
+                        // lastPingedServers, so ping results survive with fresh row state.
                         lastPingedServers = new ArrayList<>(servers);
-                        serverDtoListLiveData.postValue(new ArrayList<>(servers));
+                        refreshServerListFromDB();
 
                         // Wait before taking the next batch
                         try {
@@ -328,7 +333,7 @@ public class HomeActivityViewModel extends AndroidViewModel {
 
             List<ServerEntity> serverList = new ArrayList<>();
             serverList.add(ServerEntity.AUTO);
-            serverList.addAll(appDatabase.serverDAO().getVisibleServerList());
+            serverList.addAll(appDatabase.serverDAO().getServersForDisplay());
 
             // copy previous pings
             if (lastPingedServers != null) {
@@ -352,6 +357,18 @@ public class HomeActivityViewModel extends AndroidViewModel {
                 XLog.tag(TAG).d("Saved selected server to database [id=%d]", serverId);
             } catch (Exception e) {
                 XLog.tag(TAG).e("Failed to save selected server: %s", e.getMessage());
+            }
+        });
+    }
+
+    public void toggleFavorite(int serverId) {
+        executorService.submit(() -> {
+            try {
+                appDatabase.serverDAO().toggleFavorite(serverId);
+                XLog.tag(TAG).d("Toggled favorite for server [id=%d]", serverId);
+                refreshServerListFromDB();
+            } catch (Exception e) {
+                XLog.tag(TAG).e("Failed to toggle favorite for server [id=%d]: %s", serverId, e.getMessage());
             }
         });
     }

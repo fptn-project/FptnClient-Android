@@ -1,6 +1,7 @@
 package org.fptn.vpn.ui.common
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,8 +15,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -33,7 +36,13 @@ import org.fptn.vpn.utils.CountryFlags
  * line match a pinged real server's total two-line height rather than leaving dead space below.
  */
 @Composable
-fun ServerRow(server: ServerEntity, pingValue: Long, modifier: Modifier = Modifier) {
+fun ServerRow(
+    server: ServerEntity,
+    pingValue: Long,
+    modifier: Modifier = Modifier,
+    showFavorite: Boolean = true,
+    onFavoriteToggle: ((ServerEntity) -> Unit)? = null,
+) {
     // Force LTR for the whole composable to prevent emoji/text overlap in RTL languages
     androidx.compose.runtime.CompositionLocalProvider(androidx.compose.ui.platform.LocalLayoutDirection provides androidx.compose.ui.unit.LayoutDirection.Ltr) {
         Column(
@@ -91,19 +100,50 @@ fun ServerRow(server: ServerEntity, pingValue: Long, modifier: Modifier = Modifi
                 }
             }
             val ping = if (server.IsAuto()) 0L else pingValue
-            if (ping != 0L) {
-                Row(modifier = Modifier.padding(start = 38.dp)) {
-                    if (ping > 0) {
-                        Text(text = pingEmoji(ping), fontSize = 11.sp, modifier = Modifier.padding(end = 8.dp))
-                        Text(text = "${ping}ms", color = Primary, fontSize = 12.sp)
-                    } else {
-                        Text(text = "---  ---  ---", color = Primary, fontSize = 12.sp)
+            val showStar = showFavorite && !server.IsAuto()
+            if (ping != 0L || showStar) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (showStar) {
+                        val toggleModifier = if (onFavoriteToggle != null) {
+                            Modifier.clickable { onFavoriteToggle.invoke(server) }
+                        } else {
+                            Modifier
+                        }
+                        Box(
+                            modifier = Modifier
+                                .padding(start = 2.dp)
+                                .size(28.dp)
+                                .then(toggleModifier),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Image(
+                                painter = painterResource(
+                                    if (server.isFavorite) R.drawable.ic_star else R.drawable.ic_star_border,
+                                ),
+                                contentDescription = stringResource(R.string.favorite_server_toggle),
+                                colorFilter = ColorFilter.tint(if (server.isFavorite) FavoritesGold else Primary),
+                                modifier = Modifier.size(22.dp),
+                            )
+                        }
+                    }
+                    Row(
+                        modifier = Modifier.padding(start = if (showStar) 8.dp else 38.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        if (ping > 0) {
+                            Text(text = pingEmoji(ping), fontSize = 11.sp, modifier = Modifier.padding(end = 8.dp))
+                            Text(text = "${ping}ms", color = Primary, fontSize = 12.sp)
+                        } else if (ping < 0) {
+                            Text(text = "---  ---  ---", color = Primary, fontSize = 12.sp)
+                        }
                     }
                 }
             }
         }
     }
 }
+
+private val FavoritesGold = Color(0xFFFFC107)
 
 private fun pingEmoji(ping: Long): String = when {
     ping < 150 -> "🟢"

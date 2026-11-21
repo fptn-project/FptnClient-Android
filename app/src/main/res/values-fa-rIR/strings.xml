@@ -107,6 +107,7 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
 
     <!--Сообщения об ошибках-->
     <string name="server_list_is_empty">فهرست سرورها خالی است!</string>
+    <string name="favorite_server_toggle">افزودن یا حذف از علاقه‌مندی‌ها</string>
     <string name="find_fastest_server_timeout">مهلت زمانی برای یافتن سریع‌ترین سرور به پایان رسید!</string>
     <string name="all_servers_are_unreachable">تمام سرورها در دسترس نیستند!</string>
     <string name="connect_to_server_error">سرور در دسترس نیست! لطفاً از یک سرور دیگر استفاده کنید.</string>

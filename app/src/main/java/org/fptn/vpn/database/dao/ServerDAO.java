@@ -29,6 +29,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 
 import org.fptn.vpn.database.entity.ServerEntity;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Dao
@@ -60,6 +61,10 @@ public interface ServerDAO {
     @Query("UPDATE server_table SET selected = 0 WHERE 1")
     void resetSelected();
 
+    /** Toggles the favorite flag of a single server in one atomic statement. */
+    @Query("UPDATE server_table SET favorite = CASE WHEN id = :id THEN 1 - favorite ELSE favorite END")
+    void toggleFavorite(int id);
+
     @Query("DELETE FROM server_table")
     void deleteAll();
 
@@ -77,13 +82,49 @@ public interface ServerDAO {
     @Query("SELECT server_table.* FROM server_table INNER JOIN token_table ON server_table.tokenId = token_table.id WHERE token_table.isVisible = 1 ORDER BY token_table.id ASC, server_table.censured ASC, server_table.sortIndex ASC")
     List<ServerEntity> getVisibleServerList();
 
+    /**
+     * Servers for the dropdown: same ordering as getVisibleServerList(), but with
+     * user-starred (favorite) servers floated to the top. Display-only — auto-select
+     * (FptnService), ping cycles and SNI checks keep reading getVisibleServerList().
+     */
+    @Query("SELECT server_table.* FROM server_table INNER JOIN token_table ON server_table.tokenId = token_table.id WHERE token_table.isVisible = 1 ORDER BY server_table.favorite DESC, token_table.id ASC, server_table.censured ASC, server_table.sortIndex ASC")
+    List<ServerEntity> getServersForDisplay();
+
     @Query("UPDATE server_table SET countryCode = :code WHERE id = :id")
     void updateCountryCode(int id, String code);
 
+    /**
+     * All servers of one token (for the favorite snapshot on token update).
+     */
+    @Query("SELECT * FROM server_table WHERE tokenId = :tokenId")
+    List<ServerEntity> getServersByTokenId(int tokenId);
+
+    /**
+     * Restores the favorite flag of one server after a token refresh,
+     * matched by (host, port) inside its own token.
+     */
+    @Query("UPDATE server_table SET favorite = 1 WHERE tokenId = :tokenId AND host = :host AND port = :port")
+    void setFavoriteByHostPort(int tokenId, String host, int port);
+
+    /**
+     * Replaces all servers of one token with a fresh list (token update flow),
+     * keeping the favorite flag of servers that kept the same (host, port).
+     * A server that changed its address loses its star; favorites of other
+     * tokens are not touched. Runs atomically.
+     */
     @Transaction
-    default void deleteAndInsert(List<ServerEntity> servers) {
-        deleteAll();
+    default void replaceServersPreservingFavorites(List<ServerEntity> servers, int tokenId) {
+        List<ServerEntity> favorites = new ArrayList<>();
+        for (ServerEntity server : getServersByTokenId(tokenId)) {
+            if (server.isFavorite()) {
+                favorites.add(server);
+            }
+        }
+        deleteByTokenId(tokenId);
         insertAll(servers);
+        for (ServerEntity server : favorites) {
+            setFavoriteByHostPort(tokenId, server.getHost(), server.getPort());
+        }
     }
 
     @Query("SELECT * FROM server_table WHERE id = :serverId")

@@ -33,9 +33,8 @@ class UpdateTokenViewModel(application: Application) : AndroidViewModel(applicat
                     appDatabase.tokenDAO().updateTokenData(
                         existingToken.id, serviceName, token, username, password, now
                     )
-                    appDatabase.serverDAO().deleteByTokenId(existingToken.id)
                     parsed.servers.forEach { it.tokenId = existingToken.id }
-                    appDatabase.serverDAO().insertAll(parsed.servers)
+                    appDatabase.serverDAO().replaceServersPreservingFavorites(parsed.servers, existingToken.id)
                 }
 
                 SharedPrefUtils.saveTokenUpdatedDate(getApplication(), now)

@@ -115,6 +115,7 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
 
     <!--Error codes strings-->
     <string name="server_list_is_empty">Server list is empty</string>
+    <string name="favorite_server_toggle">Toggle favorite server</string>
     <string name="find_fastest_server_timeout">The time limit to find the fastest server has expired.</string>
     <string name="all_servers_are_unreachable">All servers are currently unreachable.</string>
     <string name="connect_to_server_error">Server is unavailable! Please try using a different server.</string>
