@@ -33,6 +33,8 @@ fun ServerDropdown(
     onSelect: (ServerEntity) -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
+    showFavorite: Boolean = true,
+    onFavoriteToggle: ((ServerEntity) -> Unit)? = null,
 ) {
     var expanded by remember { mutableStateOf(false) }
     var anchorWidthPx by remember { mutableIntStateOf(0) }
@@ -57,7 +59,7 @@ fun ServerDropdown(
         ) {
             val selectedPing = servers.firstOrNull { it.id == selected.id }?.pingMs
                 ?: selected.pingMs
-            ServerRow(server = selected, pingValue = selectedPing)
+            ServerRow(server = selected, pingValue = selectedPing, showFavorite = showFavorite, onFavoriteToggle = null)
         }
         DropdownMenu(
             expanded = expanded,
@@ -72,7 +74,7 @@ fun ServerDropdown(
                 servers.forEach { server ->
                     key(server.id, server.pingMs) {
                         DropdownMenuItem(
-                            text = { ServerRow(server = server, pingValue = server.pingMs) },
+                            text = { ServerRow(server = server, pingValue = server.pingMs, showFavorite = showFavorite, onFavoriteToggle = onFavoriteToggle) },
                             onClick = {
                                 onSelect(server)
                                 expanded = false

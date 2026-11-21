@@ -35,6 +35,7 @@ public class ServerEntity {
     private boolean censured;
     private int tokenId;
     private int sortIndex;
+    private boolean favorite;
 
     @Ignore // not save in DB (Room ORM annotation)
     @Getter
@@ -97,6 +98,14 @@ public class ServerEntity {
         this.sortIndex = sortIndex;
     }
 
+    public boolean isFavorite() {
+        return favorite;
+    }
+
+    public void setFavorite(boolean favorite) {
+        this.favorite = favorite;
+    }
+
     public static final ServerEntity AUTO = ServerEntity.builder()
             .id(Constants.SELECTED_SERVER_ID_AUTO)
             .selected(false)
@@ -110,5 +119,6 @@ public class ServerEntity {
             .censured(false)
             .tokenId(0)
             .sortIndex(0)
+            .favorite(false)
             .build();
 }

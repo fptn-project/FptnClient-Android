@@ -94,6 +94,8 @@ public final class SettingsBackupManager {
         Boolean useSystemFontSize;
         Integer fontScaleIndex;
         Boolean autoStartOnBoot;
+        Boolean favoritesEnabled;
+        Boolean autoFavoritesEnabled;
     }
 
     private static class BackupAppRule {
@@ -141,6 +143,8 @@ public final class SettingsBackupManager {
         settings.useSystemFontSize = SharedPrefUtils.getUseSystemFontSize(context);
         settings.fontScaleIndex = SharedPrefUtils.getFontScaleIndex(context);
         settings.autoStartOnBoot = SharedPrefUtils.getAutoStartOnBoot(context);
+        settings.favoritesEnabled = SharedPrefUtils.getFavoritesEnabled(context);
+        settings.autoFavoritesEnabled = SharedPrefUtils.getAutoFavoritesEnabled(context);
 
         backup.settings = settings;
 
@@ -270,6 +274,12 @@ public final class SettingsBackupManager {
         }
         if (settings.autoStartOnBoot != null) {
             SharedPrefUtils.saveAutoStartOnBoot(context, settings.autoStartOnBoot);
+        }
+        if (settings.favoritesEnabled != null) {
+            SharedPrefUtils.saveFavoritesEnabled(context, settings.favoritesEnabled);
+        }
+        if (settings.autoFavoritesEnabled != null) {
+            SharedPrefUtils.saveAutoFavoritesEnabled(context, settings.autoFavoritesEnabled);
         }
 
         // TV overrides: force settings that make sense for TV, regardless of what

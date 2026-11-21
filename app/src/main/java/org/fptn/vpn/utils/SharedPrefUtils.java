@@ -102,6 +102,29 @@ public class SharedPrefUtils {
     }
 
     /* EXPERIMENTAL FEATURES */
+    /* FAVORITES */
+    public static boolean getFavoritesEnabled(Context context) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        return sharedPreferences.getBoolean(Constants.FAVORITES_ENABLED_SHARED_PREF_KEY, false);
+    }
+
+    public static void saveFavoritesEnabled(Context context, boolean enabled) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        sharedPreferences.edit().putBoolean(Constants.FAVORITES_ENABLED_SHARED_PREF_KEY, enabled).apply();
+        XLog.tag(TAG).d("Saved " + Constants.FAVORITES_ENABLED_SHARED_PREF_KEY + " = " + enabled);
+    }
+
+    public static boolean getAutoFavoritesEnabled(Context context) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        return sharedPreferences.getBoolean(Constants.AUTO_FAVORITES_ENABLED_SHARED_PREF_KEY, false);
+    }
+
+    public static void saveAutoFavoritesEnabled(Context context, boolean enabled) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        sharedPreferences.edit().putBoolean(Constants.AUTO_FAVORITES_ENABLED_SHARED_PREF_KEY, enabled).apply();
+        XLog.tag(TAG).d("Saved " + Constants.AUTO_FAVORITES_ENABLED_SHARED_PREF_KEY + " = " + enabled);
+    }
+
     public static boolean getReconnectOnChangeNetworkTypeEnabled(Context context) {
         SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
         return sharedPreferences.getBoolean(Constants.RECONNECT_ON_CHANGE_NETWORK_TYPE_ENABLED_SHARED_PREF_KEY, true);

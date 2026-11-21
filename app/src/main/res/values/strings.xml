@@ -115,6 +115,7 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
 
     <!--Error codes strings-->
     <string name="server_list_is_empty">Server list is empty</string>
+    <string name="favorite_server_toggle">Toggle favorite server</string>
     <string name="find_fastest_server_timeout">The time limit to find the fastest server has expired.</string>
     <string name="all_servers_are_unreachable">All servers are currently unreachable.</string>
     <string name="connect_to_server_error">Server is unavailable! Please try using a different server.</string>
@@ -277,6 +278,10 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="settings_reset_server_title">Server Selection:</string>
     <string name="settings_reset_server_on_disconnect">Reset selected server after disconnect</string>
     <string name="settings_reset_server_on_exception">Reset server only on connection errors</string>
+    <string name="favorites_settings_title">Favorite Servers:</string>
+    <string name="favorites_settings_description">Star servers in the list — favorites float to the top of the server menu, and Auto can connect only among them.</string>
+    <string name="favorites_enable">Enable favorite servers</string>
+    <string name="favorites_auto_only">Auto — favorites only</string>
     <string name="searching_for_server">Searching for server...</string>
     <string name="custom_dns_title">Custom DNS:</string>
     <string name="custom_dns_description">Use a custom DNS server.</string>

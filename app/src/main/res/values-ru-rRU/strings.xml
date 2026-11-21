@@ -108,6 +108,7 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
 
     <!--Сообщения об ошибках-->
     <string name="server_list_is_empty">Список серверов пуст!</string>
+    <string name="favorite_server_toggle">Добавить/убрать из избранного</string>
     <string name="find_fastest_server_timeout">Превышен временной лимит при поиске самого быстрого сервера!</string>
     <string name="all_servers_are_unreachable">Все сервера недоступны!</string>
     <string name="connect_to_server_error">Сервер недоступен! Попробуйте использовать другой сервер.</string>
@@ -189,6 +190,10 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="tile_addition_failed">Плитка быстрых настроек не добавлена!</string>
 
     <string name="settings_reset_server_on_exception">Сброс на Auto только при ошибке</string>
+    <string name="favorites_settings_title">Избранные сервера:</string>
+    <string name="favorites_settings_description">Отмечайте сервера звездой — избранное поднимется наверх меню серверов, а Auto сможет подключаться только среди него.</string>
+    <string name="favorites_enable">Включить избранные сервера</string>
+    <string name="favorites_auto_only">Auto — только среди избранных</string>
     <string name="searching_for_server">Поиск сервера...</string>
     <string name="ad_block_title">Блокировка рекламы:</string>
     <string name="ad_block_description">Блокирует рекламу и трекеры на уровне DNS для всех приложений. Отключите приватный DNS (DoH) — иначе фильтрация не сработает.</string>

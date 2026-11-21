@@ -107,6 +107,7 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
 
     <!--Сообщения об ошибках-->
     <string name="server_list_is_empty">فهرست سرورها خالی است!</string>
+    <string name="favorite_server_toggle">افزودن یا حذف از علاقه‌مندی‌ها</string>
     <string name="find_fastest_server_timeout">مهلت زمانی برای یافتن سریع‌ترین سرور به پایان رسید!</string>
     <string name="all_servers_are_unreachable">تمام سرورها در دسترس نیستند!</string>
     <string name="connect_to_server_error">سرور در دسترس نیست! لطفاً از یک سرور دیگر استفاده کنید.</string>
@@ -190,6 +191,10 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="tile_addition_failed">افزودن کاشی تنظیمات سریع ناموفق بود!</string>
 
     <string name="settings_reset_server_on_exception">تنظیم مجدد سرور فقط در صورت بروز خطاهای اتصال</string>
+    <string name="favorites_settings_title">سرورهای مورد علاقه:</string>
+    <string name="favorites_settings_description">سرورها را در فهرست ستاره‌دار کنید — موارد مورد علاقه در بالای منوی سرورها قرار می‌گیرند و حالت خودکار فقط بین آن‌ها انتخاب می‌کند.</string>
+    <string name="favorites_enable">فعال‌سازی سرورهای مورد علاقه</string>
+    <string name="favorites_auto_only">حالت خودکار — فقط سرورهای مورد علاقه</string>
     <string name="searching_for_server">جستجوی سرور...</string>
     <string name="ad_block_title">مسدودسازی تبلیغات:</string>
     <string name="ad_block_description">تبلیغات و ردیاب‌ها را در سطح DNS برای تمام برنامه‌ها مسدود می‌کند. DNS خصوصی (DoH) را در تنظیمات سیستم خاموش کنید، وگرنه فیلترینگ دور زده می‌شود.</string>

@@ -40,7 +40,7 @@ import org.fptn.vpn.database.entity.TokenEntity;
 
 @Database(
         entities = {ServerEntity.class, AppInfoEntity.class, SniEntity.class, TokenEntity.class},
-        version = 4,
+        version = 5,
         exportSchema = false
 )
 public abstract class AppDatabase extends RoomDatabase {
@@ -111,10 +111,21 @@ public abstract class AppDatabase extends RoomDatabase {
         }
     };
 
+    /**
+     * Migration 4 → 5: adds the favorite column to server_table.
+     * Backs the favorite-servers feature — user-starred servers, OFF (0) by default.
+     */
+    static final Migration MIGRATION_4_5 = new Migration(4, 5) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            database.execSQL("ALTER TABLE server_table ADD COLUMN favorite INTEGER NOT NULL DEFAULT 0");
+        }
+    };
+
     public static synchronized AppDatabase getInstance(Context context) {
         if (instance == null) {
             instance = Room.databaseBuilder(context.getApplicationContext(), AppDatabase.class, FPTN_DATABASE)
-                    .addMigrations(MIGRATION_2_3, MIGRATION_3_4)
+                    .addMigrations(MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
                     .build();
         }
         return instance;
