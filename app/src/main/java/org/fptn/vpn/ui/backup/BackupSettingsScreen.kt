@@ -25,10 +25,12 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -56,6 +58,7 @@ import java.nio.charset.StandardCharsets
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import org.fptn.vpn.ui.theme.FontScaleState
 
 private const val TAG = "BackupSettingsScreen"
 
@@ -121,6 +124,7 @@ fun BackupSettingsScreen(
                 color = White,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
+                lineHeight = 22.sp,
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
                     .padding(top = 10.dp, bottom = 10.dp),
@@ -139,12 +143,14 @@ fun BackupSettingsScreen(
                     color = White,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
+                    lineHeight = 22.sp,
                     modifier = Modifier.padding(bottom = 4.dp),
                 )
                 Text(
                     text = stringResource(R.string.backup_save_description),
                     color = White.copy(alpha = 0.7f),
                     fontSize = 12.sp,
+                    lineHeight = 17.sp,
                     modifier = Modifier.padding(bottom = 6.dp),
                 )
                 Row(
@@ -189,12 +195,14 @@ fun BackupSettingsScreen(
                     color = White,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
+                    lineHeight = 22.sp,
                     modifier = Modifier.padding(bottom = 4.dp),
                 )
                 Text(
                     text = stringResource(R.string.backup_restore_description),
                     color = White.copy(alpha = 0.7f),
                     fontSize = 12.sp,
+                    lineHeight = 17.sp,
                     modifier = Modifier.padding(bottom = 6.dp),
                 )
                 LegacyPillButton(
@@ -218,21 +226,34 @@ fun BackupSettingsScreen(
     }
 
     showRestoreConfirm?.let { uri ->
+        val dialogDensity = LocalDensity.current
         AlertDialog(
             onDismissRequest = { showRestoreConfirm = null },
-            title = { Text(stringResource(R.string.backup_restore_confirm_title)) },
-            text = { Text(stringResource(R.string.backup_restore_confirm_message)) },
+            title = {
+                CompositionLocalProvider(LocalDensity provides dialogDensity) {
+                    Text(stringResource(R.string.backup_restore_confirm_title))
+                }
+            },
+            text = {
+                CompositionLocalProvider(LocalDensity provides dialogDensity) {
+                    Text(stringResource(R.string.backup_restore_confirm_message))
+                }
+            },
             confirmButton = {
-                TextButton(onClick = {
-                    showRestoreConfirm = null
-                    restoreFromUri(context, uri)
-                }) {
-                    Text(stringResource(R.string.yes))
+                CompositionLocalProvider(LocalDensity provides dialogDensity) {
+                    TextButton(onClick = {
+                        showRestoreConfirm = null
+                        restoreFromUri(context, uri)
+                    }) {
+                        Text(stringResource(R.string.yes))
+                    }
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showRestoreConfirm = null }) {
-                    Text(stringResource(R.string.no))
+                CompositionLocalProvider(LocalDensity provides dialogDensity) {
+                    TextButton(onClick = { showRestoreConfirm = null }) {
+                        Text(stringResource(R.string.no))
+                    }
                 }
             },
         )
@@ -320,6 +341,7 @@ private fun restoreFromUri(context: android.content.Context, uri: Uri) {
                 .use { it.lineSequence().joinToString("\n") }
             SettingsBackupManager.importFromJson(context, json)
             XLog.tag(TAG).i("Settings restored from backup [uri=%s]", uri)
+            FontScaleState.load(context)
             ContextCompat.getMainExecutor(context).execute {
                 Toast.makeText(context, R.string.backup_restore_success, Toast.LENGTH_SHORT).show()
             }

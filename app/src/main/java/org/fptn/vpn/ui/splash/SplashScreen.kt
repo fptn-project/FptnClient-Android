@@ -41,20 +41,27 @@ fun SplashScreen(
     var routed by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
-        val serverCount: Int? = withContext(Dispatchers.IO) {
+        // Read both server count and token count — a valid session needs both. Without the
+        // token check, Splash would route to Home whenever the server table is non-empty even if
+        // the token table is empty (e.g. partial DB migration / manual edit / future logout path
+        // that deletes only tokens), exposing the authenticated UI to an unauthenticated user.
+        val (serverCount, tokenCount) = withContext(Dispatchers.IO) {
             try {
-                AppDatabase.getInstance(context).serverDAO().getCount().get()
+                val db = AppDatabase.getInstance(context)
+                Pair(db.serverDAO().getCountSync(), db.tokenDAO().getCount())
             } catch (t: Throwable) {
-                XLog.tag("Splash").e("Failed to read server count: %s", t.message)
-                null
+                XLog.tag("Splash").e("Failed to read session state: %s", t.message)
+                Pair(0, 0)
             }
         }
         val sniActive = SniCheckerService.getStaticState() == SniCheckerServiceState.ACTIVE
         val route = when {
-            (serverCount ?: 0) > 0 -> if (sniActive) SplashRoute.BypassMethods else SplashRoute.Home
+            serverCount > 0 && tokenCount > 0 ->
+                if (sniActive) SplashRoute.BypassMethods else SplashRoute.Home
             else -> SplashRoute.Login
         }
-        XLog.tag("Splash").i("Routing to %s [servers=%d, sniActive=%b]", route, serverCount ?: 0, sniActive)
+        XLog.tag("Splash").i("Routing to %s [servers=%d, tokens=%d, sniActive=%b]",
+            route, serverCount, tokenCount, sniActive)
         if (!routed) {
             routed = true
             onRouteResolved(route)

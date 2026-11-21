@@ -247,6 +247,7 @@ fun BypassMethodsScreen(
                 color = White,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
+                lineHeight = 22.sp,
                 modifier = Modifier.padding(top = 10.dp),
             )
 
@@ -339,6 +340,7 @@ fun BypassMethodsScreen(
                         text = stringResource(R.string.sni_text_description),
                         color = Gray,
                         fontSize = 12.sp,
+                        lineHeight = 17.sp,
                         modifier = Modifier.padding(start = 10.dp, top = 4.dp, end = 10.dp, bottom = 5.dp),
                     )
                 }
@@ -534,7 +536,7 @@ private fun CardHeader(title: String) {
                 .padding(start = 4.dp, end = 12.dp)
                 .size(32.dp),
         )
-        Text(text = title, color = White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+        Text(text = title, color = White, fontSize = 16.sp, fontWeight = FontWeight.Bold, lineHeight = 22.sp)
     }
 }
 
