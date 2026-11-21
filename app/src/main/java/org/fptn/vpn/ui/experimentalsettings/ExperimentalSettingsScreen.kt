@@ -122,6 +122,8 @@ fun ExperimentalSettingsScreen(
     var delayBetweenProgress by remember { mutableFloatStateOf((SharedPrefUtils.getDelayBetweenReconnect(context) - 1).toFloat()) }
     var resetServerAfterDisconnect by remember { mutableStateOf(SharedPrefUtils.getResetSelectedServerEnabled(context)) }
     var resetServerAfterDisconnectOnException by remember { mutableStateOf(SharedPrefUtils.getResetSelectedServerOnExceptionEnabled(context)) }
+    var favoritesEnabled by remember { mutableStateOf(SharedPrefUtils.getFavoritesEnabled(context)) }
+    var autoFavoritesEnabled by remember { mutableStateOf(SharedPrefUtils.getAutoFavoritesEnabled(context)) }
     var connectFailedHelpEnabled by remember { mutableStateOf(SharedPrefUtils.getConnectFailedHelpEnabled(context)) }
     var autoFallbackEnabled by remember { mutableStateOf(SharedPrefUtils.getAutoFallbackEnabled(context)) }
     var fallbackThresholdProgress by remember { mutableFloatStateOf(initialFallbackThresholdProgress(context)) }
@@ -179,6 +181,8 @@ fun ExperimentalSettingsScreen(
         SharedPrefUtils.saveConnectFailedHelpEnabled(context, true)
         SharedPrefUtils.saveAutoFallbackEnabled(context, true)
         SharedPrefUtils.saveAutoFallbackThreshold(context, FALLBACK_THRESHOLD_VALUES[3])
+        SharedPrefUtils.saveFavoritesEnabled(context, false)
+        SharedPrefUtils.saveAutoFavoritesEnabled(context, false)
 
         autoStartOnBoot = false
         SharedPrefUtils.saveAutoStartOnBoot(context, false)
@@ -632,6 +636,32 @@ fun ExperimentalSettingsScreen(
                         },
                     )
                 }
+            }
+
+            ExperimentalCard(paddingBottom = 8.dp) {
+                CardTitle(stringResource(R.string.favorites_settings_title))
+                CardDescription(stringResource(R.string.favorites_settings_description))
+                SwitchRow(
+                    text = stringResource(R.string.favorites_enable),
+                    checked = favoritesEnabled,
+                    onCheckedChange = {
+                        favoritesEnabled = it
+                        SharedPrefUtils.saveFavoritesEnabled(context, it)
+                        if (!it) {
+                            autoFavoritesEnabled = false
+                            SharedPrefUtils.saveAutoFavoritesEnabled(context, false)
+                        }
+                    },
+                )
+                SwitchRow(
+                    text = stringResource(R.string.favorites_auto_only),
+                    checked = autoFavoritesEnabled,
+                    enabled = favoritesEnabled,
+                    onCheckedChange = {
+                        autoFavoritesEnabled = it
+                        SharedPrefUtils.saveAutoFavoritesEnabled(context, it)
+                    },
+                )
             }
 
             ExperimentalCard(paddingBottom = 8.dp) {

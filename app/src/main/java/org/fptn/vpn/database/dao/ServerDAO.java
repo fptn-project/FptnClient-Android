@@ -90,6 +90,14 @@ public interface ServerDAO {
     @Query("SELECT server_table.* FROM server_table INNER JOIN token_table ON server_table.tokenId = token_table.id WHERE token_table.isVisible = 1 ORDER BY server_table.favorite DESC, token_table.id ASC, server_table.censured ASC, server_table.sortIndex ASC")
     List<ServerEntity> getServersForDisplay();
 
+    /**
+     * Visible servers starred by the user — the Auto-favorites login-test pool.
+     * Same ordering as getVisibleServerList() so the global order stays the
+     * tiebreak between equally fast favorites.
+     */
+    @Query("SELECT server_table.* FROM server_table INNER JOIN token_table ON server_table.tokenId = token_table.id WHERE token_table.isVisible = 1 AND server_table.favorite = 1 ORDER BY token_table.id ASC, server_table.censured ASC, server_table.sortIndex ASC")
+    List<ServerEntity> getFavoriteVisibleServers();
+
     @Query("UPDATE server_table SET countryCode = :code WHERE id = :id")
     void updateCountryCode(int id, String code);
 

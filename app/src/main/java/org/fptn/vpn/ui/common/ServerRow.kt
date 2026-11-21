@@ -72,9 +72,9 @@ fun ServerRow(
                     )
                     return@Row
                 }
-                Box(modifier = Modifier.size(width = 32.dp, height = 38.dp), contentAlignment = Alignment.Center) {
-                    val flag = CountryFlags.getCountryFlagByCountryCode(server.countryCode)
-                    if (!flag.isNullOrEmpty()) {
+                val flag = CountryFlags.getCountryFlagByCountryCode(server.countryCode)
+                if (!flag.isNullOrEmpty()) {
+                    Box(modifier = Modifier.size(width = 32.dp, height = 38.dp), contentAlignment = Alignment.Center) {
                         Text(text = flag, fontSize = 20.sp, textAlign = TextAlign.Center)
                     }
                 }
@@ -86,7 +86,7 @@ fun ServerRow(
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier
                         .weight(1f)
-                        .padding(start = 5.dp),
+                        .padding(start = if (flag.isNullOrEmpty()) 0.dp else 5.dp),
                 )
                 if (server.isCensured) {
                     Image(

@@ -822,6 +822,15 @@ public class FptnService extends VpnService {
                         XLog.tag(TAG).i("Auto-selecting fastest server via login");
                         updateNotificationWithMessage(getString(R.string.connecting_auto), "");
                         List<ServerEntity> serverEntities = appDatabase.serverDAO().getVisibleServerList(false);
+                        if (SharedPrefUtils.getAutoFavoritesEnabled(this)) {
+                            // Auto-favorites: restrict the login-test pool to starred servers. An empty
+                            // pool falls back to all servers; a non-empty pool failing the login test is
+                            // terminal here — no retry over all servers (reconnect recovery is untouched).
+                            List<ServerEntity> favoriteServers = appDatabase.serverDAO().getFavoriteVisibleServers();
+                            if (!favoriteServers.isEmpty()) {
+                                serverEntities = favoriteServers;
+                            }
+                        }
                         SpeedTestResult loginResult = SpeedTestUtils.findServerByLogin(serverEntities, sniHostname, bypassCensorshipMethod, sniSpoofingMode);
                         if (loginResult == null || Thread.currentThread().isInterrupted()) {
                             return;
