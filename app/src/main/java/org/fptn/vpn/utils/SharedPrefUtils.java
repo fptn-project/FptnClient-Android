@@ -484,6 +484,19 @@ public class SharedPrefUtils {
         XLog.tag(TAG).d("Saved " + Constants.ALLOW_LANDSCAPE_PREF_KEY + " = " + allow);
     }
 
+    /* TV defaults. One-shot marker: TV defaults (see App.applyTvDefaults) are applied on
+       the first launch only, so a later user choice is never silently overridden. */
+    public static boolean isTvDefaultsApplied(Context context) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        return sharedPreferences.getBoolean(Constants.TV_DEFAULTS_APPLIED_PREF_KEY, false);
+    }
+
+    public static void saveTvDefaultsApplied(Context context, boolean applied) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        sharedPreferences.edit().putBoolean(Constants.TV_DEFAULTS_APPLIED_PREF_KEY, applied).apply();
+        XLog.tag(TAG).d("Saved " + Constants.TV_DEFAULTS_APPLIED_PREF_KEY + " = " + applied);
+    }
+
     /* Log level */
     public static AppLogLevel getLogLevel(Context context) {
         SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.APPLICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE);
