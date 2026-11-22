@@ -340,6 +340,7 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="backup_restore_button">بارگذاری از فایل</string>
     <string name="backup_saved_success">تنظیمات در فایل ذخیره شد</string>
     <string name="backup_save_error">ذخیره تنظیمات ناموفق بود</string>
+    <string name="feature_not_available">این قابلیت در این دستگاه در دسترس نیست</string>
     <string name="backup_restore_success">تنظیمات بازیابی شد</string>
     <string name="backup_restore_error">بارگذاری تنظیمات ناموفق بود: فایل پشتیبان نامعتبر است</string>
     <string name="backup_restore_confirm_title">بازیابی تنظیمات؟</string>
