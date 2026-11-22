@@ -54,6 +54,7 @@ import org.fptn.vpn.ui.common.ShareDialog
 import org.fptn.vpn.ui.common.legacyDrawableBackground
 import org.fptn.vpn.ui.theme.Primary
 import org.fptn.vpn.ui.theme.White
+import org.fptn.vpn.utils.startIfResolvable
 import java.io.File
 
 private const val LOAD_MORE_INDEX_THRESHOLD = 2
@@ -290,5 +291,5 @@ private fun sendLogFile(context: Context, file: File?) {
         putExtra(Intent.EXTRA_STREAM, uri)
         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
     }
-    context.startActivity(Intent.createChooser(intent, context.getString(R.string.send_log_file)))
+    context.startIfResolvable(Intent.createChooser(intent, context.getString(R.string.send_log_file)))
 }

@@ -157,7 +157,7 @@ fun BackupSettingsScreen(
                         textColor = Primary,
                         bold = true,
                         contentPadding = 12.dp,
-                        onClick = { onSaveToFile(createFileLauncher) },
+                        onClick = { onSaveToFile(context, createFileLauncher) },
                         modifier = Modifier
                             .weight(1f)
                             .padding(end = 8.dp),
@@ -203,7 +203,7 @@ fun BackupSettingsScreen(
                     textColor = Primary,
                     bold = true,
                     contentPadding = 12.dp,
-                    onClick = { onLoadFromFile(openFileLauncher) },
+                    onClick = { onLoadFromFile(context, openFileLauncher) },
                 )
             }
         }
@@ -243,22 +243,37 @@ fun BackupSettingsScreen(
     }
 }
 
-private fun onSaveToFile(launcher: androidx.activity.result.ActivityResultLauncher<Intent>) {
+private fun onSaveToFile(context: android.content.Context, launcher: androidx.activity.result.ActivityResultLauncher<Intent>) {
     val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
         addCategory(Intent.CATEGORY_OPENABLE)
         type = "application/json"
         putExtra(Intent.EXTRA_TITLE, generateBackupFileName())
     }
-    launcher.launch(intent)
+    launchBackupPicker(context, launcher, intent)
 }
 
-private fun onLoadFromFile(launcher: androidx.activity.result.ActivityResultLauncher<Intent>) {
+private fun onLoadFromFile(context: android.content.Context, launcher: androidx.activity.result.ActivityResultLauncher<Intent>) {
     val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
         addCategory(Intent.CATEGORY_OPENABLE)
         // Downloaded/shared *.json files often come with a generic mime type
         type = "*/*"
     }
-    launcher.launch(intent)
+    launchBackupPicker(context, launcher, intent)
+}
+
+// Android TV has no DocumentsUI: launching a file picker would crash with
+// ActivityNotFoundException — degrade to a toast instead.
+private fun launchBackupPicker(
+    context: android.content.Context,
+    launcher: androidx.activity.result.ActivityResultLauncher<Intent>,
+    intent: Intent,
+) {
+    try {
+        launcher.launch(intent)
+    } catch (e: android.content.ActivityNotFoundException) {
+        XLog.tag(TAG).w("No document picker on this device (Android TV) — backup file operation aborted: %s", e.message)
+        Toast.makeText(context, R.string.feature_not_available, Toast.LENGTH_SHORT).show()
+    }
 }
 
 private fun writeBackupToUri(context: android.content.Context, uri: Uri) {
