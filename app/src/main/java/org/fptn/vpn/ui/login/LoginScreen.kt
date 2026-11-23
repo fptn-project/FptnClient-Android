@@ -217,6 +217,14 @@ fun LoginScreen(
             }
         }
 
+        LegacyPillButton(
+            text = stringResource(R.string.login_button),
+            backgroundDrawable = R.drawable.round_back_secondary_100,
+            textColor = Primary,
+            onClick = ::onLogin,
+            modifier = Modifier.padding(top = 32.dp),
+        )
+
         // TV-only: import token from .txt file
         if (isTv && launchFilePicker != null) {
             LegacyPillButton(
@@ -227,13 +235,6 @@ fun LoginScreen(
                 modifier = Modifier.padding(top = 16.dp),
             )
         }
-        LegacyPillButton(
-            text = stringResource(R.string.login_button),
-            backgroundDrawable = R.drawable.round_back_secondary_100,
-            textColor = Primary,
-            onClick = ::onLogin,
-            modifier = Modifier.padding(top = 32.dp),
-        )
 
         Text(
             text = errorText,
