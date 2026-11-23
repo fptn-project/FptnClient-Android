@@ -21,6 +21,7 @@ import com.google.zxing.BarcodeFormat
 import com.google.zxing.MultiFormatWriter
 import com.google.zxing.common.BitMatrix
 import org.fptn.vpn.R
+import org.fptn.vpn.utils.startIfResolvable
 
 /**
  * Compose port of `CustomBottomNavigationListener.createShareDialog()`: a QR code for
@@ -73,7 +74,7 @@ private fun shareViaMessage(context: android.content.Context) {
         type = "text/plain"
         putExtra(Intent.EXTRA_TEXT, shareMessage)
     }
-    context.startActivity(Intent.createChooser(shareIntent, shareTitle))
+    context.startIfResolvable(Intent.createChooser(shareIntent, shareTitle))
 }
 
 private fun generateQrCode(text: String, width: Int, height: Int): Bitmap {

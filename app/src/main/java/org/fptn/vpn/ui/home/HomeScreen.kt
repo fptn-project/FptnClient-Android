@@ -88,6 +88,7 @@ import org.fptn.vpn.ui.theme.White
 import org.fptn.vpn.ui.theme.Yellow
 import org.fptn.vpn.utils.PermissionsUtils
 import org.fptn.vpn.utils.SharedPrefUtils
+import org.fptn.vpn.utils.startIfResolvable
 import org.fptn.vpn.exception.ErrorCode
 import androidx.core.net.toUri
 
@@ -353,7 +354,7 @@ fun HomeScreen(
                     duration = SnackbarDuration.Long,
                 )
                 if (result == SnackbarResult.ActionPerformed) {
-                    context.startActivity(
+                    context.startIfResolvable(
                         Intent(
                             Intent.ACTION_VIEW,
                             context.getString(R.string.telegram_bot_link).toUri()
@@ -596,7 +597,7 @@ fun HomeScreen(
             onOk = { showVpnSetupErrorDialog = false },
             onOpenVpnSettings = {
                 showVpnSetupErrorDialog = false
-                context.startActivity(Intent(Settings.ACTION_VPN_SETTINGS))
+                context.startIfResolvable(Intent(Settings.ACTION_VPN_SETTINGS))
             },
         )
     }

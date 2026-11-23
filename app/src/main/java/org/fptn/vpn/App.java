@@ -29,6 +29,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import org.fptn.vpn.utils.SharedPrefUtils;
+import org.fptn.vpn.utils.TvUtilsKt;
 import org.fptn.vpn.utils.XLogInitializer;
 
 import com.elvishew.xlog.XLog;
@@ -38,7 +39,19 @@ public class App extends Application {
     public void onCreate() {
         super.onCreate();
         initXLog();
+        applyTvDefaults();
         registerOrientationController();
+    }
+
+    // TV defaults run once per install: a TV is always landscape, so pre-enable the
+    // Experimental Settings rotation toggle for the user. The applied-flag below keeps
+    // a later user choice (e.g. disabling "Allow landscape") intact on every restart.
+    private void applyTvDefaults() {
+        if (!TvUtilsKt.isTv(this) || SharedPrefUtils.isTvDefaultsApplied(this)) {
+            return;
+        }
+        SharedPrefUtils.saveAllowLandscape(this, true);
+        SharedPrefUtils.saveTvDefaultsApplied(this, true);
     }
 
     // Portrait is the manifest baseline; on tablets (or when the user opts in) we

@@ -59,6 +59,7 @@ import org.fptn.vpn.ui.common.findActivity
 import org.fptn.vpn.ui.common.legacyDrawableBackground
 import org.fptn.vpn.ui.theme.White
 import org.fptn.vpn.utils.SharedPrefUtils
+import org.fptn.vpn.utils.startIfResolvable
 
 private const val TAG = "ExperimentalSettingsScreen"
 private val ATTEMPTS_COUNT_VALUES = intArrayOf(5, 15, 35, Int.MAX_VALUE)
@@ -461,7 +462,7 @@ fun ExperimentalSettingsScreen(
                     textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { context.startActivity(Intent(Settings.ACTION_VPN_SETTINGS)) }
+                        .clickable { context.startIfResolvable(Intent(Settings.ACTION_VPN_SETTINGS)) }
                         .padding(vertical = 3.dp),
                 )
             }

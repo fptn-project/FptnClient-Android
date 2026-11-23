@@ -21,6 +21,7 @@
 package org.fptn.vpn.services.tile;
 
 import android.app.PendingIntent;
+import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.graphics.drawable.Icon;
 import android.net.VpnService;
@@ -100,10 +101,14 @@ public class FptnTileService extends TileService {
                             PendingIntent.FLAG_IMMUTABLE
                     );
 
-                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-                        startActivityAndCollapse(pendingIntent);
-                    } else {
-                        startActivityAndCollapse(intent);
+                    try {
+                        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                            startActivityAndCollapse(pendingIntent);
+                        } else {
+                            startActivityAndCollapse(intent);
+                        }
+                    } catch (ActivityNotFoundException | SecurityException e) {
+                        XLog.tag(TAG).w("Notification settings screen unavailable on this device (Android TV?): %s", e.getMessage());
                     }
 
                     return;
@@ -117,10 +122,14 @@ public class FptnTileService extends TileService {
                         launchIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                         PendingIntent pendingIntent = PendingIntent.getActivity(
                                 this, 0, launchIntent, PendingIntent.FLAG_IMMUTABLE);
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-                            startActivityAndCollapse(pendingIntent);
-                        } else {
-                            startActivityAndCollapse(launchIntent);
+                        try {
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                                startActivityAndCollapse(pendingIntent);
+                            } else {
+                                startActivityAndCollapse(launchIntent);
+                            }
+                        } catch (ActivityNotFoundException | SecurityException e) {
+                            XLog.tag(TAG).w("App launch intent unavailable on this device (Android TV?): %s", e.getMessage());
                         }
                     }
                     return;

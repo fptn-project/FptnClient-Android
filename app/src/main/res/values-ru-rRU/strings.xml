@@ -339,6 +339,7 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="backup_restore_button">Загрузить из файла</string>
     <string name="backup_saved_success">Настройки сохранены в файл</string>
     <string name="backup_save_error">Не удалось сохранить настройки</string>
+    <string name="feature_not_available">Функция недоступна на этом устройстве</string>
     <string name="backup_restore_success">Настройки загружены</string>
     <string name="backup_restore_error">Не удалось загрузить настройки: неверный файл бэкапа</string>
     <string name="backup_restore_confirm_title">Загрузить настройки?</string>

@@ -57,6 +57,7 @@ import org.fptn.vpn.ui.theme.Gray
 import org.fptn.vpn.ui.theme.White
 import org.fptn.vpn.utils.PermissionsUtils
 import org.fptn.vpn.utils.SharedPrefUtils
+import org.fptn.vpn.utils.startIfResolvable
 import org.fptn.vpn.utils.XLogInitializer
 
 private const val TAG = "SettingsScreen"
@@ -401,13 +402,13 @@ private fun requestBatteryOptimizationExemption(context: android.content.Context
     SharedPrefUtils.saveBatteryOptimizationRequested(context, true)
     val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
     intent.data = Uri.parse("package:" + context.packageName)
-    context.startActivity(intent)
+    context.startIfResolvable(intent)
 }
 
 private fun requestBackgroundDataTransferPermission(context: android.content.Context) {
     val intent = Intent(Settings.ACTION_IGNORE_BACKGROUND_DATA_RESTRICTIONS_SETTINGS)
     intent.data = Uri.parse("package:" + context.packageName)
-    context.startActivity(intent)
+    context.startIfResolvable(intent)
 }
 
 @Composable

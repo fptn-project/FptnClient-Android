@@ -429,6 +429,7 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="backup_restore_button">Load from file</string>
     <string name="backup_saved_success">Settings saved to file</string>
     <string name="backup_save_error">Failed to save settings</string>
+    <string name="feature_not_available">Not available on this device</string>
     <string name="backup_restore_success">Settings restored</string>
     <string name="backup_restore_error">Failed to load settings: invalid backup file</string>
     <string name="backup_restore_confirm_title">Restore settings?</string>
