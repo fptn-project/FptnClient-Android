@@ -302,13 +302,6 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="dialog_clear_logs_title">Очистить логи</string>
     <string name="dialog_clear_logs_message">Все сохранённые файлы логов будут удалены. Продолжить?</string>
     <string name="logs_cleared">Логи очищены</string>
-    <string name="log_level_title">Уровень логирования</string>
-    <string name="log_level_verbose">Подробный</string>
-    <string name="log_level_debug">Отладка</string>
-    <string name="log_level_info">Информация</string>
-    <string name="log_level_warn">Предупреждения</string>
-    <string name="log_level_error">Ошибки</string>
-    <string name="log_level_none">Отключено</string>
 
     <string name="search_apps_hint">Поиск приложений…</string>
     <string name="show_system_apps_label">Системные приложения</string>
