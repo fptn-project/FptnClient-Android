@@ -50,11 +50,15 @@ import org.fptn.vpn.R
 import org.fptn.vpn.ui.common.HtmlLinkText
 import org.fptn.vpn.ui.common.LegacyPillButton
 import org.fptn.vpn.ui.common.legacyDrawableBackground
+import org.fptn.vpn.ui.common.TokenImportError
+import org.fptn.vpn.ui.common.TokenImportErrorDialog
+import org.fptn.vpn.ui.common.rememberTokenFilePicker
 import org.fptn.vpn.ui.theme.Black
 import org.fptn.vpn.ui.theme.Hint
 import org.fptn.vpn.ui.theme.Primary
 import org.fptn.vpn.ui.theme.White
 import org.fptn.vpn.ui.theme.Yellow
+import org.fptn.vpn.utils.isTv
 import org.fptn.vpn.utils.ResourcesUtils.getStringResourceByName
 import org.fptn.vpn.exception.ErrorCode
 import org.fptn.vpn.exception.PVNClientException
@@ -80,6 +84,21 @@ fun LoginScreen(
     val interactionSource = remember { MutableInteractionSource() }
     val isFocused by interactionSource.collectIsFocusedAsState()
     val keyboardController = LocalSoftwareKeyboardController.current
+
+    val isTv = remember { context.isTv() }
+
+    // TV-only: file import for token
+    var importError by remember { mutableStateOf<TokenImportError?>(null) }
+    val launchFilePicker = if (isTv) {
+        rememberTokenFilePicker(
+            onTokenLoaded = { content ->
+                tokenText = TextFieldValue(content, selection = TextRange(content.length))
+            },
+            onError = { error -> importError = error }
+        )
+    } else {
+        null
+    }
 
     // The legacy field never shows the soft keyboard (it's meant to be pasted into), so hide it
     // the moment focus lands here, matching `setShowSoftInputOnFocus(false)`.
@@ -198,6 +217,16 @@ fun LoginScreen(
             }
         }
 
+        // TV-only: import token from .txt file
+        if (isTv && launchFilePicker != null) {
+            LegacyPillButton(
+                text = stringResource(R.string.token_import_from_file),
+                backgroundDrawable = R.drawable.round_back_secondary_100,
+                textColor = Primary,
+                onClick = launchFilePicker,
+                modifier = Modifier.padding(top = 16.dp),
+            )
+        }
         LegacyPillButton(
             text = stringResource(R.string.login_button),
             backgroundDrawable = R.drawable.round_back_secondary_100,
@@ -210,6 +239,14 @@ fun LoginScreen(
             text = errorText,
             color = Yellow,
             modifier = Modifier.padding(start = 5.dp, top = 20.dp, end = 20.dp, bottom = 20.dp),
+        )
+    }
+
+    // TV-only: file import error dialog
+    if (importError != null) {
+        TokenImportErrorDialog(
+            error = importError,
+            onDismiss = { importError = null }
         )
     }
 }
