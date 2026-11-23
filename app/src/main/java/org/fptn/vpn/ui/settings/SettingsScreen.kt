@@ -78,6 +78,7 @@ fun SettingsScreen(
     onNavigateExperimentalSettings: () -> Unit,
     onNavigateLogs: () -> Unit,
     onNavigateBackup: () -> Unit,
+    onNavigateTokenManagement: () -> Unit,
     viewModel: SettingsViewModel = viewModel(),
 ) {
     val context = LocalContext.current
@@ -155,6 +156,13 @@ fun SettingsScreen(
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
+
+            SettingsNavRow(
+                icon = R.drawable.ic_baseline_key_24,
+                title = stringResource(R.string.token_management_title),
+                description = stringResource(R.string.token_management_description),
+                onClick = onNavigateTokenManagement,
+            )
 
             SettingsNavRow(
                 icon = R.drawable.ic_baseline_update_24,

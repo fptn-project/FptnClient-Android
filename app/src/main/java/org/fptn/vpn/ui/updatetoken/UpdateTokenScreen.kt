@@ -24,8 +24,10 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -44,6 +46,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -62,8 +65,12 @@ import org.fptn.vpn.ui.theme.Primary
 import org.fptn.vpn.ui.theme.White
 import org.fptn.vpn.ui.theme.Yellow
 import org.fptn.vpn.utils.ResourcesUtils.getStringResourceByName
+import org.fptn.vpn.utils.isTv
 import org.fptn.vpn.exception.ErrorCode
 import org.fptn.vpn.exception.PVNClientException
+import org.fptn.vpn.ui.common.TokenImportError
+import org.fptn.vpn.ui.common.TokenImportErrorDialog
+import org.fptn.vpn.ui.common.rememberTokenFilePicker
 
 private const val TAG = "UpdateTokenScreen"
 private val TOKEN_CLIPBOARD_PREFIXES = listOf("fptn:", "fptnb:")
@@ -76,18 +83,34 @@ private val TOKEN_CLIPBOARD_PREFIXES = listOf("fptn:", "fptnb:")
 fun UpdateTokenScreen(
     onNavigateHome: () -> Unit,
     onDoneNavigateSettings: () -> Unit,
-    viewModel: UpdateTokenViewModel = viewModel(),
+    onNavigateToTokenManagement: () -> Unit,
+    viewModel: UpdateTokenViewModel = viewModel()
 ) {
     val context = LocalContext.current
+    val isTv = remember { context.isTv() }
     val coroutineScope = rememberCoroutineScope()
     val errorText by viewModel.errorTextLiveData.observeAsState("")
     var tokenText by rememberSaveable(stateSaver = TextFieldValue.Saver) {
         mutableStateOf(TextFieldValue(""))
     }
     var showShareDialog by remember { mutableStateOf(false) }
+    var showNotFoundError by remember { mutableStateOf(false) }
     val interactionSource = remember { MutableInteractionSource() }
     val isFocused by interactionSource.collectIsFocusedAsState()
     val keyboardController = LocalSoftwareKeyboardController.current
+
+    // TV-only: file import for token
+    var importError by remember { mutableStateOf<TokenImportError?>(null) }
+    val launchFilePicker = if (isTv) {
+        rememberTokenFilePicker(
+            onTokenLoaded = { content ->
+                tokenText = TextFieldValue(content, selection = TextRange(content.length))
+            },
+            onError = { error -> importError = error }
+        )
+    } else {
+        null
+    }
 
     LaunchedEffect(isFocused) {
         if (isFocused) keyboardController?.hide()
@@ -105,11 +128,19 @@ fun UpdateTokenScreen(
     fun onCancel() = onDoneNavigateSettings()
 
     fun onSave() {
+        // Do not save if the field is empty
+        if (tokenText.text.isBlank()) {
+            return
+        }
         coroutineScope.launch {
             try {
-                viewModel.parseAndSaveToken(tokenText.text)
-                Toast.makeText(context, R.string.token_was_updated, Toast.LENGTH_SHORT).show()
-                onDoneNavigateSettings()
+                val isUpdated = viewModel.parseAndSaveToken(tokenText.text)
+                if (isUpdated) {
+                    Toast.makeText(context, R.string.token_was_updated, Toast.LENGTH_SHORT).show()
+                    onDoneNavigateSettings()
+                } else {
+                    showNotFoundError = true
+                }
             } catch (e: Exception) {
                 XLog.tag(TAG).e("Token update failed: %s", e.message)
                 val localizedMessage = if (e is PVNClientException && e.errorCode != ErrorCode.UNKNOWN_ERROR) {
@@ -117,7 +148,7 @@ fun UpdateTokenScreen(
                 } else {
                     e.message.orEmpty()
                 }
-                Toast.makeText(context, localizedMessage, Toast.LENGTH_SHORT).show()
+                // Display the error only below the field (without a Toast)
                 viewModel.errorTextLiveData.postValue(localizedMessage)
             }
         }
@@ -169,7 +200,13 @@ fun UpdateTokenScreen(
             ) {
                 BasicTextField(
                     value = tokenText,
-                    onValueChange = { tokenText = it },
+                    onValueChange = {
+                        tokenText = it
+                        // Clear the error when typing
+                        if (errorText.isNotEmpty()) {
+                            viewModel.errorTextLiveData.postValue("")
+                        }
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .align(Alignment.TopStart)
@@ -233,6 +270,18 @@ fun UpdateTokenScreen(
                         .weight(1f)
                         .padding(end = 8.dp),
                 )
+                // TV-only: import token from .txt file
+                if (isTv && launchFilePicker != null) {
+                    LegacyPillButton(
+                        text = stringResource(R.string.token_import_from_file),
+                        backgroundDrawable = R.drawable.round_back_secondary_100,
+                        textColor = Primary,
+                        onClick = launchFilePicker,
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(horizontal = 4.dp),
+                    )
+                }
                 LegacyPillButton(
                     text = stringResource(R.string.save_button),
                     backgroundDrawable = R.drawable.round_back_secondary_100,
@@ -262,5 +311,43 @@ fun UpdateTokenScreen(
 
     if (showShareDialog) {
         ShareDialog(onDismiss = { showShareDialog = false })
+    }
+
+    if (showNotFoundError) {
+        AlertDialog(
+            onDismissRequest = { showNotFoundError = false },
+            title = {
+                Text(stringResource(R.string.token_error_title), color = White, fontWeight = FontWeight.Bold)
+            },
+            text = {
+                Text(
+                    text = stringResource(R.string.token_error_not_found),
+                    color = White,
+                    fontSize = 14.sp,
+                    lineHeight = 17.sp
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    showNotFoundError = false
+                    onNavigateToTokenManagement()
+                }) {
+                    Text(stringResource(R.string.token_management_title))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showNotFoundError = false }) {
+                    Text(stringResource(R.string.cancel_button))
+                }
+            }
+        )
+    }
+
+    // TV-only: file import error dialog
+    if (importError != null) {
+        TokenImportErrorDialog(
+            error = importError,
+            onDismiss = { importError = null }
+        )
     }
 }

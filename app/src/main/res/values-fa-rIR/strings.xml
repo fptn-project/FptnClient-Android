@@ -351,4 +351,24 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="connection_strategy_dual">تونل چرخشی دوگانه</string>
     <string name="connection_strategy_triple">تونل چرخشی سه‌گانه</string>
     <string name="settings_per_app_russian_notice"><![CDATA[به منظور امنیت و کارکرد پایدار سرویس، برنامه‌های جاسوس شناخته‌شده همیشه خارج از VPN کار می‌کنند و نمی‌توانند به تونل بازگردانده شوند. فهرست کامل <a href="https://github.com/fptn-project/FptnClient-Android/blob/develop/app/src/main/res/values/always_excluded_apps.xml">برنامه‌های حذف‌شده</a> و <a href="https://github.com/fptn-project/FptnClient-Android/blob/develop/app/src/main/res/values/split_tunnel_domains.xml">دامنه‌های آن‌ها</a> در GitHub در دسترس است.]]></string>
+    <!-- token management -->
+    <string name="token_add">افزودن توکن</string>
+    <string name="token_add_hint">توکن را اینجا بچسبانید</string>
+    <string name="token_delete">حذف</string>
+    <string name="token_delete_confirmation">آیا از حذف توکن «%1$s» و همه سرورهای آن مطمئن هستید؟</string>
+    <string name="token_delete_title">حذف توکن</string>
+    <string name="token_error_exists">توکنی با این نام کاربری از قبل وجود دارد. لطفاً آن را در بخش «به‌روزرسانی توکن» به‌روزرسانی کنید.</string>
+    <string name="token_error_invalid">قالب توکن نامعتبر است.</string>
+    <string name="token_error_title">خطا</string>
+    <string name="token_error_unknown">خطای ناشناخته‌ای رخ داد.</string>
+    <string name="token_management_title">مدیریت توکن‌ها</string>
+    <string name="token_management_description">مدیریت توکن‌های FPTN. تغییر نمایش سرورها.</string>
+    <string name="token_updated_at">به‌روزرسانی‌شده: %1$s</string>
+    <string name="token_import_error_empty">فایل خالی است</string>
+    <string name="token_import_error_io">خطا در خواندن فایل</string>
+    <string name="token_import_error_not_txt">فقط فایل‌های .txt پشتیبانی می‌شوند</string>
+    <string name="token_import_error_read">خواندن فایل ناموفق بود</string>
+    <string name="token_import_from_file">وارد کردن از فایل</string>
+    <string name="token_error_not_found">هیچ توکن ذخیره‌شده‌ای با نام کاربری این توکن مطابقت ندارد. برای افزودن توکن جدید از «مدیریت توکن‌ها» استفاده کنید.</string>
 </resources>
+

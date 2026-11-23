@@ -53,6 +53,8 @@ public class ServerEntity {
     private String countryCode;
     private String md5ServerFingerprint;
     private boolean censured;
+    private int tokenId;
+    private int sortIndex;
 
     @Ignore // not save in DB (Room ORM annotation)
     @Getter
@@ -102,6 +104,22 @@ public class ServerEntity {
         return flag != null ? name + " " + flag : name;
     }
 
+    public int getTokenId() {
+        return tokenId;
+    }
+
+    public void setTokenId(int tokenId) {
+        this.tokenId = tokenId;
+    }
+
+    public int getSortIndex() {
+        return sortIndex;
+    }
+
+    public void setSortIndex(int sortIndex) {
+        this.sortIndex = sortIndex;
+    }
+
     public static final ServerEntity AUTO = ServerEntity.builder()
             .id(Constants.SELECTED_SERVER_ID_AUTO)
             .selected(false)
@@ -113,5 +131,7 @@ public class ServerEntity {
             .countryCode(null)
             .md5ServerFingerprint(null)
             .censured(false)
+            .tokenId(0)
+            .sortIndex(0)
             .build();
 }

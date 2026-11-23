@@ -349,4 +349,24 @@ https://play.google.com/store/apps/details?id=org.fptn.vpn
     <string name="connection_strategy_rolling">Скользящий туннель</string>
     <string name="connection_strategy_dual">Двойной скользящий туннель</string>
     <string name="connection_strategy_triple">Тройной скользящий туннель</string>
+
+    <!-- token management -->
+    <string name="token_add">Добавить токен</string>
+    <string name="token_add_hint">Вставьте токен сюда</string>
+    <string name="token_delete">Удалить</string>
+    <string name="token_delete_confirmation">Удалить токен «%1$s» и все его серверы?</string>
+    <string name="token_delete_title">Удаление токена</string>
+    <string name="token_error_exists">Токен с таким именем пользователя уже существует. Обновите его в разделе «Обновить токен».</string>
+    <string name="token_error_invalid">Неверный формат токена.</string>
+    <string name="token_error_title">Ошибка</string>
+    <string name="token_error_unknown">Произошла неизвестная ошибка.</string>
+    <string name="token_management_title">Управление токенами</string>
+    <string name="token_management_description">Управление токенами FPTN. Переключение видимости серверов.</string>
+    <string name="token_updated_at">Обновлён: %1$s</string>
+    <string name="token_import_error_empty">Файл пуст</string>
+    <string name="token_import_error_io">Ошибка чтения файла</string>
+    <string name="token_import_error_not_txt">Поддерживаются только файлы .txt</string>
+    <string name="token_import_error_read">Не удалось прочитать файл</string>
+    <string name="token_import_from_file">Импорт из файла</string>
+    <string name="token_error_not_found">Сохранённый токен с этим именем пользователя не найден. Чтобы добавить новый, откройте «Управление токенами».</string>
 </resources>

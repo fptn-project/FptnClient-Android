@@ -50,10 +50,32 @@ public final class TokenUtils {
     private TokenUtils() {
     }
 
-    public static List<ServerEntity> parseToken(String token) throws PVNClientException {
+    /**
+     * Token parsing result: metadata + list of servers.
+     */
+    public static class ParsedToken {
+        public final String serviceName;
+        public final String username;
+        public final String password;
+        public final List<ServerEntity> servers;
+
+        public ParsedToken(String serviceName, String username, String password, List<ServerEntity> servers) {
+            this.serviceName = serviceName;
+            this.username = username;
+            this.password = password;
+            this.servers = servers;
+        }
+    }
+
+    /**
+     * Parses the token and returns its metadata + list of servers.
+     *
+     * @return ParsedToken containing serviceName, username, password, and servers.
+     *         If the token does not contain serviceName, it will be null (the calling code can use username).
+     */
+    public static ParsedToken parseToken(String token) throws PVNClientException {
         List<ServerEntity> serverDtoList = new ArrayList<>();
 
-        // removes all whitespaces and non-visible characters (e.g., tab, \n) and prefixes fptn://  fptn: fptnb:
         final String clearedToken = token.replaceAll("\\s+", "")
                 .replace("fptn://", "")
                 .replace("fptn:", "")
@@ -71,38 +93,33 @@ public final class TokenUtils {
 
             String username = fptnToken.getUsername();
             String password = fptnToken.getPassword();
-            // add normal servers
+            String serviceName = fptnToken.getServiceName();  // may be null
+
             List<ServerFromToken> servers = fptnToken.getServers();
             if (servers != null && !servers.isEmpty()) {
-                for (ServerFromToken server : servers) {
-                    ServerEntity serverEntity = createServerEntity(server, username, password, false);
+                for (int i = 0; i < servers.size(); i++) {
+                    ServerEntity serverEntity = createServerEntity(servers.get(i), username, password, false, i);
                     serverDtoList.add(serverEntity);
                     XLog.tag(TAG).d("Server parsed from token [server=%s]", serverEntity.getServerInfo());
                 }
             }
-            // add censured servers
             List<ServerFromToken> censoredServers = fptnToken.getCensoredServers();
             if (censoredServers != null && !censoredServers.isEmpty()) {
-                for (ServerFromToken server : censoredServers) {
-                    ServerEntity serverEntity = createServerEntity(server, username, password, true);
+                for (int i = 0; i < censoredServers.size(); i++) {
+                    ServerEntity serverEntity = createServerEntity(censoredServers.get(i), username, password, true, i);
                     serverDtoList.add(serverEntity);
                     XLog.tag(TAG).d("Censored server parsed from token [server=%s]", serverEntity.getServerInfo());
                 }
             }
-        } catch (IOException e) {
+
+            return new ParsedToken(serviceName, username, password, serverDtoList);
+        } catch (Exception e) {
             XLog.tag(TAG).e("Failed to decode/parse FPTN token: %s", e.getMessage());
             throw new PVNClientException(ErrorCode.ACCESS_TOKEN_FORMAT_ERROR);
         }
-
-        if (serverDtoList.isEmpty()) {
-            XLog.tag(TAG).e("Token parsed but no servers found — token may be invalid or expired");
-//            throw new PVNClientException(ErrorCode.SERVER_LIST_NULL_OR_EMPTY);
-        }
-
-        return serverDtoList;
     }
 
-    private static ServerEntity createServerEntity(ServerFromToken server, String username, String password, boolean censured) {
+    private static ServerEntity createServerEntity(ServerFromToken server, String username, String password, boolean censured, int sortIndex) {
         String countryCode = Optional.ofNullable(server.getCountryCode())
                 .orElse(CountryFlags.getCountryCodeFromHostName(server.getName()));
 
@@ -117,7 +134,7 @@ public final class TokenUtils {
                 .md5ServerFingerprint(server.getMd5Fingerprint())
                 .selected(false)
                 .censured(censured)
+                .sortIndex(sortIndex)
                 .build();
     }
-
 }
