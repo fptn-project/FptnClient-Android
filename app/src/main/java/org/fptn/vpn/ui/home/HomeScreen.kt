@@ -1,5 +1,9 @@
 package org.fptn.vpn.ui.home
 
+import android.app.Activity
+import android.net.VpnService
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -33,6 +37,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -44,6 +49,7 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -147,6 +153,35 @@ fun HomeScreen(
     val themeState = LocalThemeState.current
     val themeController = LocalThemeController.current
     val haptic = LocalHapticFeedback.current
+    val context = LocalContext.current
+
+    LaunchedEffect(Unit) {
+        viewModel.loadActiveServer()
+    }
+
+    val vpnPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult(),
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            viewModel.startVpn()
+        }
+    }
+
+    val handleConnectClick = {
+        if (themeState.hapticEnabled) {
+            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+        }
+        if (uiState.connectionState == ConnectionState.DISCONNECTED) {
+            val prepareIntent = VpnService.prepare(context)
+            if (prepareIntent != null) {
+                vpnPermissionLauncher.launch(prepareIntent)
+            } else {
+                viewModel.startVpn()
+            }
+        } else {
+            viewModel.disconnectVpn()
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -490,10 +525,7 @@ fun HomeScreen(
                             .height(84.dp)
                             .clip(RoundedCornerShape(percent = 50))
                             .clickable {
-                                if (themeState.hapticEnabled) {
-                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                }
-                                viewModel.toggleConnection()
+                                handleConnectClick()
                             },
                     ) {
                         Box(contentAlignment = Alignment.Center) {
@@ -526,10 +558,7 @@ fun HomeScreen(
                             .height(68.dp)
                             .clip(RoundedCornerShape(percent = 50))
                             .clickable {
-                                if (themeState.hapticEnabled) {
-                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                }
-                                viewModel.toggleConnection()
+                                handleConnectClick()
                             },
                     ) {
                         Row(
@@ -562,10 +591,7 @@ fun HomeScreen(
                             .height(68.dp)
                             .clip(RoundedCornerShape(percent = 50))
                             .clickable {
-                                if (themeState.hapticEnabled) {
-                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                }
-                                viewModel.toggleConnection()
+                                handleConnectClick()
                             },
                     ) {
                         Row(

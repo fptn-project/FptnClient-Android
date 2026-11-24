@@ -1,19 +1,131 @@
 package org.fptn.vpn.ui.servers
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.elvishew.xlog.XLog
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlin.random.Random
+import kotlinx.coroutines.withContext
+import org.fptn.vpn.database.AppDatabase
+import org.fptn.vpn.database.entity.ServerEntity
+import org.fptn.vpn.ui.home.HomeActivityViewModel
+import org.fptn.vpn.utils.CountryFlags
+import org.fptn.vpn.utils.SharedPrefUtils
+import org.fptn.vpn.utils.token.TokenUtils
+import java.net.InetSocketAddress
+import java.net.Socket
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
-class ServersViewModel : ViewModel() {
+class ServersViewModel(application: Application) : AndroidViewModel(application) {
+
+    private val TAG = "ServersViewModel"
+    private val appDatabase = AppDatabase.getInstance(application)
+    private val serverDAO = appDatabase.serverDAO()
 
     private val _uiState = MutableStateFlow(ServersUiState())
     val uiState: StateFlow<ServersUiState> = _uiState.asStateFlow()
+
+    init {
+        loadServersFromDb()
+    }
+
+    fun loadServersFromDb() {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val dbServers = serverDAO.serverList
+                val selectedServer = serverDAO.selected
+                val isAutoSelected = selectedServer == null || selectedServer.IsAuto()
+
+                // Preserve or copy previous pings if available
+                HomeActivityViewModel.lastPingedServers?.let { pingedList ->
+                    for (loaded in dbServers) {
+                        for (pinged in pingedList) {
+                            if (loaded.host == pinged.host && loaded.port == pinged.port) {
+                                loaded.pingMs = pinged.pingMs
+                                break
+                            }
+                        }
+                    }
+                }
+
+                val tokenDateMillis = SharedPrefUtils.getTokenUpdatedDate(getApplication())
+                val formattedDate = if (tokenDateMillis > 0L) {
+                    val sdf = SimpleDateFormat("dd MMM, HH:mm", Locale.getDefault())
+                    sdf.format(Date(tokenDateMillis))
+                } else {
+                    "Недавно"
+                }
+
+                // Minimum ping for auto-select node
+                val validPings = dbServers.filter { it.pingMs > 0 }.map { it.pingMs }
+                val minPing = if (validPings.isNotEmpty()) validPings.minOrNull()!!.toInt() else 35
+
+                val autoNode = ServerItem(
+                    id = "srv_auto",
+                    name = "Авто-выбор (Самый быстрый)",
+                    region = "Автоматический маршрут",
+                    flag = "⚡",
+                    pingMs = minPing,
+                    protocol = "fptn",
+                    port = 443,
+                    isAutoSelect = true,
+                    isSelected = isAutoSelected,
+                )
+
+                val regularItems = dbServers.map { server ->
+                    val flag = CountryFlags.getCountryFlagByCountryCode(server.countryCode) ?: "🌐"
+                    val isSelected = !isAutoSelected && selectedServer != null && selectedServer.id == server.id
+                    ServerItem(
+                        id = server.id.toString(),
+                        name = server.name,
+                        region = server.host,
+                        flag = flag,
+                        pingMs = if (server.pingMs >= 0) server.pingMs.toInt() else -1,
+                        protocol = "fptn",
+                        port = server.port,
+                        isAutoSelect = false,
+                        isSelected = isSelected,
+                        isOnline = server.pingMs >= 0 || server.pingMs == -1L,
+                    )
+                }
+
+                val allServers = listOf(autoNode) + regularItems
+
+                val profile = ServerProfile(
+                    id = "fptn_active_profile",
+                    title = "FPTN VPN Profile",
+                    emoji = "⚡",
+                    updatedAt = formattedDate,
+                    trafficUsed = "Активен",
+                    trafficLimit = "${dbServers.size} узлов",
+                    trafficProgress = 1.0f,
+                    daysLeftText = "${dbServers.size} доступных серверов",
+                    isSelected = true,
+                )
+
+                withContext(Dispatchers.Main) {
+                    _uiState.update { state ->
+                        state.copy(
+                            profiles = listOf(profile),
+                            servers = allServers,
+                        )
+                    }
+                }
+            } catch (e: Exception) {
+                XLog.tag(TAG).e("Error loading servers: ${e.message}")
+            }
+        }
+    }
 
     fun toggleProfilesExpanded() {
         _uiState.update { it.copy(isProfilesExpanded = !it.isProfilesExpanded) }
@@ -33,28 +145,28 @@ class ServersViewModel : ViewModel() {
         _uiState.update { it.copy(isRefreshingProfile = true) }
 
         viewModelScope.launch {
-            delay(700) // Mock token sync network delay
-            _uiState.update { state ->
-                val updatedProfiles = state.profiles.map { profile ->
-                    if (profile.isSelected) {
-                        profile.copy(updatedAt = "Только что")
-                    } else {
-                        profile
-                    }
-                }
-                state.copy(
-                    profiles = updatedProfiles,
-                    isRefreshingProfile = false,
-                )
-            }
+            delay(500)
+            loadServersFromDb()
+            _uiState.update { it.copy(isRefreshingProfile = false) }
         }
     }
 
     fun selectServer(serverId: String) {
-        _uiState.update { state ->
-            state.copy(
-                servers = state.servers.map { it.copy(isSelected = (it.id == serverId)) },
-            )
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                if (serverId == "srv_auto") {
+                    serverDAO.resetSelected()
+                    SharedPrefUtils.saveResetSelectedServerEnabled(getApplication(), true)
+                } else {
+                    val id = serverId.toIntOrNull()
+                    if (id != null) {
+                        serverDAO.setSelected(id)
+                    }
+                }
+                loadServersFromDb()
+            } catch (e: Exception) {
+                XLog.tag(TAG).e("Failed to select server $serverId: ${e.message}")
+            }
         }
     }
 
@@ -66,28 +178,32 @@ class ServersViewModel : ViewModel() {
         if (_uiState.value.isCheckingPing) return
         _uiState.update { it.copy(isCheckingPing = true) }
 
-        viewModelScope.launch {
-            delay(800) // Mock latency test delay
-            _uiState.update { state ->
-                val updatedRegularServers = state.servers.filter { !it.isAutoSelect }.map { server ->
-                    val jitter = Random.nextInt(-8, 12)
-                    val newPing = (server.pingMs + jitter).coerceIn(24, 320)
-                    server.copy(pingMs = newPing)
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val dbServers = serverDAO.serverList
+                val pingJobs = dbServers.map { server ->
+                    async {
+                        val startTime = System.currentTimeMillis()
+                        try {
+                            Socket().use { socket ->
+                                socket.connect(InetSocketAddress(server.host, server.port), 4000)
+                                server.pingMs = System.currentTimeMillis() - startTime
+                            }
+                        } catch (e: Exception) {
+                            server.pingMs = -1
+                        }
+                        server
+                    }
                 }
-
-                val minPing = updatedRegularServers.minOfOrNull { it.pingMs } ?: 30
-                val autoSelectNode = state.servers.firstOrNull { it.isAutoSelect }?.copy(pingMs = minPing)
-
-                val allServers = if (autoSelectNode != null) {
-                    listOf(autoSelectNode) + updatedRegularServers
-                } else {
-                    updatedRegularServers
+                pingJobs.awaitAll()
+                HomeActivityViewModel.lastPingedServers = dbServers
+                loadServersFromDb()
+            } catch (e: Exception) {
+                XLog.tag(TAG).e("Ping check error: ${e.message}")
+            } finally {
+                withContext(Dispatchers.Main) {
+                    _uiState.update { it.copy(isCheckingPing = false) }
                 }
-
-                state.copy(
-                    servers = allServers,
-                    isCheckingPing = false,
-                )
             }
         }
     }
@@ -111,49 +227,33 @@ class ServersViewModel : ViewModel() {
             return
         }
 
-        val newProfileId = "profile_${System.currentTimeMillis()}"
-        val newServerId = "srv_${System.currentTimeMillis()}"
-        val newProfileName = if (input.contains("http", ignoreCase = true)) "FPTN Web Profile" else "FPTN Custom Key"
+        viewModelScope.launch {
+            try {
+                val serverEntities = withContext(Dispatchers.IO) {
+                    TokenUtils.parseToken(input)
+                }
+                if (serverEntities == null || serverEntities.isEmpty()) {
+                    _uiState.update { it.copy(tokenInputError = "В токене не найдено серверов") }
+                    return@launch
+                }
 
-        val newProfile = ServerProfile(
-            id = newProfileId,
-            title = newProfileName,
-            emoji = "✨",
-            updatedAt = "Только что",
-            trafficUsed = "0 B",
-            trafficLimit = "50,0 GiB",
-            trafficProgress = 0.01f,
-            daysLeftText = "Осталось 30 дней",
-            isSelected = true,
-        )
+                withContext(Dispatchers.IO) {
+                    serverDAO.deleteAndInsert(serverEntities)
+                    SharedPrefUtils.saveTokenUpdatedDate(getApplication(), System.currentTimeMillis())
+                }
 
-        val newServer = ServerItem(
-            id = newServerId,
-            name = "Новый узел ($newProfileName)",
-            region = "Автоматический",
-            flag = "🌐",
-            pingMs = Random.nextInt(32, 75),
-            protocol = "fptn",
-            port = 443,
-            isSelected = true,
-        )
-
-        _uiState.update { state ->
-            val regularServers = state.servers.filter { !it.isAutoSelect }.map { it.copy(isSelected = false) }
-            val autoSelect = state.servers.firstOrNull { it.isAutoSelect }?.copy(isSelected = false)
-            val updatedServers = if (autoSelect != null) {
-                listOf(autoSelect, newServer) + regularServers
-            } else {
-                listOf(newServer) + regularServers
+                _uiState.update {
+                    it.copy(
+                        showAddTokenSheet = false,
+                        tokenInputText = "",
+                        tokenInputError = null,
+                    )
+                }
+                loadServersFromDb()
+            } catch (e: Exception) {
+                XLog.tag(TAG).e("Error parsing token: ${e.message}")
+                _uiState.update { it.copy(tokenInputError = e.localizedMessage ?: "Неверный формат токена") }
             }
-
-            state.copy(
-                profiles = listOf(newProfile) + state.profiles.map { it.copy(isSelected = false) },
-                servers = updatedServers,
-                showAddTokenSheet = false,
-                tokenInputText = "",
-                tokenInputError = null,
-            )
         }
     }
 }
