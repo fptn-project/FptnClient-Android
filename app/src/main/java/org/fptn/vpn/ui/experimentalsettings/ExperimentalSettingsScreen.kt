@@ -42,6 +42,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -90,6 +91,7 @@ fun ExperimentalSettingsScreen(
     var allowLandscape by remember { mutableStateOf(SharedPrefUtils.getAllowLandscape(context)) }
     var adBlockEnabled by remember { mutableStateOf(SharedPrefUtils.getAdBlockEnabled(context)) }
     var domainBlacklistEnabled by remember { mutableStateOf(SharedPrefUtils.getDomainBlacklistEnabled(context)) }
+    var domainBlacklistAdvancedEnabled by remember { mutableStateOf(SharedPrefUtils.getDomainBlacklistAdvancedModeEnabled(context)) }
     var reconnectOnChangeNetworkType by remember { mutableStateOf(SharedPrefUtils.getReconnectOnChangeNetworkTypeEnabled(context)) }
     var reconnectOnChangeIp by remember { mutableStateOf(SharedPrefUtils.getReconnectOnChangeIPEnabled(context)) }
     var attemptsCountProgress by remember { mutableFloatStateOf(initialAttemptsCountProgress(context)) }
@@ -111,6 +113,7 @@ fun ExperimentalSettingsScreen(
         showTrafficChart = true
         adBlockEnabled = true
         domainBlacklistEnabled = true
+        domainBlacklistAdvancedEnabled = false
         reconnectOnChangeNetworkType = true
         reconnectOnChangeIp = true
         attemptsCountProgress = 2f
@@ -130,6 +133,7 @@ fun ExperimentalSettingsScreen(
         SharedPrefUtils.saveAdBlockEnabled(context, true)
         SharedPrefUtils.saveDomainBlacklistEnabled(context, true)
         SharedPrefUtils.saveDomainBlacklistDomains(context, Constants.DOMAIN_BLACKLIST_DEFAULT)
+        SharedPrefUtils.saveDomainBlacklistAdvancedModeEnabled(context, false)
         SharedPrefUtils.saveReconnectOnChangeNetworkTypeEnabled(context, true)
         SharedPrefUtils.saveReconnectOnChangeIPEnabled(context, true)
         SharedPrefUtils.saveReconnectAttemptsCount(context, ATTEMPTS_COUNT_VALUES[2])
@@ -257,28 +261,44 @@ fun ExperimentalSettingsScreen(
             ExperimentalCard {
                 CardTitle(stringResource(R.string.domain_blacklist_title))
                 CardDescription(stringResource(R.string.domain_blacklist_description))
-                Row(
+
+                Text(
+                    text = stringResource(R.string.domain_blacklist_list_link),
+                    color = White.copy(alpha = 0.8f),
+                    fontSize = 14.sp,
+                    textAlign = TextAlign.Center,
+                    textDecoration = TextDecoration.Underline,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    LinkifiedText(
-                        text = stringResource(R.string.domain_blacklist_enable),
-                        linkText = stringResource(R.string.domain_blacklist_enable_link),
-                        onLinkClick = { showDomainBlacklistDialog = true },
-                        color = White,
-                        fontSize = 14.sp,
-                        modifier = Modifier.weight(1f),
-                    )
-                    Switch(
-                        checked = domainBlacklistEnabled,
-                        onCheckedChange = {
-                            domainBlacklistEnabled = it
-                            SharedPrefUtils.saveDomainBlacklistEnabled(context, it)
-                        },
-                    )
-                }
+                        .padding(start = 12.dp, end = 12.dp, bottom = 8.dp)
+                        .clickable { showDomainBlacklistDialog = true }
+                )
+
+                SwitchRow(
+                    text = stringResource(R.string.domain_blacklist_enable),
+                    checked = domainBlacklistEnabled,
+                    onCheckedChange = {
+                        domainBlacklistEnabled = it
+                        SharedPrefUtils.saveDomainBlacklistEnabled(context, it)
+
+                        if (!it) {
+                            domainBlacklistAdvancedEnabled = false
+                            SharedPrefUtils.saveDomainBlacklistAdvancedModeEnabled(context, false)
+                        }
+                    },
+                )
+
+                SwitchRow(
+                    text = stringResource(R.string.domain_blacklist_advanced_enable),
+                    checked = domainBlacklistAdvancedEnabled,
+                    enabled = domainBlacklistEnabled,
+                    onCheckedChange = {
+                        domainBlacklistAdvancedEnabled = it
+                        SharedPrefUtils.saveDomainBlacklistAdvancedModeEnabled(context, it)
+                    },
+                )
+
+                CardDescription(stringResource(R.string.domain_blacklist_advanced_description))
             }
 
             ExperimentalCard {
@@ -573,15 +593,24 @@ private fun CardDescription(text: String) {
 }
 
 @Composable
-private fun SwitchRow(text: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
+private fun SwitchRow(text: String, checked: Boolean, enabled: Boolean = true, onCheckedChange: (Boolean) -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(text = text, color = White, fontSize = 14.sp, modifier = Modifier.weight(1f))
-        Switch(checked = checked, onCheckedChange = onCheckedChange)
+        Text(
+            text = text,
+            color = if (enabled) White else White.copy(alpha = 0.5f),
+            fontSize = 14.sp,
+            modifier = Modifier.weight(1f)
+        )
+        Switch(
+            checked = checked,
+            enabled = enabled,
+            onCheckedChange = onCheckedChange
+        )
     }
 }
 
