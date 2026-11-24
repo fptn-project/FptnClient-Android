@@ -2,8 +2,8 @@ package org.fptn.vpn.ui.home
 
 import android.app.Application
 import android.content.ComponentName
-import android.content.IBinder
 import android.content.ServiceConnection
+import android.os.IBinder
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.Observer
 import androidx.lifecycle.viewModelScope
@@ -42,8 +42,8 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     private var serviceConnection: ServiceConnection? = null
 
     // Observers for FptnService LiveData
-    private var speedAndDurationObserver: Observer<kotlin.Triple<String, String, java.lang.Long>>? = null
-    private var trafficBytesObserver: Observer<kotlin.Pair<java.lang.Long, java.lang.Long>>? = null
+    private var speedAndDurationObserver: Observer<Triple<String, String, Long>>? = null
+    private var trafficBytesObserver: Observer<Pair<Long, Long>>? = null
     private var serviceStateObserver: Observer<FptnServiceState>? = null
 
     // Observer for static tile service state (always active across processes/services)
@@ -196,7 +196,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                 }
             }
         }
-        service.speedAndDurationMutableLiveData.observeForever(speedAndDurationObserver!!)
+        service.getSpeedAndDurationMutableLiveData().observeForever(speedAndDurationObserver!!)
 
         trafficBytesObserver = Observer { traffic ->
             if (traffic != null) {
@@ -210,7 +210,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                 }
             }
         }
-        service.trafficBytesLiveData.observeForever(trafficBytesObserver!!)
+        service.getTrafficBytesLiveData().observeForever(trafficBytesObserver!!)
 
         serviceStateObserver = Observer { serviceState ->
             if (serviceState != null) {
@@ -220,14 +220,14 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                 }
             }
         }
-        service.serviceStateMutableLiveData.observeForever(serviceStateObserver!!)
+        service.getServiceStateMutableLiveData().observeForever(serviceStateObserver!!)
     }
 
     private fun unsubscribeService() {
         subscribedService?.let { service ->
-            speedAndDurationObserver?.let { service.speedAndDurationMutableLiveData.removeObserver(it) }
-            trafficBytesObserver?.let { service.trafficBytesLiveData.removeObserver(it) }
-            serviceStateObserver?.let { service.serviceStateMutableLiveData.removeObserver(it) }
+            speedAndDurationObserver?.let { service.getSpeedAndDurationMutableLiveData().removeObserver(it) }
+            trafficBytesObserver?.let { service.getTrafficBytesLiveData().removeObserver(it) }
+            serviceStateObserver?.let { service.getServiceStateMutableLiveData().removeObserver(it) }
         }
         speedAndDurationObserver = null
         trafficBytesObserver = null

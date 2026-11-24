@@ -495,8 +495,8 @@ fun SettingsScreen(
                     ) {
                         listOf(
                             ConnectionStrategy.ROLLING_TUNNEL to "Скользящий",
-                            ConnectionStrategy.DOUBLE_ROLLING_TUNNEL to "Двойной",
-                            ConnectionStrategy.TRIPLE_ROLLING_TUNNEL to "Тройной",
+                            ConnectionStrategy.DUAL_TUNNEL to "Двойной",
+                            ConnectionStrategy.TRIPLE_TUNNEL to "Тройной",
                         ).forEach { (strategy, name) ->
                             val isSelected = uiState.connectionStrategy == strategy
                             Surface(

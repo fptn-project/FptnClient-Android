@@ -47,6 +47,14 @@ public class FptnServiceState {
         return exception;
     }
 
+    public String getServerInfo() {
+        return serverInfo;
+    }
+
+    public String getDisconnectReason() {
+        return disconnectReason;
+    }
+
     public static final FptnServiceState INITIAL = FptnServiceState.builder()
             .connectionState(ConnectionState.DISCONNECTED)
             .exception(null)

@@ -2,8 +2,8 @@ package org.fptn.vpn.ui.stats
 
 import android.app.Application
 import android.content.ComponentName
-import android.content.IBinder
 import android.content.ServiceConnection
+import android.os.IBinder
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.Observer
 import androidx.lifecycle.viewModelScope
@@ -30,8 +30,8 @@ class StatsViewModel(application: Application) : AndroidViewModel(application) {
     private var subscribedService: FptnService? = null
     private var serviceConnection: ServiceConnection? = null
 
-    private var speedObserver: Observer<kotlin.Triple<String, String, java.lang.Long>>? = null
-    private var trafficObserver: Observer<kotlin.Pair<java.lang.Long, java.lang.Long>>? = null
+    private var speedObserver: Observer<Triple<String, String, Long>>? = null
+    private var trafficObserver: Observer<Pair<Long, Long>>? = null
 
     init {
         val sdf = SimpleDateFormat("HH:mm", Locale.getDefault())
@@ -104,7 +104,7 @@ class StatsViewModel(application: Application) : AndroidViewModel(application) {
                 }
             }
         }
-        service.speedAndDurationMutableLiveData.observeForever(speedObserver!!)
+        service.getSpeedAndDurationMutableLiveData().observeForever(speedObserver!!)
 
         trafficObserver = Observer { traffic ->
             if (traffic != null) {
@@ -121,13 +121,13 @@ class StatsViewModel(application: Application) : AndroidViewModel(application) {
                 }
             }
         }
-        service.trafficBytesLiveData.observeForever(trafficObserver!!)
+        service.getTrafficBytesLiveData().observeForever(trafficObserver!!)
     }
 
     private fun unsubscribeService() {
         subscribedService?.let { service ->
-            speedObserver?.let { service.speedAndDurationMutableLiveData.removeObserver(it) }
-            trafficObserver?.let { service.trafficBytesLiveData.removeObserver(it) }
+            speedObserver?.let { service.getSpeedAndDurationMutableLiveData().removeObserver(it) }
+            trafficObserver?.let { service.getTrafficBytesLiveData().removeObserver(it) }
         }
         speedObserver = null
         trafficObserver = null

@@ -173,6 +173,25 @@ public class FptnService extends VpnService {
     @Getter
     private final MutableLiveData<long[]> rawSpeedBpsLiveData = new MutableLiveData<>(new long[]{0L, 0L});
 
+    // Written out explicitly (alongside Lombok @Getter) because Kotlin's Java-interop
+    // stub generation runs before the Lombok annotation processor, so Kotlin/Compose call
+    // sites can't see Lombok-generated accessors.
+    public MutableLiveData<FptnServiceState> getServiceStateMutableLiveData() {
+        return serviceStateMutableLiveData;
+    }
+
+    public MutableLiveData<Triple<String, String, Long>> getSpeedAndDurationMutableLiveData() {
+        return speedAndDurationMutableLiveData;
+    }
+
+    public MutableLiveData<Pair<Long, Long>> getTrafficBytesLiveData() {
+        return trafficBytesLiveData;
+    }
+
+    public MutableLiveData<long[]> getRawSpeedBpsLiveData() {
+        return rawSpeedBpsLiveData;
+    }
+
     @Getter
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
     private PowerManager.WakeLock wakeLock;
