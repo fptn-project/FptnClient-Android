@@ -239,6 +239,9 @@ fun StatsScreen(
                                 text = "Пик ${uiState.peakSpeed}",
                                 style = MetricTypography.Latency,
                                 fontSize = 11.sp,
+                                maxLines = 1,
+                                softWrap = false,
+                                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
                                 color = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
                             )

@@ -165,59 +165,6 @@ fun SettingsScreen(
 
                     AnimatedVisibility(visible = uiState.isAppearanceExpanded) {
                         Column(modifier = Modifier.padding(top = 16.dp)) {
-                            // Mini Phone Preview Mockup
-                            Surface(
-                                shape = RoundedCornerShape(16.dp),
-                                color = if (themeState.amoledMode && themeState.themeMode != ThemeMode.LIGHT) {
-                                    AmoledBackground
-                                } else {
-                                    MaterialTheme.colorScheme.background
-                                },
-                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)),
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(bottom = 16.dp),
-                            ) {
-                                Column(
-                                    modifier = Modifier.padding(14.dp),
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                ) {
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.SpaceBetween,
-                                    ) {
-                                        Text(
-                                            text = "FPTN VPN",
-                                            style = MaterialTheme.typography.labelSmall,
-                                            fontWeight = FontWeight.Bold,
-                                            color = MaterialTheme.colorScheme.primary,
-                                        )
-                                        Text(
-                                            text = "42 мс",
-                                            style = MetricTypography.Latency,
-                                            fontSize = 10.sp,
-                                            color = PingGood,
-                                        )
-                                    }
-                                    Spacer(modifier = Modifier.height(8.dp))
-                                    Surface(
-                                        shape = RoundedCornerShape(percent = 50),
-                                        color = MaterialTheme.colorScheme.primaryContainer,
-                                        modifier = Modifier
-                                            .fillMaxWidth(0.85f)
-                                            .height(28.dp),
-                                    ) {
-                                        Box(contentAlignment = Alignment.Center) {
-                                            Text(
-                                                text = "Подключено ~~~~~",
-                                                style = MaterialTheme.typography.labelSmall,
-                                                color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-
                             // Theme Mode Selector (Auto / Light / Dark)
                             Text(
                                 text = "Режим темы",

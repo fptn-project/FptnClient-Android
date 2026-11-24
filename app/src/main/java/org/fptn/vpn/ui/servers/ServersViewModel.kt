@@ -68,7 +68,7 @@ class ServersViewModel(application: Application) : AndroidViewModel(application)
 
                 // Minimum ping for auto-select node
                 val validPings = dbServers.filter { it.pingMs > 0 }.map { it.pingMs }
-                val minPing = if (validPings.isNotEmpty()) validPings.minOrNull()!!.toInt() else 35
+                val minPing = if (validPings.isNotEmpty()) validPings.minOrNull()!!.toInt() else -1
 
                 val autoNode = ServerItem(
                     id = "srv_auto",
@@ -90,12 +90,12 @@ class ServersViewModel(application: Application) : AndroidViewModel(application)
                         name = server.name,
                         region = server.host,
                         flag = flag,
-                        pingMs = if (server.pingMs >= 0) server.pingMs.toInt() else -1,
+                        pingMs = if (server.pingMs > 0) server.pingMs.toInt() else -1,
                         protocol = "fptn",
                         port = server.port,
                         isAutoSelect = false,
                         isSelected = isSelected,
-                        isOnline = server.pingMs >= 0 || server.pingMs == -1L,
+                        isOnline = server.pingMs > 0 || server.pingMs == -1L,
                     )
                 }
 
@@ -106,10 +106,10 @@ class ServersViewModel(application: Application) : AndroidViewModel(application)
                     title = "FPTN VPN Profile",
                     emoji = "⚡",
                     updatedAt = formattedDate,
-                    trafficUsed = "Активен",
+                    trafficUsed = "Подписка активна",
                     trafficLimit = "${dbServers.size} узлов",
                     trafficProgress = 1.0f,
-                    daysLeftText = "${dbServers.size} доступных серверов",
+                    daysLeftText = "Узлов в списке: ${dbServers.size}",
                     isSelected = true,
                 )
 

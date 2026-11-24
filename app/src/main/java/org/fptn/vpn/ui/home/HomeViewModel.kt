@@ -27,6 +27,8 @@ import org.fptn.vpn.utils.TimeUtils
 import java.util.Calendar
 import java.util.Locale
 
+import org.fptn.vpn.ui.home.HomeActivityViewModel
+
 class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
     private val TAG = "HomeViewModel"
@@ -89,10 +91,13 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
             try {
                 val selected = appDatabase.serverDAO().selected
                 val isOnline = _uiState.value.connectionState == ConnectionState.CONNECTED
+                val pingedList = HomeActivityViewModel.lastPingedServers
+
                 withContext(Dispatchers.Main) {
                     if (selected != null && !selected.IsAuto()) {
                         val flag = CountryFlags.getCountryFlagByCountryCode(selected.countryCode) ?: "🌐"
-                        val ping = if (selected.pingMs >= 0) selected.pingMs.toInt() else 42
+                        val cachedPing = pingedList?.firstOrNull { it.host == selected.host && it.port == selected.port }?.pingMs ?: selected.pingMs
+                        val ping = if (cachedPing > 0) cachedPing.toInt() else -1
                         _uiState.update {
                             it.copy(
                                 serverName = selected.name,
@@ -104,15 +109,17 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                             )
                         }
                     } else {
-                        // Auto-selected server
+                        // Auto-selected server: find lowest valid ping among tested servers
+                        val validPings = pingedList?.filter { it.pingMs > 0 }?.map { it.pingMs }
+                        val minPing = if (!validPings.isNullOrEmpty()) validPings.minOrNull()!!.toInt() else -1
                         _uiState.update {
                             it.copy(
                                 serverName = "Авто-выбор",
                                 serverRegion = "Оптимальный маршрут",
                                 serverFlag = "⚡",
                                 serverProtocol = "fptn",
-                                pingMs = 35,
-                                services = buildServicePings(35, isOnline),
+                                pingMs = minPing,
+                                services = buildServicePings(minPing, isOnline),
                             )
                         }
                     }
@@ -124,12 +131,12 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private fun buildServicePings(basePing: Int, isOnline: Boolean): List<ServicePing> {
-        val p = if (basePing > 0) basePing else 40
+        val hasPing = basePing > 0
         return listOf(
-            ServicePing("YouTube", if (isOnline) "Доступен" else "Ожидание", isOnline, (p * 0.9).toInt().coerceAtLeast(15)),
-            ServicePing("Telegram", if (isOnline) "Доступен" else "Ожидание", isOnline, (p * 0.8).toInt().coerceAtLeast(12)),
-            ServicePing("Discord", if (isOnline) "Доступен" else "Ожидание", isOnline, (p * 1.1).toInt().coerceAtLeast(20)),
-            ServicePing("OpenAI", if (isOnline) "Доступен" else "Ожидание", isOnline, (p * 1.25).toInt().coerceAtLeast(25)),
+            ServicePing("YouTube", if (isOnline) "Доступен" else "Ожидание", isOnline, if (hasPing) (basePing * 0.9).toInt().coerceAtLeast(15) else -1),
+            ServicePing("Telegram", if (isOnline) "Доступен" else "Ожидание", isOnline, if (hasPing) (basePing * 0.8).toInt().coerceAtLeast(12) else -1),
+            ServicePing("Discord", if (isOnline) "Доступен" else "Ожидание", isOnline, if (hasPing) (basePing * 1.1).toInt().coerceAtLeast(20) else -1),
+            ServicePing("OpenAI", if (isOnline) "Доступен" else "Ожидание", isOnline, if (hasPing) (basePing * 1.25).toInt().coerceAtLeast(25) else -1),
         )
     }
 
@@ -183,8 +190,8 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
         speedAndDurationObserver = Observer { speedAndDuration ->
             if (speedAndDuration != null) {
-                val down = speedAndDuration.first
-                val up = speedAndDuration.second
+                val down = formatSpeed(speedAndDuration.first)
+                val up = formatSpeed(speedAndDuration.second)
                 val dur = speedAndDuration.third?.toLong() ?: 0L
                 sessionDurationSeconds = dur
                 _uiState.update {
@@ -260,11 +267,23 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
     private fun formatBytes(bytes: Long): String {
         return when {
-            bytes >= 1_000_000_000L -> String.format(Locale.US, "%.2f GB", bytes / 1_000_000_000.0)
-            bytes >= 1_000_000L -> String.format(Locale.US, "%.2f MB", bytes / 1_000_000.0)
-            bytes >= 1_000L -> String.format(Locale.US, "%.2f KB", bytes / 1_000.0)
-            else -> "$bytes B"
+            bytes >= 1_000_000_000L -> String.format(Locale("ru", "RU"), "%.1f ГБ", bytes / 1_000_000_000.0)
+            bytes >= 1_000_000L -> String.format(Locale("ru", "RU"), "%.1f МБ", bytes / 1_000_000.0)
+            bytes >= 1_000L -> String.format(Locale("ru", "RU"), "%.1f КБ", bytes / 1_000.0)
+            else -> "$bytes Б"
         }
+    }
+
+    private fun formatSpeed(speed: String?): String {
+        if (speed.isNullOrBlank()) return "0 Б/с"
+        return speed
+            .replace(".", ",")
+            .replace("MB/s", "МБ/с")
+            .replace("KB/s", "КБ/с")
+            .replace("B/s", "Б/с")
+            .replace("Gbps", "Гбит/с")
+            .replace("Mbps", "Мбит/с")
+            .replace("Kbps", "Кбит/с")
     }
 
     override fun onCleared() {

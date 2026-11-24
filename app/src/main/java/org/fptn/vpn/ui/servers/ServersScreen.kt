@@ -11,6 +11,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -231,23 +232,13 @@ fun ServersScreen(
 
                     // Progress bar & limits
                     if (activeProfile != null) {
-                        Spacer(modifier = Modifier.height(12.dp))
-                        LinearProgressIndicator(
-                            progress = { activeProfile.trafficProgress },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(6.dp)
-                                .clip(RoundedCornerShape(3.dp)),
-                            color = MaterialTheme.colorScheme.primary,
-                            trackColor = MaterialTheme.colorScheme.surfaceVariant,
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(10.dp))
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
                         ) {
                             Text(
-                                text = "${activeProfile.trafficUsed} / ${activeProfile.trafficLimit}",
+                                text = activeProfile.trafficUsed,
                                 style = MetricTypography.Traffic,
                                 fontSize = 11.sp,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -387,27 +378,29 @@ fun ServersScreen(
                     shape = RoundedCornerShape(percent = 50),
                     color = MaterialTheme.colorScheme.surfaceVariant,
                     modifier = Modifier
+                        .defaultMinSize(minWidth = 88.dp)
                         .clip(RoundedCornerShape(percent = 50))
                         .clickable { viewModel.checkPing() },
                 ) {
                     Row(
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 7.dp),
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 7.dp),
                         verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center,
                     ) {
-                        Icon(
-                            painter = painterResource(R.drawable.ic_baseline_update_24),
-                            contentDescription = "Check Ping",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier
-                                .size(16.dp)
-                                .then(
-                                    if (uiState.isCheckingPing) {
-                                        Modifier.rotate(rotationAngle)
-                                    } else {
-                                        Modifier
-                                    },
-                                ),
-                        )
+                        if (uiState.isCheckingPing) {
+                            androidx.compose.material3.CircularProgressIndicator(
+                                modifier = Modifier.size(14.dp),
+                                strokeWidth = 2.dp,
+                                color = MaterialTheme.colorScheme.primary,
+                            )
+                        } else {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_baseline_update_24),
+                                contentDescription = "Check Ping",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(16.dp),
+                            )
+                        }
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
                             text = if (uiState.isCheckingPing) "Тест..." else "Пинг",
@@ -537,7 +530,9 @@ fun ServersScreen(
                             }
 
                             // Tabular Latency Readout Pill
+                            val hasPing = server.pingMs > 0
                             val pingColor = when {
+                                !hasPing -> MaterialTheme.colorScheme.onSurfaceVariant
                                 server.pingMs < 80 -> PingGood
                                 server.pingMs < 150 -> PingMedium
                                 else -> PingPoor
@@ -545,10 +540,10 @@ fun ServersScreen(
 
                             Surface(
                                 shape = RoundedCornerShape(percent = 50),
-                                color = pingColor.copy(alpha = 0.15f),
+                                color = if (hasPing) pingColor.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceVariant,
                             ) {
                                 Text(
-                                    text = "${server.pingMs} мс",
+                                    text = if (hasPing) "${server.pingMs} мс" else "—",
                                     style = MetricTypography.Latency,
                                     fontSize = 12.sp,
                                     fontWeight = FontWeight.Bold,

@@ -331,19 +331,43 @@ fun HomeScreen(
                 Spacer(modifier = Modifier.height(20.dp))
             }
 
-            // 3. Greeting Header (Time-based: Доброе утро / день / вечер / ночь)
-            Text(
-                text = "FPTN Безопасность",
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.primary,
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = uiState.greeting,
-                style = MaterialTheme.typography.displayMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground,
-            )
+            // 3. Status Header
+            Column {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = "FPTN VPN",
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary,
+                        letterSpacing = 1.2.sp,
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Box(
+                        modifier = Modifier
+                            .size(6.dp)
+                            .clip(CircleShape)
+                            .background(
+                                when (uiState.connectionState) {
+                                    ConnectionState.CONNECTED -> StatusConnected
+                                    ConnectionState.CONNECTING -> StatusConnecting
+                                    else -> StatusDisconnected
+                                },
+                            ),
+                    )
+                }
+                Spacer(modifier = Modifier.height(4.dp))
+                val headerTitle = when (uiState.connectionState) {
+                    ConnectionState.CONNECTED -> "Подключение активно"
+                    ConnectionState.CONNECTING -> "Подключение..."
+                    else -> "Туннель отключён"
+                }
+                Text(
+                    text = headerTitle,
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onBackground,
+                )
+            }
 
             Spacer(modifier = Modifier.height(14.dp))
 
@@ -412,6 +436,14 @@ fun HomeScreen(
                 }
 
                 // Ping Pill
+                val hasPing = uiState.pingMs > 0
+                val pingColor = when {
+                    !hasPing -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                    uiState.pingMs < 80 -> PingGood
+                    uiState.pingMs < 150 -> MaterialTheme.colorScheme.primary
+                    else -> MaterialTheme.colorScheme.error
+                }
+
                 Surface(
                     shape = RoundedCornerShape(percent = 50),
                     color = MaterialTheme.cardContainerColor,
@@ -422,11 +454,11 @@ fun HomeScreen(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Canvas(modifier = Modifier.size(6.dp)) {
-                            drawCircle(color = PingGood)
+                            drawCircle(color = pingColor)
                         }
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
-                            text = "${uiState.pingMs} мс",
+                            text = if (hasPing) "${uiState.pingMs} мс" else "—",
                             style = MetricTypography.Latency,
                             fontSize = 13.sp,
                             color = MaterialTheme.colorScheme.onSurface,
@@ -495,8 +527,9 @@ fun HomeScreen(
                             fontWeight = FontWeight.SemiBold,
                             color = MaterialTheme.colorScheme.onSurface,
                         )
+                        val pingLabel = if (uiState.pingMs > 0) "${uiState.pingMs} мс" else "пинг не измерен"
                         Text(
-                            text = "${uiState.serverRegion} • ${uiState.pingMs} мс",
+                            text = "${uiState.serverRegion} • $pingLabel",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -513,105 +546,107 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // 6. Large Interactive Connect/Wave Capsule
-            when (uiState.connectionState) {
-                ConnectionState.CONNECTED -> {
-                    Surface(
-                        shape = RoundedCornerShape(percent = 50),
-                        color = MaterialTheme.colorScheme.primaryContainer,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(84.dp)
-                            .clip(RoundedCornerShape(percent = 50))
-                            .clickable {
-                                handleConnectClick()
-                            },
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
+            // 6. Connect Button / Interactive Capsule
+            Surface(
+                shape = RoundedCornerShape(percent = 50),
+                color = when (uiState.connectionState) {
+                    ConnectionState.CONNECTED -> MaterialTheme.colorScheme.primaryContainer
+                    ConnectionState.CONNECTING -> MaterialTheme.colorScheme.secondaryContainer
+                    else -> MaterialTheme.colorScheme.primary
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(72.dp)
+                    .clip(RoundedCornerShape(percent = 50))
+                    .clickable { handleConnectClick() },
+            ) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    when (uiState.connectionState) {
+                        ConnectionState.CONNECTED -> {
                             AnimatedSineWave(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .height(48.dp)
+                                    .height(44.dp)
                                     .padding(horizontal = 24.dp),
                                 waveColor = MaterialTheme.colorScheme.primary,
                             )
-                            Text(
-                                text = "Подключено • Нажмите для отключения",
-                                style = MaterialTheme.typography.labelMedium,
-                                fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                modifier = Modifier
-                                    .align(Alignment.BottomCenter)
-                                    .padding(bottom = 8.dp),
-                            )
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center,
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(8.dp)
+                                            .clip(CircleShape)
+                                            .background(StatusConnected),
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = "Подключено",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    )
+                                }
+                                Text(
+                                    text = "Нажмите для отключения",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.75f),
+                                )
+                            }
                         }
-                    }
-                }
 
-                ConnectionState.CONNECTING -> {
-                    Surface(
-                        shape = RoundedCornerShape(percent = 50),
-                        color = MaterialTheme.colorScheme.secondaryContainer,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(68.dp)
-                            .clip(RoundedCornerShape(percent = 50))
-                            .clickable {
-                                handleConnectClick()
-                            },
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxSize(),
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(24.dp),
-                                strokeWidth = 2.5.dp,
-                                color = MaterialTheme.colorScheme.onSecondaryContainer,
-                            )
-                            Spacer(modifier = Modifier.width(14.dp))
-                            Text(
-                                text = "Подключение к серверу...",
-                                style = MaterialTheme.typography.labelLarge,
-                                fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.onSecondaryContainer,
-                            )
+                        ConnectionState.CONNECTING -> {
+                            Row(
+                                horizontalArrangement = Arrangement.Center,
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(22.dp),
+                                    strokeWidth = 2.5.dp,
+                                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                )
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Column {
+                                    Text(
+                                        text = "Подключение...",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                    )
+                                    Text(
+                                        text = "Нажмите для отмены",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.75f),
+                                    )
+                                }
+                            }
                         }
-                    }
-                }
 
-                else -> {
-                    Surface(
-                        shape = RoundedCornerShape(percent = 50),
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(68.dp)
-                            .clip(RoundedCornerShape(percent = 50))
-                            .clickable {
-                                handleConnectClick()
-                            },
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxSize(),
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.toggle_button_on),
-                                contentDescription = "Connect",
-                                tint = MaterialTheme.colorScheme.onPrimary,
-                                modifier = Modifier.size(26.dp),
-                            )
-                            Spacer(modifier = Modifier.width(12.dp))
-                            Text(
-                                text = "Подключиться",
-                                style = MaterialTheme.typography.labelLarge,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 17.sp,
-                                color = MaterialTheme.colorScheme.onPrimary,
-                            )
+                        else -> {
+                            Row(
+                                horizontalArrangement = Arrangement.Center,
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.toggle_button_on),
+                                    contentDescription = "Connect",
+                                    tint = MaterialTheme.colorScheme.onPrimary,
+                                    modifier = Modifier.size(24.dp),
+                                )
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Text(
+                                    text = "Подключиться",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 17.sp,
+                                    color = MaterialTheme.colorScheme.onPrimary,
+                                )
+                            }
                         }
                     }
                 }
@@ -629,11 +664,14 @@ fun HomeScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp),
-                    horizontalArrangement = Arrangement.SpaceAround,
+                        .padding(horizontal = 16.dp, vertical = 14.dp),
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    // Download
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    // Download Column (fixed 50% width)
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(
                                 painter = painterResource(R.drawable.download),
@@ -650,29 +688,37 @@ fun HomeScreen(
                         }
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = if (uiState.connectionState == ConnectionState.CONNECTED) uiState.downloadSpeed else "0 B/s",
+                            text = if (uiState.connectionState == ConnectionState.CONNECTED) uiState.downloadSpeed else "0 Б/с",
                             style = MetricTypography.HeroCounter,
-                            fontSize = 20.sp,
+                            fontSize = 19.sp,
+                            maxLines = 1,
+                            softWrap = false,
                             color = MaterialTheme.colorScheme.onSurface,
                         )
+                        Spacer(modifier = Modifier.height(2.dp))
                         Text(
                             text = "Всего: ${uiState.downloadTraffic}",
                             style = MetricTypography.Traffic,
                             fontSize = 11.sp,
+                            maxLines = 1,
+                            softWrap = false,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
 
-                    // Divider
+                    // Vertical Divider
                     Box(
                         modifier = Modifier
                             .width(1.dp)
-                            .height(50.dp)
+                            .height(48.dp)
                             .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
                     )
 
-                    // Upload
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    // Upload Column (fixed 50% width)
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(
                                 painter = painterResource(R.drawable.upload),
@@ -689,15 +735,20 @@ fun HomeScreen(
                         }
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = if (uiState.connectionState == ConnectionState.CONNECTED) uiState.uploadSpeed else "0 B/s",
+                            text = if (uiState.connectionState == ConnectionState.CONNECTED) uiState.uploadSpeed else "0 Б/с",
                             style = MetricTypography.HeroCounter,
-                            fontSize = 20.sp,
+                            fontSize = 19.sp,
+                            maxLines = 1,
+                            softWrap = false,
                             color = MaterialTheme.colorScheme.onSurface,
                         )
+                        Spacer(modifier = Modifier.height(2.dp))
                         Text(
                             text = "Всего: ${uiState.uploadTraffic}",
                             style = MetricTypography.Traffic,
                             fontSize = 11.sp,
+                            maxLines = 1,
+                            softWrap = false,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
@@ -742,7 +793,7 @@ fun HomeScreen(
                                     color = MaterialTheme.colorScheme.onSurface,
                                 )
                                 Text(
-                                    text = "${service.pingMs} мс",
+                                    text = if (service.pingMs > 0) "${service.pingMs} мс" else "—",
                                     style = MetricTypography.Latency,
                                     fontSize = 11.sp,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,

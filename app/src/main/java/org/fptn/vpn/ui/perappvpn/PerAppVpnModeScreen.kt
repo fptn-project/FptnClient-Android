@@ -4,7 +4,10 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -18,17 +21,20 @@ import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -41,6 +47,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -54,23 +61,14 @@ import com.elvishew.xlog.XLog
 import org.fptn.vpn.R
 import org.fptn.vpn.enums.PerAppVpnMode
 import org.fptn.vpn.ui.common.BottomNavBar
-import org.fptn.vpn.ui.common.HtmlLinkText
 import org.fptn.vpn.ui.common.LinkifiedText
 import org.fptn.vpn.ui.common.MultilineTextInputDialog
 import org.fptn.vpn.ui.common.ShareDialog
-import org.fptn.vpn.ui.common.legacyDrawableBackground
-import org.fptn.vpn.ui.theme.Gray
-import org.fptn.vpn.ui.theme.TealAccent
-import org.fptn.vpn.ui.theme.White
+import org.fptn.vpn.ui.theme.cardContainerColor
 import org.fptn.vpn.utils.SharedPrefUtils
 
 private const val TAG = "PerAppVpnModeScreen"
 
-/**
- * Compose port of the legacy `PerAppVpnModeActivity` / `settings_per_app_vpnmode_layout.xml`.
- * Reuses [PerAppVpnModeViewModel] unchanged; the search/sort/toggle logic that used to live in
- * `AppInfoListAdapter` is reproduced here since a RecyclerView adapter has no Compose analogue.
- */
 @Composable
 fun PerAppVpnModeScreen(
     onNavigateHome: () -> Unit,
@@ -85,8 +83,6 @@ fun PerAppVpnModeScreen(
     var splitTunnelEnabled by remember { mutableStateOf(SharedPrefUtils.getSplitTunnelDomainsEnabled(context)) }
     var showSplitTunnelDialog by remember { mutableStateOf(false) }
     var showShareDialog by remember { mutableStateOf(false) }
-    // Bumped after mutating an AppInfo in place (it's a plain mutable Java object shared with
-    // the ViewModel, not Compose state), to force the derived list below to recompute.
     var toggleVersion by remember { mutableIntStateOf(0) }
 
     LaunchedEffect(Unit) {
@@ -112,190 +108,172 @@ fun PerAppVpnModeScreen(
         viewModel.saveSelectedApps()
     }
 
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .legacyDrawableBackground(R.drawable.application_background)
-            // Excludes the bottom side deliberately: BottomNavBar consumes the navigation-bar
-            // inset itself so its background reaches the real screen edge instead of floating
-            // above it with the screen background showing through underneath (see
-            // BottomNavBar's window insets listener).
-            .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal)),
+            .background(MaterialTheme.colorScheme.background),
     ) {
         Column(
             modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
-                .padding(bottom = 12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
+                .fillMaxSize()
+                .statusBarsPadding()
+                .padding(horizontal = 20.dp),
         ) {
-            Image(
-                painter = painterResource(R.drawable.ic_per_app_vpn_mode),
-                contentDescription = null,
-                modifier = Modifier
-                    .padding(top = 30.dp)
-                    .size(80.dp),
-            )
-            Text(
-                text = stringResource(R.string.per_app_vpn_settings_title),
-                color = White,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp),
-            )
-            HtmlLinkText(
-                html = stringResource(R.string.settings_per_app_russian_notice),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 12.dp),
-                color = Gray,
-                fontSize = 12.sp,
-            )
+            Spacer(modifier = Modifier.height(16.dp))
 
-            // Split tunneling card
-            SettingsCard {
+            // Header
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
                 Text(
-                    text = stringResource(R.string.split_tunnel_title),
-                    color = White,
-                    fontSize = 16.sp,
+                    text = "Раздельное туннелирование",
+                    style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(bottom = 4.dp, start = 4.dp),
+                    color = MaterialTheme.colorScheme.onBackground,
                 )
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    LinkifiedText(
-                        text = stringResource(R.string.split_tunnel_enable),
-                        linkText = stringResource(R.string.split_tunnel_enable_link),
-                        onLinkClick = { showSplitTunnelDialog = true },
-                        color = White,
-                        fontSize = 14.sp,
-                        modifier = Modifier.weight(1f),
-                    )
-                    Switch(
-                        checked = splitTunnelEnabled,
-                        onCheckedChange = {
-                            splitTunnelEnabled = it
-                            SharedPrefUtils.saveSplitTunnelDomainsEnabled(context, it)
-                        },
-                    )
-                }
             }
 
-            // Per-app VPN method card
-            SettingsCard {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Image(
-                        painter = painterResource(R.drawable.ic_logo_24),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .padding(start = 4.dp, end = 12.dp)
-                            .size(32.dp),
-                    )
-                    Text(
-                        text = stringResource(R.string.per_app_vpn_mode_title),
-                        color = White,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                    )
-                }
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 8.dp, end = 12.dp, top = 8.dp)
-                        .selectableGroup(),
-                ) {
-                    PerAppVpnModeRadioRow(
-                        label = stringResource(R.string.only_allowed_apps_mode_radio_button_label),
-                        info = stringResource(R.string.only_allowed_radio_button_label_additional_info),
-                        selected = mode == PerAppVpnMode.ONLY_ALLOWED,
-                        onSelect = {
-                            XLog.tag(TAG).i("Per-app VPN mode changed [mode=ONLY_ALLOWED]")
-                            viewModel.setPerAppVpnMode(PerAppVpnMode.ONLY_ALLOWED)
-                        },
-                    )
-                    PerAppVpnModeRadioRow(
-                        label = stringResource(R.string.disallowed_apps_radio_button_label),
-                        info = stringResource(R.string.disallowed_apps_radio_button_label_additional_info),
-                        selected = mode == PerAppVpnMode.EXCEPT_DISALLOWED,
-                        onSelect = {
-                            XLog.tag(TAG).i("Per-app VPN mode changed [mode=EXCEPT_DISALLOWED]")
-                            viewModel.setPerAppVpnMode(PerAppVpnMode.EXCEPT_DISALLOWED)
-                        },
-                    )
-                }
-            }
+            Spacer(modifier = Modifier.height(12.dp))
 
-            // Select apps list card (legacy quirk: this is always shown, never hidden, in any mode)
-            SettingsCard {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_search_24),
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp),
-                    )
-                    BasicTextField(
-                        value = searchQuery,
-                        onValueChange = { searchQuery = it },
-                        singleLine = true,
-                        textStyle = TextStyle(color = White, fontSize = 14.sp),
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(start = 6.dp),
-                        decorationBox = { inner ->
-                            if (searchQuery.isEmpty()) {
-                                Text(stringResource(R.string.search_apps_hint), color = Gray, fontSize = 14.sp)
-                            }
-                            inner()
-                        },
-                    )
-                }
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 6.dp, vertical = 6.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        text = stringResource(R.string.show_system_apps_label),
-                        color = Gray,
-                        fontSize = 12.sp,
-                        modifier = Modifier.weight(1f),
-                    )
-                    Switch(
-                        checked = showSystemApps,
-                        onCheckedChange = {
-                            showSystemApps = it
-                            viewModel.setShowSystemApps(it)
-                        },
-                    )
-                }
-
-                if (apps.isEmpty()) {
-                    Box(modifier = Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator()
+            // Mode Selector & Domain blacklist card
+            Surface(
+                shape = RoundedCornerShape(18.dp),
+                color = MaterialTheme.cardContainerColor,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Column(modifier = Modifier.padding(14.dp)) {
+                    // Split Tunnel domains toggle
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        LinkifiedText(
+                            text = stringResource(R.string.split_tunnel_enable),
+                            linkText = stringResource(R.string.split_tunnel_enable_link),
+                            onLinkClick = { showSplitTunnelDialog = true },
+                            color = MaterialTheme.colorScheme.onSurface,
+                            fontSize = 13.sp,
+                            modifier = Modifier.weight(1f),
+                        )
+                        Switch(
+                            checked = splitTunnelEnabled,
+                            onCheckedChange = {
+                                splitTunnelEnabled = it
+                                SharedPrefUtils.saveSplitTunnelDomainsEnabled(context, it)
+                            },
+                        )
                     }
-                } else {
-                    LazyColumn(modifier = Modifier.fillMaxWidth().height(400.dp)) {
-                        items(displayApps, key = { it.packageName }) { app ->
-                            AppRow(app = app, mode = mode, onToggle = { onToggle(app) })
-                        }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // Mode Radio buttons
+                    Column(modifier = Modifier.fillMaxWidth().selectableGroup()) {
+                        PerAppVpnModeRadioRow(
+                            label = stringResource(R.string.only_allowed_apps_mode_radio_button_label),
+                            selected = mode == PerAppVpnMode.ONLY_ALLOWED,
+                            onSelect = {
+                                XLog.tag(TAG).i("Per-app VPN mode changed [mode=ONLY_ALLOWED]")
+                                viewModel.setPerAppVpnMode(PerAppVpnMode.ONLY_ALLOWED)
+                            },
+                        )
+                        PerAppVpnModeRadioRow(
+                            label = stringResource(R.string.disallowed_apps_radio_button_label),
+                            selected = mode == PerAppVpnMode.EXCEPT_DISALLOWED,
+                            onSelect = {
+                                XLog.tag(TAG).i("Per-app VPN mode changed [mode=EXCEPT_DISALLOWED]")
+                                viewModel.setPerAppVpnMode(PerAppVpnMode.EXCEPT_DISALLOWED)
+                            },
+                        )
                     }
                 }
             }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Search Bar & System Apps Switch
+            Surface(
+                shape = RoundedCornerShape(16.dp),
+                color = MaterialTheme.cardContainerColor,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_search_24),
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(18.dp),
+                        )
+                        BasicTextField(
+                            value = searchQuery,
+                            onValueChange = { searchQuery = it },
+                            singleLine = true,
+                            textStyle = TextStyle(color = MaterialTheme.colorScheme.onSurface, fontSize = 14.sp),
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(start = 8.dp),
+                            decorationBox = { inner ->
+                                if (searchQuery.isEmpty()) {
+                                    Text(stringResource(R.string.search_apps_hint), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
+                                }
+                                inner()
+                            },
+                        )
+                    }
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            text = stringResource(R.string.show_system_apps_label),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontSize = 12.sp,
+                            modifier = Modifier.weight(1f),
+                        )
+                        Switch(
+                            checked = showSystemApps,
+                            onCheckedChange = {
+                                showSystemApps = it
+                                viewModel.setShowSystemApps(it)
+                            },
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // Apps List taking full remaining height
+            if (apps.isEmpty()) {
+                Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier.weight(1f).fillMaxWidth(),
+                ) {
+                    items(displayApps, key = { it.packageName }) { app ->
+                        AppRow(app = app, mode = mode, onToggle = { onToggle(app) })
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(80.dp))
         }
 
-        BottomNavBar(
-            isHomeScreen = false,
-            isSettingsScreen = false,
-            onNavigateHome = onNavigateHome,
-            onNavigateSettings = onNavigateSettings,
-            onShare = { showShareDialog = true },
-        )
+        Box(modifier = Modifier.align(Alignment.BottomCenter)) {
+            BottomNavBar(
+                isHomeScreen = false,
+                isSettingsScreen = false,
+                onNavigateHome = onNavigateHome,
+                onNavigateSettings = onNavigateSettings,
+                onShare = { showShareDialog = true },
+            )
+        }
     }
 
     if (showSplitTunnelDialog) {
@@ -321,35 +299,17 @@ private fun isActive(app: AppInfo, mode: PerAppVpnMode): Boolean = when {
 }
 
 @Composable
-private fun SettingsCard(content: @Composable () -> Unit) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 10.dp)
-            .legacyDrawableBackground(R.drawable.round_settings_back_white10_20)
-            .padding(10.dp),
-        content = { content() },
-    )
-}
-
-@Composable
-private fun PerAppVpnModeRadioRow(label: String, info: String, selected: Boolean, onSelect: () -> Unit) {
-    Column(
+private fun PerAppVpnModeRadioRow(label: String, selected: Boolean, onSelect: () -> Unit) {
+    Row(
         modifier = Modifier
             .fillMaxWidth()
             .selectable(selected = selected, onClick = onSelect)
-            .padding(top = 3.dp),
+            .padding(vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            RadioButton(selected = selected, onClick = onSelect)
-            Text(text = label, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = White)
-        }
-        Text(
-            text = info,
-            color = Gray,
-            fontSize = 12.sp,
-            modifier = Modifier.padding(start = 30.dp),
-        )
+        RadioButton(selected = selected, onClick = onSelect)
+        Spacer(modifier = Modifier.width(6.dp))
+        Text(text = label, fontSize = 13.sp, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
     }
 }
 
@@ -362,36 +322,45 @@ private fun AppRow(app: AppInfo, mode: PerAppVpnMode, onToggle: () -> Unit) {
         mode == PerAppVpnMode.EXCEPT_DISALLOWED -> app.isDisallowed
         else -> false
     }
-    Row(
+    Surface(
+        shape = RoundedCornerShape(14.dp),
+        color = MaterialTheme.cardContainerColor,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)),
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp),
-        verticalAlignment = Alignment.CenterVertically,
+            .padding(vertical = 3.dp),
     ) {
-        val icon = remember(app.packageName) { app.icon?.toBitmapCompat() }
-        if (icon != null) {
-            Image(
-                bitmap = icon.asImageBitmap(),
-                contentDescription = null,
-                modifier = Modifier.size(32.dp),
-            )
-        } else {
-            Spacer(modifier = Modifier.size(32.dp))
-        }
-        Text(
-            text = app.label,
-            color = if (forcedExcluded) TealAccent else White,
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Bold,
+        Row(
             modifier = Modifier
-                .weight(1f)
-                .padding(start = 10.dp),
-        )
-        Switch(
-            checked = checked,
-            onCheckedChange = { onToggle() },
-            enabled = !forcedExcluded,
-        )
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            val icon = remember(app.packageName) { app.icon?.toBitmapCompat() }
+            if (icon != null) {
+                Image(
+                    bitmap = icon.asImageBitmap(),
+                    contentDescription = null,
+                    modifier = Modifier.size(32.dp),
+                )
+            } else {
+                Spacer(modifier = Modifier.size(32.dp))
+            }
+            Text(
+                text = app.label,
+                color = if (forcedExcluded) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(start = 10.dp),
+            )
+            Switch(
+                checked = checked,
+                onCheckedChange = { onToggle() },
+                enabled = !forcedExcluded,
+            )
+        }
     }
 }
 

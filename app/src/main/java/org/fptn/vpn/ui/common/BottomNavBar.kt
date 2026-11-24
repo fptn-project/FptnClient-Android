@@ -91,17 +91,17 @@ fun BottomNavBar(
             modifier = modifier
                 .fillMaxWidth()
                 .navigationBarsPadding()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
+                .padding(horizontal = 24.dp, vertical = 6.dp),
             contentAlignment = Alignment.Center,
         ) {
             Surface(
-                shape = RoundedCornerShape(32.dp),
+                shape = RoundedCornerShape(percent = 50),
                 color = MaterialTheme.cardContainerColor,
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
-                shadowElevation = 8.dp,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f)),
+                shadowElevation = 4.dp,
             ) {
                 Row(
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 5.dp),
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
@@ -115,21 +115,21 @@ fun BottomNavBar(
 
                         if (isSelected) {
                             Surface(
-                                shape = RoundedCornerShape(24.dp),
+                                shape = RoundedCornerShape(percent = 50),
                                 color = MaterialTheme.colorScheme.primaryContainer,
                                 modifier = Modifier
                                     .animateContentSize(spring(stiffness = Spring.StiffnessMediumLow))
                                     .clickable(enabled = isEnabled) { handleTabClick(tab) },
                             ) {
                                 Row(
-                                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+                                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 7.dp),
                                     verticalAlignment = Alignment.CenterVertically,
                                 ) {
                                     Icon(
                                         painter = painterResource(tab.iconRes),
                                         contentDescription = tab.label,
                                         tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                                        modifier = Modifier.size(20.dp),
+                                        modifier = Modifier.size(18.dp),
                                     )
                                     Spacer(modifier = Modifier.width(6.dp))
                                     Text(
@@ -143,7 +143,7 @@ fun BottomNavBar(
                         } else {
                             Box(
                                 modifier = Modifier
-                                    .size(42.dp)
+                                    .size(38.dp)
                                     .clip(CircleShape)
                                     .clickable(enabled = isEnabled) { handleTabClick(tab) },
                                 contentAlignment = Alignment.Center,
@@ -152,11 +152,11 @@ fun BottomNavBar(
                                     painter = painterResource(tab.iconRes),
                                     contentDescription = tab.label,
                                     tint = if (isEnabled) {
-                                        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f)
+                                        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
                                     } else {
                                         MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
                                     },
-                                    modifier = Modifier.size(22.dp),
+                                    modifier = Modifier.size(20.dp),
                                 )
                             }
                         }
@@ -165,44 +165,52 @@ fun BottomNavBar(
             }
         }
     } else {
-        NavigationBar(
-            containerColor = MaterialTheme.cardContainerColor,
+        Surface(
+            color = MaterialTheme.cardContainerColor,
+            tonalElevation = 3.dp,
+            border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
             modifier = modifier.fillMaxWidth(),
         ) {
-            NavigationTab.values().forEach { tab ->
-                val isSelected = tab == activeTab
-                val isEnabled = when (tab) {
-                    NavigationTab.HOME -> homeEnabled
-                    NavigationTab.SETTINGS -> settingsEnabled
-                    else -> true
-                }
+            NavigationBar(
+                containerColor = androidx.compose.ui.graphics.Color.Transparent,
+                tonalElevation = 0.dp,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                NavigationTab.values().forEach { tab ->
+                    val isSelected = tab == activeTab
+                    val isEnabled = when (tab) {
+                        NavigationTab.HOME -> homeEnabled
+                        NavigationTab.SETTINGS -> settingsEnabled
+                        else -> true
+                    }
 
-                NavigationBarItem(
-                    selected = isSelected,
-                    enabled = isEnabled,
-                    onClick = { handleTabClick(tab) },
-                    icon = {
-                        Icon(
-                            painter = painterResource(tab.iconRes),
-                            contentDescription = tab.label,
-                            modifier = Modifier.size(22.dp),
-                        )
-                    },
-                    label = {
-                        Text(
-                            text = tab.label,
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
-                        )
-                    },
-                    colors = NavigationBarItemDefaults.colors(
-                        indicatorColor = MaterialTheme.colorScheme.primaryContainer,
-                        selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                        selectedTextColor = MaterialTheme.colorScheme.onSurface,
-                        unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                        unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    ),
-                )
+                    NavigationBarItem(
+                        selected = isSelected,
+                        enabled = isEnabled,
+                        onClick = { handleTabClick(tab) },
+                        icon = {
+                            Icon(
+                                painter = painterResource(tab.iconRes),
+                                contentDescription = tab.label,
+                                modifier = Modifier.size(22.dp),
+                            )
+                        },
+                        label = {
+                            Text(
+                                text = tab.label,
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+                            )
+                        },
+                        colors = NavigationBarItemDefaults.colors(
+                            indicatorColor = MaterialTheme.colorScheme.primaryContainer,
+                            selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                            selectedTextColor = MaterialTheme.colorScheme.primary,
+                            unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        ),
+                    )
+                }
             }
         }
     }

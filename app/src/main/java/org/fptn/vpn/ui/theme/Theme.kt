@@ -266,7 +266,11 @@ val MaterialTheme.cardContainerColor: Color
             ThemeMode.DARK -> true
         }
         return if (isDark && themeState.amoledMode) {
-            AmoledCardContainer
+            when (themeState.palette) {
+                AppPalette.LILAC -> Color(0xFF17141C)
+                AppPalette.FOREST -> Color(0xFF111712)
+                AppPalette.OCEAN -> Color(0xFF11151D)
+            }
         } else {
             colorScheme.surfaceVariant
         }
