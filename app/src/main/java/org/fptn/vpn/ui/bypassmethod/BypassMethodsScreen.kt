@@ -66,7 +66,9 @@ import org.fptn.vpn.services.tile.FptnTileService
 import org.fptn.vpn.ui.common.BottomNavBar
 import org.fptn.vpn.ui.common.LegacySpinner
 import org.fptn.vpn.ui.common.ShareDialog
+import androidx.compose.foundation.background
 import androidx.compose.material3.MaterialTheme
+import org.fptn.vpn.ui.common.legacyDrawableBackground
 import org.fptn.vpn.ui.theme.Gray
 import org.fptn.vpn.ui.theme.Primary
 import org.fptn.vpn.ui.theme.White
@@ -428,11 +430,12 @@ fun BypassMethodsScreen(
                     }
 
                     val toggleChecked = serviceState == SniCheckerServiceState.ACTIVE
+                    val bgRes = if (toggleChecked) R.drawable.round_back_secondary_100 else R.drawable.round_back_secondary_cancel_100
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(8.dp)
-                            .legacyDrawableBackground(if (toggleChecked) R.drawable.round_back_secondary_100 else R.drawable.round_back_secondary_cancel_100)
+                            .legacyDrawableBackground(bgRes)
                             .then(
                                 if (sniCount > 0 || toggleChecked) {
                                     Modifier.clickable { onAutoSelectClicked() }

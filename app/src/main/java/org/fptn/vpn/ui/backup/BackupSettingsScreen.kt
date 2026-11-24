@@ -44,7 +44,9 @@ import org.fptn.vpn.R
 import org.fptn.vpn.ui.common.BottomNavBar
 import org.fptn.vpn.ui.common.LegacyPillButton
 import org.fptn.vpn.ui.common.ShareDialog
+import androidx.compose.foundation.background
 import androidx.compose.material3.MaterialTheme
+import org.fptn.vpn.ui.common.legacyDrawableBackground
 import org.fptn.vpn.ui.theme.Primary
 import org.fptn.vpn.ui.theme.White
 import org.fptn.vpn.utils.backup.SettingsBackupManager

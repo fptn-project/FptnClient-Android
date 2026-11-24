@@ -56,7 +56,9 @@ import org.fptn.vpn.ui.common.LinkifiedText
 import org.fptn.vpn.ui.common.MultilineTextInputDialog
 import org.fptn.vpn.ui.common.ShareDialog
 import org.fptn.vpn.ui.common.findActivity
+import androidx.compose.foundation.background
 import androidx.compose.material3.MaterialTheme
+import org.fptn.vpn.ui.common.legacyDrawableBackground
 import org.fptn.vpn.ui.theme.White
 import org.fptn.vpn.utils.SharedPrefUtils
 import org.fptn.vpn.utils.startIfResolvable
