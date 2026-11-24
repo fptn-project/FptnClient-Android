@@ -223,7 +223,10 @@ fun SettingsScreen(
                 description = stringResource(R.string.view_and_copy_application_logs),
                 onClick = onNavigateLogs,
             ) {
-                Column(modifier = Modifier.fillMaxWidth()) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
                     Text(
                         text = stringResource(R.string.clear_logs_button),
                         color = Gray,
