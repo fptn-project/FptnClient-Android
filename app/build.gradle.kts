@@ -196,6 +196,8 @@ dependencies {
     androidTestImplementation(libs.androidx.runner)
     androidTestImplementation(libs.androidx.testing)
     androidTestImplementation(libs.assertj.core)
+
+    debugImplementation(libs.androidx.compose.ui.tooling)
 }
 java {
     toolchain {

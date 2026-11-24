@@ -27,3 +27,5 @@ auth/
 local.properties
 keystore.properties
 /.kotlin/
+
+.refs/
