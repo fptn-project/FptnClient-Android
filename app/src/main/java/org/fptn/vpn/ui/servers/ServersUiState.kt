@@ -20,6 +20,7 @@ data class ServerItem(
     val pingMs: Int,
     val protocol: String = "fptn",
     val port: Int = 443,
+    val isAutoSelect: Boolean = false,
     val isSelected: Boolean = false,
     val isOnline: Boolean = true,
 )
@@ -67,7 +68,19 @@ data class ServersUiState(
         ),
     ),
     val isProfilesExpanded: Boolean = false,
+    val isRefreshingProfile: Boolean = false,
     val servers: List<ServerItem> = listOf(
+        ServerItem(
+            id = "srv_auto",
+            name = "Авто-выбор (Самый быстрый)",
+            region = "Автоматический маршрут",
+            flag = "⚡",
+            pingMs = 35,
+            protocol = "fptn",
+            port = 443,
+            isAutoSelect = true,
+            isSelected = false,
+        ),
         ServerItem("srv_1", "Нидерланды Free", "Амстердам", "🇳🇱", 42, "fptn", 443, isSelected = true),
         ServerItem("srv_2", "Германия Fast", "Франкфурт", "🇩🇪", 58, "fptn", 443, isSelected = false),
         ServerItem("srv_3", "Польша #1", "Варшава", "🇵🇱", 74, "fptn", 443, isSelected = false),
@@ -88,9 +101,13 @@ data class ServersUiState(
         get() = servers.firstOrNull { it.isSelected } ?: servers.firstOrNull()
 
     val displayServers: List<ServerItem>
-        get() = when (sortFilter) {
-            ServerSortFilter.DEFAULT -> servers
-            ServerSortFilter.FASTEST -> servers.sortedBy { it.pingMs }
-            ServerSortFilter.AVAILABLE -> servers.filter { it.isOnline }
+        get() {
+            val (autoNodes, regularNodes) = servers.partition { it.isAutoSelect }
+            val sortedRegular = when (sortFilter) {
+                ServerSortFilter.DEFAULT -> regularNodes
+                ServerSortFilter.FASTEST -> regularNodes.sortedBy { it.pingMs }
+                ServerSortFilter.AVAILABLE -> regularNodes.filter { it.isOnline }
+            }
+            return autoNodes + sortedRegular
         }
 }

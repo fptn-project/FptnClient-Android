@@ -28,6 +28,28 @@ class ServersViewModel : ViewModel() {
         }
     }
 
+    fun refreshProfile() {
+        if (_uiState.value.isRefreshingProfile) return
+        _uiState.update { it.copy(isRefreshingProfile = true) }
+
+        viewModelScope.launch {
+            delay(700) // Mock token sync network delay
+            _uiState.update { state ->
+                val updatedProfiles = state.profiles.map { profile ->
+                    if (profile.isSelected) {
+                        profile.copy(updatedAt = "Только что")
+                    } else {
+                        profile
+                    }
+                }
+                state.copy(
+                    profiles = updatedProfiles,
+                    isRefreshingProfile = false,
+                )
+            }
+        }
+    }
+
     fun selectServer(serverId: String) {
         _uiState.update { state ->
             state.copy(
@@ -47,13 +69,23 @@ class ServersViewModel : ViewModel() {
         viewModelScope.launch {
             delay(800) // Mock latency test delay
             _uiState.update { state ->
-                val updatedServers = state.servers.map { server ->
+                val updatedRegularServers = state.servers.filter { !it.isAutoSelect }.map { server ->
                     val jitter = Random.nextInt(-8, 12)
                     val newPing = (server.pingMs + jitter).coerceIn(24, 320)
                     server.copy(pingMs = newPing)
                 }
+
+                val minPing = updatedRegularServers.minOfOrNull { it.pingMs } ?: 30
+                val autoSelectNode = state.servers.firstOrNull { it.isAutoSelect }?.copy(pingMs = minPing)
+
+                val allServers = if (autoSelectNode != null) {
+                    listOf(autoSelectNode) + updatedRegularServers
+                } else {
+                    updatedRegularServers
+                }
+
                 state.copy(
-                    servers = updatedServers,
+                    servers = allServers,
                     isCheckingPing = false,
                 )
             }
@@ -107,9 +139,17 @@ class ServersViewModel : ViewModel() {
         )
 
         _uiState.update { state ->
+            val regularServers = state.servers.filter { !it.isAutoSelect }.map { it.copy(isSelected = false) }
+            val autoSelect = state.servers.firstOrNull { it.isAutoSelect }?.copy(isSelected = false)
+            val updatedServers = if (autoSelect != null) {
+                listOf(autoSelect, newServer) + regularServers
+            } else {
+                listOf(newServer) + regularServers
+            }
+
             state.copy(
                 profiles = listOf(newProfile) + state.profiles.map { it.copy(isSelected = false) },
-                servers = listOf(newServer) + state.servers.map { it.copy(isSelected = false) },
+                servers = updatedServers,
                 showAddTokenSheet = false,
                 tokenInputText = "",
                 tokenInputError = null,

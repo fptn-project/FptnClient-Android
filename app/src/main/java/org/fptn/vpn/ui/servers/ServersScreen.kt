@@ -27,9 +27,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -65,8 +62,12 @@ import org.fptn.vpn.ui.theme.cardContainerColor
 
 /**
  * Material Design 3 Expressive ServersScreen for FptnClient.
- * Displays expandable subscription/token profiles, filter chips,
- * latency tests, and server cards with active node highlights.
+ * Features:
+ * - Expandable subscription/token profile summary with refresh action
+ * - Auto-Select ("Авто-выбор / Самый быстрый") optimal routing option
+ * - Filter & sort pill chips with live ping check
+ * - Server list with country flags, region tags, and tabular latency metrics
+ * - Add/Paste FPTN token modal dialog
  */
 @Composable
 fun ServersScreen(
@@ -80,7 +81,7 @@ fun ServersScreen(
     val haptic = LocalHapticFeedback.current
     val clipboardManager = LocalClipboardManager.current
 
-    val infiniteTransition = rememberInfiniteTransition(label = "pingRotation")
+    val infiniteTransition = rememberInfiniteTransition(label = "serversRotation")
     val rotationAngle by infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = 360f,
@@ -104,7 +105,7 @@ fun ServersScreen(
         ) {
             Spacer(modifier = Modifier.height(16.dp))
 
-            // 1. Top Bar: Header & Add Token action
+            // 1. Top Bar: Header & Add Token Action
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -149,13 +150,12 @@ fun ServersScreen(
 
             // 2. Expandable Subscription / Token Profile Header Card
             Surface(
-                shape = RoundedCornerShape(20.dp),
+                shape = RoundedCornerShape(22.dp),
                 color = MaterialTheme.cardContainerColor,
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    // Header row (Active profile summary + toggle expand arrow)
                     val activeProfile = uiState.selectedProfile
                     Row(
                         modifier = Modifier
@@ -165,12 +165,12 @@ fun ServersScreen(
                     ) {
                         Box(
                             modifier = Modifier
-                                .size(42.dp)
+                                .size(44.dp)
                                 .clip(CircleShape)
                                 .background(MaterialTheme.colorScheme.primaryContainer),
                             contentAlignment = Alignment.Center,
                         ) {
-                            Text(text = activeProfile?.emoji ?: "🔥", fontSize = 20.sp)
+                            Text(text = activeProfile?.emoji ?: "🔥", fontSize = 22.sp)
                         }
 
                         Spacer(modifier = Modifier.width(12.dp))
@@ -188,6 +188,32 @@ fun ServersScreen(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
+
+                        // Refresh Profile Action Button
+                        Box(
+                            modifier = Modifier
+                                .size(36.dp)
+                                .clip(CircleShape)
+                                .clickable { viewModel.refreshProfile() },
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_baseline_update_24),
+                                contentDescription = "Refresh token status",
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier
+                                    .size(18.dp)
+                                    .then(
+                                        if (uiState.isRefreshingProfile) {
+                                            Modifier.rotate(rotationAngle)
+                                        } else {
+                                            Modifier
+                                        },
+                                    ),
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.width(4.dp))
 
                         Icon(
                             painter = painterResource(
@@ -294,7 +320,6 @@ fun ServersScreen(
                                 }
                             }
 
-                            // Add new profile button inside expanded container
                             OutlinedButton(
                                 onClick = { viewModel.openAddTokenSheet() },
                                 modifier = Modifier
@@ -311,7 +336,7 @@ fun ServersScreen(
 
             Spacer(modifier = Modifier.height(18.dp))
 
-            // 3. Filter / Sort Pills & Ping check button
+            // 3. Filter / Sort Pills & Ping Check Button
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -333,7 +358,7 @@ fun ServersScreen(
                         )
                     }
 
-                    // Sort chip (cycles default -> fastest -> available)
+                    // Sort chip
                     Surface(
                         shape = RoundedCornerShape(percent = 50),
                         color = MaterialTheme.cardContainerColor,
@@ -395,7 +420,7 @@ fun ServersScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // 4. Server Cards List
+            // 4. Server Cards List (with Auto-Select at the top)
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 uiState.displayServers.forEach { server ->
                     val isSelected = server.isSelected
@@ -428,13 +453,15 @@ fun ServersScreen(
                             modifier = Modifier.padding(16.dp),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            // Flag badge container
+                            // Flag / Icon Badge Container
                             Box(
                                 modifier = Modifier
                                     .size(44.dp)
                                     .clip(CircleShape)
                                     .background(
-                                        if (isSelected) {
+                                        if (server.isAutoSelect) {
+                                            MaterialTheme.colorScheme.primaryContainer
+                                        } else if (isSelected) {
                                             MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
                                         } else {
                                             MaterialTheme.colorScheme.surfaceVariant
@@ -442,12 +469,15 @@ fun ServersScreen(
                                     ),
                                 contentAlignment = Alignment.Center,
                             ) {
-                                Text(text = server.flag, fontSize = 22.sp)
+                                Text(
+                                    text = server.flag,
+                                    fontSize = if (server.isAutoSelect) 20.sp else 22.sp,
+                                )
                             }
 
                             Spacer(modifier = Modifier.width(14.dp))
 
-                            // Server metadata
+                            // Server Metadata
                             Column(modifier = Modifier.weight(1f)) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Text(
@@ -460,7 +490,22 @@ fun ServersScreen(
                                             MaterialTheme.colorScheme.onSurface
                                         },
                                     )
-                                    if (isSelected) {
+                                    if (server.isAutoSelect) {
+                                        Spacer(modifier = Modifier.width(6.dp))
+                                        Surface(
+                                            shape = RoundedCornerShape(percent = 50),
+                                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
+                                        ) {
+                                            Text(
+                                                text = "AUTO",
+                                                style = MaterialTheme.typography.labelSmall,
+                                                fontSize = 9.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                color = MaterialTheme.colorScheme.primary,
+                                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                            )
+                                        }
+                                    } else if (isSelected) {
                                         Spacer(modifier = Modifier.width(6.dp))
                                         Surface(
                                             shape = RoundedCornerShape(percent = 50),
@@ -480,20 +525,18 @@ fun ServersScreen(
 
                                 Spacer(modifier = Modifier.height(2.dp))
 
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text(
-                                        text = "${server.region} • ${server.protocol}:${server.port}",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = if (isSelected) {
-                                            MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.75f)
-                                        } else {
-                                            MaterialTheme.colorScheme.onSurfaceVariant
-                                        },
-                                    )
-                                }
+                                Text(
+                                    text = "${server.region} • ${server.protocol}:${server.port}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = if (isSelected) {
+                                        MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.75f)
+                                    } else {
+                                        MaterialTheme.colorScheme.onSurfaceVariant
+                                    },
+                                )
                             }
 
-                            // Tabular latency readout pill
+                            // Tabular Latency Readout Pill
                             val pingColor = when {
                                 server.pingMs < 80 -> PingGood
                                 server.pingMs < 150 -> PingMedium
@@ -521,7 +564,7 @@ fun ServersScreen(
             Spacer(modifier = Modifier.height(110.dp))
         }
 
-        // Add Token Dialog
+        // Add/Paste Token Dialog
         if (uiState.showAddTokenSheet) {
             AlertDialog(
                 onDismissRequest = { viewModel.closeAddTokenSheet() },
