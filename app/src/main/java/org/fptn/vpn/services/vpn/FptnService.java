@@ -103,6 +103,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
+import java.net.IDN;
 
 import kotlin.Pair;
 import kotlin.Triple;
@@ -944,12 +945,31 @@ public class FptnService extends VpnService {
 
         boolean useDetectorDomains = !serverEntity.isCensured();
         boolean splitTunnelEnabled = SharedPrefUtils.getSplitTunnelDomainsEnabled(this);
+        boolean splitTunnelAdvancedEnabled = SharedPrefUtils.getSplitTunnelDomainsAdvancedModeEnabled(this);
+        
         if (bypassDomains == null && useDetectorDomains && splitTunnelEnabled) {
             Set<String> domains = new HashSet<>();
-            for (String domain : SharedPrefUtils.getSplitTunnelDomains(this).split("[\\n,]")) {
+            for (String domain : SharedPrefUtils.getSplitTunnelDomains(this).split("[\n,]")) {
                 String d = domain.trim().toLowerCase();
-                if (d.contains(".")) {
+                if (d.startsWith("domain:")) {
+                    d = d.substring("domain:".length()).trim();
+                }
+                
+                if (splitTunnelAdvancedEnabled) {
+                    if (d.startsWith(".")) {
+                        d = d.substring(1);
+                    }
+                    if (d.isEmpty()) continue;
+                    try {
+                        d = java.net.IDN.toASCII(d, java.net.IDN.ALLOW_UNASSIGNED);
+                    } catch (IllegalArgumentException e) {
+                        continue;
+                    }
                     domains.add(d);
+                } else {
+                    if (d.contains(".")) {
+                        domains.add(d);
+                    }
                 }
             }
             bypassDomains = domains;
