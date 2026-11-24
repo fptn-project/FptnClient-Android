@@ -332,6 +332,8 @@ tasks.register("conanInstall") {
                     "-s", "arch=$arch",
                     "--build", "missing",
                     "-c", "tools.cmake.cmake_layout:build_folder_vars=['settings.arch']",
+                    "-c", "tools.cmake.cmaketoolchain:extra_variables={'CLANG_TIDY_EXE': '', 'CMAKE_CXX_CLANG_TIDY': ''}",
+                    "-c", "tools.cmake:configure_args=['-DCLANG_TIDY_EXE=', '-DCMAKE_CXX_CLANG_TIDY=']",
                 )
                 if (ndkDir != null && ndkDir.isDirectory) {
                     cmd.add("-c")
