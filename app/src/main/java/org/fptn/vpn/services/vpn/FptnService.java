@@ -120,10 +120,15 @@ public class FptnService extends VpnService {
     public static final String DISCONNECT_REASON_SYSTEM_REVOKED = "reason:system_revoked";
     public static final String DISCONNECT_REASON_CLOSED_UNEXPECTEDLY = "reason:closed_unexpectedly";
     public static final String DISCONNECT_REASON_UNEXPECTED_ERROR = "reason:unexpected_error";
+    public static final String DISCONNECT_REASON_NETWORK_CHANGE_BLOCKED = "reason:network_change_blocked";
 
     private ParcelFileDescriptor blockingTun;
     private volatile boolean sessionEstablished = false;
     private volatile boolean coldConnectAttempt = false;
+    // Set to true when Network Kill-switch triggers due to a network change (Wi-Fi <-> Mobile).
+    // Makes disconnect() treat the change as involuntary — keeps the blocking TUN raised
+    // until the user manually presses "Disconnect" or "Connect".
+    private volatile boolean isNetworkChangeInProgress = false;
 
     private final AtomicReference<FptnConnection> activeConnection = new AtomicReference<>();
     private final AtomicInteger nextConnectionId = new AtomicInteger(1);
@@ -148,6 +153,8 @@ public class FptnService extends VpnService {
     // validation probe (which is routinely blocked in censored networks) — it is only a hint.
     private static final long VALIDATED_GRACE_PERIOD_MS = 2000L;
     private final Handler restoreHandler = new Handler(Looper.getMainLooper());
+    // Delayed re-check after a tracked network is lost (see onLost in registerNetworkCallback).
+    private final Handler networkLostCheckHandler = new Handler(Looper.getMainLooper());
     private final AtomicBoolean waitProceeded = new AtomicBoolean(false);
     private final Runnable proceedAfterGraceRunnable = this::proceedFromWait;
 
@@ -458,6 +465,8 @@ public class FptnService extends VpnService {
         if (ACTION_CONNECT.equals(intent.getAction()) && acceptConnect) {
             restoringSession = false;
             restoreRetryCount.set(0);
+            // Network Kill-switch episode is over: user pressed "Connect" to recover.
+            isNetworkChangeInProgress = false;
             // Drop ALL pending restore work (grace runnable AND delayed retries) — a stale
             // retry firing into the new session would race it with the old server id.
             restoreHandler.removeCallbacksAndMessages(null);
@@ -483,6 +492,8 @@ public class FptnService extends VpnService {
 
         } else if (ACTION_DISCONNECT.equals(intent.getAction()) && isActiveState) {
             XLog.tag(TAG).i("User-initiated disconnect");
+            // Network Kill-switch episode is over: user pressed "Disconnect" to clear it.
+            isNetworkChangeInProgress = false;
 
             if (submittedConnectionAttempt != null && !submittedConnectionAttempt.isDone()) {
                 submittedConnectionAttempt.cancel(true);
@@ -558,6 +569,20 @@ public class FptnService extends VpnService {
                     Network activeNetwork = connectivityManager.getActiveNetwork();
                     NetworkCapabilities activeNetworkCapabilities = connectivityManager.getNetworkCapabilities(activeNetwork);
                     if (activeNetworkCapabilities != null && activeNetworkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)) {
+                        // Variant A: Network Kill-switch takes PRIORITY over "Reconnect on network change".
+                        // Triggers on network type change even if the reconnect setting is disabled,
+                        // and immediately raises the blocking TUN WITHOUT attempting to reconnect.
+                        if (SharedPrefUtils.getKillSwitchOnNetworkChangeEnabled(FptnService.this)) {
+                            NetworkType activeNetworkType = NetworkUtils.getNetworkType(activeNetworkCapabilities);
+                            if (activeNetworkType != currentConnection.getCurrentNetworkType()) {
+                                isNetworkChangeInProgress = true;
+                                XLog.tag(TAG).i("Network type changed [%s -> %s] — Network Kill-switch triggering BLOCKED state",
+                                        currentConnection.getCurrentNetworkType(), activeNetworkType);
+                                executorService.submit(() -> disconnect(null, DISCONNECT_REASON_NETWORK_CHANGE_BLOCKED));
+                                return;
+                            }
+                            // No network change detected — fall through to other checks.
+                        }
                         boolean needReconnectByNetworkType = false;
                         boolean reconnectOnChangeNetworkTypeEnabled = SharedPrefUtils.getReconnectOnChangeNetworkTypeEnabled(FptnService.this);
                         if (reconnectOnChangeNetworkTypeEnabled) {
@@ -588,12 +613,53 @@ public class FptnService extends VpnService {
                     }
                 }
             }
+
+            @Override
+            public void onLost(@NonNull Network network) {
+                super.onLost(network);
+                // WiFi→mobile: onCapabilitiesChanged does NOT always fire for an already-validated
+                // mobile network becoming the new default, so the Variant A check above is skipped
+                // and traffic would leak via mobile. Re-check after a short settle delay: if the VPN
+                // is no longer the active network (its underlying transport died) and a non-VPN
+                // network of a different type is now active, raise the kill-switch.
+                if (!SharedPrefUtils.getKillSwitchOnNetworkChangeEnabled(FptnService.this)) {
+                    return;
+                }
+                FptnConnection currentConnection = activeConnection.get();
+                ConnectionState connectionState = Optional.ofNullable(serviceStateMutableLiveData.getValue())
+                        .map(FptnServiceState::getConnectionState).orElse(null);
+                if (currentConnection == null || connectionState != ConnectionState.CONNECTED) {
+                    return;
+                }
+                XLog.tag(TAG).i("Network lost [network=%s] — re-checking active network for kill-switch", network);
+                networkLostCheckHandler.removeCallbacksAndMessages(null);
+                networkLostCheckHandler.postDelayed(() -> {
+                    FptnConnection conn = activeConnection.get();
+                    if (conn == null) return;
+                    ConnectionState st = Optional.ofNullable(serviceStateMutableLiveData.getValue())
+                            .map(FptnServiceState::getConnectionState).orElse(null);
+                    if (st != ConnectionState.CONNECTED) return;
+                    Network activeNetwork = connectivityManager.getActiveNetwork();
+                    NetworkCapabilities caps = connectivityManager.getNetworkCapabilities(activeNetwork);
+                    if (caps == null || !caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)) return;
+                    // VPN still the active default => still protecting traffic, nothing to do.
+                    if (caps.hasTransport(NetworkCapabilities.TRANSPORT_VPN)) return;
+                    NetworkType newType = NetworkUtils.getNetworkType(caps);
+                    if (newType != conn.getCurrentNetworkType()) {
+                        isNetworkChangeInProgress = true;
+                        XLog.tag(TAG).i("Active network changed after loss [old=%s, new=%s] — Network Kill-switch triggering BLOCKED state",
+                                conn.getCurrentNetworkType(), newType);
+                        executorService.submit(() -> disconnect(null, DISCONNECT_REASON_NETWORK_CHANGE_BLOCKED));
+                    }
+                }, 500L);
+            }
         };
 
         connectivityManager.registerNetworkCallback(NetworkUtils.createNetworkRequest(), networkCallback);
     }
 
     private synchronized void unregisterNetworkCallback() {
+        networkLostCheckHandler.removeCallbacksAndMessages(null);
         if (networkCallback != null) {
             connectivityManager.unregisterNetworkCallback(networkCallback);
             networkCallback = null;
@@ -811,6 +877,7 @@ public class FptnService extends VpnService {
                 // attempt counters, refill the budget and drop any pending restore work.
                 restoringSession = false;
                 restoreRetryCount.set(0);
+                isNetworkChangeInProgress = false;
                 remainingFallbackBudget.set(SharedPrefUtils.getReconnectAttemptsCount(this));
                 restoreHandler.removeCallbacksAndMessages(null);
                 sessionEstablished = true;
@@ -1197,6 +1264,7 @@ public class FptnService extends VpnService {
             case DISCONNECT_REASON_SYSTEM_REVOKED:    return getString(R.string.disconnect_reason_system_revoked);
             case DISCONNECT_REASON_CLOSED_UNEXPECTEDLY: return getString(R.string.disconnect_reason_closed_unexpectedly);
             case DISCONNECT_REASON_UNEXPECTED_ERROR:  return getString(R.string.disconnect_reason_unexpected_error);
+            case DISCONNECT_REASON_NETWORK_CHANGE_BLOCKED: return getString(R.string.disconnect_reason_network_change_blocked);
             default: return key;
         }
     }
@@ -1224,8 +1292,16 @@ public class FptnService extends VpnService {
         }
         boolean involuntary = exception != null
                 || DISCONNECT_REASON_CLOSED_UNEXPECTEDLY.equals(disconnectReasonKey)
-                || DISCONNECT_REASON_UNEXPECTED_ERROR.equals(disconnectReasonKey);
+                || DISCONNECT_REASON_UNEXPECTED_ERROR.equals(disconnectReasonKey)
+                || isNetworkChangeInProgress;
         boolean blockTraffic = involuntary && SharedPrefUtils.getKillSwitchEnabled(this);
+        // Explicitly raise the blocking TUN for Kill Switch if needed.
+        // Important: call this BEFORE setActiveConnection, because raiseBlockingTun()
+        // checks sessionEstablished, and setActiveConnection may not invoke it
+        // if activeConnection is already null (e.g., after a failed reconnection).
+        if (blockTraffic) {
+            raiseBlockingTun();
+        }
         // stop and null existed connection
         setActiveConnection(null, blockTraffic);
         boolean killSwitchHold = blockTraffic && hasBlockingTun();
