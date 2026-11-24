@@ -1,105 +1,63 @@
-## Setup
-### Java
+# FptnClient-Android (`feat/md3-compose-ui`)
 
-JDK 17 is required (`app/build.gradle.kts` sets the Java toolchain to 17). Debian 13 has no `openjdk-17` package, so install Eclipse Temurin 17 manually from [Adoptium](https://adoptium.net/temurin/releases/):
+Modern Material Design 3 Expressive Jetpack Compose frontend for the [FPTN](https://fptn.org) Android VPN client.
 
+---
+
+## Highlights of `feat/md3-compose-ui`
+
+- **Pure Jetpack Compose & Material 3 Expressive**:
+  - Replaces legacy View layouts with reactive Compose UI, Unidirectional Data Flow (UDF), and `UiState` / `StateFlow`.
+  - 4 primary tabs: **Home** (status, greeting, telemetry, interactive wave visualizer), **Servers** (auto-select, token management, TCP ping test), **Stats** (weekly volume bar chart on Canvas, live speeds, process memory diagnostics), **Settings** (grouped MD3 Expressive cards).
+- **Advanced Theme Foundation**:
+  - Light, Dark, and Pure Black AMOLED (`#000000` background, elevated containers) display modes.
+  - 3 Expressive accent palettes: Lilac / Lavender, Forest / Green, Ocean / Blue.
+  - Multi-level contrast adjustments and selectable navigation bar styles (Floating Pill vs. Docked Bar).
+- **Strict Architecture Boundaries**:
+  - Core C++ engine (`app/src/main/cpp/`), Conan toolchain recipes, and JNI bridges remain intact.
+  - High-performance packet-tunneling logic (`org.fptn.vpn.services.vpn.*`, `org.fptn.vpn.network.*`) preserved without modifications.
+  - Seamless Android `VpnService.prepare` permission integration and Quick Settings tile synchronization.
+
+---
+
+## Setup & Toolchain
+
+### Requirements
+- **JDK**: Java 17 strictly enforced via Gradle toolchain (`JavaLanguageVersion.of(17)`).
+- **Android SDK**: `compileSdk = 36`, `targetSdk = 36`, `minSdk = 26`.
+- **NDK**: `26.1.10909125` / `28.1.13356709`.
+- **Build System**: Android Gradle Plugin 8.13+, Conan 2.x, CMake, Ninja.
+
+### Clone with Submodules
 ```bash
-wget -O temurin17.tar.gz "https://api.adoptium.net/v3/binary/latest/17/ga/linux/x64/jdk/hotspot/normal/eclipse?project=jdk"
-mkdir -p ~/jdks
-tar -xzf temurin17.tar.gz -C ~/jdks
-```
-Set `JAVA_HOME` to the unpacked directory and select JDK 17 as the Gradle JDK in Android Studio (`Settings -> Build, Execution, Deployment -> Build Tools -> Gradle -> Gradle JDK`). **Using a newer JDK (e.g. 21) breaks the build with class file has wrong version 65.0, should be 61.0.**
-
-### Formatting
-- Install ktlint plugin
-- For automated formatting, Install Ktlint plugin to IDEA then you can go to `Settings -> Tools -> KtLint -> Distract free`.
-- For manual formatting you can use `Command+Option+Enter`.
-
-### Wildcard imports
-For disabling wildcards go to `Settings -> Editor -> Code style -> Kotlin -> Imports`
-Choose `Use single name import` for all cases and uncheck all checkboxes below.
-
-
-### Submodules
-
-```bash
-git submodule update --init --recursive
-```
-
-### Install conan
-
-(For Windows, refer to these [instructions](https://github.com/batchar2/fptn/tree/master/deploy/windows) to install all required dependencies.)
-
-
-```bash
-pip install conan numpy
-```
-
-
-
-```bash
-sudo apt install clang
+git clone --recursive <repository-url>
+cd FptnClient-Android
 ```
 
-Create profile, get your conan home path
-
+### Conan Configuration
 ```bash
-conan config home
-```
-
-```bash
+pip install conan numpy cmake ninja
 conan profile detect -f
 ```
 
-Go to the following path and open the profiles folder.
-For example, on my system, the path is:
-`~/.conan2/profiles`
+---
 
-Then, create a file named `android-studio` with the following content:
+## Build Variants
 
+Build FOSS flavor APK without proprietary services:
 ```bash
-include(default)
+# Debug APK
+./gradlew assembleFossDebug --stacktrace
 
-[settings]
-os=Android
-os.api_level=28
-compiler=clang
-compiler.version=20
-compiler.libcxx=c++_static
-compiler.cppstd=17
-
-[tool_requires]
-*: android-ndk/r28b
+# Release APK
+./gradlew assembleFossRelease
 ```
-[Hack] If above config doesn't help, install ndk 29.0.13599879 and point it out in 3 places:
-  - app/build.gradle.kts in android section, for example
-    ```android {
-        ...
-        ndkVersion = "28.1.13356709"
-        ...
-    ```
-  - local.properties
-    ```
-        ndk.dir=/Users/<user-name>/Library/Android/sdk/ndk/28.1.13356709
-    ```
-  - ~/.conan2/profiles/android-studio in conf section
-    ```
-        ...
-        [conf]
-        tools.android:ndk_path=/Users/ddeviatilov/Library/Android/sdk/ndk/28.1.13356709
-        ...
-    ```
 
+---
 
-## Ktlint formatting
-Check: `./gradlew ktlintCheck`
+## CI / CD Automation
 
-Format: `./gradlew ktlintFormat`
-
-## Detekt check
-Check: `./gradlew detektCheck`
-
-## Dependency soring check
-Sort: `./gradlew sortDependencies`
-
-Check: `./gradlew checkSortDependencies`
+The repository includes a dedicated GitHub Actions workflow: [`.github/workflows/android-foss-ci.yml`](.github/workflows/android-foss-ci.yml):
+- Triggers on push to `feat/md3-compose-ui` and manual `workflow_dispatch`.
+- Sets up JDK 17, Android NDK, Python 3.11, Conan, and build dependencies.
+- Builds `assembleFossDebug` and uploads generated APK artifacts automatically.

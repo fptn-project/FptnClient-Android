@@ -75,7 +75,7 @@ import kotlin.math.sin
 
 /**
  * Animated dual sinusoidal wave drawn on Compose Canvas.
- * Active when VPN is connected, matching the visualizer in DESIGN.md and references.
+ * Active when VPN is connected, matching the visualizer in design references.
  */
 @Composable
 fun AnimatedSineWave(
@@ -138,7 +138,6 @@ fun AnimatedSineWave(
 
 /**
  * Material Design 3 Expressive HomeScreen for FptnClient.
- * Fully decoupled from real VPN tunnels; powered by [HomeViewModel] mock UiState.
  */
 @Composable
 fun HomeScreen(
