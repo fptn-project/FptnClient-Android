@@ -57,9 +57,9 @@ jobs:
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
-        
-       - name: Remove host clang-tidy
-          run: sudo rm -f /usr/bin/clang-tidy* /usr/local/bin/clang-tidy*
+
+      - name: Remove host clang-tidy
+        run: sudo rm -f /usr/bin/clang-tidy* /usr/local/bin/clang-tidy*
 
       - name: Build FOSS Debug APK
         run: ./gradlew assembleFossDebug --stacktrace
