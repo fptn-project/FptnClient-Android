@@ -21,9 +21,11 @@ import org.fptn.vpn.ui.home.HomeScreen
 import org.fptn.vpn.ui.login.LoginScreen
 import org.fptn.vpn.ui.logs.LogsScreen
 import org.fptn.vpn.ui.perappvpn.PerAppVpnModeScreen
+import org.fptn.vpn.ui.servers.ServersScreen
 import org.fptn.vpn.ui.settings.SettingsScreen
 import org.fptn.vpn.ui.splash.SplashRoute
 import org.fptn.vpn.ui.splash.SplashScreen
+import org.fptn.vpn.ui.stats.StatsScreen
 import org.fptn.vpn.ui.updatetoken.UpdateTokenScreen
 
 /**
@@ -45,6 +47,8 @@ object AppRoute {
     const val EXPERIMENTAL_SETTINGS = "experimental_settings"
     const val SETTINGS = "settings"
     const val HOME = "home"
+    const val SERVERS = "servers"
+    const val STATS = "stats"
 }
 
 @Composable
@@ -111,6 +115,12 @@ fun AppNavHost(
         }
         composable(AppRoute.HOME) {
             HomeScreen(
+                onNavigateServers = {
+                    navController.navigate(AppRoute.SERVERS) { launchSingleTop = true }
+                },
+                onNavigateStats = {
+                    navController.navigate(AppRoute.STATS) { launchSingleTop = true }
+                },
                 onNavigateSettings = {
                     navController.navigate(AppRoute.SETTINGS) { launchSingleTop = true }
                 },
@@ -119,6 +129,32 @@ fun AppNavHost(
                 },
                 onNavigateBypassMethods = {
                     navController.navigate(AppRoute.BYPASS_METHODS) { launchSingleTop = true }
+                },
+            )
+        }
+        composable(AppRoute.SERVERS) {
+            ServersScreen(
+                onNavigateHome = {
+                    navController.navigate(AppRoute.HOME) { launchSingleTop = true }
+                },
+                onNavigateStats = {
+                    navController.navigate(AppRoute.STATS) { launchSingleTop = true }
+                },
+                onNavigateSettings = {
+                    navController.navigate(AppRoute.SETTINGS) { launchSingleTop = true }
+                },
+            )
+        }
+        composable(AppRoute.STATS) {
+            StatsScreen(
+                onNavigateHome = {
+                    navController.navigate(AppRoute.HOME) { launchSingleTop = true }
+                },
+                onNavigateServers = {
+                    navController.navigate(AppRoute.SERVERS) { launchSingleTop = true }
+                },
+                onNavigateSettings = {
+                    navController.navigate(AppRoute.SETTINGS) { launchSingleTop = true }
                 },
             )
         }
@@ -202,6 +238,12 @@ fun AppNavHost(
                 },
                 onNavigateHome = {
                     navController.navigate(AppRoute.HOME) { launchSingleTop = true }
+                },
+                onNavigateServers = {
+                    navController.navigate(AppRoute.SERVERS) { launchSingleTop = true }
+                },
+                onNavigateStats = {
+                    navController.navigate(AppRoute.STATS) { launchSingleTop = true }
                 },
                 onNavigateUpdateToken = {
                     navController.navigate(AppRoute.UPDATE_TOKEN) { launchSingleTop = true }

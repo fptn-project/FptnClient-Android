@@ -41,4 +41,12 @@ public class SniEntity {
     private String sni;
 
     private boolean checked = false;
+
+    public String getSni() {
+        return sni;
+    }
+
+    public boolean isChecked() {
+        return checked;
+    }
 }

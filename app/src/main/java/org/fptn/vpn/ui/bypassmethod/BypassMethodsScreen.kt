@@ -66,6 +66,8 @@ import org.fptn.vpn.services.tile.FptnTileService
 import org.fptn.vpn.ui.common.BottomNavBar
 import org.fptn.vpn.ui.common.LegacySpinner
 import org.fptn.vpn.ui.common.ShareDialog
+import androidx.compose.foundation.background
+import androidx.compose.material3.MaterialTheme
 import org.fptn.vpn.ui.common.legacyDrawableBackground
 import org.fptn.vpn.ui.theme.Gray
 import org.fptn.vpn.ui.theme.Primary
@@ -220,11 +222,7 @@ fun BypassMethodsScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .legacyDrawableBackground(R.drawable.application_background)
-            // Excludes the bottom side deliberately: BottomNavBar consumes the navigation-bar
-            // inset itself so its background reaches the real screen edge instead of floating
-            // above it with the screen background showing through underneath (see
-            // BottomNavBar's window insets listener).
+            .background(MaterialTheme.colorScheme.background)
             .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal)),
     ) {
         Column(
@@ -432,11 +430,12 @@ fun BypassMethodsScreen(
                     }
 
                     val toggleChecked = serviceState == SniCheckerServiceState.ACTIVE
+                    val bgRes = if (toggleChecked) R.drawable.round_back_secondary_100 else R.drawable.round_back_secondary_cancel_100
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(8.dp)
-                            .legacyDrawableBackground(if (toggleChecked) R.drawable.round_back_secondary_100 else R.drawable.round_back_secondary_cancel_100)
+                            .legacyDrawableBackground(bgRes)
                             .then(
                                 if (sniCount > 0 || toggleChecked) {
                                     Modifier.clickable { onAutoSelectClicked() }

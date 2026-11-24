@@ -44,6 +44,8 @@ import org.fptn.vpn.R
 import org.fptn.vpn.ui.common.BottomNavBar
 import org.fptn.vpn.ui.common.LegacyPillButton
 import org.fptn.vpn.ui.common.ShareDialog
+import androidx.compose.foundation.background
+import androidx.compose.material3.MaterialTheme
 import org.fptn.vpn.ui.common.legacyDrawableBackground
 import org.fptn.vpn.ui.theme.Primary
 import org.fptn.vpn.ui.theme.White
@@ -94,11 +96,7 @@ fun BackupSettingsScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .legacyDrawableBackground(R.drawable.application_background)
-            // Excludes the bottom side deliberately: BottomNavBar consumes the navigation-bar
-            // inset itself so its background reaches the real screen edge instead of floating
-            // above it with the screen background showing through underneath (see
-            // BottomNavBar's window insets listener).
+            .background(MaterialTheme.colorScheme.background)
             .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal)),
     ) {
         Column(

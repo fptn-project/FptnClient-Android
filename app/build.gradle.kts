@@ -1,6 +1,7 @@
 import java.io.FileInputStream
 import java.io.InputStream
 import java.net.URL
+import java.util.ArrayDeque
 import java.util.Properties
 import java.util.zip.GZIPOutputStream
 import kotlin.concurrent.thread
@@ -196,6 +197,8 @@ dependencies {
     androidTestImplementation(libs.androidx.runner)
     androidTestImplementation(libs.androidx.testing)
     androidTestImplementation(libs.assertj.core)
+
+    debugImplementation(libs.androidx.compose.ui.tooling)
 }
 java {
     toolchain {
@@ -203,31 +206,173 @@ java {
     }
 }
 
-fun readStreamAsync(
-    stream: InputStream,
-    label: String,
-) = thread {
-    stream.bufferedReader().useLines { lines ->
-        lines.forEach { println("[$label] $it") }
+fun resolveConanExecutable(): String {
+    if (project.hasProperty("conan.path")) {
+        val customPath = project.property("conan.path") as String
+        val customFile = File(customPath)
+        if (customFile.exists() && customFile.canExecute()) {
+            return customFile.absolutePath
+        }
     }
+    System.getenv("CONAN_BIN")?.let { envPath ->
+        val envFile = File(envPath)
+        if (envFile.exists() && envFile.canExecute()) {
+            return envFile.absolutePath
+        }
+    }
+    val userHome = System.getProperty("user.home")
+    val candidateDirs = (System.getenv("PATH") ?: "")
+        .split(File.pathSeparator)
+        .toMutableList()
+    candidateDirs.add("$userHome/.local/bin")
+    candidateDirs.add("/usr/local/bin")
+    candidateDirs.add("/opt/homebrew/bin")
+    candidateDirs.add("/tmp/conan-env/bin")
+
+    for (dir in candidateDirs) {
+        val candidate = File(dir, "conan")
+        if (candidate.isFile && candidate.canExecute()) {
+            return candidate.absolutePath
+        }
+    }
+    return "conan"
+}
+
+fun resolveNdkDirectory(): File? {
+    val localPropertiesFile = rootProject.file("local.properties")
+    if (localPropertiesFile.exists()) {
+        val props = Properties()
+        localPropertiesFile.inputStream().use { props.load(it) }
+        val ndkDirProp = props.getProperty("ndk.dir")
+        if (!ndkDirProp.isNullOrBlank()) {
+            val file = File(ndkDirProp)
+            if (file.isDirectory) return file
+        }
+    }
+    val envNdk = System.getenv("ANDROID_NDK_HOME") ?: System.getenv("ANDROID_NDK_ROOT")
+    if (!envNdk.isNullOrBlank()) {
+        val file = File(envNdk)
+        if (file.isDirectory) return file
+    }
+    val sdkHome = System.getenv("ANDROID_HOME") ?: System.getenv("ANDROID_SDK_ROOT")
+    if (!sdkHome.isNullOrBlank()) {
+        val candidate = File(sdkHome, "ndk/28.1.13356709")
+        if (candidate.isDirectory) return candidate
+        val ndkParent = File(sdkHome, "ndk")
+        if (ndkParent.isDirectory) {
+            val installed = ndkParent.listFiles { f -> f.isDirectory }
+            if (!installed.isNullOrEmpty()) {
+                installed.sortByDescending { it.name }
+                return installed.first()
+            }
+        }
+    }
+    return null
 }
 
 tasks.register("conanInstall") {
     group = "c++"
+    description = "Installs Conan C++ dependencies for the native FPTN library"
     doLast {
         val conanBuildDir = layout.buildDirectory.dir("conan").get().asFile.apply { mkdirs() }
-        listOf("Debug", "Release", "RelWithDebInfo").forEach { buildType ->
-            listOf("armv8", "armv7", "x86_64").forEach { arch ->
-                val process = ProcessBuilder(
-                    "conan", "install", "$projectDir/src/main/cpp",
+        val conanExe = resolveConanExecutable()
+
+        val defaultProfileFile = File(System.getProperty("user.home"), ".conan2/profiles/default")
+        if (!defaultProfileFile.exists()) {
+            println("[conan] 'default' profile not found, generating with 'conan profile detect --force'...")
+            val detectBuilder = ProcessBuilder(conanExe, "profile", "detect", "--force")
+                .redirectErrorStream(true)
+            val p = detectBuilder.start()
+            p.inputStream.bufferedReader().useLines { lines ->
+                lines.forEach { println("[conan-profile] $it") }
+            }
+            p.waitFor()
+        }
+
+        val requestedBuildTypes = if (project.hasProperty("conanBuildTypes")) {
+            (project.property("conanBuildTypes") as String).split(",").map { it.trim() }
+        } else {
+            val taskArgs = gradle.startParameter.taskRequests.flatMap { it.args }
+            val hasDebug = taskArgs.any { it.contains("Debug", ignoreCase = true) }
+            val hasRelease = taskArgs.any { it.contains("Release", ignoreCase = true) }
+            when {
+                hasDebug && !hasRelease -> listOf("Debug")
+                hasRelease && !hasDebug -> listOf("Release")
+                else -> listOf("Debug", "Release")
+            }
+        }
+
+        val requestedArchs = if (project.hasProperty("conanArchs")) {
+            (project.property("conanArchs") as String).split(",").map { it.trim() }
+        } else {
+            listOf("armv8", "armv7", "x86_64")
+        }
+
+        val ndkDir = resolveNdkDirectory()
+        if (ndkDir != null) {
+            println("[conan] Local Android NDK detected: ${ndkDir.absolutePath}")
+        } else {
+            println("[conan] Local Android NDK not detected; Conan will use profile tool_requires")
+        }
+
+        val conanDir = File(conanExe).parentFile
+        val extraPath = if (conanDir != null && conanDir.isDirectory) {
+            conanDir.absolutePath + File.pathSeparator + (System.getProperty("user.home") + "/.local/bin")
+        } else {
+            System.getProperty("user.home") + "/.local/bin"
+        }
+
+        requestedBuildTypes.forEach { buildType ->
+            requestedArchs.forEach { arch ->
+                println("[conan] Installing dependencies [buildType=$buildType, arch=$arch]...")
+                val cmd = mutableListOf(
+                    conanExe, "install", "$projectDir/src/main/cpp",
                     "--profile", "$rootDir/conan/profiles/android-studio",
                     "-s", "build_type=$buildType",
                     "-s", "arch=$arch",
                     "--build", "missing",
                     "-c", "tools.cmake.cmake_layout:build_folder_vars=['settings.arch']",
-                ).directory(conanBuildDir).inheritIO().start()
+                    "-c", "tools.cmake.cmaketoolchain:extra_variables={'CLANG_TIDY_EXE': '', 'CMAKE_CXX_CLANG_TIDY': ''}",
+                    "-c", "tools.cmake:configure_args=['-DCLANG_TIDY_EXE=', '-DCMAKE_CXX_CLANG_TIDY=']",
+                )
+                if (ndkDir != null && ndkDir.isDirectory) {
+                    cmd.add("-c")
+                    cmd.add("tools.android:ndk_path=${ndkDir.absolutePath}")
+                }
+
+                val builder = ProcessBuilder(cmd)
+                    .directory(conanBuildDir)
+                    .redirectErrorStream(true)
+
+                val env = builder.environment()
+                val currentPath = env["PATH"] ?: ""
+                env["PATH"] = extraPath + File.pathSeparator + currentPath
+                if (ndkDir != null) {
+                    env["ANDROID_NDK_HOME"] = ndkDir.absolutePath
+                    env["ANDROID_NDK_ROOT"] = ndkDir.absolutePath
+                }
+
+                val process = builder.start()
+                val recentLines = ArrayDeque<String>(40)
+                process.inputStream.bufferedReader().useLines { lines ->
+                    lines.forEach { line ->
+                        println("[$buildType-$arch] $line")
+                        if (recentLines.size >= 40) recentLines.removeFirst()
+                        recentLines.addLast(line)
+                    }
+                }
                 val exitCode = process.waitFor()
-                if (exitCode != 0) throw GradleException("conan install failed [buildType=$buildType, arch=$arch]")
+                if (exitCode != 0) {
+                    val lastOutput = recentLines.joinToString("\n")
+                    throw GradleException(
+                        """
+                        conan install failed [buildType=$buildType, arch=$arch] (exit code $exitCode).
+                        Command: ${cmd.joinToString(" ")}
+                        Recent Conan output:
+                        $lastOutput
+                        """.trimIndent(),
+                    )
+                }
             }
         }
     }

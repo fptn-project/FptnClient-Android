@@ -73,6 +73,15 @@ class PerAppVpnModeViewModel(application: Application) : AndroidViewModel(applic
             val application = getApplication<Application>()
             val thisAppPackageName = application.packageName
             val exclusion = AppExclusion(application)
+
+            // Batch-query all launcher activities once to avoid 200+ slow IPC calls
+            val launcherIntent = android.content.Intent(android.content.Intent.ACTION_MAIN).apply {
+                addCategory(android.content.Intent.CATEGORY_LAUNCHER)
+            }
+            val launcherPackages = pm.queryIntentActivities(launcherIntent, 0)
+                .mapNotNull { it.activityInfo?.packageName }
+                .toSet()
+
             val packages = application.packageManager.getInstalledApplications(PackageManager.GET_META_DATA)
 
             val apps = packages
@@ -81,7 +90,7 @@ class PerAppVpnModeViewModel(application: Application) : AndroidViewModel(applic
                     (savedAppsMap[appInfo.packageName] ?: AppInfo(appInfo.packageName)).apply {
                         icon = appInfo.loadIcon(pm)
                         label = appInfo.loadLabel(pm).toString()
-                        isSystemApp = pm.getLaunchIntentForPackage(appInfo.packageName) == null
+                        isSystemApp = !launcherPackages.contains(appInfo.packageName)
                         isForcedExcluded = exclusion.isExcluded(appInfo.packageName)
                     }
                 }

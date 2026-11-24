@@ -1,108 +1,217 @@
 package org.fptn.vpn.ui.common
 
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.viewinterop.AndroidView
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import com.google.android.material.bottomnavigation.BottomNavigationView
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import org.fptn.vpn.R
+import org.fptn.vpn.ui.theme.LocalThemeState
+import org.fptn.vpn.ui.theme.NavBarStyle
+import org.fptn.vpn.ui.theme.cardContainerColor
+
+enum class NavigationTab(val label: String, val iconRes: Int) {
+    HOME("Главная", R.drawable.ic_baseline_home_24),
+    SERVERS("Серверы", R.drawable.server_icon),
+    STATS("Статистика", R.drawable.ic_baseline_bar_chart_24),
+    SETTINGS("Настройки", R.drawable.ic_baseline_settings_24),
+}
 
 /**
- * Compose wrapper around the app's real `BottomNavigationView` (Home / Settings / Share),
- * reproducing `CustomBottomNavigationListener`'s navigation behavior. Kept as an `AndroidView`
- * rather than a Compose `NavigationBar`, so the selected/unselected item styling that comes
- * from the app's Material theme stays pixel-identical instead of being re-derived.
- *
- * [isHomeScreen]/[isSettingsScreen] mirror the legacy `context instanceof HomeActivity` /
- * `context instanceof SettingsActivity` checks that predate the Compose port: every screen
- * under Settings (Logs, PerAppVpnMode, UpdateToken, Backup, BypassMethods,
- * ExperimentalSettings) shows the Settings tab as selected without *being* the Settings
- * screen, so re-tapping "Settings" from one of them must still navigate to the real Settings
- * screen.
- *
- * [settingsEnabled] mirrors `HomeActivity`'s `settingsMenuItem.setEnabled(!activeState)`: Home
- * disables the Settings tab while a VPN connection is active/connecting, so the user can't
- * navigate away mid-connection. [homeEnabled] is the same idea used by BypassMethodsScreen: while
- * SNI auto-select checking is running, both tabs are disabled so the user can't navigate away and
- * lose sight of it (the app also always reopens directly on BypassMethodsScreen while checking is
- * active — see `SplashScreen`'s `sniActive` routing). Every other screen leaves both at the
- * default (always enabled).
+ * Modern Material Design 3 Expressive bottom navigation bar.
+ * Supports both Floating Pill (default) and Classic Docked styles
+ * controlled via [LocalThemeState].
  */
 @Composable
 fun BottomNavBar(
-    isHomeScreen: Boolean,
-    isSettingsScreen: Boolean,
-    onNavigateHome: () -> Unit,
-    onNavigateSettings: () -> Unit,
-    onShare: () -> Unit,
+    currentTab: NavigationTab = NavigationTab.HOME,
+    onTabSelected: (NavigationTab) -> Unit = {},
+    onNavigateHome: () -> Unit = {},
+    onNavigateServers: () -> Unit = {},
+    onNavigateStats: () -> Unit = {},
+    onNavigateSettings: () -> Unit = {},
+    onShare: () -> Unit = {},
     modifier: Modifier = Modifier,
     homeEnabled: Boolean = true,
     settingsEnabled: Boolean = true,
+    isHomeScreen: Boolean = (currentTab == NavigationTab.HOME),
+    isSettingsScreen: Boolean = (currentTab == NavigationTab.SETTINGS),
 ) {
-    val selectedItemId = if (isHomeScreen) R.id.menuHome else R.id.menuSettings
+    val themeState = LocalThemeState.current
+    val haptic = LocalHapticFeedback.current
 
-    AndroidView(
-        modifier = modifier.fillMaxWidth(),
-        factory = { context ->
-            BottomNavigationView(context).apply {
-                inflateMenu(R.menu.bottom_nav_bar_menu)
-                // The bar's own background must reach the real bottom edge of the screen
-                // (behind the gesture nav bar) rather than floating above it, so consume the
-                // navigation-bar inset here as bottom padding instead of letting an ancestor
-                // Composable's `safeDrawingPadding` push the whole bar upward and expose the
-                // screen background underneath.
-                ViewCompat.setOnApplyWindowInsetsListener(this) { view, insets ->
-                    val navBarInset = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom
-                    view.setPadding(view.paddingLeft, view.paddingTop, view.paddingRight, navBarInset)
-                    insets
+    val activeTab = when {
+        isHomeScreen -> NavigationTab.HOME
+        isSettingsScreen -> NavigationTab.SETTINGS
+        else -> currentTab
+    }
+
+    fun handleTabClick(tab: NavigationTab) {
+        if (themeState.hapticEnabled) {
+            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+        }
+        onTabSelected(tab)
+        when (tab) {
+            NavigationTab.HOME -> if (homeEnabled) onNavigateHome()
+            NavigationTab.SERVERS -> onNavigateServers()
+            NavigationTab.STATS -> onNavigateStats()
+            NavigationTab.SETTINGS -> if (settingsEnabled) onNavigateSettings()
+        }
+    }
+
+    if (themeState.navBarStyle == NavBarStyle.FLOATING) {
+        Box(
+            modifier = modifier
+                .fillMaxWidth()
+                .navigationBarsPadding()
+                .padding(horizontal = 24.dp, vertical = 6.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Surface(
+                shape = RoundedCornerShape(percent = 50),
+                color = MaterialTheme.cardContainerColor,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f)),
+                shadowElevation = 4.dp,
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 5.dp),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    NavigationTab.values().forEach { tab ->
+                        val isSelected = tab == activeTab
+                        val isEnabled = when (tab) {
+                            NavigationTab.HOME -> homeEnabled
+                            NavigationTab.SETTINGS -> settingsEnabled
+                            else -> true
+                        }
+
+                        if (isSelected) {
+                            Surface(
+                                shape = RoundedCornerShape(percent = 50),
+                                color = MaterialTheme.colorScheme.primaryContainer,
+                                modifier = Modifier
+                                    .animateContentSize(spring(stiffness = Spring.StiffnessMediumLow))
+                                    .clickable(enabled = isEnabled) { handleTabClick(tab) },
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 7.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    Icon(
+                                        painter = painterResource(tab.iconRes),
+                                        contentDescription = tab.label,
+                                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                        modifier = Modifier.size(18.dp),
+                                    )
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text(
+                                        text = tab.label,
+                                        style = MaterialTheme.typography.labelMedium,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    )
+                                }
+                            }
+                        } else {
+                            Box(
+                                modifier = Modifier
+                                    .size(38.dp)
+                                    .clip(CircleShape)
+                                    .clickable(enabled = isEnabled) { handleTabClick(tab) },
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Icon(
+                                    painter = painterResource(tab.iconRes),
+                                    contentDescription = tab.label,
+                                    tint = if (isEnabled) {
+                                        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+                                    } else {
+                                        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
+                                    },
+                                    modifier = Modifier.size(20.dp),
+                                )
+                            }
+                        }
+                    }
                 }
             }
-        },
-        update = { view ->
-            // `BottomNavigationView.setSelectedItemId`/toggling a menu item's `isEnabled` can
-            // synchronously redispatch through whichever listener is *currently* attached —
-            // and since this lambda only re-registers fresh listeners at the end, an in-between
-            // dispatch would run the *previous* recomposition's listener, closed over its stale
-            // enabled/screen flags. That's exactly what fired a real "navigate to Settings" the
-            // instant `settingsEnabled` flipped to false (SNI checking started): the old,
-            // still-enabled listener ran before being replaced. Detach listeners first, so
-            // nothing can fire off a mutation below, then reattach fresh ones with current
-            // values once the view's state is settled.
-            view.setOnItemSelectedListener(null)
-            view.setOnItemReselectedListener(null)
+        }
+    } else {
+        Surface(
+            color = MaterialTheme.cardContainerColor,
+            tonalElevation = 3.dp,
+            border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
+            modifier = modifier.fillMaxWidth(),
+        ) {
+            NavigationBar(
+                containerColor = androidx.compose.ui.graphics.Color.Transparent,
+                tonalElevation = 0.dp,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                NavigationTab.values().forEach { tab ->
+                    val isSelected = tab == activeTab
+                    val isEnabled = when (tab) {
+                        NavigationTab.HOME -> homeEnabled
+                        NavigationTab.SETTINGS -> settingsEnabled
+                        else -> true
+                    }
 
-            if (view.selectedItemId != selectedItemId) {
-                view.selectedItemId = selectedItemId
-            }
-            view.menu.findItem(R.id.menuHome)?.isEnabled = homeEnabled
-            view.menu.findItem(R.id.menuSettings)?.isEnabled = settingsEnabled
-
-            view.setOnItemSelectedListener { item ->
-                when (item.itemId) {
-                    selectedItemId -> true
-                    R.id.menuHome -> {
-                        if (homeEnabled) onNavigateHome()
-                        true
-                    }
-                    R.id.menuSettings -> {
-                        if (settingsEnabled) onNavigateSettings()
-                        true
-                    }
-                    R.id.menuShare -> {
-                        onShare()
-                        false
-                    }
-                    else -> false
+                    NavigationBarItem(
+                        selected = isSelected,
+                        enabled = isEnabled,
+                        onClick = { handleTabClick(tab) },
+                        icon = {
+                            Icon(
+                                painter = painterResource(tab.iconRes),
+                                contentDescription = tab.label,
+                                modifier = Modifier.size(22.dp),
+                            )
+                        },
+                        label = {
+                            Text(
+                                text = tab.label,
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+                            )
+                        },
+                        colors = NavigationBarItemDefaults.colors(
+                            indicatorColor = MaterialTheme.colorScheme.primaryContainer,
+                            selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                            selectedTextColor = MaterialTheme.colorScheme.primary,
+                            unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        ),
+                    )
                 }
             }
-            view.setOnItemReselectedListener { item ->
-                when (item.itemId) {
-                    R.id.menuSettings -> if (!isSettingsScreen && settingsEnabled) onNavigateSettings()
-                    R.id.menuHome -> if (!isHomeScreen && homeEnabled) onNavigateHome()
-                }
-            }
-        },
-    )
+        }
+    }
 }

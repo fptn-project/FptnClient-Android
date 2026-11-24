@@ -1,667 +1,821 @@
 package org.fptn.vpn.ui.home
 
-import android.Manifest
 import android.app.Activity
-import android.app.StatusBarManager
-import android.content.ComponentName
-import android.content.Context
-import android.content.Intent
-import android.content.ServiceConnection
-import android.content.res.Configuration
-import android.graphics.drawable.Icon
-import android.net.Uri
 import android.net.VpnService
-import android.os.Build
-import android.os.IBinder
-import android.provider.Settings
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Image
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.SnackbarResult
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalLifecycleOwner
-import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.hideFromAccessibility
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewmodel.compose.viewModel
 import org.fptn.vpn.R
-import org.fptn.vpn.database.entity.ServerEntity
 import org.fptn.vpn.enums.ConnectionState
-import org.fptn.vpn.services.snichecker.SniCheckerService
-import org.fptn.vpn.services.snichecker.SniCheckerServiceState
-import org.fptn.vpn.services.tile.FptnTileService
-import org.fptn.vpn.services.vpn.FptnService
-import org.fptn.vpn.services.vpn.FptnServiceState
 import org.fptn.vpn.ui.common.BottomNavBar
-import org.fptn.vpn.ui.common.ServerDropdown
-import org.fptn.vpn.ui.common.ShareDialog
-import org.fptn.vpn.ui.common.findActivity
-import org.fptn.vpn.ui.common.legacyDrawableBackground
-import org.fptn.vpn.ui.theme.White
-import org.fptn.vpn.ui.theme.Yellow
-import org.fptn.vpn.utils.PermissionsUtils
-import org.fptn.vpn.utils.SharedPrefUtils
-import org.fptn.vpn.utils.startIfResolvable
-import org.fptn.vpn.exception.ErrorCode
-import androidx.core.net.toUri
-
-private const val TOKEN_MAX_AGE_MS = 14L * 24 * 60 * 60 * 1000
-private const val TOKEN_STALE_AGE_MS = 3L * 24 * 60 * 60 * 1000
-private const val CONNECT_FAILURES_BEFORE_HELP = 2
-
-// Matches home_layout.xml's `app:layout_constraintVertical_bias="0.38"` on the connect button,
-// which is constant — it does not vary by screen height.
-private const val CONNECT_BUTTON_VERTICAL_BIAS = 0.38f
-
-// In landscape the available height is much smaller, so the same bias would leave no room for
-// the status text / server dropdown / traffic card below the button — pin the button near the
-// top instead.
-private const val CONNECT_BUTTON_VERTICAL_BIAS_LANDSCAPE = 0f
+import org.fptn.vpn.ui.common.NavigationTab
+import org.fptn.vpn.ui.theme.AppPalette
+import org.fptn.vpn.ui.theme.LocalThemeController
+import org.fptn.vpn.ui.theme.LocalThemeState
+import org.fptn.vpn.ui.theme.MetricTypography
+import org.fptn.vpn.ui.theme.PingGood
+import org.fptn.vpn.ui.theme.StatusConnected
+import org.fptn.vpn.ui.theme.StatusConnecting
+import org.fptn.vpn.ui.theme.StatusDisconnected
+import org.fptn.vpn.ui.theme.ThemeMode
+import org.fptn.vpn.ui.theme.cardContainerColor
+import kotlin.math.PI
+import kotlin.math.sin
 
 /**
- * Compose port of the legacy `HomeActivity` / `home_layout.xml`. Reuses [HomeActivityViewModel]
- * unchanged. The connect button's vertical position (originally a ConstraintLayout bias against
- * the parent, independent of its siblings) is reproduced with a top spacer sized via
- * [CONNECT_BUTTON_VERTICAL_BIAS] against the actually measured available height, rather than
- * pulled in via `constraintlayout-compose`, matching how every other ported screen in this app
- * favors plain Compose layout primitives over new layout dependencies. Because the timer block
- * above the button is always composed (see below), its measured height is subtracted from the
- * spacer so the button itself still lands at the same bias-determined position regardless of
- * connection state, matching the original where the timer's GONE/visible height never affected
- * the button (its constraints ran straight to the parent, not through the timer). Similarly the
- * traffic card no longer stretches to fill the remaining space down to the bottom nav — it just
- * wraps its content, which reads the same in practice since the card was always top-aligned
- * within that space unless the (rarely toggled) speed chart was showing.
+ * Animated dual sinusoidal wave drawn on Compose Canvas.
+ * Active when VPN is connected, matching the visualizer in design references.
+ */
+@Composable
+fun AnimatedSineWave(
+    modifier: Modifier = Modifier,
+    waveColor: Color = MaterialTheme.colorScheme.primary,
+) {
+    val infiniteTransition = rememberInfiniteTransition(label = "waveTransition")
+    val phase by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = (2 * PI).toFloat(),
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 2800, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart,
+        ),
+        label = "phaseAnimation",
+    )
+
+    Canvas(modifier = modifier) {
+        val width = size.width
+        val height = size.height
+        val centerY = height / 2f
+        val amplitudePrimary = height * 0.28f
+        val amplitudeSecondary = height * 0.18f
+        val wavelength = width / 2.2f
+
+        // Secondary subtle background wave
+        val secondaryPath = Path()
+        val step = 4f
+        var x = 0f
+        secondaryPath.moveTo(0f, centerY)
+        while (x <= width) {
+            val relativeX = x / wavelength
+            val y = centerY + amplitudeSecondary * sin((relativeX * 2 * PI + phase * 1.3f).toDouble()).toFloat()
+            secondaryPath.lineTo(x, y)
+            x += step
+        }
+        drawPath(
+            path = secondaryPath,
+            color = waveColor.copy(alpha = 0.4f),
+            style = Stroke(width = 3.dp.toPx(), cap = StrokeCap.Round),
+        )
+
+        // Primary expressive wave
+        val primaryPath = Path()
+        x = 0f
+        primaryPath.moveTo(0f, centerY)
+        while (x <= width) {
+            val relativeX = x / wavelength
+            val y = centerY + amplitudePrimary * sin((relativeX * 2 * PI + phase).toDouble()).toFloat()
+            primaryPath.lineTo(x, y)
+            x += step
+        }
+        drawPath(
+            path = primaryPath,
+            color = waveColor,
+            style = Stroke(width = 4.dp.toPx(), cap = StrokeCap.Round),
+        )
+    }
+}
+
+/**
+ * Material Design 3 Expressive HomeScreen for FptnClient.
  */
 @Composable
 fun HomeScreen(
-    onNavigateSettings: () -> Unit,
-    onNavigateUpdateToken: () -> Unit,
-    onNavigateBypassMethods: () -> Unit,
-    viewModel: HomeActivityViewModel = viewModel(),
+    onNavigateServers: () -> Unit = {},
+    onNavigateStats: () -> Unit = {},
+    onNavigateSettings: () -> Unit = {},
+    onNavigateUpdateToken: () -> Unit = {},
+    onNavigateBypassMethods: () -> Unit = {},
+    viewModel: HomeViewModel = viewModel(),
 ) {
+    val uiState by viewModel.uiState.collectAsState()
+    val themeState = LocalThemeState.current
+    val themeController = LocalThemeController.current
+    val haptic = LocalHapticFeedback.current
     val context = LocalContext.current
-    val lifecycleOwner = LocalLifecycleOwner.current
-    val snackbarHostState = remember { SnackbarHostState() }
 
-    val serviceState by viewModel.serviceStateMutableLiveData.observeAsState(FptnServiceState.INITIAL)
-    val connectionState = serviceState.connectionState
-    val serverEntities by viewModel.serverDtoListLiveData.observeAsState(emptyList())
-    val timerText by viewModel.timerTextLiveData.observeAsState(stringResource(R.string.zero_time))
-    val downloadSpeed by viewModel.downloadSpeedAsStringLiveData.observeAsState(stringResource(R.string.zero_speed))
-    val uploadSpeed by viewModel.uploadSpeedAsStringLiveData.observeAsState(stringResource(R.string.zero_speed))
-    val statusText by viewModel.statusTextLiveData.observeAsState(stringResource(R.string.disconnected))
-    val connectedServerInfo by viewModel.connectedServerInfoLiveData.observeAsState(null)
-    val downloadTraffic by viewModel.downloadTrafficLiveData.observeAsState("0 B")
-    val uploadTraffic by viewModel.uploadTrafficLiveData.observeAsState("0 B")
-    val speedSample by viewModel.speedSampleLiveData.observeAsState(null)
-
-    var selectedServer by remember { mutableStateOf(ServerEntity.AUTO) }
-    var serverSelectionInitialized by remember { mutableStateOf(false) }
-    // Sticky "are we showing the connected layout" flag: flips on CONNECTED/DISCONNECTED/BLOCKED,
-    // left untouched on transitional states (CONNECTING, RECONNECTING, ...) — mirrors the legacy
-    // observer's `switch` with a no-op `default`, so e.g. a silent RECONNECTING episode keeps
-    // showing the connected UI instead of flashing back to the server dropdown.
-    var showConnectedUi by remember { mutableStateOf(false) }
-    var previousConnectionState by remember { mutableStateOf<ConnectionState?>(null) }
-    var isResumed by remember { mutableStateOf(false) }
-
-    var notificationsGranted by remember { mutableStateOf(PermissionsUtils.checkNotificationEnabled(context)) }
-    var batteryGranted by remember { mutableStateOf(PermissionsUtils.checkBatteryOptimizations(context)) }
-    var showTrafficChart by remember { mutableStateOf(SharedPrefUtils.getShowTrafficChart(context)) }
-    val isXiaomi = remember { PermissionsUtils.isXiaomi() }
-    var visitedPin by remember { mutableStateOf(false) }
-    val pinDone = !isXiaomi || visitedPin || SharedPrefUtils.isXiaomiPinDone(context)
-
-    var showBackgroundSetupDialog by remember { mutableStateOf(false) }
-    var connectAfterBackgroundSetup by remember { mutableStateOf(false) }
-    var notificationPermanentlyDenied by remember { mutableStateOf(false) }
-
-    var showTokenReminderDialog by remember { mutableStateOf(false) }
-    var showVpnSwitchDialog by remember { mutableStateOf(false) }
-    var showVpnSetupErrorDialog by remember { mutableStateOf(false) }
-    var showConnectFailedHelpDialog by remember { mutableStateOf(false) }
-    var connectFailedTokenStale by remember { mutableStateOf(false) }
-    var showShareDialog by remember { mutableStateOf(false) }
-
-    val needsBackgroundSetup = !notificationsGranted || !batteryGranted
-    val showPermissionWarning = connectionState == ConnectionState.CONNECTED && needsBackgroundSetup
-    val activeState = connectionState.isActiveState
+    LaunchedEffect(Unit) {
+        viewModel.loadActiveServer()
+    }
 
     val vpnPermissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.StartActivityForResult(),
+        contract = ActivityResultContracts.StartActivityForResult(),
     ) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
-            FptnService.startToConnect(context, selectedServer)
-        } else {
-            showVpnSetupErrorDialog = true
+            viewModel.startVpn()
         }
     }
 
-    val notificationPermissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission(),
-    ) { granted ->
-        if (!granted) {
-            val activity = context.findActivity()
-            if (activity != null && !activity.shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS)) {
-                notificationPermanentlyDenied = true
-            }
+    val handleConnectClick = {
+        if (themeState.hapticEnabled) {
+            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
         }
-        notificationsGranted = PermissionsUtils.checkNotificationEnabled(context)
-    }
-
-    fun connectVpn() {
-        val intent = VpnService.prepare(context)
-        if (intent != null) {
-            vpnPermissionLauncher.launch(intent)
-        } else {
-            viewModel.serviceStateMutableLiveData.postValue(FptnServiceState.FAKE_CONNECTING)
-            FptnService.startToConnect(context, selectedServer)
-        }
-    }
-
-    fun proceedToVpnConnect() {
-        if (PermissionsUtils.isAlwaysOnVpnEnabledByAnotherApp(context)) {
-            showVpnSwitchDialog = true
-            return
-        }
-        val tokenAge = System.currentTimeMillis() - SharedPrefUtils.getTokenUpdatedDate(context)
-        if (tokenAge >= TOKEN_MAX_AGE_MS) {
-            showTokenReminderDialog = true
-            return
-        }
-        connectVpn()
-    }
-
-    fun onToggleConnectClick() {
-        if (connectionState == ConnectionState.DISCONNECTED) {
-            if (SniCheckerService.getStaticState() == SniCheckerServiceState.ACTIVE) {
-                Toast.makeText(context, R.string.cannot_connect_sni_check_active, Toast.LENGTH_SHORT).show()
-                onNavigateBypassMethods()
-                return
-            }
-            if (needsBackgroundSetup) {
-                connectAfterBackgroundSetup = true
-                visitedPin = false
-                showBackgroundSetupDialog = true
-                return
-            }
-            proceedToVpnConnect()
-        } else if (connectionState.isActiveState) {
-            FptnService.startToDisconnect(context)
-        }
-    }
-
-    fun requestNotifications() {
-        if (PermissionsUtils.checkNotificationEnabled(context)) {
-            notificationsGranted = true
-            return
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !notificationPermanentlyDenied) {
-            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-        } else {
-            openNotificationSettings(context)
-        }
-    }
-
-    // Service binding (mirrors onStart/onStop) and ping-check gating (mirrors onResume/onPause;
-    // ping checking is only ever active while DISCONNECTED and the screen is in the foreground).
-    DisposableEffect(lifecycleOwner) {
-        var connection: ServiceConnection? = null
-        val observer = LifecycleEventObserver { _, event ->
-            when (event) {
-                Lifecycle.Event.ON_START -> {
-                    connection = object : ServiceConnection {
-                        override fun onServiceConnected(name: ComponentName, service: IBinder) {
-                            val localBinder = service as FptnService.LocalBinder
-                            viewModel.subscribeService(localBinder.service)
-                        }
-
-                        override fun onServiceDisconnected(name: ComponentName?) {
-                            viewModel.unsubscribe()
-                        }
-                    }.also { FptnService.bindService(context, it) }
-                }
-
-                Lifecycle.Event.ON_STOP -> {
-                    connection?.let {
-                        try {
-                            context.unbindService(it)
-                        } catch (e: Exception) {
-                            // Already unbound (e.g. service process gone) — nothing to clean up.
-                        }
-                    }
-                    connection = null
-                }
-
-                Lifecycle.Event.ON_RESUME -> {
-                    isResumed = true
-                    notificationsGranted = PermissionsUtils.checkNotificationEnabled(context)
-                    batteryGranted = PermissionsUtils.checkBatteryOptimizations(context)
-                    showTrafficChart = SharedPrefUtils.getShowTrafficChart(context)
-                }
-
-                Lifecycle.Event.ON_PAUSE -> {
-                    isResumed = false
-                }
-
-                else -> {}
-            }
-        }
-        lifecycleOwner.lifecycle.addObserver(observer)
-        onDispose {
-            lifecycleOwner.lifecycle.removeObserver(observer)
-            connection?.let {
-                try {
-                    context.unbindService(it)
-                } catch (e: Exception) {
-                    // Already unbound — nothing to clean up.
-                }
-            }
-        }
-    }
-
-    LaunchedEffect(connectionState, isResumed) {
-        if (connectionState == ConnectionState.DISCONNECTED && isResumed) {
-            viewModel.startCheckingPing()
-        } else {
-            viewModel.stopCheckingPing()
-        }
-    }
-
-    LaunchedEffect(connectionState) {
-        when (connectionState) {
-            ConnectionState.CONNECTED -> showConnectedUi = true
-            ConnectionState.DISCONNECTED, ConnectionState.BLOCKED -> showConnectedUi = false
-            else -> {}
-        }
-    }
-
-    // Re-pick the default server only on the edge into DISCONNECTED, not on every ping
-    // refresh while already disconnected — otherwise a user's manual dropdown pick would
-    // keep getting reset every 5 minutes as ping results stream in. Also keyed on
-    // serverEntities so the very first load (which lands after INITIAL's DISCONNECTED
-    // state is already composed) still applies the saved/AUTO selection once it arrives.
-    LaunchedEffect(connectionState, serverEntities) {
-        val enteringDisconnected = connectionState == ConnectionState.DISCONNECTED &&
-            previousConnectionState != ConnectionState.DISCONNECTED
-        if (serverEntities.isNotEmpty() && (enteringDisconnected || !serverSelectionInitialized)) {
-            selectedServer = if (SharedPrefUtils.getResetSelectedServerEnabled(context)) {
-                serverEntities[0]
+        if (uiState.connectionState == ConnectionState.DISCONNECTED) {
+            val prepareIntent = VpnService.prepare(context)
+            if (prepareIntent != null) {
+                vpnPermissionLauncher.launch(prepareIntent)
             } else {
-                serverEntities.firstOrNull { it.isSelected } ?: serverEntities[0]
+                viewModel.startVpn()
             }
-            serverSelectionInitialized = true
-        }
-        previousConnectionState = connectionState
-    }
-
-    LaunchedEffect(serviceState) {
-        val exception = serviceState.exception ?: return@LaunchedEffect
-        when {
-            exception.errorCode == ErrorCode.VPN_INTERFACE_ERROR -> showVpnSetupErrorDialog = true
-            ErrorCode.isNeedToOfferRefreshToken(exception.errorCode) -> {
-                val result = snackbarHostState.showSnackbar(
-                    message = statusText,
-                    actionLabel = context.getString(R.string.refresh_token),
-                    duration = SnackbarDuration.Long,
-                )
-                if (result == SnackbarResult.ActionPerformed) {
-                    context.startIfResolvable(
-                        Intent(
-                            Intent.ACTION_VIEW,
-                            context.getString(R.string.telegram_bot_link).toUri()
-                        )
-                    )
-                }
-            }
-
-            connectionState == ConnectionState.DISCONNECTED && ErrorCode.isServerUnreachable(exception.errorCode) -> {
-                if (SharedPrefUtils.getConnectFailedHelpEnabled(context) &&
-                    SharedPrefUtils.getConnectFailuresInRow(context) >= CONNECT_FAILURES_BEFORE_HELP
-                ) {
-                    SharedPrefUtils.saveConnectFailuresInRow(context, 0)
-                    if (!showConnectFailedHelpDialog) {
-                        connectFailedTokenStale = System.currentTimeMillis() -
-                          SharedPrefUtils.getTokenUpdatedDate(context) > TOKEN_STALE_AGE_MS
-                        showConnectFailedHelpDialog = true
-                    }
-                }
-            }
+        } else {
+            viewModel.disconnectVpn()
         }
     }
 
-    // Request the quick-settings tile once, same as the legacy Activity's onCreate.
-    LaunchedEffect(Unit) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-            !SharedPrefUtils.isQuickSettingsTileRequested(context)
-        ) {
-            try {
-                val statusBarManager = context.getSystemService(StatusBarManager::class.java)
-                statusBarManager?.requestAddTileService(
-                    ComponentName(context, FptnTileService::class.java),
-                    "FPTN",
-                    Icon.createWithResource(context, R.drawable.ic_logo),
-                    context.mainExecutor,
-                ) { resultCode ->
-                    when (resultCode) {
-                        StatusBarManager.TILE_ADD_REQUEST_RESULT_TILE_ALREADY_ADDED ->
-                            Toast.makeText(context, R.string.tile_already_added, Toast.LENGTH_SHORT).show()
-
-                        StatusBarManager.TILE_ADD_REQUEST_RESULT_TILE_ADDED ->
-                            Toast.makeText(context, R.string.tile_added_successfully, Toast.LENGTH_SHORT).show()
-
-                        else -> {}
-                    }
-                }
-            } catch (e: Exception) {
-                Toast.makeText(context, R.string.tile_addition_failed, Toast.LENGTH_SHORT).show()
-            }
-            SharedPrefUtils.saveQuickSettingsTileRequested(context, true)
-        }
-    }
-
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background),
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .legacyDrawableBackground(R.drawable.application_background)
-                // Excludes the bottom side deliberately: BottomNavBar consumes the navigation-bar
-                // inset itself so its background reaches the real screen edge instead of floating
-                // above it with the screen background showing through underneath (see
-                // BottomNavBar's window insets listener).
-                .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal)),
+                .statusBarsPadding()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 20.dp),
         ) {
-            if (showPermissionWarning) {
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // 1. Top Bar / App Header with Palette & Theme toggles
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_logo_24),
+                        contentDescription = "App Logo",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(28.dp),
+                    )
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Text(
+                        text = "FPTN VPN",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onBackground,
+                    )
+                }
+
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    // Palette cycle chip (Lilac -> Forest -> Ocean)
+                    Surface(
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        modifier = Modifier
+                            .size(38.dp)
+                            .clip(CircleShape)
+                            .clickable {
+                                val nextPalette = when (themeState.palette) {
+                                    AppPalette.LILAC -> AppPalette.FOREST
+                                    AppPalette.FOREST -> AppPalette.OCEAN
+                                    AppPalette.OCEAN -> AppPalette.LILAC
+                                }
+                                themeController.setPalette(nextPalette)
+                            },
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_experimental_features_24),
+                                contentDescription = "Switch Palette",
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(20.dp),
+                            )
+                        }
+                    }
+
+                    // Theme Mode toggle (Light / Dark)
+                    Surface(
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        modifier = Modifier
+                            .size(38.dp)
+                            .clip(CircleShape)
+                            .clickable {
+                                val nextMode = if (themeState.themeMode == ThemeMode.DARK) {
+                                    ThemeMode.LIGHT
+                                } else {
+                                    ThemeMode.DARK
+                                }
+                                themeController.setThemeMode(nextMode)
+                            },
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_baseline_settings_24),
+                                contentDescription = "Settings",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(20.dp),
+                            )
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // 2. Dismissible Notification / Announcement Card
+            if (uiState.isNoticeVisible) {
+                Surface(
+                    shape = RoundedCornerShape(20.dp),
+                    color = MaterialTheme.cardContainerColor,
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Row(
+                        modifier = Modifier.padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.primaryContainer),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.bell_ring_24),
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                modifier = Modifier.size(20.dp),
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = uiState.noticeTitle,
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurface,
+                            )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = uiState.noticeMessage,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Icon(
+                            painter = painterResource(R.drawable.ic_baseline_close_24),
+                            contentDescription = "Dismiss notice",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier
+                                .size(20.dp)
+                                .clip(CircleShape)
+                                .clickable { viewModel.dismissNotice() },
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(20.dp))
+            }
+
+            // 3. Status Header
+            Column {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = "FPTN VPN",
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary,
+                        letterSpacing = 1.2.sp,
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Box(
+                        modifier = Modifier
+                            .size(6.dp)
+                            .clip(CircleShape)
+                            .background(
+                                when (uiState.connectionState) {
+                                    ConnectionState.CONNECTED -> StatusConnected
+                                    ConnectionState.CONNECTING -> StatusConnecting
+                                    else -> StatusDisconnected
+                                },
+                            ),
+                    )
+                }
+                Spacer(modifier = Modifier.height(4.dp))
+                val headerTitle = when (uiState.connectionState) {
+                    ConnectionState.CONNECTED -> "Подключение активно"
+                    ConnectionState.CONNECTING -> "Подключение..."
+                    else -> "Туннель отключён"
+                }
+                Text(
+                    text = headerTitle,
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onBackground,
+                )
+            }
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            // 4. Status / Timer / Ping Pills Row
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                // Status Pill
+                val statusDotColor = when (uiState.connectionState) {
+                    ConnectionState.CONNECTED -> StatusConnected
+                    ConnectionState.CONNECTING -> StatusConnecting
+                    else -> StatusDisconnected
+                }
+                val statusLabel = when (uiState.connectionState) {
+                    ConnectionState.CONNECTED -> "Подключено"
+                    ConnectionState.CONNECTING -> "Подключение..."
+                    else -> "Отключено"
+                }
+                Surface(
+                    shape = RoundedCornerShape(percent = 50),
+                    color = MaterialTheme.cardContainerColor,
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 7.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Canvas(modifier = Modifier.size(8.dp)) {
+                            drawCircle(color = statusDotColor)
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = statusLabel,
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                    }
+                }
+
+                // Session Timer Pill (visible when connected/connecting)
+                if (uiState.connectionState != ConnectionState.DISCONNECTED) {
+                    Surface(
+                        shape = RoundedCornerShape(percent = 50),
+                        color = MaterialTheme.cardContainerColor,
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 7.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(
+                                text = "⏱ ",
+                                fontSize = 12.sp,
+                            )
+                            Text(
+                                text = uiState.sessionTimerText,
+                                style = MetricTypography.Timer,
+                                fontSize = 13.sp,
+                                color = MaterialTheme.colorScheme.onSurface,
+                            )
+                        }
+                    }
+                }
+
+                // Ping Pill
+                val hasPing = uiState.pingMs > 0
+                val pingColor = when {
+                    !hasPing -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                    uiState.pingMs < 80 -> PingGood
+                    uiState.pingMs < 150 -> MaterialTheme.colorScheme.primary
+                    else -> MaterialTheme.colorScheme.error
+                }
+
+                Surface(
+                    shape = RoundedCornerShape(percent = 50),
+                    color = MaterialTheme.cardContainerColor,
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 7.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Canvas(modifier = Modifier.size(6.dp)) {
+                            drawCircle(color = pingColor)
+                        }
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = if (hasPing) "${uiState.pingMs} мс" else "—",
+                            style = MetricTypography.Latency,
+                            fontSize = 13.sp,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // 5. Active Server Card (Clickable to open ServersScreen)
+            Surface(
+                shape = RoundedCornerShape(20.dp),
+                color = MaterialTheme.cardContainerColor,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(20.dp))
+                    .clickable { onNavigateServers() },
+            ) {
+                Row(
+                    modifier = Modifier.padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    // Flag Container
+                    Box(
+                        modifier = Modifier
+                            .size(46.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.surfaceVariant),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(
+                            text = uiState.serverFlag,
+                            fontSize = 24.sp,
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(14.dp))
+
+                    Column(modifier = Modifier.weight(1f)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = "Активный сервер",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.primary,
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Surface(
+                                shape = RoundedCornerShape(4.dp),
+                                color = MaterialTheme.colorScheme.primaryContainer,
+                            ) {
+                                Text(
+                                    text = uiState.serverProtocol.uppercase(),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    fontSize = 9.sp,
+                                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp),
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = uiState.serverName,
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                        val pingLabel = if (uiState.pingMs > 0) "${uiState.pingMs} мс" else "пинг не измерен"
+                        Text(
+                            text = "${uiState.serverRegion} • $pingLabel",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+
+                    Icon(
+                        painter = painterResource(R.drawable.ic_outline_arrow_forward_ios_16),
+                        contentDescription = "Choose server",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(16.dp),
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // 6. Connect Button / Interactive Capsule
+            Surface(
+                shape = RoundedCornerShape(percent = 50),
+                color = when (uiState.connectionState) {
+                    ConnectionState.CONNECTED -> MaterialTheme.colorScheme.primaryContainer
+                    ConnectionState.CONNECTING -> MaterialTheme.colorScheme.secondaryContainer
+                    else -> MaterialTheme.colorScheme.primary
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(72.dp)
+                    .clip(RoundedCornerShape(percent = 50))
+                    .clickable { handleConnectClick() },
+            ) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    when (uiState.connectionState) {
+                        ConnectionState.CONNECTED -> {
+                            AnimatedSineWave(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(44.dp)
+                                    .padding(horizontal = 24.dp),
+                                waveColor = MaterialTheme.colorScheme.primary,
+                            )
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center,
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(8.dp)
+                                            .clip(CircleShape)
+                                            .background(StatusConnected),
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = "Подключено",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    )
+                                }
+                                Text(
+                                    text = "Нажмите для отключения",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.75f),
+                                )
+                            }
+                        }
+
+                        ConnectionState.CONNECTING -> {
+                            Row(
+                                horizontalArrangement = Arrangement.Center,
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(22.dp),
+                                    strokeWidth = 2.5.dp,
+                                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                )
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Column {
+                                    Text(
+                                        text = "Подключение...",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                    )
+                                    Text(
+                                        text = "Нажмите для отмены",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.75f),
+                                    )
+                                }
+                            }
+                        }
+
+                        else -> {
+                            Row(
+                                horizontalArrangement = Arrangement.Center,
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.toggle_button_on),
+                                    contentDescription = "Connect",
+                                    tint = MaterialTheme.colorScheme.onPrimary,
+                                    modifier = Modifier.size(24.dp),
+                                )
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Text(
+                                    text = "Подключиться",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 17.sp,
+                                    color = MaterialTheme.colorScheme.onPrimary,
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // 7. Telemetry & Data Traffic Summary Card
+            Surface(
+                shape = RoundedCornerShape(20.dp),
+                color = MaterialTheme.cardContainerColor,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
+                modifier = Modifier.fillMaxWidth(),
+            ) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable {
-                            connectAfterBackgroundSetup = false
-                            visitedPin = false
-                            showBackgroundSetupDialog = true
-                        }
-                        .padding(8.dp),
-                    horizontalArrangement = Arrangement.Center,
+                        .padding(horizontal = 16.dp, vertical = 14.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Image(
-                        painter = painterResource(R.drawable.warning),
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp),
-                    )
-                    Text(
-                        text = stringResource(R.string.permission_warning_text),
-                        color = White,
-                        fontSize = 12.sp,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(start = 6.dp),
-                    )
-                }
-            }
-
-            BoxWithConstraints(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-                    .padding(10.dp),
-            ) {
-                val availableHeight = maxHeight
-                val buttonSize = dimensionResource(R.dimen.toggle_button_size)
-                val density = LocalDensity.current
-                val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
-                val verticalBias =
-                    if (isLandscape) CONNECT_BUTTON_VERTICAL_BIAS_LANDSCAPE else CONNECT_BUTTON_VERTICAL_BIAS
-                // Always composed (never conditionally removed) so it reserves the same layout
-                // space whether shown or not — otherwise the button below would jump down by the
-                // timer's height the moment it appears on connect. The legacy ConstraintLayout
-                // avoided this because the button's position came from its own bias against the
-                // parent, independent of the timer view above it; here the timer's measured
-                // height is subtracted from the spacer below instead, so the button still lands
-                // at the same bias-determined position either way.
-                var timerHeight by remember { mutableStateOf(0.dp) }
-                val spacerHeight = ((availableHeight - buttonSize) * verticalBias - timerHeight)
-                    .coerceAtLeast(0.dp)
-
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .verticalScroll(rememberScrollState()),
-                ) {
-                    Spacer(modifier = Modifier.height(spacerHeight))
-
+                    // Download Column (fixed 50% width)
                     Column(
+                        modifier = Modifier.weight(1f),
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier
-                            .alpha(if (showConnectedUi) 1f else 0f)
-                            .then(if (showConnectedUi) Modifier else Modifier.semantics { hideFromAccessibility() })
-                            .onSizeChanged { size -> timerHeight = with(density) { size.height.toDp() } },
                     ) {
-                        Text(text = stringResource(R.string.connection_time), color = White)
-                        Text(text = timerText, color = White, modifier = Modifier.padding(bottom = 4.dp))
-                    }
-
-                    Image(
-                        painter = painterResource(if (activeState) R.drawable.toggle_button_on else R.drawable.toggle_button_off),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(buttonSize)
-                            .clickable(
-                                interactionSource = remember { MutableInteractionSource() },
-                                indication = null,
-                            ) { onToggleConnectClick() },
-                    )
-
-                    Text(
-                        text = statusText,
-                        color = Yellow,
-                        modifier = Modifier.padding(top = 4.dp, bottom = 4.dp),
-                    )
-
-                    if (showConnectedUi) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(bottom = 6.dp),
-                        ) {
-                            Text(
-                                text = stringResource(R.string.server_label),
-                                color = White,
-                                modifier = Modifier.padding(end = 5.dp)
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                painter = painterResource(R.drawable.download),
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(16.dp),
                             )
-                            Text(text = connectedServerInfo.orEmpty(), color = White, maxLines = 2)
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = "Загрузка",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
                         }
-                    } else {
-                        ServerDropdown(
-                            servers = serverEntities,
-                            selected = selectedServer,
-                            onSelect = { selectedServer = it },
-                            enabled = !activeState,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .heightIn(min = 36.dp)
-                                .padding(top = 16.dp),
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = if (uiState.connectionState == ConnectionState.CONNECTED) uiState.downloadSpeed else "0 Б/с",
+                            style = MetricTypography.HeroCounter,
+                            fontSize = 19.sp,
+                            maxLines = 1,
+                            softWrap = false,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = "Всего: ${uiState.downloadTraffic}",
+                            style = MetricTypography.Traffic,
+                            fontSize = 11.sp,
+                            maxLines = 1,
+                            softWrap = false,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
 
-                    if (showConnectedUi) {
-                        TrafficCard(
-                            downloadSpeed = downloadSpeed,
-                            uploadSpeed = uploadSpeed,
-                            downloadTraffic = downloadTraffic,
-                            uploadTraffic = uploadTraffic,
-                            showChart = showTrafficChart,
-                            speedSample = speedSample,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(top = 8.dp),
+                    // Vertical Divider
+                    Box(
+                        modifier = Modifier
+                            .width(1.dp)
+                            .height(48.dp)
+                            .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
+                    )
+
+                    // Upload Column (fixed 50% width)
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                painter = painterResource(R.drawable.upload),
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.secondary,
+                                modifier = Modifier.size(16.dp),
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = "Отдача",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = if (uiState.connectionState == ConnectionState.CONNECTED) uiState.uploadSpeed else "0 Б/с",
+                            style = MetricTypography.HeroCounter,
+                            fontSize = 19.sp,
+                            maxLines = 1,
+                            softWrap = false,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = "Всего: ${uiState.uploadTraffic}",
+                            style = MetricTypography.Traffic,
+                            fontSize = 11.sp,
+                            maxLines = 1,
+                            softWrap = false,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                 }
             }
 
-            BottomNavBar(
-                isHomeScreen = true,
-                isSettingsScreen = false,
-                onNavigateHome = {},
-                onNavigateSettings = onNavigateSettings,
-                onShare = { showShareDialog = true },
-                settingsEnabled = !activeState,
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // 8. Service Status Chips
+            Text(
+                text = "Доступность сервисов",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onBackground,
             )
+            Spacer(modifier = Modifier.height(10.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                uiState.services.take(2).forEach { service ->
+                    Surface(
+                        shape = RoundedCornerShape(16.dp),
+                        color = MaterialTheme.cardContainerColor,
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Canvas(modifier = Modifier.size(8.dp)) {
+                                drawCircle(color = if (service.isAvailable) StatusConnected else StatusDisconnected)
+                            }
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Column {
+                                Text(
+                                    text = service.name,
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                )
+                                Text(
+                                    text = if (service.pingMs > 0) "${service.pingMs} мс" else "—",
+                                    style = MetricTypography.Latency,
+                                    fontSize = 11.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Bottom space clearance for navigation bar
+            Spacer(modifier = Modifier.height(110.dp))
         }
 
-        SnackbarHost(
-            hostState = snackbarHostState,
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(bottom = 56.dp),
-        )
-    }
-
-    if (showShareDialog) {
-        ShareDialog(onDismiss = { showShareDialog = false })
-    }
-
-    if (showTokenReminderDialog) {
-        TokenReminderDialog(
-            onUpdateToken = {
-                showTokenReminderDialog = false
-                onNavigateUpdateToken()
-            },
-            onLater = {
-                showTokenReminderDialog = false
-                connectVpn()
-            },
-        )
-    }
-
-    if (showVpnSwitchDialog) {
-        VpnSwitchDialog(
-            onSwitch = {
-                showVpnSwitchDialog = false
-                connectVpn()
-            },
-            onCancel = { showVpnSwitchDialog = false },
-        )
-    }
-
-    if (showVpnSetupErrorDialog) {
-        VpnSetupErrorDialog(
-            onOk = { showVpnSetupErrorDialog = false },
-            onOpenVpnSettings = {
-                showVpnSetupErrorDialog = false
-                context.startIfResolvable(Intent(Settings.ACTION_VPN_SETTINGS))
-            },
-        )
-    }
-
-    if (showBackgroundSetupDialog) {
-        BackgroundSetupDialog(
-            notificationsGranted = notificationsGranted,
-            batteryGranted = batteryGranted,
-            pinDone = pinDone,
-            isXiaomi = isXiaomi,
-            onRequestNotifications = { requestNotifications() },
-            onRequestBattery = {
-                SharedPrefUtils.saveBatteryOptimizationRequested(context, true)
-                openBatteryOptimizationSettings(context)
-            },
-            onOpenPin = {
-                visitedPin = true
-                SharedPrefUtils.saveXiaomiPinDone(context, true)
-                PermissionsUtils.openMiuiSecurityApp(context)
-            },
-            onDismiss = { showBackgroundSetupDialog = false },
-            onDone = {
-                showBackgroundSetupDialog = false
-                if (connectAfterBackgroundSetup) {
-                    proceedToVpnConnect()
-                }
-            },
-        )
-    }
-
-    if (showConnectFailedHelpDialog) {
-        ConnectFailedHelpDialog(
-            tokenIsStale = connectFailedTokenStale,
-            onGetToken = {
-                showConnectFailedHelpDialog = false
-                onNavigateUpdateToken()
-            },
-            onBypass = {
-                showConnectFailedHelpDialog = false
-                onNavigateBypassMethods()
-            },
-            onDismiss = { showConnectFailedHelpDialog = false },
+        // Bottom Navigation Bar
+        BottomNavBar(
+            currentTab = NavigationTab.HOME,
+            onNavigateHome = {},
+            onNavigateServers = onNavigateServers,
+            onNavigateStats = onNavigateStats,
+            onNavigateSettings = onNavigateSettings,
+            modifier = Modifier.align(Alignment.BottomCenter),
         )
     }
 }
-
-private fun openNotificationSettings(context: Context) {
-    try {
-        val intent = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
-        intent.putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
-        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-        context.startActivity(intent)
-    } catch (e: Exception) {
-        PermissionsUtils.openMiuiBackgroundSettings(context)
-    }
-}
-
-private fun openBatteryOptimizationSettings(context: Context) {
-    try {
-        val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
-        intent.data = Uri.parse("package:" + context.packageName)
-        context.startActivity(intent)
-    } catch (e: Exception) {
-        PermissionsUtils.openMiuiBackgroundSettings(context)
-    }
-}
-
