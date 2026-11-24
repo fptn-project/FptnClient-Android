@@ -49,6 +49,7 @@ import com.elvishew.xlog.XLog
 import org.fptn.vpn.R
 import org.fptn.vpn.enums.AppLogLevel
 import org.fptn.vpn.ui.common.BottomNavBar
+import org.fptn.vpn.ui.common.NavigationTab
 import org.fptn.vpn.ui.common.HtmlLinkText
 import org.fptn.vpn.ui.common.LegacySpinner
 import org.fptn.vpn.ui.common.ShareDialog
@@ -72,6 +73,8 @@ private const val TAG = "SettingsScreen"
 fun SettingsScreen(
     onLoggedOut: () -> Unit,
     onNavigateHome: () -> Unit,
+    onNavigateServers: () -> Unit = {},
+    onNavigateStats: () -> Unit = {},
     onNavigateUpdateToken: () -> Unit,
     onNavigateBypassMethods: () -> Unit,
     onNavigatePerAppVpnMode: () -> Unit,
@@ -306,9 +309,12 @@ fun SettingsScreen(
         }
 
         BottomNavBar(
+            currentTab = NavigationTab.SETTINGS,
             isHomeScreen = false,
             isSettingsScreen = true,
             onNavigateHome = onNavigateHome,
+            onNavigateServers = onNavigateServers,
+            onNavigateStats = onNavigateStats,
             onNavigateSettings = {},
             onShare = { showShareDialog = true },
         )
