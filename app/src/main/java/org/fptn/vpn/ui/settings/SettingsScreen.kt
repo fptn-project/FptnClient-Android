@@ -39,7 +39,6 @@ import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -356,13 +355,7 @@ fun SettingsScreen(
     if (showClearLogsConfirm) {
         AlertDialog(
             onDismissRequest = { showClearLogsConfirm = false },
-            title = {
-                Text(
-                    stringResource(R.string.dialog_clear_logs_title),
-                    modifier = Modifier.fillMaxWidth(),
-                    textAlign = TextAlign.Center,
-                )
-            },
+            title = { Text(stringResource(R.string.dialog_clear_logs_title)) },
             text = { Text(stringResource(R.string.dialog_clear_logs_message)) },
             confirmButton = {
                 TextButton(onClick = {
